@@ -1,21 +1,34 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import {
   runCctvLayerEnableFocus,
   runCctvLayerEnableTransition,
 } from './cctvFocusPolicy.js';
 
 test('CCTV layer enable activates nearest without stealing a tracked or cockpit view', () => {
-  for (const ownership of [
-    { trackedEntity: { id: 'tracked-plane' }, cockpitActive: false },
-    { trackedEntity: null, cockpitActive: true },
-  ]) {
+  for (const ownership of [{
+        trackedEntity: {
+          id: 'tracked-plane'
+        },
+        cockpitActive: false
+      },
+      {
+        trackedEntity: null,
+        cockpitActive: true
+      },
+    ]) {
     const calls = [];
     const result = runCctvLayerEnableFocus({
       ...ownership,
       activate: () => {
-        calls.push(['nearest', { focus: false }]);
+        calls.push(['nearest', {
+          focus: false
+        }]);
         return 'cam-near';
       },
       fly: (cameraId) => {
@@ -25,13 +38,19 @@ test('CCTV layer enable activates nearest without stealing a tracked or cockpit 
     });
 
     assert.equal(result, 'cam-near');
-    assert.deepEqual(calls, [['nearest', { focus: false }]]);
+    assert.deepEqual(calls, [
+      ['nearest', {
+        focus: false
+      }]
+    ]);
   }
 
   const calls = [];
   const result = runCctvLayerEnableFocus({
     activate: () => {
-      calls.push(['nearest', { focus: false }]);
+      calls.push(['nearest', {
+        focus: false
+      }]);
       return 'cam-near';
     },
     fly: (cameraId) => {
@@ -42,18 +61,25 @@ test('CCTV layer enable activates nearest without stealing a tracked or cockpit 
 
   assert.equal(result, 'focused');
   assert.deepEqual(calls, [
-    ['nearest', { focus: false }],
+    ['nearest', {
+      focus: false
+    }],
     ['fly', 'cam-near'],
   ]);
 });
 
 test('CCTV enable retains a pre-await tracking snapshot when tracking clears during enable', async () => {
-  let trackedEntity = { id: 'tracked-plane' };
+  let trackedEntity = {
+    id: 'tracked-plane'
+  };
   let flyCalls = 0;
   const diagnostics = [];
   const result = await runCctvLayerEnableTransition({
     target: true,
-    readOwnership: () => ({ trackedEntity, cockpitActive: false }),
+    readOwnership: () => ({
+      trackedEntity,
+      cockpitActive: false
+    }),
     setEnabled: async () => {
       await Promise.resolve();
       trackedEntity = null;
@@ -83,7 +109,12 @@ test('CCTV disable transition does not emit enable-ownership diagnostics', async
 
   const result = await runCctvLayerEnableTransition({
     target: false,
-    readOwnership: () => ({ trackedEntity: { id: 'tracked-plane' }, cockpitActive: false }),
+    readOwnership: () => ({
+      trackedEntity: {
+        id: 'tracked-plane'
+      },
+      cockpitActive: false
+    }),
     setEnabled: async (target) => transitions.push(target),
     shouldFocus: () => true,
     activate: () => 'cam-near',
@@ -96,17 +127,21 @@ test('CCTV disable transition does not emit enable-ownership diagnostics', async
   assert.deepEqual(diagnostics, []);
 });
 
-
 test('a disposed UI cannot activate a camera when enabling finishes late', async () => {
   let release;
   let disposed = false;
   let activations = 0;
   const pending = runCctvLayerEnableTransition({
     target: true,
-    setEnabled: () => new Promise((resolve) => { release = resolve; }),
+    setEnabled: () => new Promise((resolve) => {
+      release = resolve;
+    }),
     readOwnership: () => ({}),
     shouldFocus: () => !disposed,
-    activate: () => { activations++; return 'camera-a'; },
+    activate: () => {
+      activations++;
+      return 'camera-a';
+    },
     fly: () => assert.fail('disposed UI must not fly'),
     debug: () => {},
   });
