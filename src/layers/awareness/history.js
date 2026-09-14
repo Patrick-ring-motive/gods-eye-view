@@ -1,4 +1,9 @@
-export function createHistory({ state: layerState, services, parts, source }) {
+export function createHistory({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const militaryFlightsLayer = services.military;
   const flightsLayer = services.flights;
 
@@ -21,16 +26,19 @@ export function createHistory({ state: layerState, services, parts, source }) {
    */
 
   function focusCompatibleHistory(
-    direction,
-    { targetLayer, aircraftClass, aircraftOnly, origin = 'programmatic' },
+    direction, {
+      targetLayer,
+      aircraftClass,
+      aircraftOnly,
+      origin = 'programmatic'
+    },
   ) {
     let cursor = layerState.navigationIndex;
     for (;;) {
       const historyIndex = findCompatibleHistoryIndex(
         layerState.navigationHistory,
         cursor,
-        direction,
-        {
+        direction, {
           targetLayer,
           aircraftClass,
           aircraftOnly,
@@ -41,8 +49,9 @@ export function createHistory({ state: layerState, services, parts, source }) {
       if (
         parts.focus.focusSubject(
           layerState.navigationHistory[historyIndex],
-          true,
-          { origin },
+          true, {
+            origin
+          },
         )
       ) {
         layerState.navigationIndex = historyIndex;
@@ -55,8 +64,7 @@ export function createHistory({ state: layerState, services, parts, source }) {
   }
 
   function navigateHistory(
-    direction,
-    {
+    direction, {
       targetLayer = null,
       aircraftClass = null,
       aircraftOnly = false,
@@ -78,8 +86,11 @@ export function createHistory({ state: layerState, services, parts, source }) {
     let targets = parts.navigation.selectNavigationTargets(
       layerState.results?.cohorts,
       layerState.subject,
-      [...layerState.navigationVisited],
-      { targetLayer, aircraftClass, aircraftOnly },
+      [...layerState.navigationVisited], {
+        targetLayer,
+        aircraftClass,
+        aircraftOnly
+      },
     );
     const targetHistoryFullyVisited =
       targets.length > 0 && targets.every((target) => target.visited);
@@ -97,8 +108,9 @@ export function createHistory({ state: layerState, services, parts, source }) {
         return parts.focus.requestFocus(
           expanded.candidate.layerId,
           expanded.candidate.id,
-          false,
-          { origin },
+          false, {
+            origin
+          },
         );
       }
     }
@@ -107,8 +119,11 @@ export function createHistory({ state: layerState, services, parts, source }) {
       targets = parts.navigation.selectNavigationTargets(
         layerState.results?.cohorts,
         layerState.subject,
-        [...layerState.navigationVisited],
-        { targetLayer, aircraftClass, aircraftOnly },
+        [...layerState.navigationVisited], {
+          targetLayer,
+          aircraftClass,
+          aircraftOnly
+        },
       );
     }
     const hasNearbyFlight = targets.some((target) =>
@@ -127,8 +142,9 @@ export function createHistory({ state: layerState, services, parts, source }) {
         return parts.focus.requestFocus(
           expanded.candidate.layerId,
           expanded.candidate.id,
-          false,
-          { origin },
+          false, {
+            origin
+          },
         );
       }
     }
@@ -150,7 +166,7 @@ export function createHistory({ state: layerState, services, parts, source }) {
     return (
       items.find(
         (item) =>
-          String(item?.icao24 || item?.mmsi || item?.id) === String(subject.id),
+        String(item?.icao24 || item?.mmsi || item?.id) === String(subject.id),
       ) || subject
     );
   }
@@ -164,7 +180,12 @@ export function createHistory({ state: layerState, services, parts, source }) {
       sourceItem?.type ||
       subject?.aircraftClass ||
       null;
-    return aircraftClass ? { ...subject, aircraftClass } : { ...subject };
+    return aircraftClass ? {
+      ...subject,
+      aircraftClass
+    } : {
+      ...subject
+    };
   }
 
   function historySourceItem(subject) {
@@ -186,10 +207,12 @@ export function createHistory({ state: layerState, services, parts, source }) {
       subject.layerId === 'military' ? militaryFlightsLayer : flightsLayer;
     return (
       layer
-        .getNearby(subject.position, 1000, 25, { includeHidden: true })
-        .find(
-          (item) => String(item?.icao24 || item?.id) === String(subject.id),
-        ) || null
+      .getNearby(subject.position, 1000, 25, {
+        includeHidden: true
+      })
+      .find(
+        (item) => String(item?.icao24 || item?.id) === String(subject.id),
+      ) || null
     );
   }
 
@@ -198,8 +221,7 @@ export function createHistory({ state: layerState, services, parts, source }) {
   function findCompatibleHistoryIndex(
     history,
     startIndex,
-    direction,
-    {
+    direction, {
       targetLayer = null,
       aircraftClass = null,
       aircraftOnly = false,
@@ -208,9 +230,7 @@ export function createHistory({ state: layerState, services, parts, source }) {
   ) {
     const step = direction < 0 ? -1 : 1;
     for (
-      let index = startIndex + step;
-      index >= 0 && index < history.length;
-      index += step
+      let index = startIndex + step; index >= 0 && index < history.length; index += step
     ) {
       const subject = history[index];
       if (aircraftOnly && !parts.navigation.isFlightLayer(subject?.layerId))
