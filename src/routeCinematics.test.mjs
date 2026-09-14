@@ -33,7 +33,11 @@ import {
 } from './cameraVerbs.js';
 
 const FRAME_S = 1 / 60;
-const CRUISE_M_S = { slow: 20, normal: 40, fast: 90 };
+const CRUISE_M_S = {
+  slow: 20,
+  normal: 40,
+  fast: 90
+};
 
 /**
  * Roll of an applied camera frame, in degrees, + = right wing down. This is
@@ -61,7 +65,9 @@ function rollDegOf(eye, direction, up) {
  * that, a pin can only prove the code called setView — not that the horizon
  * the user is left holding is level.
  */
-function createTickableViewer({ heightM = 700 } = {}) {
+function createTickableViewer({
+  heightM = 700
+} = {}) {
   const listeners = [];
   const setViews = [];
   // The tick derives dt from the wall clock, so a synchronous test loop would
@@ -69,7 +75,9 @@ function createTickableViewer({ heightM = 700 } = {}) {
   // clock and step it explicitly.
   const realPerformance = globalThis.performance;
   let nowMs = 0;
-  globalThis.performance = { now: () => nowMs };
+  globalThis.performance = {
+    now: () => nowMs
+  };
   const position = Cesium.Cartesian3.fromDegrees(-97.76, 30.26, heightM);
   const camera = {
     positionWC: position,
@@ -98,9 +106,19 @@ function createTickableViewer({ heightM = 700 } = {}) {
   };
   const viewer = {
     trackedEntity: undefined,
-    clock: { onTick: { addEventListener: (fn) => { listeners.push(fn); return () => {}; } } },
+    clock: {
+      onTick: {
+        addEventListener: (fn) => {
+          listeners.push(fn);
+          return () => {};
+        }
+      }
+    },
     scene: {
-      canvas: { addEventListener() {}, removeEventListener() {} },
+      canvas: {
+        addEventListener() {},
+        removeEventListener() {}
+      },
       tweens: [],
       requestRender() {},
       // A live app has a rendered surface under the route; the mesh probe reads
@@ -117,7 +135,9 @@ function createTickableViewer({ heightM = 700 } = {}) {
       for (const fn of listeners) fn();
     },
     rollDeg: () => Cesium.Math.toDegrees(camera.roll),
-    restore: () => { globalThis.performance = realPerformance; },
+    restore: () => {
+      globalThis.performance = realPerformance;
+    },
   };
 }
 
@@ -144,11 +164,17 @@ function flightFrom(lonLat, options = {}) {
   for (let i = 1; i < pts.length; i += 1) {
     cumM.push(cumM[i - 1] + Cesium.Cartesian3.distance(pts[i - 1], pts[i]));
   }
-  return createRouteFlight({ pts, cumM, ...options });
+  return createRouteFlight({
+    pts,
+    cumM,
+    ...options
+  });
 }
 
 /** Fly the whole route at a fixed frame rate and record every frame. */
-function record(flight, { maxFrames = 20000 } = {}) {
+function record(flight, {
+  maxFrames = 20000
+} = {}) {
   const frames = [];
   for (let i = 0; i < maxFrames; i += 1) {
     const frame = advanceRouteFlight(flight, FRAME_S);
@@ -187,7 +213,11 @@ const TWO_TURN_ROUTE = [
   [-97.7350, 30.2800],
   [-97.7220, 30.2800],
 ];
-const STRAIGHT_ROUTE = [[-97.76, 30.26], [-97.70, 30.26], [-97.64, 30.26]];
+const STRAIGHT_ROUTE = [
+  [-97.76, 30.26],
+  [-97.70, 30.26],
+  [-97.64, 30.26]
+];
 
 test('the speed profile eases in and out with no step anywhere', () => {
   const flight = flightFrom(TWO_TURN_ROUTE);
@@ -218,7 +248,9 @@ test('the speed profile eases in and out with no step anywhere', () => {
 
 test('easing preserves the shipped pace — mean speed is still the speed word', () => {
   for (const speed of ['slow', 'normal', 'fast']) {
-    const flight = flightFrom(TWO_TURN_ROUTE, { speed });
+    const flight = flightFrom(TWO_TURN_ROUTE, {
+      speed
+    });
     const expectedS = flight.totalM / CRUISE_M_S[speed];
     assert.ok(
       Math.abs(flight.durationS - expectedS) < 1e-6,
@@ -284,8 +316,14 @@ test('a straight route never banks', () => {
 });
 
 test('a hairpin saturates the cap without exceeding it', () => {
-  const hairpin = [[-97.76, 30.26], [-97.74, 30.26], [-97.76, 30.2605]];
-  const banks = record(flightFrom(hairpin, { speed: 'slow' })).map((f) => f.bankDeg);
+  const hairpin = [
+    [-97.76, 30.26],
+    [-97.74, 30.26],
+    [-97.76, 30.2605]
+  ];
+  const banks = record(flightFrom(hairpin, {
+    speed: 'slow'
+  })).map((f) => f.bankDeg);
   const peak = Math.max(...banks.map(Math.abs));
   assert.ok(peak <= ROUTE_CINEMA.maxBankDeg + 1e-9, `hairpin bank ${peak.toFixed(2)}° exceeded the cap`);
   assert.ok(peak > ROUTE_CINEMA.maxBankDeg - 1.5, `a hairpin should reach the cap, got ${peak.toFixed(2)}°`);
@@ -314,7 +352,9 @@ test('the banked up vector is a roll about the camera forward axis, not a skew',
 });
 
 test('altitude breathes around the requested mean and rises into turns', () => {
-  const flight = flightFrom(TWO_TURN_ROUTE, { floorFn: () => 0 });
+  const flight = flightFrom(TWO_TURN_ROUTE, {
+    floorFn: () => 0
+  });
   const heights = record(flight).map((f) => f.aglM);
   const min = Math.min(...heights);
   const max = Math.max(...heights);
@@ -348,7 +388,9 @@ test('a rise is cleared BEFORE the camera reaches it, not as it arrives', () => 
   // standing on. What the lookahead buys is clearing the ridge while you are
   // still SHORT of it, which is what this measures.
   const ridgeFloor = (lat, lon) => (lon > -97.745 && lon < -97.730 ? 900 : 0);
-  const flight = flightFrom(TWO_TURN_ROUTE, { floorFn: ridgeFloor });
+  const flight = flightFrom(TWO_TURN_ROUTE, {
+    floorFn: ridgeFloor
+  });
   const frames = record(flight);
   const floorAtFrame = (frame) => {
     const carto = Cesium.Cartographic.fromCartesian(frame.eye);
@@ -388,9 +430,15 @@ test('a COLD corridor never descends blind — the seed holds until terrain land
   // The failure this exists for: OSRM route vertices carry height 0, and an
   // unwarmed floor cell reads null. Trusting the vertex put the eye 1.3 km
   // UNDER Albuquerque. Cold is missing data, not flat ground.
-  const ALBUQUERQUE = [[-106.61, 35.08], [-106.55, 35.08]];
+  const ALBUQUERQUE = [
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ];
   const REAL_FLOOR_M = 1600;
-  const cold = flightFrom(ALBUQUERQUE, { floorFn: () => null, cameraHeightM: 2400 });
+  const cold = flightFrom(ALBUQUERQUE, {
+    floorFn: () => null,
+    cameraHeightM: 2400
+  });
   let first = advanceRouteFlight(cold, FRAME_S);
   while (first.arming) first = advanceRouteFlight(cold, FRAME_S); // outlast the arm
   assert.ok(
@@ -400,9 +448,12 @@ test('a COLD corridor never descends blind — the seed holds until terrain land
 
   // And when the DEM lands a second in, the eye eases down to cruise without
   // ever dropping below the clamp.
-  const warming = flightFrom(ALBUQUERQUE, { floorFn: () => null, cameraHeightM: 2400 });
+  const warming = flightFrom(ALBUQUERQUE, {
+    floorFn: () => null,
+    cameraHeightM: 2400
+  });
   let minClearance = Infinity;
-  for (let i = 0; ; i += 1) {
+  for (let i = 0;; i += 1) {
     if (i === 60) warming.floorFn = () => REAL_FLOOR_M;
     const frame = advanceRouteFlight(warming, FRAME_S);
     if (frame.arming) continue;
@@ -420,7 +471,10 @@ test('a COLD corridor never descends blind — the seed holds until terrain land
   // turn the gap between the safety seed and the ground into a several-hundred-
   // metre plummet (measured: 358 m/s). After it lands, ordinary descents are
   // eased as usual.
-  const acquiring = flightFrom(ALBUQUERQUE, { floorFn: () => null, cameraHeightM: 2400 });
+  const acquiring = flightFrom(ALBUQUERQUE, {
+    floorFn: () => null,
+    cameraHeightM: 2400
+  });
   assert.equal(acquiring.floorKnown, false, 'a cold construction has no floor yet');
   // The warm lands DURING the arm — the ordinary case, and the one where the
   // floor may be taken whole because nothing has moved yet.
@@ -440,7 +494,10 @@ test('a COLD corridor never descends blind — the seed holds until terrain land
   assert.ok(peakVerticalMps < 7, `after acquisition the eye moved at ${peakVerticalMps.toFixed(1)} m/s`);
 
   // A corridor that is already warm at construction never needs the seed.
-  const prewarmed = flightFrom(ALBUQUERQUE, { floorFn: () => REAL_FLOOR_M, cameraHeightM: 2400 });
+  const prewarmed = flightFrom(ALBUQUERQUE, {
+    floorFn: () => REAL_FLOOR_M,
+    cameraHeightM: 2400
+  });
   assert.equal(prewarmed.floorKnown, true, 'a warm cache is adopted before the first frame');
   assert.equal(prewarmed.floorM, REAL_FLOOR_M);
 });
@@ -450,7 +507,10 @@ test('a cold route ARMS for terrain rather than racing the warm', () => {
   // racing it. Losing that race used to put the eye at an altitude derived from
   // the camera — 774 m underground from a LOW starting camera, which the old
   // pin missed only because it supplied a conveniently safe 2,400 m one.
-  const ALBUQUERQUE = [[-106.61, 35.08], [-106.55, 35.08]];
+  const ALBUQUERQUE = [
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ];
   const REAL_FLOOR_M = 1600;
   const LOW_CAMERA_M = 826;
   let cold = true;
@@ -489,7 +549,10 @@ test('the rendered mesh answers when the DEM never will — once, and only once'
   // The DEM can stay cold indefinitely (proxy down). Clipping requires terrain
   // to BE rendered, and what is rendered is what sampleHeight reads — so the
   // mesh probe closes the hole in the case where the hole is visible.
-  const ALBUQUERQUE = [[-106.61, 35.08], [-106.55, 35.08]];
+  const ALBUQUERQUE = [
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ];
   const REAL_FLOOR_M = 1600;
   const probeCalls = [];
   const flight = flightFrom(ALBUQUERQUE, {
@@ -497,7 +560,11 @@ test('the rendered mesh answers when the DEM never will — once, and only once'
     cameraHeightM: 826,
     probeFn: (cells) => {
       probeCalls.push(cells.length);
-      return { heightM: REAL_FLOOR_M, sampled: cells.length, requested: cells.length };
+      return {
+        heightM: REAL_FLOOR_M,
+        sampled: cells.length,
+        requested: cells.length
+      };
     },
   });
   assert.equal(flight.floorKnown, true, 'the probe is consulted before the first frame');
@@ -527,7 +594,14 @@ test('the rendered mesh answers when the DEM never will — once, and only once'
   const warm = flightFrom(ALBUQUERQUE, {
     floorFn: () => REAL_FLOOR_M,
     cameraHeightM: 826,
-    probeFn: (cells) => { warmProbes.push(cells.length); return { heightM: 0, sampled: 0, requested: 0 }; },
+    probeFn: (cells) => {
+      warmProbes.push(cells.length);
+      return {
+        heightM: 0,
+        sampled: 0,
+        requested: 0
+      };
+    },
   });
   for (let i = 0; i < 300; i += 1) advanceRouteFlight(warm, FRAME_S);
   assert.equal(warmProbes.length, 0, 'a warm corridor must not touch the mesh at all');
@@ -538,7 +612,14 @@ test('the rendered mesh answers when the DEM never will — once, and only once'
   const blind = flightFrom(ALBUQUERQUE, {
     floorFn: () => null,
     cameraHeightM: 826,
-    probeFn: (cells) => { blindProbes.push(cells.length); return { heightM: Number.NaN, sampled: 0, requested: cells.length }; },
+    probeFn: (cells) => {
+      blindProbes.push(cells.length);
+      return {
+        heightM: Number.NaN,
+        sampled: 0,
+        requested: cells.length
+      };
+    },
   });
   assert.equal(blind.floorKnown, false);
   for (let i = 0; i < 300; i += 1) advanceRouteFlight(blind, FRAME_S);
@@ -549,22 +630,43 @@ test('the rendered mesh answers when the DEM never will — once, and only once'
   const hostile = flightFrom(ALBUQUERQUE, {
     floorFn: () => null,
     cameraHeightM: 826,
-    probeFn: () => { hostileCalls += 1; throw new Error('scene gone'); },
+    probeFn: () => {
+      hostileCalls += 1;
+      throw new Error('scene gone');
+    },
   });
   for (let i = 0; i < 300; i += 1) advanceRouteFlight(hostile, FRAME_S);
   assert.equal(hostileCalls, 1);
 });
 
 test('probeMeshFloorM reports COVERAGE, not just a height', () => {
-  assert.deepEqual(probeMeshFloorM(null, [{ lat: 1, lon: 1 }]),
-    { heightM: Number.NaN, sampled: 0, requested: 1 }, 'no scene, no reading');
-  assert.deepEqual(probeMeshFloorM({ sampleHeight: () => 120 }, []),
-    { heightM: Number.NaN, sampled: 0, requested: 0 }, 'no cells, no reading');
+  assert.deepEqual(probeMeshFloorM(null, [{
+    lat: 1,
+    lon: 1
+  }]), {
+    heightM: Number.NaN,
+    sampled: 0,
+    requested: 1
+  }, 'no scene, no reading');
+  assert.deepEqual(probeMeshFloorM({
+    sampleHeight: () => 120
+  }, []), {
+    heightM: Number.NaN,
+    sampled: 0,
+    requested: 0
+  }, 'no cells, no reading');
   // Cells whose tiles are not streamed contribute NOTHING — silence must never
   // be mistaken for flat ground, which is why the caller gets a count.
-  const partial = probeMeshFloorM(
-    { sampleHeight: (c) => (c.longitude > 0 ? 340 : undefined) },
-    [{ lat: 1, lon: 1 }, { lat: 1, lon: -1 }],
+  const partial = probeMeshFloorM({
+      sampleHeight: (c) => (c.longitude > 0 ? 340 : undefined)
+    },
+    [{
+      lat: 1,
+      lon: 1
+    }, {
+      lat: 1,
+      lon: -1
+    }],
   );
   assert.equal(partial.heightM, 340, 'the probe takes the HIGHEST surface it saw');
   assert.equal(partial.sampled, 1, 'and reports that it only reached one of two cells');
@@ -576,7 +678,10 @@ test('a PARTIALLY warm corridor is unresolved, and probes only the cold cells', 
   // Treating it as an answer let the dolly descend to 460 m over a 1,600 m
   // rendered surface — the cache read succeeded, so neither the arm nor the
   // probe ever ran.
-  const ALBUQUERQUE = [[-106.61, 35.08], [-106.55, 35.08]];
+  const ALBUQUERQUE = [
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ];
   const VALLEY_M = 200;
   const RIDGE_M = 1600;
   const probedCells = [];
@@ -590,7 +695,11 @@ test('a PARTIALLY warm corridor is unresolved, and probes only the cold cells', 
     },
     probeFn: (cells) => {
       probedCells.push(cells.map((c) => `${c.lat},${c.lon}`));
-      return { heightM: RIDGE_M, sampled: cells.length, requested: cells.length };
+      return {
+        heightM: RIDGE_M,
+        sampled: cells.length,
+        requested: cells.length
+      };
     },
   });
   assert.equal(probedCells.length, 1, 'the cold cells must be probed');
@@ -619,7 +728,11 @@ test('a PARTIALLY warm corridor is unresolved, and probes only the cold cells', 
       if (seen === null) seen = `${lat},${lon}`;
       return `${lat},${lon}` === seen ? VALLEY_M : null;
     },
-    probeFn: (cells) => ({ heightM: Number.NaN, sampled: 0, requested: cells.length }),
+    probeFn: (cells) => ({
+      heightM: Number.NaN,
+      sampled: 0,
+      requested: cells.length
+    }),
   });
   assert.equal(unresolved.floorKnown, false, 'one warm cell does not resolve a corridor');
   assert.equal(advanceRouteFlight(unresolved, FRAME_S).arming, true, 'so the dolly arms');
@@ -634,7 +747,10 @@ test('a PARTIALLY warm corridor is unresolved, and probes only the cold cells', 
 });
 
 test('floor data arriving mid-flight blends down, and never arriving holds', () => {
-  const ALBUQUERQUE = [[-106.61, 35.08], [-106.55, 35.08]];
+  const ALBUQUERQUE = [
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ];
   const LAUNCH_M = 2400;
 
   // (a) LATE arrival. Pre-departure acquisition takes the floor whole because
@@ -676,7 +792,10 @@ test('floor data arriving mid-flight blends down, and never arriving holds', () 
 
   // (b) NEVER arrives. Honest degradation: hold the launch altitude for the
   // whole route rather than descending into ground nobody has measured.
-  const never = flightFrom(ALBUQUERQUE, { floorFn: () => null, cameraHeightM: LAUNCH_M });
+  const never = flightFrom(ALBUQUERQUE, {
+    floorFn: () => null,
+    cameraHeightM: LAUNCH_M
+  });
   let minHeight = Infinity;
   for (let i = 0; i < 20000; i += 1) {
     const frame = advanceRouteFlight(never, FRAME_S);
@@ -698,7 +817,10 @@ test('floor data arriving mid-flight blends down, and never arriving holds', () 
 
 test('a flight warms its own corridor instead of waiting for contact traffic', () => {
   const warmed = [];
-  const flight = flightFrom([[-106.61, 35.08], [-106.55, 35.08]], {
+  const flight = flightFrom([
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ], {
     floorFn: () => null,
     warmFn: (cells) => warmed.push(cells),
   });
@@ -722,9 +844,14 @@ test('a flight warms its own corridor instead of waiting for contact traffic', (
   );
 
   // A warm hook that throws must not take the flight down with it.
-  const hostile = flightFrom([[-106.61, 35.08], [-106.55, 35.08]], {
+  const hostile = flightFrom([
+    [-106.61, 35.08],
+    [-106.55, 35.08]
+  ], {
     floorFn: () => 1600,
-    warmFn: () => { throw new Error('proxy down'); },
+    warmFn: () => {
+      throw new Error('proxy down');
+    },
   });
   assert.ok(Number.isFinite(advanceRouteFlight(hostile, FRAME_S).heightM));
 
@@ -746,7 +873,9 @@ test('the shaping floor is smoothed both ways, and the CLAMP reads the raw sampl
   // Safety does not depend on that smoothing: a cliff appearing under the
   // camera is cleared on the frame it is SEEN, because the clamp reads the raw
   // sample rather than the smoothed one.
-  const flight = flightFrom(STRAIGHT_ROUTE, { floorFn: () => 0 });
+  const flight = flightFrom(STRAIGHT_ROUTE, {
+    floorFn: () => 0
+  });
   advanceRouteFlight(flight, FRAME_S);
   flight.floorFn = () => 5000;
   const cliff = advanceRouteFlight(flight, FRAME_S);
@@ -758,7 +887,10 @@ test('the shaping floor is smoothed both ways, and the CLAMP reads the raw sampl
 });
 
 test('prefers-reduced-motion flattens the roll and the altitude shaping', () => {
-  const flight = flightFrom(TWO_TURN_ROUTE, { floorFn: () => 0, reducedMotion: true });
+  const flight = flightFrom(TWO_TURN_ROUTE, {
+    floorFn: () => 0,
+    reducedMotion: true
+  });
   const frames = record(flight);
   assert.equal(Math.max(...frames.map((f) => Math.abs(f.bankDeg))), 0, 'no roll under reduced motion');
   for (const frame of frames) {
@@ -779,7 +911,12 @@ test('the reduced-motion PREFERENCE reaches a real flight, not just the flag', (
   const queries = [];
   globalThis.window = {
     ...(priorWindow || {}),
-    matchMedia: (query) => { queries.push(query); return { matches: true }; },
+    matchMedia: (query) => {
+      queries.push(query);
+      return {
+        matches: true
+      };
+    },
   };
   try {
     assert.equal(prefersReducedMotion(), true);
@@ -788,7 +925,13 @@ test('the reduced-motion PREFERENCE reaches a real flight, not just the flag', (
     const viewer = createTickableViewer();
     initCameraVerbs(viewer.viewer, () => null);
     const started = flyRoute([{
-      type: 'route', label: 'reduced', path: TWO_TURN_ROUTE.map(([lon, lat]) => ({ lon, lat, height: 0 })),
+      type: 'route',
+      label: 'reduced',
+      path: TWO_TURN_ROUTE.map(([lon, lat]) => ({
+        lon,
+        lat,
+        height: 0
+      })),
     }]);
     assert.equal(started.ok, true);
     assert.equal(getActiveCameraMotion()?.reducedMotion, true, 'flyRoute must consult the preference');
@@ -799,10 +942,18 @@ test('the reduced-motion PREFERENCE reaches a real flight, not just the flag', (
     );
     interruptCameraMotion('test-cleanup');
 
-    globalThis.window.matchMedia = () => ({ matches: false });
+    globalThis.window.matchMedia = () => ({
+      matches: false
+    });
     assert.equal(prefersReducedMotion(), false);
     flyRoute([{
-      type: 'route', label: 'normal', path: TWO_TURN_ROUTE.map(([lon, lat]) => ({ lon, lat, height: 0 })),
+      type: 'route',
+      label: 'normal',
+      path: TWO_TURN_ROUTE.map(([lon, lat]) => ({
+        lon,
+        lat,
+        height: 0
+      })),
     }]);
     assert.equal(getActiveCameraMotion()?.reducedMotion, false);
     interruptCameraMotion('test-cleanup');
@@ -817,8 +968,15 @@ test('an exact U-turn reverses the heading instead of flying the return leg back
   // A Cartesian lerp cannot cross an antipodal pair: below t=0.5 the blend
   // still points the old way, and no per-frame t ever reaches 0.5. The camera
   // used to look BACKWARDS down the entire return leg (direction·travel = −1).
-  const OUT_AND_BACK = [[-97.76, 30.26], [-97.74, 30.26], [-97.76, 30.26]];
-  const flight = flightFrom(OUT_AND_BACK, { speed: 'slow', floorFn: () => 0 });
+  const OUT_AND_BACK = [
+    [-97.76, 30.26],
+    [-97.74, 30.26],
+    [-97.76, 30.26]
+  ];
+  const flight = flightFrom(OUT_AND_BACK, {
+    speed: 'slow',
+    floorFn: () => 0
+  });
   const outbound = Cesium.Cartesian3.normalize(
     Cesium.Cartesian3.subtract(flight.pts[1], flight.pts[0], new Cesium.Cartesian3()),
     new Cesium.Cartesian3(),
@@ -848,8 +1006,8 @@ test('an exact U-turn reverses the heading instead of flying the return leg back
   const banks = frames.map((f) => f.bankDeg);
   let flips = 0;
   for (let i = 1; i < banks.length; i += 1) {
-    if (Math.abs(banks[i]) > 2 && Math.abs(banks[i - 1]) > 2
-      && Math.sign(banks[i]) !== Math.sign(banks[i - 1])) flips += 1;
+    if (Math.abs(banks[i]) > 2 && Math.abs(banks[i - 1]) > 2 &&
+      Math.sign(banks[i]) !== Math.sign(banks[i - 1])) flips += 1;
   }
   assert.equal(flips, 0, 'the bank flipped sign mid-turn');
   assert.ok(Math.max(...banks.map(Math.abs)) > 3, 'a U-turn should bank');
@@ -888,7 +1046,11 @@ test('an interrupt MID-BANK stops the dolly and puts the horizon back level', ()
   const started = flyRoute([{
     type: 'route',
     label: 'evidence route',
-    path: TWO_TURN_ROUTE.map(([lon, lat]) => ({ lon, lat, height: 0 })),
+    path: TWO_TURN_ROUTE.map(([lon, lat]) => ({
+      lon,
+      lat,
+      height: 0
+    })),
   }]);
   assert.equal(started.ok, true);
   assert.equal(started.action, 'fly_route');
@@ -911,7 +1073,10 @@ test('an interrupt MID-BANK stops the dolly and puts the horizon back level', ()
     pitch: viewer.viewer.camera.pitch,
   };
 
-  const { wasActive, leveled } = interruptCameraMotion('manual-input');
+  const {
+    wasActive,
+    leveled
+  } = interruptCameraMotion('manual-input');
   assert.equal(wasActive, true);
   assert.equal(leveled, true, 'the release must take the roll out');
   assert.equal(getActiveCameraMotion(), null, 'the motion slot is free the instant it is cut');
@@ -952,9 +1117,18 @@ test('a completed dolly lands wings level and releases the slot', () => {
     type: 'route',
     label: 'ends in a corner',
     path: [
-      [-97.760, 30.260], [-97.748, 30.260], [-97.748, 30.268], [-97.740, 30.268],
-    ].map(([lon, lat]) => ({ lon, lat, height: 0 })),
-  }], { speed: 'fast' });
+      [-97.760, 30.260],
+      [-97.748, 30.260],
+      [-97.748, 30.268],
+      [-97.740, 30.268],
+    ].map(([lon, lat]) => ({
+      lon,
+      lat,
+      height: 0
+    })),
+  }], {
+    speed: 'fast'
+  });
   assert.equal(started.ok, true);
 
   let banked = 0;
@@ -977,7 +1151,9 @@ test('a completed dolly lands wings level and releases the slot', () => {
 });
 
 test('a completed dolly lands on the last waypoint', () => {
-  const flight = flightFrom(STRAIGHT_ROUTE, { speed: 'fast' });
+  const flight = flightFrom(STRAIGHT_ROUTE, {
+    speed: 'fast'
+  });
   const frames = record(flight);
   assert.equal(frames.at(-1).progress, 1);
   // The final frame is applied before the slot is released — the camera lands
@@ -992,7 +1168,10 @@ test('a completed dolly lands on the last waypoint', () => {
 test('the 0.5 s duration floor is the one place the speed word is not the mean', () => {
   // Documented, not accidental: a route shorter than the camera is tall would
   // otherwise be an instant teleport (and divides the profile by ~zero).
-  const tiny = flightFrom([[-97.7600, 30.2600], [-97.75995, 30.2600]]);
+  const tiny = flightFrom([
+    [-97.7600, 30.2600],
+    [-97.75995, 30.2600]
+  ]);
   assert.ok(tiny.totalM < 10, `fixture should be a few metres, got ${tiny.totalM.toFixed(1)}`);
   assert.equal(tiny.durationS, 0.5, 'the floor applies');
   assert.ok(tiny.totalM / tiny.durationS < CRUISE_M_S.normal, 'and it flies SLOWER than asked, never faster');
