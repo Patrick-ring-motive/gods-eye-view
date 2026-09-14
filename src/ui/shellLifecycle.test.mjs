@@ -1,10 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { UiLifetime } from './uiLifetime.js';
-import { PanelLayoutController } from './panelLayoutController.js';
-import { PanelPositionControls } from './panelPositionControls.js';
-import { ShellFeedback } from './shellFeedback.js';
-import { RecordingControls } from './recordingControls.js';
+import {
+  UiLifetime
+} from './uiLifetime.js';
+import {
+  PanelLayoutController
+} from './panelLayoutController.js';
+import {
+  PanelPositionControls
+} from './panelPositionControls.js';
+import {
+  ShellFeedback
+} from './shellFeedback.js';
+import {
+  RecordingControls
+} from './recordingControls.js';
 
 function fixture() {
   const saved = Object.fromEntries(
@@ -132,7 +142,9 @@ test('one-time UI listeners and cancelled notice timers release their registrati
     const owner = new UiLifetime(),
       target = new EventTarget();
     let calls = 0;
-    owner.listen(target, 'change', () => calls++, { once: true });
+    owner.listen(target, 'change', () => calls++, {
+      once: true
+    });
     target.dispatchEvent(new Event('change'));
     target.dispatchEvent(new Event('change'));
     owner.cancelTimeout(owner.timeout(() => calls++, 100));
@@ -158,14 +170,18 @@ test('panel layout coalesces each rail and cannot rearm after destruction', () =
     owner._scheduleLeftPanelLayout();
     owner._scheduleLeftPanelLayout();
     assert.equal(f.frames.size, 1);
-    owner._scheduleAdaptivePanelLayout({ settle: true });
+    owner._scheduleAdaptivePanelLayout({
+      settle: true
+    });
     assert.equal(f.frames.size, 2);
     assert.equal(f.timers.size, 1);
     const late = [...f.frames.values(), ...f.timers.values()];
     owner.destroy();
     owner.destroy();
     late.forEach((callback) => callback());
-    owner._scheduleAdaptivePanelLayout({ settle: true });
+    owner._scheduleAdaptivePanelLayout({
+      settle: true
+    });
     assert.equal(layouts, 0);
     assert.equal(f.frames.size + f.timers.size, 0);
   } finally {
@@ -186,7 +202,9 @@ test('panel disposal cancels a live drag without saving or accepting later point
       handle = f.element();
     owner._makePanelDraggable('sample', panel, handle);
     handle.dispatchEvent(
-      Object.assign(new Event('pointerdown', { cancelable: true }), {
+      Object.assign(new Event('pointerdown', {
+        cancelable: true
+      }), {
         button: 0,
         clientX: 30,
         clientY: 40,
@@ -194,9 +212,14 @@ test('panel disposal cancels a live drag without saving or accepting later point
     );
     assert.equal(panel.classList.contains('panel-dragging'), true);
     owner.destroy();
-    const before = { ...panel.style };
+    const before = {
+      ...panel.style
+    };
     window.dispatchEvent(
-      Object.assign(new Event('pointermove'), { clientX: 500, clientY: 300 }),
+      Object.assign(new Event('pointermove'), {
+        clientX: 500,
+        clientY: 300
+      }),
     );
     window.dispatchEvent(new Event('pointerup'));
     assert.deepEqual(panel.style, before);
@@ -216,7 +239,9 @@ test('panel disposal cancels a live drag without saving or accepting later point
 test('feedback disposal clears toast and polling work and rejects retained notices', () => {
   const f = fixture();
   try {
-    const owner = new ShellFeedback({ readLayers: () => [] });
+    const owner = new ShellFeedback({
+      readLayers: () => []
+    });
     owner.observeVisibility();
     owner._startTrafficChipTicker();
     owner._showToast('Saved');
@@ -240,7 +265,9 @@ test('recording restores the original HUD after repeated entry and revokes retai
   try {
     let mode = 'auto',
       variant = 'tactical';
-    const owner = new RecordingControls({ syncShareState() {} });
+    const owner = new RecordingControls({
+      syncShareState() {}
+    });
     owner.hud = {
       getMode: () => mode,
       getVariant: () => variant,
@@ -252,8 +279,13 @@ test('recording restores the original HUD after repeated entry and revokes retai
       },
       visible: true,
     };
-    owner.setRecordingMode(true, { hudMode: 'minimal', safeFrame: '9:16' });
-    owner.setRecordingMode(true, { hudMode: 'off' });
+    owner.setRecordingMode(true, {
+      hudMode: 'minimal',
+      safeFrame: '9:16'
+    });
+    owner.setRecordingMode(true, {
+      hudMode: 'off'
+    });
     owner.destroy();
     owner.setRecordingMode(true);
     assert.equal(mode, 'auto');
