@@ -1,5 +1,9 @@
-import { normalizeRadioFilter } from '../../data/layerState.js';
-import { RADIO_TUNER_DIRECTORY_LIMIT } from './policy.js';
+import {
+  normalizeRadioFilter
+} from '../../data/layerState.js';
+import {
+  RADIO_TUNER_DIRECTORY_LIMIT
+} from './policy.js';
 
 export function createSelection({
   state: layerState,
@@ -7,24 +11,26 @@ export function createSelection({
   parts,
   source,
 }) {
-  const { warmGroundFloor } = services.ground;
+  const {
+    warmGroundFloor
+  } = services.ground;
 
   /** Durable Radio preferences; this surface never creates or plays audio. */
 
   function setRadioParams(params = {}) {
-    const nextFilter = Object.hasOwn(params, 'filter')
-      ? normalizeRadioFilter(params.filter)
-      : null;
+    const nextFilter = Object.hasOwn(params, 'filter') ?
+      normalizeRadioFilter(params.filter) :
+      null;
     if (Object.hasOwn(params, 'filter') && !nextFilter) return false;
-    const numericVolume = Object.hasOwn(params, 'volume')
-      ? Number(params.volume)
-      : null;
+    const numericVolume = Object.hasOwn(params, 'volume') ?
+      Number(params.volume) :
+      null;
     if (Object.hasOwn(params, 'volume') && !Number.isFinite(numericVolume))
       return false;
     const nextVolume =
-      numericVolume === null
-        ? null
-        : parts.volume.clampRadioVolume(numericVolume);
+      numericVolume === null ?
+      null :
+      parts.volume.clampRadioVolume(numericVolume);
 
     let changed = false;
     let filterChanged = false;
@@ -70,14 +76,16 @@ export function createSelection({
   }
 
   function getRadioParams() {
-    return { filter: layerState._filter, volume: layerState._userVolume };
+    return {
+      filter: layerState._filter,
+      volume: layerState._userVolume
+    };
   }
 
   /** Select a station. Playback occurs only when autoplay is explicitly true. */
 
   function selectRadioStation(
-    id,
-    {
+    id, {
       autoplay = false,
       focus = false,
       origin = 'programmatic',
@@ -108,7 +116,10 @@ export function createSelection({
     const generation = ++layerState._selectionGeneration;
     const sessionGeneration = layerState._sessionGeneration;
     parts.rendering.updateSelectionEntity();
-    warmGroundFloor([{ lat: station.lat, lon: station.lon }]);
+    warmGroundFloor([{
+      lat: station.lat,
+      lon: station.lon
+    }]);
     if (layerState._selectionTimer) clearTimeout(layerState._selectionTimer);
     layerState._selectionTimer = setTimeout(() => {
       layerState._selectionTimer = null;
@@ -121,15 +132,17 @@ export function createSelection({
     }, 1300);
     if (focus) parts.navigation.focusStation(station);
     parts.presentation.emitState();
-    if (autoplay) void parts.playback.playSelectedRadio({ origin, attemptId });
+    if (autoplay) void parts.playback.playSelectedRadio({
+      origin,
+      attemptId
+    });
     return true;
   }
 
   /** Select the previous or next station and optionally retain a UI-owned band order. */
 
   function cycleRadioStation(
-    direction = 1,
-    {
+    direction = 1, {
       rotate = false,
       stationIds = null,
       autoplay = true,
@@ -138,46 +151,46 @@ export function createSelection({
   ) {
     if (!parts.interaction.radioPresentationAllowed()) return false;
     const ranked =
-      Array.isArray(stationIds) && stationIds.length
-        ? stationIds
-            .slice(0, RADIO_TUNER_DIRECTORY_LIMIT)
-            .map((id) => layerState._stationById.get(String(id)))
-            .filter(
-              (station) =>
-                station &&
-                parts.categories.stationMatchesRadioCategory(
-                  station,
-                  layerState._filter,
-                ),
-            )
-        : parts.queries.rankedVisibleStations();
+      Array.isArray(stationIds) && stationIds.length ?
+      stationIds
+      .slice(0, RADIO_TUNER_DIRECTORY_LIMIT)
+      .map((id) => layerState._stationById.get(String(id)))
+      .filter(
+        (station) =>
+        station &&
+        parts.categories.stationMatchesRadioCategory(
+          station,
+          layerState._filter,
+        ),
+      ) :
+      parts.queries.rankedVisibleStations();
     if (!ranked.length) return false;
     const current = ranked.findIndex(
       (station) => station.id === layerState._selectedId,
     );
     const nextIndex =
-      current < 0
-        ? 0
-        : (current + (direction < 0 ? -1 : 1) + ranked.length) % ranked.length;
+      current < 0 ?
+      0 :
+      (current + (direction < 0 ? -1 : 1) + ranked.length) % ranked.length;
     layerState._playFallbackId =
       ranked.length > 1 ? ranked[(nextIndex + 1) % ranked.length].id : null;
-    const rotationCameraState = rotate
-      ? parts.navigation.radioCameraState()
-      : null;
-    const rotationNavigation = rotate
-      ? parts.navigation.beginRadioCameraNavigation(rotationCameraState)
-      : null;
-    layerState._playFallbackFocus = rotate
-      ? (fallbackStation) => {
-          parts.navigation.rotateRadioStationIntoView(
-            fallbackStation,
-            0.65,
-            rotationCameraState,
-            rotationNavigation,
-          );
-          return rotationNavigation;
-        }
-      : false;
+    const rotationCameraState = rotate ?
+      parts.navigation.radioCameraState() :
+      null;
+    const rotationNavigation = rotate ?
+      parts.navigation.beginRadioCameraNavigation(rotationCameraState) :
+      null;
+    layerState._playFallbackFocus = rotate ?
+      (fallbackStation) => {
+        parts.navigation.rotateRadioStationIntoView(
+          fallbackStation,
+          0.65,
+          rotationCameraState,
+          rotationNavigation,
+        );
+        return rotationNavigation;
+      } :
+      false;
     const station = ranked[nextIndex];
     if (rotate)
       parts.navigation.rotateRadioStationIntoView(
@@ -197,20 +210,21 @@ export function createSelection({
   /** Select and optionally play the best station for a location/category request. */
 
   function selectRequestedRadioStation(
-    criteria = {},
-    { autoplay = true, origin = 'programmatic' } = {},
+    criteria = {}, {
+      autoplay = true,
+      origin = 'programmatic'
+    } = {},
   ) {
     if (!parts.interaction.radioPresentationAllowed()) return null;
     const requestedCategory = String(criteria.categoryId || 'all');
     const categoryId = layerState._categories.some(
-      (category) => category.id === requestedCategory,
-    )
-      ? requestedCategory
-      : 'all';
+        (category) => category.id === requestedCategory,
+      ) ?
+      requestedCategory :
+      'all';
     setRadioFilter(categoryId);
     const ranked = parts.queries.rankRadioStationsForRequest(
-      layerState._stations,
-      {
+      layerState._stations, {
         ...criteria,
         categoryId,
         anchor: criteria.anchor || parts.queries.viewportRadioAnchor(),
@@ -219,7 +233,11 @@ export function createSelection({
     if (!ranked.length) return null;
     layerState._playFallbackId = ranked[1]?.id || null;
     layerState._playFallbackFocus = false;
-    selectRadioStation(ranked[0].id, { autoplay, focus: false, origin });
+    selectRadioStation(ranked[0].id, {
+      autoplay,
+      focus: false,
+      origin
+    });
     return ranked[0];
   }
 
