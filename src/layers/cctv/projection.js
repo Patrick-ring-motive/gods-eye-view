@@ -13,7 +13,10 @@ export function createProjection({
   parts,
   source,
 }) {
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
 
   /**
    * Build the protected label associated with one active monitor plane.
@@ -21,7 +24,11 @@ export function createProjection({
    * @returns {Object} Shared-host presentation entry.
    */
 
-  function createCctvProjectionOverlayEntry({ cameraId, name, position }) {
+  function createCctvProjectionOverlayEntry({
+    cameraId,
+    name,
+    position
+  }) {
     return {
       id: String(cameraId),
       position,
@@ -133,7 +140,9 @@ export function createProjection({
     });
     runtime.planeEntity = layerState._viewer.entities.add({
       id: `cctv-${record.camera.id}-plane`,
-      properties: { cctvCameraId: record.camera.id },
+      properties: {
+        cctvCameraId: record.camera.id
+      },
       show: false,
       position: positions.capCenter,
       orientation: parts.model.planeOrientationFor(
@@ -173,7 +182,9 @@ export function createProjection({
     const canvas = document.createElement('canvas');
     canvas.width = PROJECTION_CANVAS_WIDTH;
     canvas.height = PROJECTION_CANVAS_HEIGHT;
-    const ctx = canvas.getContext('2d', { alpha: true });
+    const ctx = canvas.getContext('2d', {
+      alpha: true
+    });
 
     const feedType = parts.model.normalizeFeedType(record.camera.feedType);
     const mode = parts.model.isVideoFeedType(feedType) ? 'video' : 'image';
