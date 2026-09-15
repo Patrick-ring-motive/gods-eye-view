@@ -38,9 +38,9 @@ export function createIngestion({
           throw new Error('Radio directory response was malformed');
         const updatedAt =
           typeof body.updatedAt === 'string' &&
-          Number.isFinite(Date.parse(body.updatedAt))
-            ? body.updatedAt
-            : null;
+          Number.isFinite(Date.parse(body.updatedAt)) ?
+          body.updatedAt :
+          null;
         const updatedAtMs = updatedAt ? Date.parse(updatedAt) : NaN;
         if (
           !updatedAt ||
@@ -85,9 +85,9 @@ export function createIngestion({
         // sequence: never a repeat and never a regression.
         const sameCatalogInstance =
           layerState._acceptedCatalogSnapshot?.instance === catalogInstance;
-        const currentAcceptedGeneration = sameCatalogInstance
-          ? layerState._acceptedCatalogSnapshot?.generation
-          : null;
+        const currentAcceptedGeneration = sameCatalogInstance ?
+          layerState._acceptedCatalogSnapshot?.generation :
+          null;
         if (
           !body.stale &&
           !body.degraded &&
@@ -95,8 +95,7 @@ export function createIngestion({
           acceptedGeneration < currentAcceptedGeneration
         )
           throw new Error('Radio directory generation regressed');
-        const repeatingAcceptedGeneration =
-          !body.stale &&
+        const repeatingAcceptedGeneration = !body.stale &&
           !body.degraded &&
           Number.isSafeInteger(currentAcceptedGeneration) &&
           acceptedGeneration === currentAcceptedGeneration;
@@ -135,11 +134,11 @@ export function createIngestion({
         }
         layerState._degraded = body.degraded;
         layerState._stale = body.stale;
-        layerState._error = preservingWarmCatalog
-          ? 'Directory refresh degraded; showing the previous station catalog.'
-          : layerState._degraded
-            ? 'Radio directory coverage is degraded.'
-            : null;
+        layerState._error = preservingWarmCatalog ?
+          'Directory refresh degraded; showing the previous station catalog.' :
+          layerState._degraded ?
+          'Radio directory coverage is degraded.' :
+          null;
       } catch (error) {
         if (
           error?.name === 'AbortError' ||
@@ -152,9 +151,9 @@ export function createIngestion({
           )
         )
           return;
-        layerState._error = layerState._stations.length
-          ? 'Directory refresh failed; showing the previous station catalog.'
-          : 'Radio directory is temporarily unavailable.';
+        layerState._error = layerState._stations.length ?
+          'Directory refresh failed; showing the previous station catalog.' :
+          'Radio directory is temporarily unavailable.';
         layerState._stale = layerState._stations.length > 0;
         layerState._degraded = layerState._stations.length > 0;
       } finally {
@@ -170,5 +169,7 @@ export function createIngestion({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
