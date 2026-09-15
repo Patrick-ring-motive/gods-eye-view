@@ -1,1 +1,4 @@
-export { describeError } from '../app/errors.js';
+export {
+  describeError
+}
+from '../app/errors.js';
