@@ -18,7 +18,9 @@
 // still own, and (b) decoded into a real AIS record. Handshakes, malformed
 // frames and error envelopes are never liveness.
 
-import { createAisWatchdog } from './aisWatchdog.js';
+import {
+  createAisWatchdog
+} from './aisWatchdog.js';
 
 const DEFAULT_CLOCK = Object.freeze({
   wall: () => Date.now(),
@@ -93,10 +95,20 @@ export function classifyAisFailure(input = {}) {
       message: `AISStream upgrade failed (HTTP ${status})`,
     };
   }
-  if (AUTH_TEXT.test(text)) return { kind: 'auth', message: text };
+  if (AUTH_TEXT.test(text)) return {
+    kind: 'auth',
+    message: text
+  };
   if (RATE_TEXT.test(text))
-    return { kind: 'rate-limit', message: text, retryAfterMs: fromHeader() };
-  return { kind: 'transport', message: text || 'AISStream websocket error' };
+    return {
+      kind: 'rate-limit',
+      message: text,
+      retryAfterMs: fromHeader()
+    };
+  return {
+    kind: 'transport',
+    message: text || 'AISStream websocket error'
+  };
 }
 
 /**
@@ -258,13 +270,23 @@ export function parseAisEnvelope(text) {
   try {
     envelope = JSON.parse(text);
   } catch {
-    return { kind: 'malformed' };
+    return {
+      kind: 'malformed'
+    };
   }
   if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
-    return { kind: 'malformed' };
+    return {
+      kind: 'malformed'
+    };
   }
-  if (envelope.error) return { kind: 'error', message: String(envelope.error) };
-  return { kind: 'data', envelope };
+  if (envelope.error) return {
+    kind: 'error',
+    message: String(envelope.error)
+  };
+  return {
+    kind: 'data',
+    envelope
+  };
 }
 
 /**
@@ -376,7 +398,9 @@ export function createAisStreamAdapter(options) {
       failGeneration(
         owner,
         generation,
-        classifyAisFailure({ message: error?.message }),
+        classifyAisFailure({
+          message: error?.message
+        }),
       );
       return;
     }
@@ -420,7 +444,9 @@ export function createAisStreamAdapter(options) {
         failGeneration(
           owner,
           generation,
-          classifyAisFailure({ message: error?.message }),
+          classifyAisFailure({
+            message: error?.message
+          }),
         );
       }
     });
