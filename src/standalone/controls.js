@@ -1,1 +1,4 @@
-export { createApplicationControls as createStandaloneControls } from '../app/controls.js';
+export {
+  createApplicationControls as createStandaloneControls
+}
+from '../app/controls.js';
