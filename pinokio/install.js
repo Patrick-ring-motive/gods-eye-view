@@ -1,6 +1,5 @@
 module.exports = {
-  run: [
-    {
+  run: [{
       when: "{{!kernel.exists(cwd, 'ENVIRONMENT')}}",
       method: 'fs.copy',
       params: {
