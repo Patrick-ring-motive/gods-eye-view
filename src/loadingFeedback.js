@@ -1,4 +1,6 @@
-import { installationFeedback } from './data/installationFeedback.js';
+import {
+  installationFeedback
+} from './data/installationFeedback.js';
 
 export const LOADING_REVEAL_DELAY_MS = 160;
 export const LOADING_TERMINAL_DWELL_MS = 2200;
@@ -27,23 +29,20 @@ export function normalizeLayerLoading(layer = {}) {
     stats.loading === true ||
     stats.refreshing === true;
   const count = finiteCount(stats.count);
-  const stoppingInstallations =
-    ['military-installations', 'alpr-cameras'].includes(layer.id) && disabling;
+  const stoppingInstallations = ['military-installations', 'alpr-cameras'].includes(layer.id) && disabling;
   // Guidance statuses ask the user to act (zoom in, run a search). They are
   // normal operation, never a batch failure — mirrors layerFeedState's carve-out
   // so a prompt stored alongside the status cannot turn the chip red.
   const guidance = GUIDANCE_STATUSES.includes(status);
-  const error = stoppingInstallations
-    ? null
-    : (!guidance && stats.error) ||
-      stats.lastError ||
-      stats.managerRefreshError ||
-      null;
-  const unavailable =
-    !stoppingInstallations &&
+  const error = stoppingInstallations ?
+    null :
+    (!guidance && stats.error) ||
+    stats.lastError ||
+    stats.managerRefreshError ||
+    null;
+  const unavailable = !stoppingInstallations &&
     (stats.unavailable === true ||
-      stats.available === false ||
-      ['unavailable', 'offline', 'down', 'error'].includes(status));
+      stats.available === false || ['unavailable', 'offline', 'down', 'error'].includes(status));
   const keyRequired = stats.keyRequired === true || stats.missingKey === true;
   const degraded = stats.degraded === true || Boolean(error);
   const accepted = Boolean(stats.lastUpdate) || count > 0;
@@ -52,8 +51,7 @@ export function normalizeLayerLoading(layer = {}) {
     label: String(layer.name || layer.id || 'Layer'),
     loading,
     disabling,
-    refresh:
-      loading && layer.enabled && (stats.refreshing === true || accepted),
+    refresh: loading && layer.enabled && (stats.refreshing === true || accepted),
     lifecycleState,
     count,
     accepted,
@@ -61,24 +59,22 @@ export function normalizeLayerLoading(layer = {}) {
     unavailable,
     keyRequired,
     degraded,
-    cameraRetry:
-      layer.id === 'alpr-cameras' && layer.enabled && !disabling
-        ? {
-            retryAt: Number(stats.retryAt) || 0,
-            retrying: stats.retrying === true,
-            error,
-          }
-        : null,
-    installationRetry:
-      layer.id === 'military-installations' && layer.enabled && !disabling
-        ? {
-            retryAt: Number(stats.retryAt) || 0,
-            retrying: stats.retrying === true,
-            failureReason: stats.failureReason,
-            loading,
-            status: stats.status,
-          }
-        : null,
+    cameraRetry: layer.id === 'alpr-cameras' && layer.enabled && !disabling ?
+      {
+        retryAt: Number(stats.retryAt) || 0,
+        retrying: stats.retrying === true,
+        error,
+      } :
+      null,
+    installationRetry: layer.id === 'military-installations' && layer.enabled && !disabling ?
+      {
+        retryAt: Number(stats.retryAt) || 0,
+        retrying: stats.retrying === true,
+        failureReason: stats.failureReason,
+        loading,
+        status: stats.status,
+      } :
+      null,
   };
 }
 
@@ -86,12 +82,12 @@ function terminalFromParticipantStats(summary, participantIds) {
   if (!participantIds?.length) return null;
   const participants = new Set(participantIds);
   return summary.records.some(
-    (record) =>
+      (record) =>
       participants.has(record.id) &&
       (record.error || record.unavailable || record.keyRequired),
-  )
-    ? 'error'
-    : null;
+    ) ?
+    'error' :
+    null;
 }
 
 /** Aggregate all manager layers without changing their lifecycle authority. */
@@ -129,8 +125,11 @@ export function createLoadingFeedbackState() {
 /** Create a top-center status notice, optionally persistent until explicitly cleared. */
 export function createGlobalStatusNotice(
   message,
-  nowMs = 0,
-  { state = 'error', detail = '', persistent = false } = {},
+  nowMs = 0, {
+    state = 'error',
+    detail = '',
+    persistent = false
+  } = {},
 ) {
   const label = String(message || '').trim();
   if (!label) return null;
@@ -154,9 +153,9 @@ export function presentGlobalStatusNotice(notice, nowMs = 0) {
   if (!notice.persistent && !Number.isFinite(notice.hideAt)) {
     notice.hideAt =
       now +
-      (Number.isFinite(notice.dwellMs)
-        ? notice.dwellMs
-        : LOADING_FAILURE_DWELL_MS);
+      (Number.isFinite(notice.dwellMs) ?
+        notice.dwellMs :
+        LOADING_FAILURE_DWELL_MS);
   }
   if (Number.isFinite(notice.hideAt) && now >= notice.hideAt) return null;
   return {
@@ -216,8 +215,11 @@ export function createTrafficSyncFeedbackState() {
  * every animation-loop poll. Coverage describes accepted data, not work.
  */
 export function reduceTrafficSyncFeedback(
-  previous,
-  { enabled = false, stats = {}, forceShow = false } = {},
+  previous, {
+    enabled = false,
+    stats = {},
+    forceShow = false
+  } = {},
   nowMs = 0,
 ) {
   const state = previous || createTrafficSyncFeedbackState();
@@ -225,11 +227,11 @@ export function reduceTrafficSyncFeedback(
   if (!enabled) return createTrafficSyncFeedbackState();
 
   const hasProgress = Number.isFinite(stats.phaseProgressPct);
-  const progressPct = hasProgress
-    ? Math.max(0, Math.min(100, Math.round(stats.phaseProgressPct)))
-    : stats.loading
-      ? 1
-      : 100;
+  const progressPct = hasProgress ?
+    Math.max(0, Math.min(100, Math.round(stats.phaseProgressPct))) :
+    stats.loading ?
+    1 :
+    100;
   const busy =
     stats.loading === true ||
     stats.worldJumping === true ||
@@ -281,7 +283,11 @@ function terminalFromEvent(event) {
 }
 
 function mergeTerminalOutcome(current, next) {
-  const severity = { complete: 1, cancelled: 2, error: 3 };
+  const severity = {
+    complete: 1,
+    cancelled: 2,
+    error: 3
+  };
   if (!next) return current || null;
   if (!current || severity[next] > severity[current]) return next;
   return current;
@@ -316,17 +322,17 @@ export function reduceLoadingFeedback(previous, summary, nowMs, event = null) {
       activeIds,
       batchOutcome,
       terminal: null,
-      operation: summary.disabling
-        ? 'disabling'
-        : summary.refresh
-          ? 'refresh'
-          : 'loading',
+      operation: summary.disabling ?
+        'disabling' :
+        summary.refresh ?
+        'refresh' :
+        'loading',
       failedEventIds: [
         ...new Set([
           ...(beginning ? [] : state.failedEventIds || []),
-          ...(eventParticipates && terminalFromEvent(event) === 'error'
-            ? [eventLayerId]
-            : []),
+          ...(eventParticipates && terminalFromEvent(event) === 'error' ?
+            [eventLayerId] :
+            []),
         ]),
       ],
     };
@@ -348,9 +354,9 @@ export function reduceLoadingFeedback(previous, summary, nowMs, event = null) {
     if (!wasVisible && terminal === 'complete')
       return createLoadingFeedbackState();
     const dwell =
-      terminal === 'error'
-        ? LOADING_FAILURE_DWELL_MS
-        : LOADING_TERMINAL_DWELL_MS;
+      terminal === 'error' ?
+      LOADING_FAILURE_DWELL_MS :
+      LOADING_TERMINAL_DWELL_MS;
     return {
       ...state,
       phase: 'terminal',
@@ -361,9 +367,9 @@ export function reduceLoadingFeedback(previous, summary, nowMs, event = null) {
       failedEventIds: [
         ...new Set([
           ...(state.failedEventIds || []),
-          ...(eventParticipates && terminalFromEvent(event) === 'error'
-            ? [eventLayerId]
-            : []),
+          ...(eventParticipates && terminalFromEvent(event) === 'error' ?
+            [eventLayerId] :
+            []),
         ]),
       ],
     };
@@ -381,9 +387,9 @@ export function presentLoadingFeedback(state, summary, nowMs) {
   const otherCameraFailure =
     summary.records.some(
       (record) =>
-        record.id !== 'alpr-cameras' &&
-        (state?.activeIds || []).includes(record.id) &&
-        (record.error || record.unavailable || record.keyRequired),
+      record.id !== 'alpr-cameras' &&
+      (state?.activeIds || []).includes(record.id) &&
+      (record.error || record.unavailable || record.keyRequired),
     ) || (state?.failedEventIds || []).some((id) => id !== 'alpr-cameras');
   if (camera && !summary.active.length && !otherCameraFailure) {
     const seconds = Math.max(
@@ -405,9 +411,9 @@ export function presentLoadingFeedback(state, summary, nowMs) {
   const otherFailure =
     summary.records.some(
       (record) =>
-        record.id !== 'military-installations' &&
-        (state?.activeIds || []).includes(record.id) &&
-        (record.error || record.unavailable || record.keyRequired),
+      record.id !== 'military-installations' &&
+      (state?.activeIds || []).includes(record.id) &&
+      (record.error || record.unavailable || record.keyRequired),
     ) ||
     (state?.failedEventIds || []).some((id) => id !== 'military-installations');
   // Keep the actual retry visible between attempts, without hiding another
@@ -415,7 +421,11 @@ export function presentLoadingFeedback(state, summary, nowMs) {
   if (site && !summary.active.length && !otherFailure) {
     const message = installationFeedback(site.installationRetry);
     const [label, detail] = message.split(' — ');
-    return { state: 'retry', label: label.toUpperCase(), detail: detail || '' };
+    return {
+      state: 'retry',
+      label: label.toUpperCase(),
+      detail: detail || ''
+    };
   }
   if (!state?.visible) return null;
   if (state.phase === 'terminal') {
@@ -425,22 +435,26 @@ export function presentLoadingFeedback(state, summary, nowMs) {
       error: 'LOAD FAILED',
     };
     const label =
-      state.operation === 'disabling' && state.terminal === 'complete'
-        ? 'LIVE DATA OFF'
-        : state.terminal === 'complete' &&
-            state.activeIds?.length === 1 &&
-            state.activeIds[0] === 'military-installations'
-          ? 'MAPPED SITES LOADED'
-          : labels[state.terminal] || 'LOAD COMPLETE';
-    return { state: state.terminal, label, detail: '' };
+      state.operation === 'disabling' && state.terminal === 'complete' ?
+      'LIVE DATA OFF' :
+      state.terminal === 'complete' &&
+      state.activeIds?.length === 1 &&
+      state.activeIds[0] === 'military-installations' ?
+      'MAPPED SITES LOADED' :
+      labels[state.terminal] || 'LOAD COMPLETE';
+    return {
+      state: state.terminal,
+      label,
+      detail: ''
+    };
   }
   const active = summary.active;
   if (active.length === 1 && active[0].cameraRetry && !summary.disabling) {
     return {
       state: 'loading',
-      label: active[0].cameraRetry.retrying
-        ? 'RETRYING ALPR CAMERAS'
-        : 'FETCHING ALPR CAMERAS',
+      label: active[0].cameraRetry.retrying ?
+        'RETRYING ALPR CAMERAS' :
+        'FETCHING ALPR CAMERAS',
       detail: 'OpenStreetMap · Overpass',
     };
   }
@@ -452,32 +466,31 @@ export function presentLoadingFeedback(state, summary, nowMs) {
   ) {
     return {
       state: 'loading',
-      label: active[0].installationRetry.retrying
-        ? 'RETRYING MAPPED SITES'
-        : 'FETCHING MAPPED SITES',
+      label: active[0].installationRetry.retrying ?
+        'RETRYING MAPPED SITES' :
+        'FETCHING MAPPED SITES',
       detail: 'OpenStreetMap · Overpass',
     };
   }
   const elapsed = Math.max(0, nowMs - state.startedAt);
-  const label = summary.disabling
-    ? 'TURNING OFF LIVE DATA'
-    : summary.refresh
-      ? 'REFRESHING LIVE DATA'
-      : 'LOADING LIVE DATA';
+  const label = summary.disabling ?
+    'TURNING OFF LIVE DATA' :
+    summary.refresh ?
+    'REFRESHING LIVE DATA' :
+    'LOADING LIVE DATA';
   const names = active
     .slice(0, 2)
     .map((record) => record.label)
     .join(' · ');
   const suffix = active.length > 2 ? ` +${active.length - 2}` : '';
   return {
-    state:
-      elapsed >= LOADING_LONG_THRESHOLD_MS
-        ? 'long'
-        : summary.disabling
-          ? 'disabling'
-          : summary.refresh
-            ? 'refresh'
-            : 'loading',
+    state: elapsed >= LOADING_LONG_THRESHOLD_MS ?
+      'long' :
+      summary.disabling ?
+      'disabling' :
+      summary.refresh ?
+      'refresh' :
+      'loading',
     label,
     detail: `${names}${suffix}`,
   };
