@@ -1,5 +1,9 @@
-import { MILITARY_INSTALLATION_BBOX_STEP_DEG } from './constants.js';
-import { requiredFiniteQueryNumber } from '../common/query.js';
+import {
+  MILITARY_INSTALLATION_BBOX_STEP_DEG
+} from './constants.js';
+import {
+  requiredFiniteQueryNumber
+} from '../common/query.js';
 
 /**
  * Snap a request bbox outward onto the shared installation cache grid.
@@ -61,7 +65,12 @@ function validMilitaryInstallationBox(params) {
   )
     return null;
   if (north - south > 10 || east - west > 10) return null;
-  return { south, west, north, east };
+  return {
+    south,
+    west,
+    north,
+    east
+  };
 }
 
 /** Safe, evidence-based reason for an installation upstream failure. */
@@ -72,9 +81,9 @@ function militaryInstallationFailureReason(error) {
     )
   )
     return error.installationReason;
-  return ['AbortError', 'TimeoutError'].includes(error?.name)
-    ? 'timeout'
-    : 'unavailable';
+  return ['AbortError', 'TimeoutError'].includes(error?.name) ?
+    'timeout' :
+    'unavailable';
 }
 
 export {
