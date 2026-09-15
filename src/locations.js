@@ -1,10 +1,14 @@
-import { applicationServices } from './services/application.js';
+import {
+  applicationServices
+} from './services/application.js';
 import * as Cesium from 'cesium';
 import {
   viewportBias,
   placesNearViewRecovery,
 } from './annotations/annotationResolver.js';
-import { unavailablePlaceSearch } from './search/placeSearch.js';
+import {
+  unavailablePlaceSearch
+} from './search/placeSearch.js';
 
 /**
  * Points of Interest per city.
@@ -21,11 +25,16 @@ export const CITY_POIS = {
     name: 'Austin',
     groundElevation: 150, // meters above WGS84 ellipsoid
     viewBounds: {
-      southwest: { lat: 30.1, lng: -97.95 },
-      northeast: { lat: 30.52, lng: -97.55 },
+      southwest: {
+        lat: 30.1,
+        lng: -97.95
+      },
+      northeast: {
+        lat: 30.52,
+        lng: -97.55
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Texas State Capitol',
         lat: 30.2747,
         lon: -97.7403,
@@ -76,11 +85,16 @@ export const CITY_POIS = {
     name: 'San Francisco',
     groundElevation: 15,
     viewBounds: {
-      southwest: { lat: 37.7, lng: -122.53 },
-      northeast: { lat: 37.84, lng: -122.35 },
+      southwest: {
+        lat: 37.7,
+        lng: -122.53
+      },
+      northeast: {
+        lat: 37.84,
+        lng: -122.35
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Golden Gate Bridge',
         lat: 37.8199,
         lon: -122.4783,
@@ -131,11 +145,16 @@ export const CITY_POIS = {
     name: 'New York',
     groundElevation: 10,
     viewBounds: {
-      southwest: { lat: 40.477, lng: -74.259 },
-      northeast: { lat: 40.918, lng: -73.7 },
+      southwest: {
+        lat: 40.477,
+        lng: -74.259
+      },
+      northeast: {
+        lat: 40.918,
+        lng: -73.7
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Statue of Liberty',
         lat: 40.6892,
         lon: -74.0445,
@@ -152,7 +171,11 @@ export const CITY_POIS = {
         pitch: -12,
         heading: 30,
         buildingHeight: 130,
-        buildingBounds: { height: 443, width: 130, depth: 75 },
+        buildingBounds: {
+          height: 443,
+          width: 130,
+          depth: 75
+        },
       },
       {
         name: 'One World Trade Center',
@@ -187,11 +210,16 @@ export const CITY_POIS = {
     name: 'Tokyo',
     groundElevation: 40,
     viewBounds: {
-      southwest: { lat: 35.52, lng: 139.55 },
-      northeast: { lat: 35.9, lng: 139.92 },
+      southwest: {
+        lat: 35.52,
+        lng: 139.55
+      },
+      northeast: {
+        lat: 35.9,
+        lng: 139.92
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Tokyo Tower',
         lat: 35.6586,
         lon: 139.7454,
@@ -242,11 +270,16 @@ export const CITY_POIS = {
     name: 'London',
     groundElevation: 15,
     viewBounds: {
-      southwest: { lat: 51.28, lng: -0.51 },
-      northeast: { lat: 51.7, lng: 0.33 },
+      southwest: {
+        lat: 51.28,
+        lng: -0.51
+      },
+      northeast: {
+        lat: 51.7,
+        lng: 0.33
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Tower Bridge',
         lat: 51.5055,
         lon: -0.0754,
@@ -297,11 +330,16 @@ export const CITY_POIS = {
     name: 'Paris',
     groundElevation: 35,
     viewBounds: {
-      southwest: { lat: 48.815, lng: 2.224 },
-      northeast: { lat: 48.902, lng: 2.47 },
+      southwest: {
+        lat: 48.815,
+        lng: 2.224
+      },
+      northeast: {
+        lat: 48.902,
+        lng: 2.47
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Eiffel Tower',
         lat: 48.8584,
         lon: 2.2945,
@@ -352,11 +390,16 @@ export const CITY_POIS = {
     name: 'Dubai',
     groundElevation: 5,
     viewBounds: {
-      southwest: { lat: 24.95, lng: 54.9 },
-      northeast: { lat: 25.35, lng: 55.55 },
+      southwest: {
+        lat: 24.95,
+        lng: 54.9
+      },
+      northeast: {
+        lat: 25.35,
+        lng: 55.55
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Burj Khalifa',
         lat: 25.1972,
         lon: 55.2744,
@@ -407,11 +450,16 @@ export const CITY_POIS = {
     name: 'Washington DC',
     groundElevation: 10,
     viewBounds: {
-      southwest: { lat: 38.79, lng: -77.12 },
-      northeast: { lat: 38.995, lng: -76.91 },
+      southwest: {
+        lat: 38.79,
+        lng: -77.12
+      },
+      northeast: {
+        lat: 38.995,
+        lng: -76.91
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'US Capitol',
         lat: 38.8897,
         lon: -77.0091,
@@ -462,11 +510,16 @@ export const CITY_POIS = {
     name: 'Tallinn',
     groundElevation: 15,
     viewBounds: {
-      southwest: { lat: 59.36, lng: 24.6 },
-      northeast: { lat: 59.52, lng: 24.92 },
+      southwest: {
+        lat: 59.36,
+        lng: 24.6
+      },
+      northeast: {
+        lat: 59.52,
+        lng: 24.92
+      },
     },
-    pois: [
-      {
+    pois: [{
         name: 'Viru Square',
         lat: 59.4366,
         lon: 24.7527,
@@ -559,7 +612,11 @@ export function flyToGlobeView(viewer, options = {}) {
     complete: options.onComplete,
     cancel: options.onCancel,
   });
-  return { latitude, longitude, heightM: GLOBE_VIEW.heightM };
+  return {
+    latitude,
+    longitude,
+    heightM: GLOBE_VIEW.heightM
+  };
 }
 
 /**
@@ -591,15 +648,15 @@ export const LOCATIONS = Object.entries(CITY_POIS).map(([id, city]) => ({
 export function flyToLandmark(viewer, lat, lon, options = {}) {
   const {
     range = 500,
-    pitch = -30,
-    heading = 0,
-    buildingHeight = 30,
-    groundElevation = 0,
-    duration = 3.0,
-    onStart = null,
-    onComplete = null,
-    onCancel = null,
-    buildingBounds = null,
+      pitch = -30,
+      heading = 0,
+      buildingHeight = 30,
+      groundElevation = 0,
+      duration = 3.0,
+      onStart = null,
+      onComplete = null,
+      onCancel = null,
+      buildingBounds = null,
   } = options;
 
   // Sample terrain height (sync — uses loaded tiles; 0 if globe/terrain not ready)
@@ -609,22 +666,22 @@ export function flyToLandmark(viewer, lat, lon, options = {}) {
   // Use sampled height if available, otherwise fall back to pre-baked city ground elevation.
   // Google 3D Tiles don't populate globe terrain, so first fly-to always gets the fallback.
   const terrainHeight =
-    sampledHeight != null && sampledHeight > 0
-      ? sampledHeight
-      : groundElevation;
+    sampledHeight != null && sampledHeight > 0 ?
+    sampledHeight :
+    groundElevation;
 
   const bounds = normalizeBuildingBounds(buildingBounds);
-  const targetHeight = bounds
-    ? terrainHeight + bounds.height / 2
-    : terrainHeight + buildingHeight;
+  const targetHeight = bounds ?
+    terrainHeight + bounds.height / 2 :
+    terrainHeight + buildingHeight;
   const targetPosition = Cesium.Cartesian3.fromDegrees(lon, lat, targetHeight);
   const boundingRadius = bounds ? buildingBoundingRadius(bounds) : 0;
-  const framingRange = bounds
-    ? Math.max(
-        rangeForBoundingSphere(viewer, boundingRadius),
-        boundingRadius * 1.35,
-      )
-    : range;
+  const framingRange = bounds ?
+    Math.max(
+      rangeForBoundingSphere(viewer, boundingRadius),
+      boundingRadius * 1.35,
+    ) :
+    range;
 
   const hpr = new Cesium.HeadingPitchRange(
     Cesium.Math.toRadians(heading),
@@ -642,8 +699,7 @@ export function flyToLandmark(viewer, lat, lon, options = {}) {
 
   // Fly to target, then lock with lookAt for guaranteed centering
   viewer.camera.flyToBoundingSphere(
-    new Cesium.BoundingSphere(targetPosition, boundingRadius),
-    {
+    new Cesium.BoundingSphere(targetPosition, boundingRadius), {
       offset: hpr,
       duration,
       complete: () => {
@@ -733,10 +789,10 @@ const POI_STOPWORDS = new Set(['the', 'a', 'an', 'at', 'of', 'in', 'on', 'to']);
 function poiNameTokens(s) {
   return new Set(
     String(s || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter((w) => w && !POI_STOPWORDS.has(w)),
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w && !POI_STOPWORDS.has(w)),
   );
 }
 
@@ -760,14 +816,23 @@ export function findPoiByName(query) {
       if (name.size < 2) return; // single-word POI names are too ambiguous to match loosely
       const fullyNamed = [...name].every((w) => q.has(w));
       if (fullyNamed && (!best || name.size > best.size))
-        best = { cityId, index, size: name.size };
+        best = {
+          cityId,
+          index,
+          size: name.size
+        };
     });
   }
-  return best ? { cityId: best.cityId, index: best.index } : null;
+  return best ? {
+    cityId: best.cityId,
+    index: best.index
+  } : null;
 }
 
 /** Distinguishes an authority veto from a genuine not-found result. */
-export const CANCELLED_SEARCH = Object.freeze({ cancelled: true });
+export const CANCELLED_SEARCH = Object.freeze({
+  cancelled: true
+});
 
 /**
  * Geocode a place name through the supplied service, then fly there at a scale
@@ -775,7 +840,9 @@ export const CANCELLED_SEARCH = Object.freeze({ cancelled: true });
  * default; precise landmarks/buildings use close landmark framing.
  */
 export async function searchAndFlyTo(viewer, query, options = {}) {
-  const { placeSearch = unavailablePlaceSearch, signal } = options;
+  const {
+    placeSearch = unavailablePlaceSearch, signal
+  } = options;
   signal?.throwIfAborted();
   const beforeFly =
     typeof options.beforeFly === 'function' ? options.beforeFly : null;
@@ -797,7 +864,10 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
   const recovered = await placesNearViewRecovery(
     viewer,
     query,
-    result && !outcome.fallbackUsed ? { lat, lon: lng } : null,
+    result && !outcome.fallbackUsed ? {
+      lat,
+      lon: lng
+    } : null,
     signal,
   );
   signal?.throwIfAborted();
@@ -858,13 +928,12 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
     // request for the whole administrative area, so the sanity gate stands down:
     // it exists to guess what an ambiguous place name meant, and there is nothing
     // left to guess once the user has said.
-    const gateFraming =
-      !explicitOverview &&
+    const gateFraming = !explicitOverview &&
       (navigationMode === 'city-overview' ||
         navigationMode === 'region-overview');
-    const framedViewport = gateFraming
-      ? placeFramingViewport(viewport, lat, lng, types)
-      : viewport;
+    const framedViewport = gateFraming ?
+      placeFramingViewport(viewport, lat, lng, types) :
+      viewport;
     const flight = flyToViewportBounds(viewer, framedViewport, {
       duration,
       navigationMode,
@@ -884,16 +953,15 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
   }
 
   const shouldResolveBuilding = navigationMode === 'precise-place';
-  const buildingBounds = shouldResolveBuilding
-    ? await resolveBuildingBounds(lat, lng, query)
-    : null;
+  const buildingBounds = shouldResolveBuilding ?
+    await resolveBuildingBounds(lat, lng, query) :
+    null;
   const range = requestedRange || defaultRangeForNavigationMode(navigationMode);
   if (!mayFly()) return CANCELLED_SEARCH;
   const flight = flyToLandmark(
     viewer,
     buildingBounds?.lat ?? lat,
-    buildingBounds?.lon ?? lng,
-    {
+    buildingBounds?.lon ?? lng, {
       range,
       pitch: buildingPitch(buildingBounds),
       heading: 30,
@@ -907,11 +975,11 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
   );
   return {
     label,
-    navigationMode: requestedRange
-      ? 'explicit-range'
-      : options.forceClose
-        ? navigationMode.replace('-overview', '-close')
-        : navigationMode,
+    navigationMode: requestedRange ?
+      'explicit-range' :
+      options.forceClose ?
+      navigationMode.replace('-overview', '-close') :
+      navigationMode,
     rangeM: Math.round(flight.range),
   };
 }
@@ -928,8 +996,14 @@ function placesViewportToBounds(vp) {
   )
     return null;
   return {
-    southwest: { lat: low.latitude, lng: low.longitude },
-    northeast: { lat: high.latitude, lng: high.longitude },
+    southwest: {
+      lat: low.latitude,
+      lng: low.longitude
+    },
+    northeast: {
+      lat: high.latitude,
+      lng: high.longitude
+    },
   };
 }
 
@@ -1092,8 +1166,8 @@ function greatCircleKm(lat1, lng1, lat2, lng2) {
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(Cesium.Math.toRadians(lat1)) *
-      Math.cos(Cesium.Math.toRadians(lat2)) *
-      Math.sin(dLng / 2) ** 2;
+    Math.cos(Cesium.Math.toRadians(lat2)) *
+    Math.sin(dLng / 2) ** 2;
   return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
@@ -1170,9 +1244,18 @@ export function placeFramingViewport(
 export function regionFramingPlan(viewport) {
   const metrics = viewportMetrics(viewport);
   if (!metrics) return null;
-  const { latSpanKm, lonSpanKm, spanKm, centerLat, centerLng } = metrics;
+  const {
+    latSpanKm,
+    lonSpanKm,
+    spanKm,
+    centerLat,
+    centerLng
+  } = metrics;
 
-  if (spanKm <= REGION_SWATH_SPAN_KM) return { mode: 'full', spanKm };
+  if (spanKm <= REGION_SWATH_SPAN_KM) return {
+    mode: 'full',
+    spanKm
+  };
 
   return {
     mode: 'swath',
@@ -1206,11 +1289,11 @@ function shouldFrameGeocodeViewport(mode) {
 function flyToViewportBounds(viewer, viewport, options = {}) {
   const {
     duration = 3.0,
-    beforeFly = null,
-    onStart = null,
-    onComplete = null,
-    onCancel = null,
-    navigationMode = 'overview',
+      beforeFly = null,
+      onStart = null,
+      onComplete = null,
+      onCancel = null,
+      navigationMode = 'overview',
   } = options;
   const southwest = viewport?.southwest;
   const northeast = viewport?.northeast;
@@ -1236,14 +1319,14 @@ function flyToViewportBounds(viewer, viewport, options = {}) {
   const south = Math.max(-89.9, southwest.lat - latitudePadding);
   const north = Math.min(89.9, northeast.lat + latitudePadding);
   const rectangle =
-    paddedLonSpan >= 360
-      ? Cesium.Rectangle.fromDegrees(-180, south, 180, north)
-      : Cesium.Rectangle.fromDegrees(
-          wrapLongitude(southwest.lng - longitudePadding),
-          south,
-          wrapLongitude(southwest.lng + metrics.lonSpanDeg + longitudePadding),
-          north,
-        );
+    paddedLonSpan >= 360 ?
+    Cesium.Rectangle.fromDegrees(-180, south, 180, north) :
+    Cesium.Rectangle.fromDegrees(
+      wrapLongitude(southwest.lng - longitudePadding),
+      south,
+      wrapLongitude(southwest.lng + metrics.lonSpanDeg + longitudePadding),
+      north,
+    );
   if (typeof beforeFly === 'function' && beforeFly() === false)
     return CANCELLED_SEARCH;
   if (typeof onStart === 'function') {
@@ -1297,7 +1380,12 @@ function normalizeBuildingBounds(bounds) {
   const width = finitePositive(bounds.width);
   const depth = finitePositive(bounds.depth);
   if (!height || !width || !depth) return null;
-  return { ...bounds, height, width, depth };
+  return {
+    ...bounds,
+    height,
+    width,
+    depth
+  };
 }
 
 function buildingBoundingRadius(bounds) {
@@ -1346,7 +1434,9 @@ async function resolveBuildingBounds(lat, lon, query) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 6000);
   try {
-    const elements = await applicationServices.boundaries.query(overpassQuery, { signal: controller.signal });
+    const elements = await applicationServices.boundaries.query(overpassQuery, {
+      signal: controller.signal
+    });
     return selectBuildingBounds(Array.isArray(elements) ? elements : [], lat, lon, query);
   } catch {
     return null;
@@ -1373,8 +1463,8 @@ function selectBuildingBounds(elements, targetLat, targetLon, query) {
     );
     const nameWords = normalizedWords(
       [tags.name, tags['name:en'], tags.official_name, tags.alt_name]
-        .filter(Boolean)
-        .join(' '),
+      .filter(Boolean)
+      .join(' '),
     );
     const nameScore = wordOverlap(queryWords, nameWords);
     const containsTarget = pointInPolygon(targetLon, targetLat, coordinates);
@@ -1393,7 +1483,10 @@ function selectBuildingBounds(elements, targetLat, targetLon, query) {
   }
   if (!candidates.length) return null;
   candidates.sort((a, b) => b.score - a.score);
-  const { score, ...best } = candidates[0];
+  const {
+    score,
+    ...best
+  } = candidates[0];
   return best;
 }
 
@@ -1405,11 +1498,11 @@ function elementCoordinates(element) {
   }
   if (!Array.isArray(element.members)) return [];
   return element.members.flatMap((member) =>
-    Array.isArray(member.geometry)
-      ? member.geometry.filter(
-          (point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lon),
-        )
-      : [],
+    Array.isArray(member.geometry) ?
+    member.geometry.filter(
+      (point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lon),
+    ) :
+    [],
   );
 }
 
@@ -1447,8 +1540,10 @@ function averageCoordinate(coordinates) {
     (sum, point) => ({
       lat: sum.lat + point.lat,
       lon: sum.lon + point.lon,
-    }),
-    { lat: 0, lon: 0 },
+    }), {
+      lat: 0,
+      lon: 0
+    },
   );
   return {
     lat: total.lat / coordinates.length,
@@ -1459,12 +1554,12 @@ function averageCoordinate(coordinates) {
 function normalizedWords(value) {
   return new Set(
     String(value || '')
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim()
-      .split(/\s+/)
-      .filter((word) => word.length > 2),
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 2),
   );
 }
 
@@ -1479,17 +1574,15 @@ function wordOverlap(left, right) {
 function pointInPolygon(lon, lat, coordinates) {
   let inside = false;
   for (
-    let index = 0, previous = coordinates.length - 1;
-    index < coordinates.length;
-    previous = index++
+    let index = 0, previous = coordinates.length - 1; index < coordinates.length; previous = index++
   ) {
     const a = coordinates[index];
     const b = coordinates[previous];
     const intersects =
       a.lat > lat !== b.lat > lat &&
       lon <
-        ((b.lon - a.lon) * (lat - a.lat)) / (b.lat - a.lat || Number.EPSILON) +
-          a.lon;
+      ((b.lon - a.lon) * (lat - a.lat)) / (b.lat - a.lat || Number.EPSILON) +
+      a.lon;
     if (intersects) inside = !inside;
   }
   return inside;
