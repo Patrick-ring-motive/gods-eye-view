@@ -1,12 +1,23 @@
-import { readLayerSource } from './testSupport/readLayerSource.mjs';
-import { StyleManager } from './ui/applicationShell.js';
-import { enter as cockpitEnter, navigateContext } from './ui/cockpitTrackingController.js';
-import { CockpitViewController } from './ui/cockpitController.js';
+import {
+  readLayerSource
+} from './testSupport/readLayerSource.mjs';
+import {
+  StyleManager
+} from './ui/applicationShell.js';
+import {
+  enter as cockpitEnter,
+  navigateContext
+} from './ui/cockpitTrackingController.js';
+import {
+  CockpitViewController
+} from './ui/cockpitController.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ui = fs.readFileSync(path.join(ROOT, 'src', 'ui', 'applicationShell.js'), 'utf8');
@@ -355,9 +366,9 @@ test('teardown refuses deferred location work before geocoding begins', () => {
 
 test('refused canned destinations commit no location or POI state', () => {
   for (const [name, pattern] of [
-    ['city', /_onCityPillClick\(cityId\) \{([\s\S]*?)\n  \}/],
-    ['poi', /_onPoiClick\(cityId, poiIndex\) \{([\s\S]*?)\n  \}/],
-  ]) {
+      ['city', /_onCityPillClick\(cityId\) \{([\s\S]*?)\n  \}/],
+      ['poi', /_onPoiClick\(cityId, poiIndex\) \{([\s\S]*?)\n  \}/],
+    ]) {
     const handler = body(ui, pattern, name);
     ordered(handler, [
       'this._flyWithTransition(',
@@ -376,7 +387,10 @@ test('world-focus listener lifecycle is symmetric and idempotent', () => {
 });
 
 test('vessel and fire layers announce valid clicks and never fly cameras', () => {
-  for (const [label, source] of [['vessels', vessels], ['fires', firms]]) {
+  for (const [label, source] of [
+      ['vessels', vessels],
+      ['fires', firms]
+    ]) {
     assert.match(source, /requestWorldFocus\(\{/);
     assert.doesNotMatch(source, /camera\.flyTo/);
   }
