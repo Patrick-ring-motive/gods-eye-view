@@ -71,7 +71,9 @@ import {
   rowArrayToObject,
   prioritizeSources,
 } from './normalize.js';
-import { directionToHeading } from '../../../src/data/directionText.js';
+import {
+  directionToHeading
+} from '../../../src/data/directionText.js';
 /**
  * Fetch and parse Austin traffic camera records from the city Open Data portal.
  *
@@ -86,7 +88,9 @@ export async function loadAustinSourcesFromOpenData() {
   const endpoint = process.env.CCTV_AUSTIN_ROWS_URL || DEFAULT_AUSTIN_ROWS_URL;
   try {
     const resp = await fetch(endpoint, {
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json'
+      },
       signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
     });
     if (!resp.ok) {
@@ -94,9 +98,9 @@ export async function loadAustinSourcesFromOpenData() {
       return [];
     }
     const payload = await resp.json();
-    const columns = Array.isArray(payload?.meta?.view?.columns)
-      ? payload.meta.view.columns
-      : [];
+    const columns = Array.isArray(payload?.meta?.view?.columns) ?
+      payload.meta.view.columns :
+      [];
     const rows = Array.isArray(payload?.data) ? payload.data : [];
     if (!columns.length || !rows.length) return [];
 
@@ -116,15 +120,18 @@ export async function loadAustinSourcesFromOpenData() {
         .toUpperCase();
       if (status && status !== 'TURNED_ON') continue;
 
-      const { lat, lon } = extractAustinCoords(record);
+      const {
+        lat,
+        lon
+      } = extractAustinCoords(record);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
       if (!isLikelyAustinCoordinate(lat, lon)) continue;
 
       const extractedHeading = extractAustinHeading(record);
       const hasHeading = Number.isFinite(extractedHeading);
-      const headingDeg = hasHeading
-        ? extractedHeading
-        : fallbackHeadingFromId(cameraId);
+      const headingDeg = hasHeading ?
+        extractedHeading :
+        fallbackHeadingFromId(cameraId);
       cameras.push({
         id: cameraId,
         name: extractAustinName(record, cameraId),
@@ -154,9 +161,9 @@ export async function loadAustinSourcesFromOpenData() {
     const maxRaw = Number(
       process.env.CCTV_AUSTIN_MAX_SOURCES || DEFAULT_AUSTIN_MAX_SOURCES,
     );
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(300, Math.floor(maxRaw)))
-      : DEFAULT_AUSTIN_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(300, Math.floor(maxRaw))) :
+      DEFAULT_AUSTIN_MAX_SOURCES;
     const prioritized = prioritizeSources(unique, maxCount, [AUSTIN_DOWNTOWN]);
     if (prioritized.length < unique.length) {
       console.log(
@@ -198,13 +205,18 @@ export async function loadCaltransSourcesFromOpenData() {
   const settled = await Promise.allSettled(
     districts.map(async (district) => {
       const resp = await fetch(CALTRANS_CCTV_URL(district), {
-        headers: { Accept: 'application/json' },
+        headers: {
+          Accept: 'application/json'
+        },
         signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
       });
       if (!resp.ok) throw new Error(`D${district} HTTP ${resp.status}`);
       const payload = await resp.json();
       const rows = Array.isArray(payload?.data) ? payload.data : [];
-      return { district, rows };
+      return {
+        district,
+        rows
+      };
     }),
   );
 
@@ -217,7 +229,10 @@ export async function loadCaltransSourcesFromOpenData() {
       );
       continue;
     }
-    const { district, rows } = result.value;
+    const {
+      district,
+      rows
+    } = result.value;
     for (const row of rows) {
       const cctv = row?.cctv;
       if (!cctv || String(cctv.inService).toLowerCase() !== 'true') continue;
@@ -270,9 +285,9 @@ export async function loadCaltransSourcesFromOpenData() {
         // so it must be right-ish on its own.
         groundElevationM: (() => {
           const ft = toFiniteNumber(loc.elevation, NaN);
-          return Number.isFinite(ft)
-            ? Math.max(-100, Math.min(4000, ft * 0.3048))
-            : 150;
+          return Number.isFinite(ft) ?
+            Math.max(-100, Math.min(4000, ft * 0.3048)) :
+            150;
         })(),
         feedType: 'image',
         url: imageUrl,
@@ -286,9 +301,9 @@ export async function loadCaltransSourcesFromOpenData() {
   const maxRaw = Number(
     process.env.CCTV_CALTRANS_MAX_SOURCES || DEFAULT_CALTRANS_MAX_SOURCES,
   );
-  const maxCount = Number.isFinite(maxRaw)
-    ? Math.max(8, Math.min(600, Math.floor(maxRaw)))
-    : DEFAULT_CALTRANS_MAX_SOURCES;
+  const maxCount = Number.isFinite(maxRaw) ?
+    Math.max(8, Math.min(600, Math.floor(maxRaw))) :
+    DEFAULT_CALTRANS_MAX_SOURCES;
   const prioritized = prioritizeSources(cameras, maxCount, CALTRANS_ANCHORS);
   console.log(
     `[CCTV] Loaded Caltrans camera sources: ${cameras.length} inService (using nearest ${prioritized.length})`,
@@ -309,11 +324,13 @@ export async function loadCaltransSourcesFromOpenData() {
 export async function loadTflSourcesFromOpenData() {
   try {
     const appKey = String(process.env.TFL_APP_KEY || '').trim();
-    const url = appKey
-      ? `${TFL_JAMCAM_URL}?app_key=${encodeURIComponent(appKey)}`
-      : TFL_JAMCAM_URL;
+    const url = appKey ?
+      `${TFL_JAMCAM_URL}?app_key=${encodeURIComponent(appKey)}` :
+      TFL_JAMCAM_URL;
     const resp = await fetch(url, {
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json'
+      },
       signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
     });
     if (!resp.ok) {
@@ -369,9 +386,9 @@ export async function loadTflSourcesFromOpenData() {
     const maxRaw = Number(
       process.env.CCTV_TFL_MAX_SOURCES || DEFAULT_TFL_MAX_SOURCES,
     );
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(600, Math.floor(maxRaw)))
-      : DEFAULT_TFL_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(600, Math.floor(maxRaw))) :
+      DEFAULT_TFL_MAX_SOURCES;
     const prioritized = prioritizeSources(cameras, maxCount, [LONDON_CENTER]);
     console.log(
       `[CCTV] Loaded TfL JamCam sources: ${cameras.length} available (using nearest ${prioritized.length})`,
@@ -431,9 +448,9 @@ function pickOntarioCctvView(views) {
   const enabled = (Array.isArray(views) ? views : [])
     .filter(
       (view) =>
-        String(view?.Status || view?.status || '')
-          .trim()
-          .toLowerCase() === 'enabled',
+      String(view?.Status || view?.status || '')
+      .trim()
+      .toLowerCase() === 'enabled',
     )
     .map((view) => ({
       url: normalizeOntarioCctvUrl(view?.Url || view?.url),
@@ -457,7 +474,9 @@ function pickOntarioCctvView(views) {
 export async function loadOntarioSourcesFromOpenData() {
   try {
     const resp = await fetch(ONTARIO_511_CAMERAS_URL, {
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json'
+      },
       signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
     });
     if (!resp.ok) {
@@ -482,13 +501,13 @@ export async function loadOntarioSourcesFromOpenData() {
       const location = String(row?.Location || row?.location || '').trim();
       const roadway = String(row?.Roadway || row?.roadway || '').trim();
       const viewLabel =
-        view.description && !/\bdown\b/i.test(view.description)
-          ? view.description
-          : '';
+        view.description && !/\bdown\b/i.test(view.description) ?
+        view.description :
+        '';
       const label = [
-        location || roadway || `Ontario 511 Camera ${rawId}`,
-        viewLabel,
-      ]
+          location || roadway || `Ontario 511 Camera ${rawId}`,
+          viewLabel,
+        ]
         .filter(Boolean)
         .join(' - ');
       let heading = directionToHeading(row?.Direction ?? row?.direction, true);
@@ -526,9 +545,9 @@ export async function loadOntarioSourcesFromOpenData() {
     const maxRaw = Number(
       process.env.CCTV_ONTARIO_MAX_SOURCES || DEFAULT_ONTARIO_MAX_SOURCES,
     );
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(1000, Math.floor(maxRaw)))
-      : DEFAULT_ONTARIO_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(1000, Math.floor(maxRaw))) :
+      DEFAULT_ONTARIO_MAX_SOURCES;
     const prioritized = prioritizeSources(unique, maxCount, ONTARIO_ANCHORS);
     console.log(
       `[CCTV] Loaded Ontario 511 camera sources: ${unique.length} enabled (using nearest ${prioritized.length})`,
@@ -617,9 +636,9 @@ export async function loadFintrafficSourcesFromOpenData() {
       // no-tileset stack this height is what freezes in.
       const reportedElevation = toFiniteNumber(coords?.[2], 0);
       const groundElevationM =
-        reportedElevation > 0
-          ? Math.min(1400, reportedElevation)
-          : FINTRAFFIC_GROUND_ELEVATION_M;
+        reportedElevation > 0 ?
+        Math.min(1400, reportedElevation) :
+        FINTRAFFIC_GROUND_ELEVATION_M;
 
       stationsSeen += 1;
       for (const preset of props.presets || []) {
@@ -660,9 +679,9 @@ export async function loadFintrafficSourcesFromOpenData() {
     const maxRaw = Number(
       process.env.CCTV_FINTRAFFIC_MAX_SOURCES || DEFAULT_FINTRAFFIC_MAX_SOURCES,
     );
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(600, Math.floor(maxRaw)))
-      : DEFAULT_FINTRAFFIC_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(600, Math.floor(maxRaw))) :
+      DEFAULT_FINTRAFFIC_MAX_SOURCES;
     const prioritized = prioritizeSources(cameras, maxCount, FINLAND_ANCHORS);
     console.log(
       `[CCTV] Loaded Fintraffic camera sources: ${cameras.length} live presets across ${stationsSeen} stations (using nearest ${prioritized.length})`,
@@ -693,10 +712,10 @@ export function driveBcImageCredit(raw) {
     .trim();
   if (!text) return '';
   return /courtesy|provided by|presented in cooperation|city of|parks canada/i.test(
-    text,
-  )
-    ? text
-    : '';
+      text,
+    ) ?
+    text :
+    '';
 }
 
 /** DriveBC orientation codes (the eight compass points) as headings in degrees. */
@@ -725,7 +744,9 @@ const DRIVEBC_ORIENTATION_HEADINGS = Object.freeze({
 export async function loadDriveBcSourcesFromOpenData() {
   try {
     const resp = await fetch(DRIVEBC_WEBCAMS_URL, {
-      headers: { Accept: 'application/json' },
+      headers: {
+        Accept: 'application/json'
+      },
       signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
     });
     if (!resp.ok) {
@@ -740,17 +761,17 @@ export async function loadDriveBcSourcesFromOpenData() {
       if (row?.is_on !== true || row?.should_appear !== true) continue;
       if (!Number.isSafeInteger(row.id) || row.id <= 0) continue;
       // GeoJSON point order: [longitude, latitude].
-      const [lon, lat] = Array.isArray(row.location?.coordinates)
-        ? row.location.coordinates
-        : [];
+      const [lon, lat] = Array.isArray(row.location?.coordinates) ?
+        row.location.coordinates :
+        [];
       if (!isLikelyBcCoordinate(lat, lon)) continue;
 
       const cameraId = `drivebc-${row.id}`;
       const heading =
         DRIVEBC_ORIENTATION_HEADINGS[
           String(row.orientation || '')
-            .trim()
-            .toUpperCase()
+          .trim()
+          .toUpperCase()
         ];
       const hasHeading = Number.isFinite(heading);
       const region = String(row.region_name || '').trim();
@@ -761,8 +782,7 @@ export async function loadDriveBcSourcesFromOpenData() {
         name: String(row.name || '').trim() || `DriveBC camera ${row.id}`,
         // DriveBC regions: Lower Mainland, Vancouver Island, Southern Interior,
         // Northern, and "Border Cams" for the US crossings.
-        city:
-          region === 'Border Cams' ? 'BC Border' : region || 'British Columbia',
+        city: region === 'Border Cams' ? 'BC Border' : region || 'British Columbia',
         cityId: 'british-columbia',
         provider: 'DriveBC',
         lat,
@@ -777,9 +797,9 @@ export async function loadDriveBcSourcesFromOpenData() {
         mountHeightM: hasHeading ? 10 : 8,
         // Clamped like Caltrans so a garbage value can't fling a camera
         // kilometres up; sea level is the prior for the coastal default anchors.
-        groundElevationM: Number.isFinite(row.elevation)
-          ? Math.max(-100, Math.min(4000, row.elevation))
-          : 0,
+        groundElevationM: Number.isFinite(row.elevation) ?
+          Math.max(-100, Math.min(4000, row.elevation)) :
+          0,
         feedType: 'image',
         url: imageUrl,
         snapshotUrl: imageUrl,
@@ -793,9 +813,9 @@ export async function loadDriveBcSourcesFromOpenData() {
       process.env.CCTV_DRIVEBC_MAX_SOURCES || DEFAULT_DRIVEBC_MAX_SOURCES,
     );
     // Up to the catalog ceiling, so a BC-only setup can load the whole province.
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(1200, Math.floor(maxRaw)))
-      : DEFAULT_DRIVEBC_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(1200, Math.floor(maxRaw))) :
+      DEFAULT_DRIVEBC_MAX_SOURCES;
     const prioritized = prioritizeSources(cameras, maxCount, DRIVEBC_ANCHORS);
     console.log(
       `[CCTV] Loaded DriveBC camera sources: ${cameras.length} published (using nearest ${prioritized.length})`,
@@ -911,9 +931,9 @@ export async function loadTxdotSourcesFromOpenData() {
   const districts = [
     ...new Set(
       String(districtsRaw)
-        .split(',')
-        .map((token) => token.trim().toUpperCase())
-        .filter((code) => TXDOT_DISTRICTS.has(code)),
+      .split(',')
+      .map((token) => token.trim().toUpperCase())
+      .filter((code) => TXDOT_DISTRICTS.has(code)),
     ),
   ];
   if (!districts.length) return [];
@@ -928,7 +948,10 @@ export async function loadTxdotSourcesFromOpenData() {
         signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
       });
       if (!resp.ok) throw new Error(`${district} HTTP ${resp.status}`);
-      return { district, payload: await resp.json() };
+      return {
+        district,
+        payload: await resp.json()
+      };
     }),
   );
 
@@ -952,9 +975,9 @@ export async function loadTxdotSourcesFromOpenData() {
   const maxRaw = Number(
     process.env.CCTV_TXDOT_MAX_SOURCES || DEFAULT_TXDOT_MAX_SOURCES,
   );
-  const maxCount = Number.isFinite(maxRaw)
-    ? Math.max(8, Math.min(2000, Math.floor(maxRaw)))
-    : DEFAULT_TXDOT_MAX_SOURCES;
+  const maxCount = Number.isFinite(maxRaw) ?
+    Math.max(8, Math.min(2000, Math.floor(maxRaw))) :
+    DEFAULT_TXDOT_MAX_SOURCES;
   const prioritized = prioritizeSources(cameras, maxCount, TXDOT_ANCHORS);
   console.log(
     `[CCTV] Loaded TxDOT camera sources: ${cameras.length} online across ${districts.join(',')} (using nearest ${prioritized.length})`,
@@ -976,9 +999,9 @@ export function loadTallinnSourcesFromCatalog({
 } = {}) {
   const sourceFile =
     process.env.CCTV_TALLINN_SOURCES_FILE || DEFAULT_TALLINN_SOURCE_FILE;
-  const resolved = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(sourceRoot, sourceFile);
+  const resolved = path.isAbsolute(sourceFile) ?
+    sourceFile :
+    path.resolve(sourceRoot, sourceFile);
   let rows = [];
   try {
     if (!fs.existsSync(resolved)) {
@@ -999,9 +1022,9 @@ export function loadTallinnSourcesFromCatalog({
   for (const item of rows) {
     if (!item || typeof item !== 'object') continue;
     const cameraId =
-      typeof item.id === 'string' || typeof item.id === 'number'
-        ? String(item.id).trim()
-        : '';
+      typeof item.id === 'string' || typeof item.id === 'number' ?
+      String(item.id).trim() :
+      '';
     if (!cameraId) continue;
     const lat = typeof item.lat === 'number' ? item.lat : NaN;
     const lon = typeof item.lon === 'number' ? item.lon : NaN;
@@ -1010,23 +1033,23 @@ export function loadTallinnSourcesFromCatalog({
     if (lat < 59.2 || lat > 59.7 || lon < 24.3 || lon > 25.4) continue;
 
     const imageUrl =
-      typeof item.url === 'string'
-        ? item.url.trim()
-        : typeof item.snapshotUrl === 'string'
-          ? item.snapshotUrl.trim()
-          : '';
+      typeof item.url === 'string' ?
+      item.url.trim() :
+      typeof item.snapshotUrl === 'string' ?
+      item.snapshotUrl.trim() :
+      '';
     if (!imageUrl.startsWith(TALLINN_IMAGE_ORIGIN)) continue;
 
     const extractedHeading = toFiniteNumber(item.headingDeg, NaN);
     const hasHeading = Number.isFinite(extractedHeading);
-    const headingDeg = hasHeading
-      ? ((extractedHeading % 360) + 360) % 360
-      : fallbackHeadingFromId(cameraId);
-    const headingConfidence = hasHeading
-      ? String(item.headingConfidence || '').toLowerCase() === 'low'
-        ? 'low'
-        : 'high'
-      : 'low';
+    const headingDeg = hasHeading ?
+      ((extractedHeading % 360) + 360) % 360 :
+      fallbackHeadingFromId(cameraId);
+    const headingConfidence = hasHeading ?
+      String(item.headingConfidence || '').toLowerCase() === 'low' ?
+      'low' :
+      'high' :
+      'low';
     cameras.push({
       id: cameraId,
       name: String(item.name || cameraId).trim(),
@@ -1057,9 +1080,9 @@ export function loadTallinnSourcesFromCatalog({
   const maxRaw = Number(
     process.env.CCTV_TALLINN_MAX_SOURCES || DEFAULT_TALLINN_MAX_SOURCES,
   );
-  const maxCount = Number.isFinite(maxRaw)
-    ? Math.max(8, Math.min(300, Math.floor(maxRaw)))
-    : DEFAULT_TALLINN_MAX_SOURCES;
+  const maxCount = Number.isFinite(maxRaw) ?
+    Math.max(8, Math.min(300, Math.floor(maxRaw))) :
+    DEFAULT_TALLINN_MAX_SOURCES;
   const prioritized = prioritizeSources(unique, maxCount, [TALLINN_CENTER]);
   console.log(
     `[CCTV] Loaded Tallinn camera sources: ${unique.length} (using nearest ${prioritized.length})`,
@@ -1094,7 +1117,11 @@ export function parseTarkteeDatexLocations(xml) {
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
     const nameMatch = /<value\b[^>]*>\s*([^<]+?)\s*<\/value>/i.exec(body);
     const name = nameMatch ? nameMatch[1].trim() : id;
-    out.set(id, { name, lat, lon });
+    out.set(id, {
+      name,
+      lat,
+      lon
+    });
   }
   return out;
 }
@@ -1137,11 +1164,15 @@ export async function loadTarkteeSourcesFromDatex() {
   try {
     const [locResp, imgResp] = await Promise.all([
       fetch(TARKTEE_LOCATIONS_URL, {
-        headers: { Accept: 'application/xml,text/xml,*/*' },
+        headers: {
+          Accept: 'application/xml,text/xml,*/*'
+        },
         signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
       }),
       fetch(TARKTEE_IMAGES_URL, {
-        headers: { Accept: 'application/xml,text/xml,*/*' },
+        headers: {
+          Accept: 'application/xml,text/xml,*/*'
+        },
         signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS),
       }),
     ]);
@@ -1176,9 +1207,9 @@ export async function loadTarkteeSourcesFromDatex() {
         continue;
 
       const numMatch = /\/images\/(\d+)\//.exec(imageUrl);
-      const cameraId = numMatch
-        ? `ee-tarktee-${numMatch[1]}`
-        : `ee-tarktee-${locationId}`;
+      const cameraId = numMatch ?
+        `ee-tarktee-${numMatch[1]}` :
+        `ee-tarktee-${locationId}`;
       cameras.push({
         id: cameraId,
         name: loc.name,
@@ -1205,9 +1236,9 @@ export async function loadTarkteeSourcesFromDatex() {
     const maxRaw = Number(
       process.env.CCTV_TARKTEE_MAX_SOURCES || DEFAULT_TARKTEE_MAX_SOURCES,
     );
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(300, Math.floor(maxRaw)))
-      : DEFAULT_TARKTEE_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(300, Math.floor(maxRaw))) :
+      DEFAULT_TARKTEE_MAX_SOURCES;
     const prioritized = prioritizeSources(cameras, maxCount, TARKTEE_ANCHORS);
     console.log(
       `[CCTV] Loaded Tarktee camera sources: ${cameras.length} with images (using nearest ${prioritized.length})`,
@@ -1234,9 +1265,9 @@ export function loadWarendorfSourcesFromCatalog({
 } = {}) {
   const sourceFile =
     process.env.CCTV_WARENDORF_SOURCES_FILE || DEFAULT_WARENDORF_SOURCE_FILE;
-  const resolved = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(sourceRoot, sourceFile);
+  const resolved = path.isAbsolute(sourceFile) ?
+    sourceFile :
+    path.resolve(sourceRoot, sourceFile);
   let rows = [];
   try {
     if (!fs.existsSync(resolved)) {
@@ -1257,11 +1288,11 @@ export function loadWarendorfSourcesFromCatalog({
     if (!item || typeof item !== 'object') continue;
     const id = typeof item.id === 'string' ? item.id.trim() : '';
     const url =
-      typeof item.url === 'string'
-        ? item.url.trim()
-        : typeof item.snapshotUrl === 'string'
-          ? item.snapshotUrl.trim()
-          : '';
+      typeof item.url === 'string' ?
+      item.url.trim() :
+      typeof item.snapshotUrl === 'string' ?
+      item.snapshotUrl.trim() :
+      '';
     if (!id || !WARENDORF_IMAGE_ORIGINS.some((o) => url.startsWith(o)))
       continue;
     const lat = typeof item.lat === 'number' ? item.lat : NaN;
@@ -1376,9 +1407,9 @@ export async function loadNswSourcesFromOpenData() {
     const maxRaw = Number(
       process.env.CCTV_NSW_MAX_SOURCES || DEFAULT_NSW_MAX_SOURCES,
     );
-    const maxCount = Number.isFinite(maxRaw)
-      ? Math.max(8, Math.min(900, Math.floor(maxRaw)))
-      : DEFAULT_NSW_MAX_SOURCES;
+    const maxCount = Number.isFinite(maxRaw) ?
+      Math.max(8, Math.min(900, Math.floor(maxRaw))) :
+      DEFAULT_NSW_MAX_SOURCES;
     const prioritized = prioritizeSources(cameras, maxCount, [SYDNEY_CENTER]);
     console.log(
       `[CCTV] Loaded NSW camera sources: ${cameras.length} (using nearest ${prioritized.length})`,
