@@ -4,7 +4,12 @@ import {
   RADIO_MARKER_CATEGORY_ORDER,
 } from './policy.js';
 
-export function createModel({ state: layerState, services, parts, source }) {
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** Return the shared CSS color for a canonical or detected-genre category. */
 
   function radioCategoryColor(categoryId = 'other') {
@@ -87,28 +92,28 @@ export function createModel({ state: layerState, services, parts, source }) {
   function radioStationResolutionMatches(frozenStation, currentStation) {
     if (!frozenStation || !currentStation) return false;
     for (const key of [
-      'id',
-      'name',
-      'lat',
-      'lon',
-      'streamUrl',
-      'homepage',
-      'state',
-      'country',
-      'countryCode',
-      'metadataTrust',
-      'codec',
-      'bitrate',
-    ]) {
+        'id',
+        'name',
+        'lat',
+        'lon',
+        'streamUrl',
+        'homepage',
+        'state',
+        'country',
+        'countryCode',
+        'metadataTrust',
+        'codec',
+        'bitrate',
+      ]) {
       if (frozenStation[key] !== currentStation[key]) return false;
     }
     return ['tags', 'languages'].every((key) => {
-      const frozenValues = Array.isArray(frozenStation[key])
-        ? frozenStation[key]
-        : [];
-      const currentValues = Array.isArray(currentStation[key])
-        ? currentStation[key]
-        : [];
+      const frozenValues = Array.isArray(frozenStation[key]) ?
+        frozenStation[key] :
+        [];
+      const currentValues = Array.isArray(currentStation[key]) ?
+        currentStation[key] :
+        [];
       return (
         frozenValues.length === currentValues.length &&
         frozenValues.every((value, index) => value === currentValues[index])
