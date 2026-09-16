@@ -70,4 +70,6 @@ function realtimeInstructions(
   ].join('\n');
 }
 
-export { realtimeInstructions };
+export {
+  realtimeInstructions
+};
