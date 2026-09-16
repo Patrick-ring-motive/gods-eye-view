@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * scripts/qa-floor-hold.mjs — a grounded contact holds its floor through a
  * terrain-proxy outage (owner incident, 2026-08-21).
@@ -52,39 +53,67 @@ const OUT_DIR = 'qa-shots/floorhold';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const results = [];
+
 function record(name, ok, detail) {
-  results.push({ name, ok, detail });
+  results.push({
+    name,
+    ok,
+    detail
+  });
   console.log(`  [${ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m'}] ${name}${detail ? `  — ${detail}` : ''}`);
 }
 
-fs.mkdirSync(OUT_DIR, { recursive: true });
+fs.mkdirSync(OUT_DIR, {
+  recursive: true
+});
 const chrome = await puppeteer.executablePath().catch(() => undefined);
 const browser = await puppeteer.launch({
   headless: HEADFUL ? false : 'new',
   executablePath: chrome,
   args: ['--use-gl=angle', `--use-angle=${ANGLE}`, '--enable-webgl',
-    '--ignore-gpu-blocklist', '--no-sandbox'],
+    '--ignore-gpu-blocklist', '--no-sandbox'
+  ],
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1400, height: 900 });
+await page.setViewport({
+  width: 1400,
+  height: 900
+});
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 
 await page.evaluateOnNewDocument((site, icao) => {
-  window.__CONTACT = { icao, lat: site.lat, lon: site.lon };
-  window.__TERRAIN = { ok: 0, failed: 0 };
+  window.__CONTACT = {
+    icao,
+    lat: site.lat,
+    lon: site.lon
+  };
+  window.__TERRAIN = {
+    ok: 0,
+    failed: 0
+  };
   window.__TERRAIN_FAIL = false;
   const realFetch = window.fetch.bind(window);
   const json = (o) => new Response(JSON.stringify(o), {
-    status: 200, headers: { 'Content-Type': 'application/json' },
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json'
+    },
   });
   window.fetch = (input, init) => {
     const raw = typeof input === 'string' || input instanceof URL ? String(input) : input?.url;
-    let url; try { url = new URL(raw, window.location.href); } catch { return realFetch(input, init); }
+    let url;
+    try {
+      url = new URL(raw, window.location.href);
+    } catch {
+      return realFetch(input, init);
+    }
     const app = url.origin === window.location.origin;
     if (app && url.pathname === '/api/terrain/heights') {
       if (window.__TERRAIN_FAIL) {
         window.__TERRAIN.failed += 1;
-        return Promise.resolve(new Response('upstream timeout', { status: 504 }));
+        return Promise.resolve(new Response('upstream timeout', {
+          status: 504
+        }));
       }
       window.__TERRAIN.ok += 1;
       return realFetch(input, init);
@@ -95,27 +124,38 @@ await page.evaluateOnNewDocument((site, icao) => {
       // baro_altitude (7) and geo_altitude (13) both null, on_ground true.
       return Promise.resolve(json({
         time: t,
-        states: [[c.icao, 'AXEL21', 'Synthetica', t, t, c.lon, c.lat,
-          null, true, 1.5, 90, 0, null, null, null, false, 0]],
+        states: [
+          [c.icao, 'AXEL21', 'Synthetica', t, t, c.lon, c.lat,
+            null, true, 1.5, 90, 0, null, null, null, false, 0
+          ]
+        ],
       }));
     }
-    if (app && url.pathname === '/api/opensky-track') return Promise.resolve(json({ path: [] }));
+    if (app && url.pathname === '/api/opensky-track') return Promise.resolve(json({
+      path: []
+    }));
     if (app && /^\/api\/adsbdb\//.test(url.pathname)) return Promise.resolve(json({}));
     return realFetch(input, init);
   };
 }, SITE, ICAO);
 
 console.log(`\nFloor hold through a terrain outage\n  App  : ${APP_URL}\n  GPU  : ANGLE/${ANGLE}\n  Site : ${SITE.lat}, ${SITE.lon}\n`);
-await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-await page.waitForFunction(() => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-  { timeout: 150000 });
+await page.goto(APP_URL, {
+  waitUntil: 'domcontentloaded',
+  timeout: 120000
+});
+await page.waitForFunction(() => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+  timeout: 150000
+});
 await sleep(12000); // let the boot fly-to settle before pinning
 await page.evaluate(() => {
   document.querySelector('#first-run-launcher:not([hidden]) [data-first-run-choice="explore"]')?.click();
 });
 await sleep(600); // let the launcher dismissal finish before taking evidence
 
-await page.evaluate((site) => { window.__SITE = site; }, SITE);
+await page.evaluate((site) => {
+  window.__SITE = site;
+}, SITE);
 const pin = () => page.evaluate(() => {
   const v = window.__godsEyeView.viewer;
   const C = v.camera.positionCartographic.constructor;
@@ -124,7 +164,11 @@ const pin = () => page.evaluate(() => {
     destination: v.scene.globe.ellipsoid.cartographicToCartesian(
       C.fromDegrees(window.__SITE.lon, window.__SITE.lat - 0.008, 900),
     ),
-    orientation: { heading: 0, pitch: -0.45, roll: 0 },
+    orientation: {
+      heading: 0,
+      pitch: -0.45,
+      roll: 0
+    },
   });
   v.camera.moveEnd.raiseEvent();
 });
@@ -134,7 +178,9 @@ const billboardMode = await page.evaluate(async () => {
   const flights = manager.layers.get('flights').module;
   // This harness measures billboard positions. A ready 3D model deliberately
   // hides its billboard; that handoff is covered by track-regression instead.
-  flights.setParams({ models3d: false });
+  flights.setParams({
+    models3d: false
+  });
   await manager.toggle('flights');
   return flights.getParams().models3d === false;
 });
@@ -144,19 +190,35 @@ record('the billboard floor test is explicitly in 2D aircraft mode', billboardMo
 const measure = () => page.evaluate(async (icao) => {
   const v = window.__godsEyeView.viewer;
   const C = v.camera.positionCartographic.constructor;
-  const sprites = []; const models = []; let bb = null;
+  const sprites = [];
+  const models = [];
+  let bb = null;
   const walk = (coll) => {
     for (let i = 0; i < coll.length; i++) {
-      let p; try { p = coll.get(i); } catch { continue; }
+      let p;
+      try {
+        p = coll.get(i);
+      } catch {
+        continue;
+      }
       if (!p) continue;
-      if (typeof p.length === 'number' && typeof p.get === 'function') { walk(p); continue; }
+      if (typeof p.length === 'number' && typeof p.get === 'function') {
+        walk(p);
+        continue;
+      }
       if (p.image !== undefined && p.alignedAxis !== undefined) {
-        sprites.push(p); if (p.id === icao) bb = p;
+        sprites.push(p);
+        if (p.id === icao) bb = p;
       } else if (p.boundingSphere && p.modelMatrix) models.push(p);
     }
   };
-  try { walk(v.scene.primitives); } catch { /* mid-teardown */ }
-  if (!bb?.position) return { error: 'contact billboard not found' };
+  try {
+    walk(v.scene.primitives);
+  } catch {
+    /* mid-teardown */ }
+  if (!bb?.position) return {
+    error: 'contact billboard not found'
+  };
   const carto = C.fromCartesian(bb.position);
   const lat = carto.latitude * 180 / Math.PI;
   const lon = carto.longitude * 180 / Math.PI;
@@ -167,27 +229,49 @@ const measure = () => page.evaluate(async (icao) => {
   // app's own governor hook before each attempt, exactly as the fly_route
   // harness does, and accept the coarse cell centre as a fallback point.
   const pump = () => new Promise((resolve) => {
-    try { window.__godsEyeView.requestRender?.(); } catch { /* no governor */ }
-    try { v.scene.requestRender(); } catch { /* explicit-render off */ }
+    try {
+      window.__godsEyeView.requestRender?.();
+    } catch {
+      /* no governor */ }
+    try {
+      v.scene.requestRender();
+    } catch {
+      /* explicit-render off */ }
     requestAnimationFrame(() => requestAnimationFrame(resolve));
   });
   let mesh = null;
   for (let attempt = 0; attempt < 10 && mesh == null; attempt += 1) {
     await pump();
-    for (const [pLat, pLon] of [[lat, lon], [+lat.toFixed(3), +lon.toFixed(3)]]) {
-      for (const exclude of [[...sprites, ...models], []]) {
+    for (const [pLat, pLon] of [
+        [lat, lon],
+        [+lat.toFixed(3), +lon.toFixed(3)]
+      ]) {
+      for (const exclude of [
+          [...sprites, ...models],
+          []
+        ]) {
         try {
           const h = v.scene.sampleHeight(C.fromDegrees(pLon, pLat, 0), exclude);
-          if (Number.isFinite(h)) { mesh = h; break; }
-        } catch { /* mid-stream */ }
+          if (Number.isFinite(h)) {
+            mesh = h;
+            break;
+          }
+        } catch {
+          /* mid-stream */ }
       }
       if (mesh != null) break;
     }
     if (mesh == null) await new Promise((r) => setTimeout(r, 1200));
   }
   return {
-    spriteH: carto.height, meshH: mesh, shown: bb.show === true,
-    lat: +lat.toFixed(5), lon: +lon.toFixed(5), terrain: { ...window.__TERRAIN },
+    spriteH: carto.height,
+    meshH: mesh,
+    shown: bb.show === true,
+    lat: +lat.toFixed(5),
+    lon: +lon.toFixed(5),
+    terrain: {
+      ...window.__TERRAIN
+    },
   };
 }, ICAO);
 
@@ -206,7 +290,8 @@ async function demTruth(lat, lon) {
       const v = Number((await res.json())?.results?.[0]?.ellipsoid);
       if (Number.isFinite(v)) h = v;
     }
-  } catch { /* the oracle is best-effort too */ }
+  } catch {
+    /* the oracle is best-effort too */ }
   truth.set(key, h);
   return h;
 }
@@ -214,35 +299,52 @@ async function demTruth(lat, lon) {
 const samples = [];
 async function sample(phase, note) {
   const m = await measure();
-  if (m.error) { console.log(`  ${phase} ${note}: ${m.error}`); return null; }
+  if (m.error) {
+    console.log(`  ${phase} ${note}: ${m.error}`);
+    return null;
+  }
   const dem = await demTruth(m.lat, m.lon);
   const row = {
-    phase, note, ...m, demH: dem,
+    phase,
+    note,
+    ...m,
+    demH: dem,
     meshClearM: m.meshH != null ? +(m.spriteH - m.meshH).toFixed(2) : null,
     demClearM: dem != null ? +(m.spriteH - dem).toFixed(2) : null,
   };
   samples.push(row);
-  console.log(`  ${phase} ${note}: @${m.lat},${m.lon} sprite=${m.spriteH.toFixed(1)}`
-    + ` mesh=${m.meshH?.toFixed?.(1) ?? 'n/a'} (${row.meshClearM})`
-    + ` DEM=${dem?.toFixed?.(1) ?? 'n/a'} (${row.demClearM})`
-    + ` terrain=${JSON.stringify(m.terrain)}`);
+  console.log(`  ${phase} ${note}: @${m.lat},${m.lon} sprite=${m.spriteH.toFixed(1)}` +
+    ` mesh=${m.meshH?.toFixed?.(1) ?? 'n/a'} (${row.meshClearM})` +
+    ` DEM=${dem?.toFixed?.(1) ?? 'n/a'} (${row.demClearM})` +
+    ` terrain=${JSON.stringify(m.terrain)}`);
   return row;
 }
 
 console.log('\nphase A — terrain healthy, warming cells (3 polls)');
-for (let i = 0; i < 3; i++) { await sleep(32000); await pin(); }
+for (let i = 0; i < 3; i++) {
+  await sleep(32000);
+  await pin();
+}
 await sample('A', 'warm');
-fs.writeFileSync(path.join(OUT_DIR, `hold-A-warm-${ANGLE}.png`), await page.screenshot({ type: 'png' }));
+fs.writeFileSync(path.join(OUT_DIR, `hold-A-warm-${ANGLE}.png`), await page.screenshot({
+  type: 'png'
+}));
 
 console.log('\nphase B — every terrain request answers 504 from here');
-await page.evaluate(() => { window.__TERRAIN_FAIL = true; });
+await page.evaluate(() => {
+  window.__TERRAIN_FAIL = true;
+});
 for (let i = 1; i <= 4; i++) {
-  await page.evaluate(() => { window.__CONTACT.lon += 0.0016; }); // ~150 m east per poll
+  await page.evaluate(() => {
+    window.__CONTACT.lon += 0.0016;
+  }); // ~150 m east per poll
   await sleep(32000);
   await pin();
   await sample('B', `poll+${i}`);
 }
-fs.writeFileSync(path.join(OUT_DIR, `hold-B-outage-${ANGLE}.png`), await page.screenshot({ type: 'png' }));
+fs.writeFileSync(path.join(OUT_DIR, `hold-B-outage-${ANGLE}.png`), await page.screenshot({
+  type: 'png'
+}));
 await browser.close();
 
 console.log('');
