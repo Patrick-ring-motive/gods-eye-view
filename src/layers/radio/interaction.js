@@ -18,7 +18,9 @@ export function createInteraction({
     registerPickOwner,
     unregisterPickOwner,
   } = services.picking;
-  const { setOverlaySourceVisible } = services.overlays;
+  const {
+    setOverlaySourceVisible
+  } = services.overlays;
 
   /** Resolve a station id from ordinary, selected, or Cesium cluster pick shapes. */
 
@@ -51,9 +53,9 @@ export function createInteraction({
 
     const stationFromPick = (picked) => {
       const stationId = radioStationIdFromPick(picked);
-      return stationId && layerState._stationById.has(stationId)
-        ? stationId
-        : null;
+      return stationId && layerState._stationById.has(stationId) ?
+        stationId :
+        null;
     };
     const primaryPick = scene.pick(position);
     const primaryStationId = stationFromPick(primaryPick);
@@ -128,7 +130,11 @@ export function createInteraction({
       });
       if (typeof document !== 'undefined') {
         document.dispatchEvent(
-          new CustomEvent('gev:radio-selected', { detail: { stationId } }),
+          new CustomEvent('gev:radio-selected', {
+            detail: {
+              stationId
+            }
+          }),
         );
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -136,7 +142,9 @@ export function createInteraction({
     // rewrites every station's visibility four times per second while voice and
     // audio processing share the main thread.
     layerState._horizonTimer = setInterval(
-      () => parts.rendering.updateRenderVisibility({ force: false }),
+      () => parts.rendering.updateRenderVisibility({
+        force: false
+      }),
       HORIZON_TICK_MS,
     );
   }
