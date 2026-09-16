@@ -3,8 +3,16 @@ export function createInstallationSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
 } = {}) {
   return {
-    async getMappedSites(box, { exact = false, signal } = {}) {
-      const { south, west, north, east } = box || {};
+    async getMappedSites(box, {
+      exact = false,
+      signal
+    } = {}) {
+      const {
+        south,
+        west,
+        north,
+        east
+      } = box || {};
       if (
         ![south, west, north, east].every(Number.isFinite) ||
         south < -90 ||
@@ -19,7 +27,12 @@ export function createInstallationSource({
         throw new TypeError('A bounded installation viewport is required');
       signal?.throwIfAborted();
       const query = new URLSearchParams(
-        Object.entries({ south, west, north, east }).map(([key, value]) => [
+        Object.entries({
+          south,
+          west,
+          north,
+          east
+        }).map(([key, value]) => [
           key,
           value.toFixed(5),
         ]),
@@ -32,20 +45,25 @@ export function createInstallationSource({
       signal?.throwIfAborted();
       if (!response.ok)
         throw Object.assign(
-          new Error(body?.error || `Installation feed HTTP ${response.status}`),
-          {
+          new Error(body?.error || `Installation feed HTTP ${response.status}`), {
             failureReason: ['rate_limited', 'timeout', 'query_failed'].includes(
-              body?.reason,
-            )
-              ? body.reason
-              : 'unavailable',
+                body?.reason,
+              ) ?
+              body.reason :
+              'unavailable',
           },
         );
       if (!Array.isArray(body?.elements))
         throw new Error('Malformed installation snapshot');
       return body;
     },
-    async searchNearby({ latitude, longitude, radiusM }, { signal } = {}) {
+    async searchNearby({
+      latitude,
+      longitude,
+      radiusM
+    }, {
+      signal
+    } = {}) {
       if (
         ![latitude, longitude, radiusM].every(Number.isFinite) ||
         Math.abs(latitude) > 90 ||
@@ -61,8 +79,9 @@ export function createInstallationSource({
           lat: latitude.toFixed(5),
           lon: longitude.toFixed(5),
           radiusM: String(radiusM),
-        })}`,
-        { signal },
+        })}`, {
+          signal
+        },
       );
       const payload = await response.json();
       signal?.throwIfAborted();
