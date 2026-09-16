@@ -7,10 +7,20 @@ import {
   degreesLat,
   twoline2satrec,
 } from 'satellite.js';
-import { findNextIssPass } from '../../data/issPass.js';
-import { ORBIT_PATH_STEPS, ISS_NORAD } from './policy.js';
+import {
+  findNextIssPass
+} from '../../data/issPass.js';
+import {
+  ORBIT_PATH_STEPS,
+  ISS_NORAD
+} from './policy.js';
 
-export function createOrbits({ state: layerState, services, parts, source }) {
+export function createOrbits({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Build the rigid ECEF transform that keeps an orbit path baked at one GMST
    * aligned with live SGP4 positions propagated at another epoch.
@@ -53,7 +63,11 @@ export function createOrbits({ state: layerState, services, parts, source }) {
       const line1 = lines[i + 1];
       const line2 = lines[i + 2];
       if (line1.startsWith('1 ') && line2.startsWith('2 ')) {
-        result.push({ name, line1, line2 });
+        result.push({
+          name,
+          line1,
+          line2
+        });
       }
     }
     return result;
@@ -73,12 +87,12 @@ export function createOrbits({ state: layerState, services, parts, source }) {
       const gmst = gstime(date);
       const geo = eciToGeodetic(posVel.position, gmst);
       const velocity =
-        posVel.velocity && typeof posVel.velocity !== 'boolean'
-          ? posVel.velocity
-          : null;
-      const speedMps = velocity
-        ? Math.hypot(velocity.x, velocity.y, velocity.z) * 1000
-        : null;
+        posVel.velocity && typeof posVel.velocity !== 'boolean' ?
+        posVel.velocity :
+        null;
+      const speedMps = velocity ?
+        Math.hypot(velocity.x, velocity.y, velocity.z) * 1000 :
+        null;
 
       return {
         longitude: degreesLong(geo.longitude),
@@ -139,9 +153,15 @@ export function createOrbits({ state: layerState, services, parts, source }) {
    * @returns {{status:'no-tle'}|{status:'none'}|{status:'ok', pass:{riseMs:number,setMs:number,maxElevDeg:number,maxElevMs:number,riseAzDeg:number}}}
    */
 
-  function getNextIssPass({ latDeg, lonDeg, minElevDeg = 10 }) {
+  function getNextIssPass({
+    latDeg,
+    lonDeg,
+    minElevDeg = 10
+  }) {
     const sat = layerState._catalog.get(ISS_NORAD);
-    if (!sat || !sat.satrec) return { status: 'no-tle' };
+    if (!sat || !sat.satrec) return {
+      status: 'no-tle'
+    };
     const pass = findNextIssPass({
       satrec: sat.satrec,
       latDeg,
@@ -149,7 +169,12 @@ export function createOrbits({ state: layerState, services, parts, source }) {
       fromMs: Date.now(),
       minElevDeg,
     });
-    return pass ? { status: 'ok', pass } : { status: 'none' };
+    return pass ? {
+      status: 'ok',
+      pass
+    } : {
+      status: 'none'
+    };
   }
 
   /**
@@ -245,9 +270,9 @@ export function createOrbits({ state: layerState, services, parts, source }) {
    */
 
   function findSatelliteOrbitTrackInTle(tleText, query, options = {}) {
-    const launchYear = Number.isFinite(Date.parse(options.launchTime))
-      ? new Date(options.launchTime).getUTCFullYear()
-      : null;
+    const launchYear = Number.isFinite(Date.parse(options.launchTime)) ?
+      new Date(options.launchTime).getUTCFullYear() :
+      null;
     let bestEntry = null;
     let bestScore = 0;
     const catalogText = String(tleText || '');
@@ -285,9 +310,9 @@ export function createOrbits({ state: layerState, services, parts, source }) {
     let noradId = /^\d+$/.test(q) ? Number(q) : null;
     if (noradId === null || !layerState._catalog.has(noradId)) {
       noradId = null;
-      const launchYear = Number.isFinite(Date.parse(options.launchTime))
-        ? new Date(options.launchTime).getUTCFullYear()
-        : null;
+      const launchYear = Number.isFinite(Date.parse(options.launchTime)) ?
+        new Date(options.launchTime).getUTCFullYear() :
+        null;
       let bestScore = 0;
       for (const [id, sat] of layerState._catalog) {
         const designatorYear = internationalDesignatorYear(sat.satrec);
