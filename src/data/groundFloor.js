@@ -23,7 +23,10 @@
 // `warmGroundFloor` batches the misses through resolveEllipsoidalGround
 // (single-flight, fire-and-forget) exactly like flights.js's grounded-surface
 // warm — results land for later polls/appends.
-import { cachedRealEllipsoidalGround, resolveEllipsoidalGround } from './terrainHeights.js';
+import {
+  cachedRealEllipsoidalGround,
+  resolveEllipsoidalGround
+} from './terrainHeights.js';
 
 /** @constant {number} Metres added above the resolved floor so a clamped
  *  billboard/waypoint sits ON the surface instead of z-fighting it. */
@@ -39,7 +42,10 @@ export const MESH_FLOOR_ABOVE_PRIOR_M = 80;
  * @returns {{lat: number, lon: number}} Grid-cell coordinate.
  */
 export function coarseFloorCoord(lat, lon) {
-  return { lat: Number(lat.toFixed(3)), lon: Number(lon.toFixed(3)) };
+  return {
+    lat: Number(lat.toFixed(3)),
+    lon: Number(lon.toFixed(3))
+  };
 }
 
 /**
@@ -193,9 +199,9 @@ export const CELL_HYSTERESIS_DEG = 0.0002;
  * @returns {{lat: number, lon: number}} The cell to read.
  */
 export function stickyFloorCell(lat, lon, previousCell) {
-  if (previousCell
-    && Math.abs(lat - previousCell.lat) <= 0.0005 + CELL_HYSTERESIS_DEG
-    && Math.abs(lon - previousCell.lon) <= 0.0005 + CELL_HYSTERESIS_DEG) {
+  if (previousCell &&
+    Math.abs(lat - previousCell.lat) <= 0.0005 + CELL_HYSTERESIS_DEG &&
+    Math.abs(lon - previousCell.lon) <= 0.0005 + CELL_HYSTERESIS_DEG) {
     return previousCell;
   }
   return coarseFloorCoord(lat, lon);
@@ -253,23 +259,23 @@ export function corridorFloorCells(points) {
   // One slot is reserved for the destination, appended after the prefix.
   const prefixLimit = CORRIDOR_MAX_CELLS - 1;
   walk:
-  for (let s = 0; s < points.length - 1; s++) {
-    const a = points[s];
-    const b = points[s + 1];
-    if (![a?.lat, a?.lon, b?.lat, b?.lon].every(Number.isFinite)) continue;
-    const steps = Math.ceil(
-      Math.max(Math.abs(b.lat - a.lat), Math.abs(b.lon - a.lon)) / CORRIDOR_WALK_STEP_DEG,
-    );
-    for (let i = 1; i <= steps; i++) {
-      if (out.length >= prefixLimit) break walk;
-      const t = i / steps;
-      const cell = coarseFloorCoord(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t);
-      const key = `${cell.lat},${cell.lon}`;
-      if (seen.has(key) || key === destKey) continue;
-      seen.add(key);
-      out.push(cell);
+    for (let s = 0; s < points.length - 1; s++) {
+      const a = points[s];
+      const b = points[s + 1];
+      if (![a?.lat, a?.lon, b?.lat, b?.lon].every(Number.isFinite)) continue;
+      const steps = Math.ceil(
+        Math.max(Math.abs(b.lat - a.lat), Math.abs(b.lon - a.lon)) / CORRIDOR_WALK_STEP_DEG,
+      );
+      for (let i = 1; i <= steps; i++) {
+        if (out.length >= prefixLimit) break walk;
+        const t = i / steps;
+        const cell = coarseFloorCoord(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t);
+        const key = `${cell.lat},${cell.lon}`;
+        if (seen.has(key) || key === destKey) continue;
+        seen.add(key);
+        out.push(cell);
+      }
     }
-  }
   if (!seen.has(destKey)) out.push(destination);
   return out;
 }
@@ -331,9 +337,9 @@ export function allocateCorridorCells(
   if (Number.isFinite(epoch) && epoch !== 0) {
     for (let i = 0; i < ranked.length;) {
       let j = i + 1;
-      while (j < ranked.length
-        && ranked[j].cold === ranked[i].cold
-        && ranked[j].speedMps === ranked[i].speedMps) j += 1;
+      while (j < ranked.length &&
+        ranked[j].cold === ranked[i].cold &&
+        ranked[j].speedMps === ranked[i].speedMps) j += 1;
       const runLength = j - i;
       if (runLength > 1) {
         const shift = ((epoch % runLength) + runLength) % runLength;
@@ -353,7 +359,10 @@ export function allocateCorridorCells(
       while (cursor[i] < cells.length && cursor[i] < limit) {
         const cell = cells[cursor[i]];
         const key = `${cell.lat},${cell.lon}`;
-        if (seen.has(key)) { cursor[i] += 1; continue; } // already in this batch
+        if (seen.has(key)) {
+          cursor[i] += 1;
+          continue;
+        } // already in this batch
         if (isWarm(cell)) {
           // Free: it has a floor already. Still emitted, so the mesh sampler
           // gets another look now that its DEM prior exists.
@@ -419,10 +428,10 @@ export function reportMeshFloorCell(lat, lon, heightM) {
 
 /** Return whether a rendered-mesh sample is plausible against a real DEM prior. */
 export function meshFloorSampleWithinPrior(heightM, priorM) {
-  return Number.isFinite(heightM)
-    && Number.isFinite(priorM)
-    && heightM >= priorM - MESH_FLOOR_BELOW_PRIOR_M
-    && heightM <= priorM + MESH_FLOOR_ABOVE_PRIOR_M;
+  return Number.isFinite(heightM) &&
+    Number.isFinite(priorM) &&
+    heightM >= priorM - MESH_FLOOR_BELOW_PRIOR_M &&
+    heightM <= priorM + MESH_FLOOR_ABOVE_PRIOR_M;
 }
 
 /**
@@ -524,7 +533,8 @@ export async function resolveGroundFloorCells(points) {
   if (!cells.size) return;
   try {
     await resolveEllipsoidalGround([...cells.values()]);
-  } catch { /* best-effort — unresolved cells simply don't clamp */ }
+  } catch {
+    /* best-effort — unresolved cells simply don't clamp */ }
 }
 
 /** @type {boolean} Single-flight guard for the warm batch. */
@@ -541,7 +551,8 @@ const _pendingFloorCells = new Map();
 function _resolveFloorCells(cells) {
   _floorBatchInFlight = true;
   resolveEllipsoidalGround([...cells.values()])
-    .catch(() => { /* best-effort — unclamped this tick, floor lands later */ })
+    .catch(() => {
+      /* best-effort — unclamped this tick, floor lands later */ })
     .finally(() => {
       _floorBatchInFlight = false;
       if (_pendingFloorCells.size) {
