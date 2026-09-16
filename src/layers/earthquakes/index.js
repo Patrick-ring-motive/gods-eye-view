@@ -9,10 +9,16 @@ import {
   mapAnalystRecord,
 } from './model.js';
 export * from './model.js';
-export { createUsgsEarthquakeSource } from './source.js';
+export {
+  createUsgsEarthquakeSource
+}
+from './source.js';
 
 /** Own one earthquake display and its refresh lifecycle. */
-export function createEarthquakesLayer({ source, overlayHost } = {}) {
+export function createEarthquakesLayer({
+  source,
+  overlayHost
+} = {}) {
   if (typeof source?.getSnapshot !== 'function')
     throw new TypeError('Earthquakes require a snapshot source');
   if (!overlayHost) throw new TypeError('Earthquakes require an overlay host');
@@ -68,7 +74,9 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
       const request = new AbortController();
       _request = request;
       try {
-        const rows = await source.getSnapshot({ signal: request.signal });
+        const rows = await source.getSnapshot({
+          signal: request.signal
+        });
         if (request.signal.aborted || _request !== request || !_enabled)
           return false;
 
@@ -77,15 +85,16 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
         const overlayEntries = [];
 
         for (const {
-          stableId,
-          usgsId,
-          lon,
-          lat,
-          depthKm,
-          mag,
-          place,
-          time,
-        } of rows) {
+            stableId,
+            usgsId,
+            lon,
+            lat,
+            depthKm,
+            mag,
+            place,
+            time,
+          }
+          of rows) {
           count++;
           const baseRadius = Math.pow(2, mag) * 1000;
           const color = depthColor(depthKm || 0);
@@ -136,8 +145,7 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
         if (_enabled) {
           overlayHost.setEntries(
             EARTHQUAKE_OVERLAY_SOURCE_ID,
-            selectEarthquakeOverlayCohort(overlayEntries),
-            {
+            selectEarthquakeOverlayCohort(overlayEntries), {
               cohortLimit: EARTHQUAKE_OVERLAY_COHORT_LIMIT,
               collisionCapacity: EARTHQUAKE_OVERLAY_COLLISION_CAPACITY,
               moving: false,
@@ -189,23 +197,22 @@ export function createEarthquakesLayer({ source, overlayHost } = {}) {
       if (!_dataSource || !_dataSource.show) return [];
       const entities = _dataSource.entities.values;
       if (!entities.length) return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 2000;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        2000;
       const now = Cesium.JulianDate.now();
       const result = [];
       for (const entity of entities) {
         if (result.length >= limit) break;
-        const cartesian = entity.position
-          ? entity.position.getValue(now)
-          : null;
-        const carto = cartesian
-          ? Cesium.Cartographic.fromCartesian(cartesian)
-          : null;
+        const cartesian = entity.position ?
+          entity.position.getValue(now) :
+          null;
+        const carto = cartesian ?
+          Cesium.Cartographic.fromCartesian(cartesian) :
+          null;
         const p = entity.properties;
         result.push(
-          mapAnalystRecord(
-            {
+          mapAnalystRecord({
               id: p?.usgsId?.getValue(now) ?? null,
               mag: p?.mag?.getValue(now),
               place: p?.place?.getValue(now),
