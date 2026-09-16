@@ -1,19 +1,39 @@
 #!/usr/bin/env node
-import { realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+
+import {
+  realpathSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
+import {
+  spawnSync
+} from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { applyPinokioEnvironment } from './pinokio-environment.mjs';
-import { formatSetupReport, inspectSetup, npmProcessSpec } from './setup-doctor.mjs';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  applyPinokioEnvironment
+} from './pinokio-environment.mjs';
+import {
+  formatSetupReport,
+  inspectSetup,
+  npmProcessSpec
+} from './setup-doctor.mjs';
 
 const MODULE_PATH = fileURLToPath(import.meta.url);
 const ROOT = realpathSync(path.resolve(path.dirname(MODULE_PATH), '..'));
 const READY_FILE = path.join(ROOT, 'pinokio', '.installed');
 
-export function runChecked(command, args, { shell = false } = {}) {
+export function runChecked(command, args, {
+  shell = false
+} = {}) {
   const result = spawnSync(command, args, {
     cwd: ROOT,
-    env: { ...process.env, PUPPETEER_SKIP_DOWNLOAD: '1' },
+    env: {
+      ...process.env,
+      PUPPETEER_SKIP_DOWNLOAD: '1'
+    },
     shell,
     stdio: 'inherit',
   });
@@ -23,9 +43,13 @@ export function runChecked(command, args, { shell = false } = {}) {
 
 export function installPinokioDependencies() {
   applyPinokioEnvironment();
-  rmSync(READY_FILE, { force: true });
+  rmSync(READY_FILE, {
+    force: true
+  });
   const npm = npmProcessSpec();
-  runChecked(npm.command, ['ci'], { shell: npm.shell });
+  runChecked(npm.command, ['ci'], {
+    shell: npm.shell
+  });
 
   // Pinokio starts Vite directly and loads only its ENVIRONMENT file plus the
   // normal dotenv ladder. Unlike dev-fresh.sh, it does not import macOS
@@ -42,7 +66,9 @@ export function installPinokioDependencies() {
   })}\n`);
   if (!report.ready) process.exit(1);
 
-  writeFileSync(READY_FILE, `${new Date().toISOString()}\n`, { mode: 0o600 });
+  writeFileSync(READY_FILE, `${new Date().toISOString()}\n`, {
+    mode: 0o600
+  });
   console.log('[Pinokio] Installation ready.');
 }
 
