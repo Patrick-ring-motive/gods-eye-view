@@ -1,6 +1,12 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
-import { createCctvSource } from '../layers/cctv/source.js';
-import { createCctvLayer } from '../layers/cctv/index.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
+import {
+  createCctvSource
+} from '../layers/cctv/source.js';
+import {
+  createCctvLayer
+} from '../layers/cctv/index.js';
 import * as sprites from './spriteOrder.js';
 import * as activation from '../cctvFocusRequest.js';
 import * as overlays from '../overlays/worldOverlay.js';
@@ -93,5 +99,6 @@ export {
   CCTV_FOCUS_RESULT,
   CCTV_PROJECTION_OVERLAY_SOURCE_ID,
   CCTV_PROJECTION_OVERLAY_SOURCE_OPTIONS,
-} from '../layers/cctv/index.js';
+}
+from '../layers/cctv/index.js';
 export default layer;
