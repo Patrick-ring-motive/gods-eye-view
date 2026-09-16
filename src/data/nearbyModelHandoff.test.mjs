@@ -10,8 +10,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import flightsLayer, { _setTrackedFlightRefreshStateForTest } from './flights.js';
-import militaryFlightsLayer, { _setTrackedMilitaryRefreshStateForTest } from './militaryFlights.js';
+import flightsLayer, {
+  _setTrackedFlightRefreshStateForTest
+} from './flights.js';
+import militaryFlightsLayer, {
+  _setTrackedMilitaryRefreshStateForTest
+} from './militaryFlights.js';
 
 const ICAO = 'abc123';
 const OTHER = 'def456';
@@ -31,20 +35,30 @@ function contactBillboard(show) {
 }
 
 function contactViewer() {
-  return { camera: { positionCartographic: null }, scene: {} };
+  return {
+    camera: {
+      positionCartographic: null
+    },
+    scene: {}
+  };
 }
 
-const LAYERS = [
-  {
+const LAYERS = [{
     name: 'commercial',
     layer: flightsLayer,
     visualCenterM: Cesium.Cartesian3.ZERO,
-    seed({ billboardShow, models = [] }) {
+    seed({
+      billboardShow,
+      models = []
+    }) {
       _setTrackedFlightRefreshStateForTest({
         icao24: ICAO,
         entity: null,
         billboard: contactBillboard(billboardShow),
-        billboardCollection: { show: true, remove() {} },
+        billboardCollection: {
+          show: true,
+          remove() {}
+        },
         viewer: contactViewer(),
         tracked: false,
         models,
@@ -61,12 +75,18 @@ const LAYERS = [
     name: 'military',
     layer: militaryFlightsLayer,
     visualCenterM: Cesium.Cartesian3.ZERO,
-    seed({ billboardShow, models = [] }) {
+    seed({
+      billboardShow,
+      models = []
+    }) {
       _setTrackedMilitaryRefreshStateForTest({
         icao24: ICAO,
         entity: null,
         billboard: contactBillboard(billboardShow),
-        billboardCollection: { show: true, remove() {} },
+        billboardCollection: {
+          show: true,
+          remove() {}
+        },
         viewer: contactViewer(),
         tracked: false,
         models,
@@ -88,7 +108,9 @@ function nearbyIcaos(layer) {
 
 /** Detection position for the shared fixture contact. */
 function detectionPosition(layer) {
-  return layer.getDetectableObjects({ maxCount: 50 })
+  return layer.getDetectableObjects({
+      maxCount: 50
+    })
     .find((contact) => contact.sourceId === ICAO)?.position || null;
 }
 
@@ -97,7 +119,13 @@ for (const fixture of LAYERS) {
     // The handoff state: the fleet tick hid the sprite and showed the model.
     fixture.seed({
       billboardShow: false,
-      models: [[ICAO, { ready: true, show: true, _gevPlacementReady: true }]],
+      models: [
+        [ICAO, {
+          ready: true,
+          show: true,
+          _gevPlacementReady: true
+        }]
+      ],
     });
     assert.ok(
       nearbyIcaos(fixture.layer).includes(ICAO),
@@ -105,7 +133,14 @@ for (const fixture of LAYERS) {
     );
 
     // A model belonging to a DIFFERENT aircraft must not rescue this one.
-    fixture.seed({ billboardShow: false, models: [[OTHER, { show: true }]] });
+    fixture.seed({
+      billboardShow: false,
+      models: [
+        [OTHER, {
+          show: true
+        }]
+      ]
+    });
     assert.ok(
       !nearbyIcaos(fixture.layer).includes(ICAO),
       'the model lookup must be keyed to the contact, not to any shown model',
@@ -115,16 +150,27 @@ for (const fixture of LAYERS) {
   test(`${fixture.name} getNearby still drops a contact nothing is drawing`, () => {
     // Positive control: the same contact IS reachable when its sprite shows,
     // so the exclusions below cannot pass for an unrelated reason.
-    fixture.seed({ billboardShow: true });
+    fixture.seed({
+      billboardShow: true
+    });
     assert.ok(nearbyIcaos(fixture.layer).includes(ICAO), 'a shown sprite is nearby');
 
-    fixture.seed({ billboardShow: false });
+    fixture.seed({
+      billboardShow: false
+    });
     assert.ok(
       !nearbyIcaos(fixture.layer).includes(ICAO),
       'a hidden sprite with no model must stay excluded',
     );
 
-    fixture.seed({ billboardShow: false, models: [[ICAO, { show: false }]] });
+    fixture.seed({
+      billboardShow: false,
+      models: [
+        [ICAO, {
+          show: false
+        }]
+      ]
+    });
     assert.ok(
       !nearbyIcaos(fixture.layer).includes(ICAO),
       'a released (hidden) model must not resurrect a hidden contact',
@@ -132,12 +178,14 @@ for (const fixture of LAYERS) {
 
     fixture.seed({
       billboardShow: false,
-      models: [[ICAO, {
-        ready: false,
-        show: true,
-        scale: 0,
-        _gevPlacementReady: false,
-      }]],
+      models: [
+        [ICAO, {
+          ready: false,
+          show: true,
+          scale: 0,
+          _gevPlacementReady: false,
+        }]
+      ],
     });
     assert.ok(
       !nearbyIcaos(fixture.layer).includes(ICAO),
@@ -146,7 +194,9 @@ for (const fixture of LAYERS) {
   });
 
   test(`${fixture.name} detection follows the visible 2D sprite and 3D model anchors`, () => {
-    fixture.seed({ billboardShow: true });
+    fixture.seed({
+      billboardShow: true
+    });
     const spritePosition = detectionPosition(fixture.layer);
     assert.ok(spritePosition, 'the 2D sprite publishes a detection candidate');
     assert.ok(
@@ -157,13 +207,15 @@ for (const fixture of LAYERS) {
     const modelMatrix = Cesium.Matrix4.fromRotationTranslation(MODEL_ROTATION, MODEL_POSITION);
     fixture.seed({
       billboardShow: false,
-      models: [[ICAO, {
-        ready: true,
-        show: true,
-        _gevPlacementReady: true,
-        modelMatrix,
-        computedScale: COMPUTED_SCALE,
-      }]],
+      models: [
+        [ICAO, {
+          ready: true,
+          show: true,
+          _gevPlacementReady: true,
+          modelMatrix,
+          computedScale: COMPUTED_SCALE,
+        }]
+      ],
     });
     const modelPosition = detectionPosition(fixture.layer);
     assert.ok(modelPosition, 'the 3D model publishes the same detection candidate');
@@ -187,13 +239,15 @@ for (const fixture of LAYERS) {
 
     fixture.seed({
       billboardShow: true,
-      models: [[ICAO, {
-        ready: false,
-        show: true,
-        scale: 0,
-        _gevPlacementReady: false,
-        modelMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY),
-      }]],
+      models: [
+        [ICAO, {
+          ready: false,
+          show: true,
+          scale: 0,
+          _gevPlacementReady: false,
+          modelMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY),
+        }]
+      ],
     });
     const loadingPosition = detectionPosition(fixture.layer);
     assert.ok(loadingPosition, 'the billboard remains detectable while its model loads');
