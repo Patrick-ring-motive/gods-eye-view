@@ -1,8 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createStateChannel } from '../app/stateChannel.js';
-import { SceneControls } from './sceneControls.js';
-import { SceneDirector } from '../scenes/director.js';
+import {
+  createStateChannel
+} from '../app/stateChannel.js';
+import {
+  SceneControls
+} from './sceneControls.js';
+import {
+  SceneDirector
+} from '../scenes/director.js';
 
 function fixture() {
   class Element extends EventTarget {
@@ -38,13 +44,18 @@ function fixture() {
       this.dispatchEvent(new Event('click'));
     }
   }
-  const saved = { document: globalThis.document, window: globalThis.window };
+  const saved = {
+    document: globalThis.document,
+    window: globalThis.window
+  };
   const document = Object.assign(new EventTarget(), {
     createElement: () => new Element(),
     body: new Element(),
   });
   globalThis.document = document;
-  globalThis.window = { prompt: () => 'Renamed' };
+  globalThis.window = {
+    prompt: () => 'Renamed'
+  };
   const elements = Object.fromEntries(
     [
       'panel',
@@ -67,21 +78,19 @@ function fixture() {
     ].map((name) => [name, new Element()]),
   );
   const state = {
-    scenes: [
-      {
-        id: 'scene-a',
-        title: '<Scene A>',
-        shots: [
-          {
-            id: 'shot-a',
-            title: '<Shot A>',
-            durationSec: 4,
-            holdSec: 0.9,
-            visual: { style: 'normal' },
-          },
-        ],
-      },
-    ],
+    scenes: [{
+      id: 'scene-a',
+      title: '<Scene A>',
+      shots: [{
+        id: 'shot-a',
+        title: '<Shot A>',
+        durationSec: 4,
+        holdSec: 0.9,
+        visual: {
+          style: 'normal'
+        },
+      }, ],
+    }, ],
     selectedSceneId: 'scene-a',
     selectedShotId: 'shot-a',
     running: false,
@@ -112,7 +121,11 @@ function fixture() {
       },
     ]),
   );
-  const owner = new SceneControls({ read: () => state, actions, elements });
+  const owner = new SceneControls({
+    read: () => state,
+    actions,
+    elements
+  });
   return {
     owner,
     state,
@@ -187,7 +200,9 @@ test('Scene Escape and recording presentation follow playback and release on des
   const f = fixture();
   const escape = () =>
     f.document.dispatchEvent(
-      Object.assign(new Event('keydown'), { key: 'Escape' }),
+      Object.assign(new Event('keydown'), {
+        key: 'Escape'
+      }),
     );
   try {
     escape();
@@ -197,7 +212,9 @@ test('Scene Escape and recording presentation follow playback and release on des
     f.owner.setPlaybackKeyboardEnabled(true);
     f.owner.updateRuntime('Scene A / Shot A');
     escape();
-    assert.deepEqual(f.calls, [['stop', 'Stopped (Esc)']]);
+    assert.deepEqual(f.calls, [
+      ['stop', 'Stopped (Esc)']
+    ]);
     f.owner.destroy();
     f.owner.destroy();
     f.owner.setPlaybackKeyboardEnabled(true);
@@ -225,7 +242,9 @@ test('a file import finishing after disposal cannot clear the retained file cont
       new Promise((resolve) => {
         finish = resolve;
       });
-    f.elements.file.files = [{ name: 'project.json' }];
+    f.elements.file.files = [{
+      name: 'project.json'
+    }];
     f.elements.file.value = 'project.json';
     f.elements.file.dispatchEvent(new Event('change'));
     f.owner.destroy();
@@ -335,10 +354,17 @@ test('the real director preserves a selected shot label for the following double
     };
     f.document.getElementById = (id) => f.elements[ids[id]] || null;
     globalThis.localStorage = {
-      getItem: () => JSON.stringify({ version: 3, scenes: f.state.scenes }),
+      getItem: () => JSON.stringify({
+        version: 3,
+        scenes: f.state.scenes
+      }),
       setItem() {},
     };
-    director = new SceneDirector({ camera: { cancelFlight() {} } }, {}, {});
+    director = new SceneDirector({
+      camera: {
+        cancelFlight() {}
+      }
+    }, {}, {});
     const label = f.elements.shots.children[0].children[0].children[0];
     label.click();
     assert.equal(f.elements.shots.children[0].children[0].children[0], label);
@@ -372,14 +398,20 @@ test('Scene controls consume current state, preserve rows on progress, and unsub
     assert.equal(f.elements.status.textContent, 'Ready to resume');
     const row = f.elements.shots.children[0];
     f.state.progress = 0.5;
-    channel.publish({ type: 'progress-changed' });
+    channel.publish({
+      type: 'progress-changed'
+    });
     assert.equal(f.elements.shots.children[0], row);
     f.state.status = 'Project exported';
-    channel.publish({ type: 'project-exported' });
+    channel.publish({
+      type: 'project-exported'
+    });
     assert.equal(f.elements.status.textContent, 'Project exported');
     owner.destroy();
     f.state.status = 'Late';
-    channel.publish({ type: 'status-changed' });
+    channel.publish({
+      type: 'status-changed'
+    });
     assert.equal(f.elements.status.textContent, 'Project exported');
     assert.equal(owner.unsubscribe, null);
     channel.destroy();
