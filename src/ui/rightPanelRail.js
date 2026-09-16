@@ -46,8 +46,8 @@ export function layoutRightPanelRail({
   );
   if (!hud.visible || hud.variant !== 'tactical') {
     for (const panel of panels.filter((item) =>
-      item.classList.contains('layout-auto-collapsed'),
-    )) {
+        item.classList.contains('layout-auto-collapsed'),
+      )) {
       panel.classList.remove('collapsed', 'layout-auto-collapsed');
       onCollapse(panel);
     }
@@ -55,8 +55,8 @@ export function layoutRightPanelRail({
   const isMobile = windowRef.matchMedia('(max-width: 720px)').matches;
   const hasExpandedPanel = panels.some(
     (panel) =>
-      !panel.classList.contains('collapsed') &&
-      (!isMobile || panel.id !== 'pp-toggles'),
+    !panel.classList.contains('collapsed') &&
+    (!isMobile || panel.id !== 'pp-toggles'),
   );
   const exclusive = shouldHideCollapsedRightPanels({
     hudVariant: hud.variant,
@@ -83,9 +83,9 @@ export function layoutRightPanelRail({
   const safeGap = Math.max(8, viewportHeight * 0.012);
   const stackRect = stack.getBoundingClientRect();
   const leftStackTop = leftStack?.getBoundingClientRect().top;
-  const alignedTop = Number.isFinite(leftStackTop)
-    ? leftStackTop
-    : viewportHeight * 0.26;
+  const alignedTop = Number.isFinite(leftStackTop) ?
+    leftStackTop :
+    viewportHeight * 0.26;
   const obstacleRects = [];
 
   for (const obstacle of obstacles) {
@@ -131,12 +131,12 @@ export function layoutRightPanelRail({
   const naturalHeight =
     visiblePanels.reduce(
       (total, panel) =>
-        total +
-        Math.max(
-          panel.getBoundingClientRect().height,
-          panel.scrollHeight || 0,
-          panel.classList.contains('collapsed') ? 42 : 0,
-        ),
+      total +
+      Math.max(
+        panel.getBoundingClientRect().height,
+        panel.scrollHeight || 0,
+        panel.classList.contains('collapsed') ? 42 : 0,
+      ),
       0,
     ) +
     gap * Math.max(0, visiblePanels.length - 1);
@@ -152,18 +152,22 @@ export function layoutRightPanelRail({
     align: 'start',
   });
   if (!layout) return;
-  const { safeTop, safeBottom, maxHeight: availableHeight } = layout;
+  const {
+    safeTop,
+    safeBottom,
+    maxHeight: availableHeight
+  } = layout;
   const stabilityBand = viewportHeight * 0.01;
   const wasFocused = stack.classList.contains('layout-focus');
-  const shouldFocus = wasFocused
-    ? naturalHeight > availableHeight - stabilityBand * 2
-    : naturalHeight > availableHeight - stabilityBand;
+  const shouldFocus = wasFocused ?
+    naturalHeight > availableHeight - stabilityBand * 2 :
+    naturalHeight > availableHeight - stabilityBand;
   const layoutTop = shouldFocus ? safeTop : layout.top;
   const collapsedHeight = visiblePanels.reduce(
     (total, panel) =>
-      panel.classList.contains('collapsed')
-        ? total + panel.getBoundingClientRect().height
-        : total,
+    panel.classList.contains('collapsed') ?
+    total + panel.getBoundingClientRect().height :
+    total,
     0,
   );
   const expandedPanelsInDomOrder = visiblePanels.filter(
@@ -178,20 +182,20 @@ export function layoutRightPanelRail({
   // Match the left lane: allocation order follows the latest explicit
   // disclosure, not DOM order. A focused panel is the fallback owner so
   // temporary presentation collapse never strands keyboard focus.
-  const expandedPanels = preferredExpandedPanel
-    ? [
-        preferredExpandedPanel,
-        ...expandedPanelsInDomOrder.filter(
-          (panel) => panel !== preferredExpandedPanel,
-        ),
-      ]
-    : expandedPanelsInDomOrder;
+  const expandedPanels = preferredExpandedPanel ?
+    [
+      preferredExpandedPanel,
+      ...expandedPanelsInDomOrder.filter(
+        (panel) => panel !== preferredExpandedPanel,
+      ),
+    ] :
+    expandedPanelsInDomOrder;
   const expandedAvailableHeight = Math.max(
     0,
     safeBottom -
-      layoutTop -
-      collapsedHeight -
-      gap * Math.max(0, visiblePanels.length - 1),
+    layoutTop -
+    collapsedHeight -
+    gap * Math.max(0, visiblePanels.length - 1),
   );
   const expandedHeights = allocatePanelStackHeights({
     naturalHeights: expandedPanels.map((panel) =>
@@ -199,18 +203,18 @@ export function layoutRightPanelRail({
     ),
     availableHeight: expandedAvailableHeight,
   });
-  const autoCollapseIndices = hud.visible
-    ? panelStackAutoCollapseIndices({
-        naturalHeights: expandedPanels.map((panel) =>
-          Math.max(
-            panel.getBoundingClientRect().height,
-            panel.scrollHeight || 0,
-          ),
+  const autoCollapseIndices = hud.visible ?
+    panelStackAutoCollapseIndices({
+      naturalHeights: expandedPanels.map((panel) =>
+        Math.max(
+          panel.getBoundingClientRect().height,
+          panel.scrollHeight || 0,
         ),
-        allocatedHeights: expandedHeights,
-        collapseLaterPanels: shouldFocus && hud.variant === 'tactical',
-      })
-    : [];
+      ),
+      allocatedHeights: expandedHeights,
+      collapseLaterPanels: shouldFocus && hud.variant === 'tactical',
+    }) :
+    [];
   if (autoCollapseIndices.length) {
     for (const index of autoCollapseIndices) {
       const panel = expandedPanels[index];
