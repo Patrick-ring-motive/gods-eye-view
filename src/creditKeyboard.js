@@ -44,7 +44,9 @@ export function configureCreditKeyboardAccess(root = document) {
     // A long Space hold may hand control to push-to-talk and move focus away.
     // Cancelling the armed release prevents that eventual keyup from also
     // activating the attribution control.
-    control.addEventListener('blur', () => { spacePressed = false; });
+    control.addEventListener('blur', () => {
+      spacePressed = false;
+    });
   };
   const closeAndRestoreFocus = () => {
     expand.setAttribute('aria-expanded', 'false');
