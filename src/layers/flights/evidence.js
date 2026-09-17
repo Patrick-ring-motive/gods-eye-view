@@ -1,6 +1,10 @@
 import * as Cesium from 'cesium';
-import { aircraftIcon } from '../../data/aircraftIcons.js';
-import { FOCUS_EVIDENCE_DEV } from './policy.js';
+import {
+  aircraftIcon
+} from '../../data/aircraftIcons.js';
+import {
+  FOCUS_EVIDENCE_DEV
+} from './policy.js';
 
 export function createEvidence({
   flightState,
@@ -44,7 +48,10 @@ export function createEvidence({
       !flightState._billboardCollection ||
       !flightState._viewer
     )
-      return { ok: false, count: 0 };
+      return {
+        ok: false,
+        count: 0
+      };
     if (flightState._trackedIcao) parts.tracking._clearTracking();
     parts.rendering._releaseModels();
     for (const bb of flightState._billboards.values())
@@ -63,9 +70,9 @@ export function createEvidence({
       const position = _focusEvidencePosition(record);
       if (!id || !position) continue;
       const klass = record.klass || 'airliner';
-      const altitudeM = Number.isFinite(record.altitudeM)
-        ? record.altitudeM
-        : Cesium.Cartographic.fromCartesian(position)?.height || 3_000;
+      const altitudeM = Number.isFinite(record.altitudeM) ?
+        record.altitudeM :
+        Cesium.Cartographic.fromCartesian(position)?.height || 3_000;
       const meta = {
         callsign: String(record.callsign || id).toUpperCase(),
         altitude: altitudeM,
@@ -103,13 +110,19 @@ export function createEvidence({
     flightState._count = flightState._billboards.size;
     flightState._lastFleetTickMs = 0;
     flightState._viewer.scene.requestRender?.();
-    return { ok: true, count: flightState._count };
+    return {
+      ok: true,
+      count: flightState._count
+    };
   }
 
   /** Update explicit evidence positions without rebuilding billboards. */
 
   function _moveFocusEvidenceAircraft(records = []) {
-    if (!FOCUS_EVIDENCE_DEV) return { ok: false, moved: 0 };
+    if (!FOCUS_EVIDENCE_DEV) return {
+      ok: false,
+      moved: 0
+    };
     let moved = 0;
     for (const record of Array.isArray(records) ? records : []) {
       const id = String(record?.id || '')
@@ -130,7 +143,10 @@ export function createEvidence({
     }
     flightState._lastFleetTickMs = 0;
     flightState._viewer?.scene?.requestRender?.();
-    return { ok: true, moved };
+    return {
+      ok: true,
+      moved
+    };
   }
 
   /** JSON-safe visual snapshot for the evidence report. */
@@ -139,12 +155,12 @@ export function createEvidence({
     if (!FOCUS_EVIDENCE_DEV || !flightState._viewer) return [];
     return [...flightState._focusEvidenceIds].map((id) => {
       const bb = flightState._billboards.get(id);
-      const screen = bb?.position
-        ? Cesium.SceneTransforms.worldToWindowCoordinates(
-            flightState._viewer.scene,
-            bb.position,
-          )
-        : null;
+      const screen = bb?.position ?
+        Cesium.SceneTransforms.worldToWindowCoordinates(
+          flightState._viewer.scene,
+          bb.position,
+        ) :
+        null;
       return {
         id,
         show: bb?.show === true,
@@ -152,12 +168,12 @@ export function createEvidence({
         alpha: bb?.color?.alpha ?? null,
         x: screen?.x ?? null,
         y: screen?.y ?? null,
-        cameraDistanceM: bb?.position
-          ? Cesium.Cartesian3.distance(
-              flightState._viewer.camera.positionWC,
-              bb.position,
-            )
-          : null,
+        cameraDistanceM: bb?.position ?
+          Cesium.Cartesian3.distance(
+            flightState._viewer.camera.positionWC,
+            bb.position,
+          ) :
+          null,
       };
     });
   }
