@@ -10,7 +10,12 @@ import {
   AWARENESS_PAGE_SIZE,
 } from './policy.js';
 
-export function createSubject({ state: layerState, services, parts, source }) {
+export function createSubject({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const aisLiveVesselsLayer = services.vessels;
   const militaryInstallationsLayer = services.installations;
   const flightsLayer = services.flights;
@@ -38,28 +43,31 @@ export function createSubject({ state: layerState, services, parts, source }) {
     const vesselsState = sourceStates['ais-live-vessels'];
     const installationsState = sourceStates['military-installations'];
     // Same engine the voice analyst calls — see collectAircraftProximityWindow.
-    const { flights, military } = parts.queries.collectAircraftProximityWindow(
-      position,
-      { subject },
+    const {
+      flights,
+      military
+    } = parts.queries.collectAircraftProximityWindow(
+      position, {
+        subject
+      },
     );
     const vessels = aisLiveVesselsLayer
       .getNearby(position, AWARENESS_RADIUS_M, AWARENESS_QUERY_LIMIT)
       .filter(
         (item) =>
-          !parts.queries.isSame(subject, item, 'ais-live-vessels', 'mmsi'),
+        !parts.queries.isSame(subject, item, 'ais-live-vessels', 'mmsi'),
       );
     const installations = militaryInstallationsLayer
       .getNearby(position, AWARENESS_RADIUS_M, AWARENESS_QUERY_LIMIT)
       .filter(
         (item) =>
-          !parts.queries.isSame(subject, item, 'military-installations', 'id'),
+        !parts.queries.isSame(subject, item, 'military-installations', 'id'),
       );
     return {
       subject,
       evaluatedAt: Date.now(),
       radiusM: AWARENESS_RADIUS_M,
-      cohorts: [
-        {
+      cohorts: [{
           id: 'flights',
           label: 'Flights',
           source: flightsState.stats.source || SOURCE_LABEL.flights,
@@ -89,8 +97,7 @@ export function createSubject({ state: layerState, services, parts, source }) {
         {
           id: 'military-installations',
           label: 'Mapped installations',
-          source:
-            installationsState.stats.source ||
+          source: installationsState.stats.source ||
             SOURCE_LABEL['military-installations'],
           coverage: 'CURRENT VIEWPORT ONLY',
           summary: parts.queries.summarizeInstallationViewport(
@@ -190,8 +197,9 @@ export function createSubject({ state: layerState, services, parts, source }) {
    */
 
   function resolveSubjectPosition(
-    subject,
-    { allowCollectionMaterialization = true } = {},
+    subject, {
+      allowCollectionMaterialization = true
+    } = {},
   ) {
     if (!subject?.position) return null;
     if (subject.layerId === 'flights' || subject.layerId === 'military') {
@@ -202,11 +210,10 @@ export function createSubject({ state: layerState, services, parts, source }) {
           position: Cesium.Cartesian3.clone(trackedPosition),
           // Only the follow camera's own contact proves presence this way; a
           // different tracked entity says nothing about this subject.
-          presence:
-            String(layerState.viewer?.trackedEntity?.gevTrackedId || '') ===
-            subjectKey(subject)
-              ? SUBJECT_PRESENCE.LIVE
-              : SUBJECT_PRESENCE.UNCHECKED,
+          presence: String(layerState.viewer?.trackedEntity?.gevTrackedId || '') ===
+            subjectKey(subject) ?
+            SUBJECT_PRESENCE.LIVE :
+            SUBJECT_PRESENCE.UNCHECKED,
         };
       }
       // Cockpit already materializes its tracked position on a fixed 20 Hz loop.
@@ -270,15 +277,15 @@ export function createSubject({ state: layerState, services, parts, source }) {
     // null/undefined means the layer cannot answer (disabled or not yet loaded).
     const known = layer?.hasContact?.(subject.id);
     const presence =
-      known === true
-        ? SUBJECT_PRESENCE.LIVE
-        : known === false
-          ? SUBJECT_PRESENCE.MISSING
-          : SUBJECT_PRESENCE.UNCHECKED;
+      known === true ?
+      SUBJECT_PRESENCE.LIVE :
+      known === false ?
+      SUBJECT_PRESENCE.MISSING :
+      SUBJECT_PRESENCE.UNCHECKED;
     return {
-      position: current?.position
-        ? Cesium.Cartesian3.clone(current.position)
-        : Cesium.Cartesian3.clone(subject.position),
+      position: current?.position ?
+        Cesium.Cartesian3.clone(current.position) :
+        Cesium.Cartesian3.clone(subject.position),
       presence,
     };
   }
@@ -325,17 +332,24 @@ export function createSubject({ state: layerState, services, parts, source }) {
         sourceRevisionChanged,
     });
     if (!resolved) return;
-    const { position, presence } = resolved;
+    const {
+      position,
+      presence
+    } = resolved;
     // UNCHECKED leaves the verdict alone: this tick simply did not look.
     if (presence === SUBJECT_PRESENCE.LIVE) layerState.subjectMissing = false;
     else if (presence === SUBJECT_PRESENCE.MISSING)
       layerState.subjectMissing = true;
     const nextLabel = resolveSubjectLabel(layerState.subject);
     const labelChanged = nextLabel !== layerState.subject.label;
-    layerState.subject = { ...layerState.subject, position, label: nextLabel };
-    const movementM = layerState.lastEvaluatedPosition
-      ? Cesium.Cartesian3.distance(layerState.lastEvaluatedPosition, position)
-      : Infinity;
+    layerState.subject = {
+      ...layerState.subject,
+      position,
+      label: nextLabel
+    };
+    const movementM = layerState.lastEvaluatedPosition ?
+      Cesium.Cartesian3.distance(layerState.lastEvaluatedPosition, position) :
+      Infinity;
     if (
       !parts.model.awarenessRefreshRequired({
         force,
