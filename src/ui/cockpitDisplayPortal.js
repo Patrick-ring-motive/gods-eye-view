@@ -1,6 +1,11 @@
 /** Move the existing Display groups between their two presentation surfaces. */
 export class CockpitDisplayPortal {
-  constructor({ standardPanel, cockpitPanel, groups, layout }) {
+  constructor({
+    standardPanel,
+    cockpitPanel,
+    groups,
+    layout
+  }) {
     this.standardPanel = standardPanel;
     this.cockpitPanel = cockpitPanel;
     this.layout = layout;
@@ -18,11 +23,19 @@ export class CockpitDisplayPortal {
       if (!group || !slot || !group.parentNode) return [];
       const anchor = document.createComment(`cockpit-display-home:${name}`);
       group.before(anchor);
-      return [{ name, group, slot, anchor }];
+      return [{
+        name,
+        group,
+        slot,
+        anchor
+      }];
     });
     this.standardScrollTop = standardPanel?.scrollTop || 0;
     this.cockpitScrollTop = cockpitPanel?.scrollTop || 0;
-    const options = { passive: true, signal: this.listeners.signal };
+    const options = {
+      passive: true,
+      signal: this.listeners.signal
+    };
     standardPanel?.addEventListener(
       'scroll',
       () => {
@@ -41,8 +54,9 @@ export class CockpitDisplayPortal {
       'gev:cockpit-mode-changed',
       (event) => {
         this.setActive(event?.detail?.active === true);
+      }, {
+        signal: this.listeners.signal
       },
-      { signal: this.listeners.signal },
     );
     this.setActive(document.body.classList.contains('cockpit-mode'));
   }
@@ -61,7 +75,9 @@ export class CockpitDisplayPortal {
     this.generation += 1;
   }
 
-  setActive(active, { settle = true } = {}) {
+  setActive(active, {
+    settle = true
+  } = {}) {
     if (this.stopped) return;
     const nextActive = active === true;
     if (this.active === nextActive) return;
@@ -94,7 +110,9 @@ export class CockpitDisplayPortal {
     }
     this._frame(generation, () => {
       restoreScroll();
-      focusedElement?.focus?.({ preventScroll: true });
+      focusedElement?.focus?.({
+        preventScroll: true
+      });
       this._frame(generation, () => {
         restoreScroll();
         this.restoreOwner = null;
