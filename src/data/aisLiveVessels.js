@@ -1,5 +1,9 @@
-import { createVesselLayer } from '../layers/vessels/index.js';
-import { createAisStreamSource } from '../sources/live/standalone.js';
+import {
+  createVesselLayer
+} from '../layers/vessels/index.js';
+import {
+  createAisStreamSource
+} from '../sources/live/standalone.js';
 import * as context from './contextStore.js';
 import * as trails from './trailRenderer.js';
 import * as labels from './detectionDraw.js';
@@ -32,7 +36,10 @@ const aisLiveVesselsLayer = createVesselLayer({
     render,
   },
 });
-export { AIS_FIRST_CONNECT_GRACE_MS } from '../layers/vessels/policy.js';
+export {
+  AIS_FIRST_CONNECT_GRACE_MS
+}
+from '../layers/vessels/policy.js';
 export const deriveAisFeedError = aisLiveVesselsLayer.deriveAisFeedError;
 export const classifyAisFeedSnapshot =
   aisLiveVesselsLayer.classifyAisFeedSnapshot;
