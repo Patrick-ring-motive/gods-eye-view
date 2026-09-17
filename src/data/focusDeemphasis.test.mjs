@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DEFAULT_FOCUS_DEEMPHASIS_PARAMS,
@@ -11,39 +13,113 @@ import {
   smoothFocusEmphasis,
 } from './focusDeemphasis.js';
 
-const params = { ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS, paddingPx: 0 };
+const params = {
+  ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS,
+  paddingPx: 0
+};
 const target = {
-  screenRect: { left: 40, top: 40, right: 60, bottom: 60 },
+  screenRect: {
+    left: 40,
+    top: 40,
+    right: 60,
+    bottom: 60
+  },
   paddingPx: 0,
   cameraDistance: 1000,
 };
 
 test('focus decision dims a farther sprite inside and preserves one outside', () => {
-  assert.equal(focusTargetEmphasis({ x: 50, y: 50 }, 1200, target, params), 0.25);
-  assert.equal(focusTargetEmphasis({ x: 61, y: 50 }, 1200, target, params), 1);
+  assert.equal(focusTargetEmphasis({
+    x: 50,
+    y: 50
+  }, 1200, target, params), 0.25);
+  assert.equal(focusTargetEmphasis({
+    x: 61,
+    y: 50
+  }, 1200, target, params), 1);
 });
 
 test('focus decision keeps nearer behavior tunable across allow, dim, and partial', () => {
-  assert.equal(focusTargetEmphasis({ x: 50, y: 50 }, 800, target, { ...params, nearerBehavior: 'allow' }), 1);
-  assert.equal(focusTargetEmphasis({ x: 50, y: 50 }, 800, target, { ...params, nearerBehavior: 'dim' }), 0.25);
-  assert.equal(focusTargetEmphasis({ x: 50, y: 50 }, 800, target, { ...params, nearerBehavior: 'partial' }), 0.625);
+  assert.equal(focusTargetEmphasis({
+    x: 50,
+    y: 50
+  }, 800, target, {
+    ...params,
+    nearerBehavior: 'allow'
+  }), 1);
+  assert.equal(focusTargetEmphasis({
+    x: 50,
+    y: 50
+  }, 800, target, {
+    ...params,
+    nearerBehavior: 'dim'
+  }), 0.25);
+  assert.equal(focusTargetEmphasis({
+    x: 50,
+    y: 50
+  }, 800, target, {
+    ...params,
+    nearerBehavior: 'partial'
+  }), 0.625);
 });
 
 test('focus decision applies padding and hysteresis at the boundary', () => {
-  assert.equal(focusTargetEmphasis({ x: 64, y: 50 }, 1200, target, { ...params, paddingPx: 3 }), 1);
-  assert.equal(focusTargetEmphasis({ x: 63, y: 50 }, 1200, target, { ...params, paddingPx: 3 }), 0.25);
-  assert.equal(focusTargetEmphasis({ x: 65, y: 50 }, 1200, target, { ...params, hysteresisPx: 6 }, false), 1);
-  assert.equal(focusTargetEmphasis({ x: 65, y: 50 }, 1200, target, { ...params, hysteresisPx: 6 }, true), 0.25);
+  assert.equal(focusTargetEmphasis({
+    x: 64,
+    y: 50
+  }, 1200, target, {
+    ...params,
+    paddingPx: 3
+  }), 1);
+  assert.equal(focusTargetEmphasis({
+    x: 63,
+    y: 50
+  }, 1200, target, {
+    ...params,
+    paddingPx: 3
+  }), 0.25);
+  assert.equal(focusTargetEmphasis({
+    x: 65,
+    y: 50
+  }, 1200, target, {
+    ...params,
+    hysteresisPx: 6
+  }, false), 1);
+  assert.equal(focusTargetEmphasis({
+    x: 65,
+    y: 50
+  }, 1200, target, {
+    ...params,
+    hysteresisPx: 6
+  }, true), 0.25);
 });
 
 test('focus overlap includes the ambient sprite own rendered extent', () => {
-  assert.equal(focusTargetEmphasis({ x: 68, y: 50 }, 1200, target, params, false, 8, 8), 0.25);
-  assert.equal(focusTargetEmphasis({ x: 68, y: 50 }, 1200, target, params, false, 2, 2), 1);
+  assert.equal(focusTargetEmphasis({
+    x: 68,
+    y: 50
+  }, 1200, target, params, false, 8, 8), 0.25);
+  assert.equal(focusTargetEmphasis({
+    x: 68,
+    y: 50
+  }, 1200, target, params, false, 2, 2), 1);
 });
 
 test('focus decision never falls below the configured floor', () => {
-  assert.equal(focusTargetEmphasis({ x: 50, y: 50 }, 1200, target, { ...params, dimFloor: 0.41 }), 0.41);
-  assert.equal(focusTargetEmphasis({ x: 50, y: 50 }, 1200, target, { ...params, dimFloor: 0 }), 0.01);
+  assert.equal(focusTargetEmphasis({
+    x: 50,
+    y: 50
+  }, 1200, target, {
+    ...params,
+    dimFloor: 0.41
+  }), 0.41);
+  assert.equal(focusTargetEmphasis({
+    x: 50,
+    y: 50
+  }, 1200, target, {
+    ...params,
+    dimFloor: 0
+  }), 0.01);
 });
 
 test('smoothing converges over configured attack and release instead of snapping', () => {
@@ -64,23 +140,59 @@ test('default attack yields at least four distinct 80 ms sampled values', () => 
 
 test('per-sprite state attacks, restores after focus clears, and settles at one', () => {
   const sprite = {};
-  const input = { screenPosition: { x: 50, y: 50 }, cameraDistance: 1200, target, params };
-  assert.equal(advanceSpriteFocus(sprite, { ...input, nowMs: 0 }).factor, 1);
-  const attack = advanceSpriteFocus(sprite, { ...input, nowMs: 150 });
+  const input = {
+    screenPosition: {
+      x: 50,
+      y: 50
+    },
+    cameraDistance: 1200,
+    target,
+    params
+  };
+  assert.equal(advanceSpriteFocus(sprite, {
+    ...input,
+    nowMs: 0
+  }).factor, 1);
+  const attack = advanceSpriteFocus(sprite, {
+    ...input,
+    nowMs: 150
+  });
   assert.ok(attack.factor < 1 && attack.factor > 0.25);
-  assert.equal(advanceSpriteFocus(sprite, { ...input, nowMs: 300 }).factor, 0.25);
-  assert.equal(advanceSpriteFocus(sprite, { ...input, target: null, nowMs: 300 }).factor, 0.25);
-  const release = advanceSpriteFocus(sprite, { ...input, target: null, nowMs: 600 });
+  assert.equal(advanceSpriteFocus(sprite, {
+    ...input,
+    nowMs: 300
+  }).factor, 0.25);
+  assert.equal(advanceSpriteFocus(sprite, {
+    ...input,
+    target: null,
+    nowMs: 300
+  }).factor, 0.25);
+  const release = advanceSpriteFocus(sprite, {
+    ...input,
+    target: null,
+    nowMs: 600
+  });
   assert.ok(release.factor > 0.25 && release.factor < 1);
-  assert.equal(advanceSpriteFocus(sprite, { ...input, target: null, nowMs: 900 }).factor, 1);
+  assert.equal(advanceSpriteFocus(sprite, {
+    ...input,
+    target: null,
+    nowMs: 900
+  }).factor, 1);
 });
 
 test('distance chatter reanchors from current progress and converges toward the majority state', () => {
   const sprite = {};
-  const chatterParams = { ...params, nearerBehavior: 'allow', distanceHysteresisRatio: 0.08 };
+  const chatterParams = {
+    ...params,
+    nearerBehavior: 'allow',
+    distanceHysteresisRatio: 0.08
+  };
   const distances = [1200, 990, 1010, 995, 1005, 990, 1200, 990, 1010];
   const factors = distances.map((cameraDistance, index) => advanceSpriteFocus(sprite, {
-    screenPosition: { x: 50, y: 50 },
+    screenPosition: {
+      x: 50,
+      y: 50
+    },
     cameraDistance,
     target,
     params: chatterParams,
@@ -93,10 +205,16 @@ test('distance chatter reanchors from current progress and converges toward the 
 
   const dimSprite = {};
   const dimFactors = [0, 80, 160, 240].map((nowMs, index) => advanceSpriteFocus(dimSprite, {
-    screenPosition: { x: 50, y: 50 },
+    screenPosition: {
+      x: 50,
+      y: 50
+    },
     cameraDistance: index % 2 ? 990 : 1010,
     target,
-    params: { ...params, nearerBehavior: 'dim' },
+    params: {
+      ...params,
+      nearerBehavior: 'dim'
+    },
     nowMs,
   }).factor);
   assert.ok(dimFactors.at(-1) < 1, `dimFactors=${dimFactors.join(',')}`);
@@ -104,9 +222,18 @@ test('distance chatter reanchors from current progress and converges toward the 
 
 test('alternating desired state reanchors from sampled progress and converges to a stable cycle', () => {
   const sprite = {};
-  const chatterParams = { ...params, nearerBehavior: 'allow', distanceHysteresisRatio: 0.08 };
-  const factors = Array.from({ length: 20 }, (_, index) => advanceSpriteFocus(sprite, {
-    screenPosition: { x: 50, y: 50 },
+  const chatterParams = {
+    ...params,
+    nearerBehavior: 'allow',
+    distanceHysteresisRatio: 0.08
+  };
+  const factors = Array.from({
+    length: 20
+  }, (_, index) => advanceSpriteFocus(sprite, {
+    screenPosition: {
+      x: 50,
+      y: 50
+    },
     // Cross both sides of the range hysteresis band every tick so `desired`
     // truly alternates instead of latching in the prior state.
     cameraDistance: index % 2 === 0 ? 1200 : 800,
@@ -126,9 +253,23 @@ test('alternating desired state reanchors from sampled progress and converges to
 
 test('advanceSpriteFocus returns its documented module singleton', () => {
   const sprite = {};
-  const input = { screenPosition: { x: 50, y: 50 }, cameraDistance: 1200, target, params };
-  const first = advanceSpriteFocus(sprite, { ...input, nowMs: 0 });
-  const second = advanceSpriteFocus(sprite, { ...input, nowMs: params.attackMs });
+  const input = {
+    screenPosition: {
+      x: 50,
+      y: 50
+    },
+    cameraDistance: 1200,
+    target,
+    params
+  };
+  const first = advanceSpriteFocus(sprite, {
+    ...input,
+    nowMs: 0
+  });
+  const second = advanceSpriteFocus(sprite, {
+    ...input,
+    nowMs: params.attackMs
+  });
   assert.strictEqual(first, second);
   assert.equal(first.factor, params.dimFloor, 'the prior reference reflects the next call');
 });
@@ -142,7 +283,10 @@ test('evidence clock produces identical alpha sequences across repeated captures
       if (index > 0) advanceFocusEvidenceNowMs(offset - sequenceOffsets[index - 1]);
       const nowMs = focusNowMs(productionClockBase + index * productionClockStep);
       return advanceSpriteFocus(sprite, {
-        screenPosition: { x: 50, y: 50 },
+        screenPosition: {
+          x: 50,
+          y: 50
+        },
         cameraDistance: 1200,
         target: offset <= 320 ? target : null,
         params,
@@ -156,7 +300,12 @@ test('evidence clock produces identical alpha sequences across repeated captures
 });
 
 test('NearFarScalar rendered-size interpolation matches Cesium clamp endpoints', () => {
-  const scalar = { near: 1000, nearValue: 3, far: 8_000_000, farValue: 0.5 };
+  const scalar = {
+    near: 1000,
+    nearValue: 3,
+    far: 8_000_000,
+    farValue: 0.5
+  };
   assert.equal(nearFarScalarValueAtDistance(scalar, 500), 3);
   assert.equal(nearFarScalarValueAtDistance(scalar, 9_000_000), 0.5);
   const middle = nearFarScalarValueAtDistance(scalar, 1_000_000);
