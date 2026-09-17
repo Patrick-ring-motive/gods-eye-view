@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import test from 'node:test';
 
 const voiceConfig = readFileSync(new URL('../../server/providers/openai/instructions.js', import.meta.url), 'utf8');
