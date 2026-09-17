@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createEarthquakesLayer } from './index.js';
-import { createUsgsEarthquakeSource } from './source.js';
+import {
+  createEarthquakesLayer
+} from './index.js';
+import {
+  createUsgsEarthquakeSource
+} from './source.js';
+
 function harness(source) {
   const sources = [];
   const events = [];
@@ -27,7 +32,12 @@ function harness(source) {
   });
   layer.init(viewer);
   layer.enable(viewer);
-  return { layer, viewer, sources, events };
+  return {
+    layer,
+    viewer,
+    sources,
+    events
+  };
 }
 const row = {
   stableId: 'event-a',
@@ -62,8 +72,12 @@ test('late refresh cannot publish after disable, re-enable, or destroy', async (
   }
 });
 test('two displays own separate data sources and destruction', async () => {
-  const a = harness({ getSnapshot: async () => [row] });
-  const b = harness({ getSnapshot: async () => [] });
+  const a = harness({
+    getSnapshot: async () => [row]
+  });
+  const b = harness({
+    getSnapshot: async () => []
+  });
   await a.layer.update(a.viewer);
   await b.layer.update(b.viewer);
   assert.equal(a.layer.getStats().count, 1);
@@ -80,11 +94,15 @@ test('USGS body completion honors cancellation even with an uncooperative transp
       ok: true,
       json: async () => {
         abort.abort();
-        return { features: [] };
+        return {
+          features: []
+        };
       },
     }),
   });
-  await assert.rejects(source.getSnapshot({ signal: abort.signal }), {
+  await assert.rejects(source.getSnapshot({
+    signal: abort.signal
+  }), {
     name: 'AbortError',
   });
 });
