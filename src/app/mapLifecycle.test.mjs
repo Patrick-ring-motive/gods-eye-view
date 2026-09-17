@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MapStackController } from '../mapStackController.js';
+import {
+  MapStackController
+} from '../mapStackController.js';
 import {
   installRenderGovernor,
   uninstallRenderGovernor,
@@ -13,10 +15,9 @@ test('destroy invalidates a pending imagery provider before it can touch the vie
   let resolveProvider;
   let removed = 0;
   const changes = [];
-  const controller = new MapStackController(
-    {},
-    { onChange: (state) => changes.push(state.status) },
-  );
+  const controller = new MapStackController({}, {
+    onChange: (state) => changes.push(state.status)
+  }, );
   controller._getImageryProvider = () =>
     new Promise((resolve) => {
       resolveProvider = resolve;
@@ -26,7 +27,9 @@ test('destroy invalidates a pending imagery provider before it can touch the vie
   };
   const switching = controller.setStack('osm');
   controller.destroy();
-  resolveProvider({ provider: {} });
+  resolveProvider({
+    provider: {}
+  });
   await switching;
   assert.equal(removed, 1);
   assert.deepEqual(changes, ['switching']);
