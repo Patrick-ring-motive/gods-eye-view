@@ -1,4 +1,6 @@
-import { VESSEL_LABEL_GRID_PX } from '../../data/vesselLabels.js';
+import {
+  VESSEL_LABEL_GRID_PX
+} from '../../data/vesselLabels.js';
 
 export const FOCUS_EVIDENCE_DEV = import.meta.env?.DEV === true;
 
