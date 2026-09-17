@@ -84,9 +84,15 @@ export function locateAlongRoad(segmentDist, s) {
   for (let k = 0; k <= lastIdx; k++) {
     const d = segmentDist[k] || 0;
     if ((d > 0 && remaining <= d) || k === lastIdx) {
-      return { segIdx: k, t: d > 0 ? Math.min(1, remaining / d) : 0 };
+      return {
+        segIdx: k,
+        t: d > 0 ? Math.min(1, remaining / d) : 0
+      };
     }
     remaining -= d;
   }
-  return { segIdx: 0, t: 0 };
+  return {
+    segIdx: 0,
+    t: 0
+  };
 }
