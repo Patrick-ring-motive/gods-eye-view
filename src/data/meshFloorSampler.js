@@ -20,8 +20,12 @@
 // the mesh legitimately sits ABOVE bare earth, so the window is asymmetric.
 import * as Cesium from 'cesium';
 import {
-  coarseFloorCoord, cachedMeshFloor, reportValidatedMeshFloorCell,
-  setMeshFloorPreferred, meshFloorPreferred, cachedGroundFloor,
+  coarseFloorCoord,
+  cachedMeshFloor,
+  reportValidatedMeshFloorCell,
+  setMeshFloorPreferred,
+  meshFloorPreferred,
+  cachedGroundFloor,
 } from './groundFloor.js';
 
 /** @constant {number} Max scene samples per call (one call per layer poll). */
@@ -67,7 +71,8 @@ function _visibleTilesetLoaded(scene) {
         return !!p.tilesLoaded;
       }
     }
-  } catch { /* mid-teardown */ }
+  } catch {
+    /* mid-teardown */ }
   return false;
 }
 
@@ -95,7 +100,11 @@ function _approxKm(lat1, lon1, lat2, lon2) {
  * @param {number} [options.viewerLat] @param {number} [options.viewerLon]
  *   Viewer subpoint (computed once by the caller's poll).
  */
-export function sampleMeshFloorCells(scene, points, { excludeObjects = [], viewerLat, viewerLon } = {}) {
+export function sampleMeshFloorCells(scene, points, {
+  excludeObjects = [],
+  viewerLat,
+  viewerLon
+} = {}) {
   if (!meshFloorPreferred()) return;
   if (!scene || typeof scene.sampleHeight !== 'function') return;
   if (!Array.isArray(points) || !points.length) return;
@@ -118,7 +127,7 @@ export function sampleMeshFloorCells(scene, points, { excludeObjects = [], viewe
     attempted.add(key);
     if (cachedMeshFloor(cell.lat, cell.lon) != null) continue; // one-shot latch
     if (Number.isFinite(viewerLat) && Number.isFinite(viewerLon) &&
-        _approxKm(viewerLat, viewerLon, cell.lat, cell.lon) > MAX_SAMPLE_DIST_KM) {
+      _approxKm(viewerLat, viewerLon, cell.lat, cell.lon) > MAX_SAMPLE_DIST_KM) {
       continue; // too far: tiles not streamed there, probe would be a guaranteed miss
     }
     let height;
@@ -162,4 +171,6 @@ export function sampleMeshFloorCells(scene, points, { excludeObjects = [], viewe
   }
 }
 
-export { cachedGroundFloor }; // re-export for callers that want one import site
+export {
+  cachedGroundFloor
+}; // re-export for callers that want one import site
