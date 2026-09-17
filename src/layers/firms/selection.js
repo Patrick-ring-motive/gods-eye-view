@@ -3,7 +3,9 @@ import {
   fireDetectionKey,
 } from '../../data/firmsLabels.js';
 import * as Cesium from 'cesium';
-import { CONTEXT_TOP_N } from './policy.js';
+import {
+  CONTEXT_TOP_N
+} from './policy.js';
 
 export function createSelection({
   layerState,
@@ -12,15 +14,25 @@ export function createSelection({
   config,
   feed,
 }) {
-  const { resolvePickId, isOwnedByOtherLayer } = services.picking;
-  const { requestWorldFocus } = services.focus;
+  const {
+    resolvePickId,
+    isOwnedByOtherLayer
+  } = services.picking;
+  const {
+    requestWorldFocus
+  } = services.focus;
   const {
     selectEntityContext,
     clearSelectedEntityContextForLayer,
     getContextStore,
     registerEntityContext,
   } = services.context;
-  const { id, name, overlayHost, screenSpaceEventHandlerFactory } = config;
+  const {
+    id,
+    name,
+    overlayHost,
+    screenSpaceEventHandlerFactory
+  } = config;
 
   /**
    * Install the LEFT_CLICK handler for fire selection (enable-time only,
@@ -49,8 +61,7 @@ export function createSelection({
       }
       const cardHit = overlayHost.hitTest?.(
         click.position?.x,
-        click.position?.y,
-        {
+        click.position?.y, {
           sourceId: FIRMS_OVERLAY_SOURCE_ID,
         },
       );
@@ -195,10 +206,9 @@ export function createSelection({
       properties: {
         frp: fire.frp,
         confidence: components.model.confidenceBucket(fire.confidence),
-        age:
-          fire.acqMs > 0
-            ? components.model.formatAge(Date.now() - fire.acqMs)
-            : 'unknown',
+        age: fire.acqMs > 0 ?
+          components.model.formatAge(Date.now() - fire.acqMs) :
+          'unknown',
         sensor: fire.sensor || 'unknown',
       },
     });
