@@ -6,13 +6,23 @@ import {
   validateKeySetupUpdates,
   upsertDotenvValues,
 } from '../../src/keySetupCore.mjs';
-import { defaultSourceRoot } from '../providers/common/source-root.js';
+import {
+  defaultSourceRoot
+} from '../providers/common/source-root.js';
 import path from 'node:path';
-import { readEnvironmentSource as readPinokioEnvironmentSource } from '../../scripts/pinokio-environment.mjs';
+import {
+  readEnvironmentSource as readPinokioEnvironmentSource
+} from '../../scripts/pinokio-environment.mjs';
 import fs from 'node:fs';
-import { parseEnv as parseDotenvText } from 'node:util';
-import { randomUUID } from 'node:crypto';
-import { hardenCredentialFile } from '../../src/keySetupHardening.mjs';
+import {
+  parseEnv as parseDotenvText
+} from 'node:util';
+import {
+  randomUUID
+} from 'node:crypto';
+import {
+  hardenCredentialFile
+} from '../../src/keySetupHardening.mjs';
 
 /**
  * Which launcher started this process, captured at MODULE LOAD — before the
@@ -48,9 +58,9 @@ const PROVIDER_ENV_AT_BOOT = (globalThis.__GEV_PROVIDER_ENV_AT_BOOT ??=
  */
 const DEV_FRESH_EXTERNAL_KEYS_AT_BOOT = new Set(
   String(process.env.GEV_KEY_SETUP_EXTERNAL_KEYS ?? '')
-    .split(',')
-    .map((name) => name.trim())
-    .filter((name) => knownKeySetupEnvVars().has(name)),
+  .split(',')
+  .map((name) => name.trim())
+  .filter((name) => knownKeySetupEnvVars().has(name)),
 );
 
 /**
@@ -70,7 +80,9 @@ const DEV_FRESH_EXTERNAL_KEYS_AT_BOOT = new Set(
  * keys exist. Prod builds never register this middleware (apply: 'serve'), so
  * the panel's status fetch fails and the client removes the whole surface.
  */
-function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
+function keySetupEndpoint({
+  sourceRoot = defaultSourceRoot
+} = {}) {
   const respond = (res, statusCode, payload) => {
     res.statusCode = statusCode;
     res.setHeader('Content-Type', 'application/json');
@@ -149,11 +161,11 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
   // provenance closes the equal-value ambiguity: an exported X remains
   // external even when the editable store independently contains X.
   const isExternallyManaged = (name, inStore) => {
-    const wasExternalAtBoot = pinokioManaged()
-      ? false
-      : LAUNCHER_AT_BOOT === 'dev-fresh'
-        ? DEV_FRESH_EXTERNAL_KEYS_AT_BOOT.has(name)
-        : PROVIDER_ENV_AT_BOOT[name] !== '';
+    const wasExternalAtBoot = pinokioManaged() ?
+      false :
+      LAUNCHER_AT_BOOT === 'dev-fresh' ?
+      DEV_FRESH_EXTERNAL_KEYS_AT_BOOT.has(name) :
+      PROVIDER_ENV_AT_BOOT[name] !== '';
     return isKeySetupExternallyManaged({
       effectiveValue: process.env[name],
       storedValue: inStore[name],
@@ -167,13 +179,16 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
       // 'file' = this panel's own store holds exactly this value (replace/remove
       // offered); 'external' = supplied by env/Keychain/another workflow
       // (read-only — the panel must never rewrite or delete it).
-      key.managed = key.set
-        ? key.envVars.some((name) => isExternallyManaged(name, inStore))
-          ? 'external'
-          : 'file'
-        : null;
+      key.managed = key.set ?
+        key.envVars.some((name) => isExternallyManaged(name, inStore)) ?
+        'external' :
+        'file' :
+        null;
     }
-    return { ...status, store: storeName() };
+    return {
+      ...status,
+      store: storeName()
+    };
   };
   // Atomically replace the store's content: fresh same-dir temp created 0600
   // with the exclusive flag, fsync, rename over the target. Closes the window
@@ -225,13 +240,17 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
       staged = true;
     } finally {
       fs.closeSync(fd);
-      if (!staged) fs.rmSync(tmp, { force: true });
+      if (!staged) fs.rmSync(tmp, {
+        force: true
+      });
     }
     try {
       fs.renameSync(tmp, filepath);
     } catch (error) {
       // Never strand a staged secret on disk when the swap itself fails.
-      fs.rmSync(tmp, { force: true });
+      fs.rmSync(tmp, {
+        force: true
+      });
       throw error;
     }
   };
@@ -242,23 +261,34 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
     // only install via configureServer (never configurePreviewServer), so they
     // are absent from preview today — but pinning apply here makes that a
     // guarantee rather than an accident of which hook a future edit uses.
-    apply: (_config, { command, isPreview }) =>
+    apply: (_config, {
+        command,
+        isPreview
+      }) =>
       command === 'serve' && !isPreview,
     configureServer(server) {
       server.middlewares.use('/api/setup/status', (req, res) => {
         if (req.method !== 'GET')
-          return respond(res, 405, { error: 'Method not allowed' });
+          return respond(res, 405, {
+            error: 'Method not allowed'
+          });
         const admission = admit(req);
         if (!admission.ok)
-          return respond(res, admission.status, { error: admission.error });
+          return respond(res, admission.status, {
+            error: admission.error
+          });
         respond(res, 200, providerStatus());
       });
       server.middlewares.use('/api/setup/keys', (req, res) => {
         if (req.method !== 'POST')
-          return respond(res, 405, { error: 'Method not allowed' });
+          return respond(res, 405, {
+            error: 'Method not allowed'
+          });
         const admission = admit(req);
         if (!admission.ok)
-          return respond(res, admission.status, { error: admission.error });
+          return respond(res, admission.status, {
+            error: admission.error
+          });
         let body = '';
         let overflowed = false;
         req.on('data', (chunk) => {
@@ -270,15 +300,21 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
         });
         req.on('end', () => {
           if (overflowed)
-            return respond(res, 413, { error: 'Request too large' });
+            return respond(res, 413, {
+              error: 'Request too large'
+            });
           let parsed;
           try {
             parsed = JSON.parse(body || '{}');
           } catch {
-            return respond(res, 400, { error: 'Invalid JSON' });
+            return respond(res, 400, {
+              error: 'Invalid JSON'
+            });
           }
           const verdict = validateKeySetupUpdates(parsed);
-          if (!verdict.ok) return respond(res, 400, { error: verdict.error });
+          if (!verdict.ok) return respond(res, 400, {
+            error: verdict.error
+          });
           // Neither a replace NOR a removal may touch an externally-supplied
           // credential (shell env, Keychain, another workflow). This backs the
           // UI's read-only "configured externally" state with a real contract —
@@ -341,4 +377,6 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
   };
 }
 
-export { keySetupEndpoint };
+export {
+  keySetupEndpoint
+};
