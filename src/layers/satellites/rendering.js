@@ -1,6 +1,12 @@
 import * as Cesium from 'cesium';
-import { gstime } from 'satellite.js';
-import { ISS_NORAD, POSITION_UPDATE_MS, RING_ROTATION_MS } from './policy.js';
+import {
+  gstime
+} from 'satellite.js';
+import {
+  ISS_NORAD,
+  POSITION_UPDATE_MS,
+  RING_ROTATION_MS
+} from './policy.js';
 
 export function createRendering({
   state: layerState,
@@ -64,7 +70,9 @@ export function createRendering({
           ),
         },
       }),
-      appearance: new Cesium.PolylineColorAppearance({ translucent: true }),
+      appearance: new Cesium.PolylineColorAppearance({
+        translucent: true
+      }),
       depthFailAppearance: new Cesium.PolylineColorAppearance({
         translucent: true,
       }),
@@ -270,7 +278,12 @@ export function createRendering({
     params,
   }) {
     if (!focusPassIsNeeded(target, previousActiveCount)) {
-      return { writes: 0, transitioning: false, activeCount: 0, ran: false };
+      return {
+        writes: 0,
+        transitioning: false,
+        activeCount: 0,
+        ran: false
+      };
     }
     let writes = 0;
     let transitioning = false;
@@ -286,8 +299,7 @@ export function createRendering({
       const focus = advanceSpriteFocus(point, {
         // Hidden points still release toward identity, preventing stale dim
         // alpha if a catalog/presentation toggle later makes them visible.
-        screenPosition:
-          point.show === false ? null : screenPositionFor(point.position),
+        screenPosition: point.show === false ? null : screenPositionFor(point.position),
         cameraDistance,
         nowMs,
         target,
@@ -306,7 +318,12 @@ export function createRendering({
         writes += 1;
       }
     }
-    return { writes, transitioning, activeCount, ran: true };
+    return {
+      writes,
+      transitioning,
+      activeCount,
+      ran: true
+    };
   }
   return {
     _showOrbitPath,
