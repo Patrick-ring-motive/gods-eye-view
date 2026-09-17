@@ -16,17 +16,42 @@
  */
 
 import * as Cesium from 'cesium';
-import { holdContinuousRender, releaseContinuousRender } from './renderGovernor.js';
+import {
+  holdContinuousRender,
+  releaseContinuousRender
+} from './renderGovernor.js';
 
 /** °/s by speed word — orbit; pan uses fractions of view height/s. */
-const ORBIT_DEG_S = { slow: 2, normal: 6, fast: 15 };
-const TILT_DEG_S = { slow: 4, normal: 10, fast: 20 };
-const PAN_VIEW_FRACTION_S = { slow: 0.08, normal: 0.2, fast: 0.45 };
+const ORBIT_DEG_S = {
+  slow: 2,
+  normal: 6,
+  fast: 15
+};
+const TILT_DEG_S = {
+  slow: 4,
+  normal: 10,
+  fast: 20
+};
+const PAN_VIEW_FRACTION_S = {
+  slow: 0.08,
+  normal: 0.2,
+  fast: 0.45
+};
 /** MEAN ground speed by speed word. The trapezoid profile below eases in and
  *  out around this mean, so a route still takes totalM / ROUTE_M_S seconds. */
-const ROUTE_M_S = { slow: 20, normal: 40, fast: 90 };
+const ROUTE_M_S = {
+  slow: 20,
+  normal: 40,
+  fast: 90
+};
 /** Bounded `once` nudges (spec: tune by feel in the field test). */
-const ONCE = { orbitDeg: 30, tiltDeg: 15, rotateDeg: 15, panViewFraction: 0.25, durationS: 0.9 };
+const ONCE = {
+  orbitDeg: 30,
+  tiltDeg: 15,
+  rotateDeg: 15,
+  panViewFraction: 0.25,
+  durationS: 0.9
+};
 const PITCH_MIN = Cesium.Math.toRadians(-89);
 const PITCH_MAX = Cesium.Math.toRadians(-5);
 
@@ -134,9 +159,9 @@ const ROUTE_MAX_DESCENT_MPS = 10;
 /** Whether the operating system asked us to keep motion boring. */
 export function prefersReducedMotion() {
   try {
-    return typeof window !== 'undefined'
-      && typeof window.matchMedia === 'function'
-      && window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+    return typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
   } catch {
     return false;
   }
@@ -183,19 +208,31 @@ export function routeRampFraction(durationS) {
  */
 export function routeSpeedProfile(u, r) {
   const t = Math.min(1, Math.max(0, Number.isFinite(u) ? u : 0));
-  if (!(r > 0)) return { distance: t, speed: 1 };
+  if (!(r > 0)) return {
+    distance: t,
+    speed: 1
+  };
   const area = 1 - r; // ∫₀¹ v du — both ramps together contribute r
   const rampArea = (p) => r * ((p * p * p) - ((p * p * p * p) / 2));
   const smoothstep = (p) => p * p * (3 - (2 * p));
   if (t <= r) {
     const p = t / r;
-    return { distance: rampArea(p) / area, speed: smoothstep(p) };
+    return {
+      distance: rampArea(p) / area,
+      speed: smoothstep(p)
+    };
   }
   if (t >= 1 - r) {
     const p = (1 - t) / r;
-    return { distance: (area - rampArea(p)) / area, speed: smoothstep(p) };
+    return {
+      distance: (area - rampArea(p)) / area,
+      speed: smoothstep(p)
+    };
   }
-  return { distance: ((r / 2) + (t - r)) / area, speed: 1 };
+  return {
+    distance: ((r / 2) + (t - r)) / area,
+    speed: 1
+  };
 }
 
 /**
@@ -303,13 +340,17 @@ const _probeCarto = new Cesium.Cartographic();
 /** Point at arc length `s` along the polyline (binary search — queries jump
  *  backwards for the inbound chord, so a forward cursor would not do). */
 function arcPoint(state, s, result) {
-  const { pts, cumM } = state;
+  const {
+    pts,
+    cumM
+  } = state;
   const clamped = Math.min(state.totalM, Math.max(0, s));
   let lo = 0;
   let hi = cumM.length - 2;
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1;
-    if (cumM[mid] <= clamped) lo = mid; else hi = mid - 1;
+    if (cumM[mid] <= clamped) lo = mid;
+    else hi = mid - 1;
   }
   const segLen = cumM[lo + 1] - cumM[lo];
   const t = segLen > 1e-6 ? Math.min(1, Math.max(0, (clamped - cumM[lo]) / segLen)) : 0;
@@ -374,7 +415,10 @@ export function routeCorridorCells(state, fromM, spanM, maxCells = ROUTE_WARM_MA
     const key = `${lat},${lon}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ lat, lon });
+    out.push({
+      lat,
+      lon
+    });
   }
   return out;
 }
@@ -449,8 +493,10 @@ function acquireCorridorFloor(state, takeWhole) {
       let floor = Number.NaN;
       try {
         floor = state.floorFn(cell.lat, cell.lon);
-      } catch { /* a hostile read is the same as a cold one */ }
-      if (Number.isFinite(floor)) known.push(floor); else cold.push(cell);
+      } catch {
+        /* a hostile read is the same as a cold one */ }
+      if (Number.isFinite(floor)) known.push(floor);
+      else cold.push(cell);
     }
   } else {
     cold.push(...cells);
@@ -467,7 +513,8 @@ function acquireCorridorFloor(state, takeWhole) {
         // Only a probe that reached EVERY cold cell resolves the corridor.
         state.meshProbeCoveredCold = probe.sampled >= cold.length;
       }
-    } catch { /* tiles not streamed, or a scene mid-teardown */ }
+    } catch {
+      /* tiles not streamed, or a scene mid-teardown */ }
   }
   if (Number.isFinite(state.meshProbeFloorM)) known.push(state.meshProbeFloorM);
   if (!known.length) return false;
@@ -476,9 +523,9 @@ function acquireCorridorFloor(state, takeWhole) {
   // A partial answer still RAISES the held floor — knowing something is better
   // than the seed — but it does not resolve the corridor, so the safe hold and
   // the arm stay in force.
-  state.floorM = takeWhole || !Number.isFinite(state.floorM)
-    ? floor
-    : Math.max(state.floorM, floor);
+  state.floorM = takeWhole || !Number.isFinite(state.floorM) ?
+    floor :
+    Math.max(state.floorM, floor);
   if (cold.length && !state.meshProbeCoveredCold) return false;
   state.floorKnown = true;
   return true;
@@ -494,7 +541,11 @@ function acquireCorridorFloor(state, takeWhole) {
  */
 export function probeMeshFloorM(scene, cells) {
   const requested = Array.isArray(cells) ? cells.length : 0;
-  const empty = { heightM: Number.NaN, sampled: 0, requested };
+  const empty = {
+    heightM: Number.NaN,
+    sampled: 0,
+    requested
+  };
   if (!scene || typeof scene.sampleHeight !== 'function' || !requested) return empty;
   let heightM = Number.NaN;
   let sampled = 0;
@@ -505,9 +556,14 @@ export function probeMeshFloorM(scene, cells) {
       if (!Number.isFinite(height)) continue;
       sampled += 1;
       heightM = Number.isFinite(heightM) ? Math.max(heightM, height) : height;
-    } catch { /* tiles not ready for this cell */ }
+    } catch {
+      /* tiles not ready for this cell */ }
   }
-  return { heightM, sampled, requested };
+  return {
+    heightM,
+    sampled,
+    requested
+  };
 }
 
 /**
@@ -526,8 +582,14 @@ export function probeMeshFloorM(scene, cells) {
  * @returns {Object} Motion state for advanceRouteFlight().
  */
 export function createRouteFlight({
-  pts, cumM, speed = 'normal', floorFn = null, warmFn = null, probeFn = null,
-  cameraHeightM = Number.NaN, reducedMotion = false,
+  pts,
+  cumM,
+  speed = 'normal',
+  floorFn = null,
+  warmFn = null,
+  probeFn = null,
+  cameraHeightM = Number.NaN,
+  reducedMotion = false,
 }) {
   const totalM = cumM[cumM.length - 1];
   const cruiseMps = ROUTE_M_S[speed] || ROUTE_M_S.normal;
@@ -611,7 +673,12 @@ export function advanceRouteFlight(state, dt) {
   if (canAnswer && !state.floorKnown && !state.departed && state.armS < ROUTE_ARM_S) {
     state.armS += step;
     if (!acquireCorridorFloor(state, true)) {
-      return { arming: true, finished: false, progress: 0, bankDeg: 0 };
+      return {
+        arming: true,
+        finished: false,
+        progress: 0,
+        bankDeg: 0
+      };
     }
   }
   state.departed = true;
@@ -632,9 +699,9 @@ export function advanceRouteFlight(state, dt) {
   const halfWindowM = Math.max(20, (ROUTE_BANK_WINDOW_S * cruiseMps) / 2);
   const inbound = horizontalChord(state, traveled - halfWindowM, traveled, up, _frameIn);
   const outbound = horizontalChord(state, traveled, traveled + halfWindowM, up, _frameOut);
-  const turnRateDegS = (inbound && outbound)
-    ? Cesium.Math.toDegrees(signedTurnRad(inbound, outbound, up)) / ROUTE_BANK_WINDOW_S
-    : 0;
+  const turnRateDegS = (inbound && outbound) ?
+    Cesium.Math.toDegrees(signedTurnRad(inbound, outbound, up)) / ROUTE_BANK_WINDOW_S :
+    0;
   const bankTarget = routeBankTargetDeg(turnRateDegS, state.reducedMotion);
   state.bankLeadDeg = approachValue(state.bankLeadDeg, bankTarget, ROUTE_BANK_LEAD_RATE, step);
   state.bankDeg = approachValue(state.bankDeg, state.bankLeadDeg, ROUTE_BANK_SETTLE_RATE, step);
@@ -650,8 +717,8 @@ export function advanceRouteFlight(state, dt) {
     ROUTE_LOOKAHEAD_MAX_M,
     Math.max(ROUTE_LOOKAHEAD_MIN_M, ROUTE_LOOKAHEAD_S * cruiseMps),
   );
-  const gaze = horizontalChord(state, traveled, traveled + lookaheadM, up, _frameGaze)
-    || outbound || inbound;
+  const gaze = horizontalChord(state, traveled, traveled + lookaheadM, up, _frameGaze) ||
+    outbound || inbound;
   if (gaze && !state.headingDir) state.headingDir = Cesium.Cartesian3.clone(gaze);
   else if (gaze) {
     // Rotate the heading TOWARD the gaze about the local up, rather than
@@ -679,9 +746,9 @@ export function advanceRouteFlight(state, dt) {
   // has no azimuth to fly: point east so the frame stays orthonormal.
   if (!state.headingDir) {
     const east = Cesium.Cartesian3.fromElements(-pos.y, pos.x, 0, _frameGaze);
-    state.headingDir = Cesium.Cartesian3.magnitude(east) > 1e-6
-      ? Cesium.Cartesian3.normalize(east, new Cesium.Cartesian3())
-      : Cesium.Cartesian3.fromElements(1, 0, 0, new Cesium.Cartesian3());
+    state.headingDir = Cesium.Cartesian3.magnitude(east) > 1e-6 ?
+      Cesium.Cartesian3.normalize(east, new Cesium.Cartesian3()) :
+      Cesium.Cartesian3.fromElements(1, 0, 0, new Cesium.Cartesian3());
   }
   const heading = state.headingDir;
 
@@ -810,7 +877,10 @@ let _tickRemover = null;
 let _inputRemovers = [];
 
 function clearLookAt() {
-  try { _viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY); } catch { /* teardown race */ }
+  try {
+    _viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+  } catch {
+    /* teardown race */ }
 }
 
 /**
@@ -829,7 +899,13 @@ function levelCameraRoll() {
     if (!cam || typeof cam.setView !== 'function') return false;
     const roll = Cesium.Math.negativePiToPi(cam.roll || 0);
     if (Math.abs(roll) < 1e-5) return false;
-    cam.setView({ orientation: { heading: cam.heading, pitch: cam.pitch, roll: 0 } });
+    cam.setView({
+      orientation: {
+        heading: cam.heading,
+        pitch: cam.pitch,
+        roll: 0
+      }
+    });
     return true;
   } catch {
     return false; // teardown race
@@ -850,13 +926,21 @@ export function interruptCameraMotion(reason = 'interrupt') {
   const leveled = wasRoute && !tracking ? levelCameraRoll() : false;
   _active = null;
   releaseContinuousRender('camera-verb');
-  return { wasActive, reason, leveled };
+  return {
+    wasActive,
+    reason,
+    leveled
+  };
 }
 
 /** Diagnostics / harness hook. */
 export function getActiveCameraMotion() {
   if (!_active) return null;
-  const info = { kind: _active.kind, mode: _active.mode, speed: _active.speed };
+  const info = {
+    kind: _active.kind,
+    mode: _active.mode,
+    speed: _active.speed
+  };
   if (_active.kind === 'route') {
     info.progress = _active.u;
     info.bankDeg = _active.bankDeg;
@@ -888,7 +972,9 @@ function onTick() {
     m.elapsed = (m.elapsed || 0) + dt;
     const t = Math.min(1, m.elapsed / ONCE.durationS);
     scale = 1 - (1 - t) * (1 - t); // ease-out progress share
-    if (t >= 1) { interruptCameraMotion('once-complete'); }
+    if (t >= 1) {
+      interruptCameraMotion('once-complete');
+    }
   }
 
   try {
@@ -896,13 +982,19 @@ function onTick() {
       // Armed but target-less (started mid-flight, e.g. "fly to X and orbit
       // it"): keep trying for a ground target until the camera settles.
       m.pendingS = (m.pendingS || 0) + dt;
-      if (m.pendingS > 30) { interruptCameraMotion('orbit-arm-timeout'); return; }
+      if (m.pendingS > 30) {
+        interruptCameraMotion('orbit-arm-timeout');
+        return;
+      }
       // pickEllipsoid hits the globe from ANY altitude — target existence
       // alone is not arrival. Camera flights are scene tweens, and multi-stage
       // flights have GAPS between tweens: require the tween queue quiet for a
       // continuous 0.8 s before capturing the orbit framing at the REAL
       // destination (field finding: Eiffel chain orbited from mid-flight).
-      if (_viewer.scene.tweens.length > 0) { m.settledS = 0; return; }
+      if (_viewer.scene.tweens.length > 0) {
+        m.settledS = 0;
+        return;
+      }
       m.settledS = (m.settledS || 0) + dt;
       if (m.settledS < 0.8) return;
       const target = _getTarget?.(_viewer);
@@ -930,9 +1022,9 @@ function onTick() {
       cam.lookAt(m.target, m.hpr);
     } else if (m.kind === 'pan') {
       const heightM = Math.max(50, cam.positionCartographic.height);
-      const step = (m.mode === 'once'
-        ? (heightM * ONCE.panViewFraction * (scale - (m.lastScale || 0)))
-        : heightM * PAN_VIEW_FRACTION_S[m.speed] * dt);
+      const step = (m.mode === 'once' ?
+        (heightM * ONCE.panViewFraction * (scale - (m.lastScale || 0))) :
+        heightM * PAN_VIEW_FRACTION_S[m.speed] * dt);
       m.lastScale = scale;
       if (m.direction === 'left') cam.moveLeft(step);
       else if (m.direction === 'right') cam.moveRight(step);
@@ -940,16 +1032,20 @@ function onTick() {
       else cam.moveDown(step);
     } else if (m.kind === 'tilt' || m.kind === 'rotate') {
       const degS = TILT_DEG_S[m.speed];
-      const stepRad = (m.mode === 'once'
-        ? Cesium.Math.toRadians(m.kind === 'tilt' ? ONCE.tiltDeg : ONCE.rotateDeg) * (scale - (m.lastScale || 0))
-        : Cesium.Math.toRadians(degS) * dt);
+      const stepRad = (m.mode === 'once' ?
+        Cesium.Math.toRadians(m.kind === 'tilt' ? ONCE.tiltDeg : ONCE.rotateDeg) * (scale - (m.lastScale || 0)) :
+        Cesium.Math.toRadians(degS) * dt);
       m.lastScale = scale;
       if (m.kind === 'tilt') {
         const up = m.direction === 'up';
         // Clamp pitch to [-89°, -5°]: never through the ground, never at the sky.
         const next = cam.pitch + (up ? stepRad : -stepRad);
-        if (next > PITCH_MAX || next < PITCH_MIN) { interruptCameraMotion('tilt-clamp'); return; }
-        if (up) cam.lookUp(stepRad); else cam.lookDown(stepRad);
+        if (next > PITCH_MAX || next < PITCH_MIN) {
+          interruptCameraMotion('tilt-clamp');
+          return;
+        }
+        if (up) cam.lookUp(stepRad);
+        else cam.lookDown(stepRad);
       } else if (m.direction === 'left') cam.lookLeft(stepRad);
       else cam.lookRight(stepRad);
     } else if (m.kind === 'route') {
@@ -960,8 +1056,17 @@ function onTick() {
       // user left it rather than teleporting to an altitude derived from
       // nothing. An interrupt during the arm is still instant.
       if (frame.arming) return;
-      cam.setView({ destination: frame.eye, orientation: { direction: frame.direction, up: frame.up } });
-      if (frame.finished) { interruptCameraMotion('route-complete'); return; }
+      cam.setView({
+        destination: frame.eye,
+        orientation: {
+          direction: frame.direction,
+          up: frame.up
+        }
+      });
+      if (frame.finished) {
+        interruptCameraMotion('route-complete');
+        return;
+      }
     }
   } catch {
     interruptCameraMotion('tick-error');
@@ -981,7 +1086,9 @@ export function initCameraVerbs(viewer, getViewTargetCartesian) {
   // ANY manual camera input reclaims control — the cancelFlight reflex.
   for (const evt of ['pointerdown', 'wheel']) {
     const h = () => interruptCameraMotion('manual-input');
-    canvas.addEventListener(evt, h, { passive: true });
+    canvas.addEventListener(evt, h, {
+      passive: true
+    });
     _inputRemovers.push(() => canvas.removeEventListener(evt, h));
   }
 }
@@ -1000,7 +1107,9 @@ export function moveCamera(args = {}, runNavigation = null) {
   if (motion === 'stop') {
     const wasActiveBeforeHandoff = Boolean(_active);
     const stop = () => {
-      const { wasActive } = interruptCameraMotion('voice-stop');
+      const {
+        wasActive
+      } = interruptCameraMotion('voice-stop');
       return {
         ok: true,
         action: 'move_camera',
@@ -1011,23 +1120,43 @@ export function moveCamera(args = {}, runNavigation = null) {
     return typeof runNavigation === 'function' ? runNavigation(stop) : stop();
   }
   if (!['orbit', 'pan', 'tilt', 'rotate'].includes(motion)) {
-    return { ok: false, action: 'move_camera', error: `Unknown motion "${args.motion}" — use orbit, pan, tilt, rotate, or stop.` };
+    return {
+      ok: false,
+      action: 'move_camera',
+      error: `Unknown motion "${args.motion}" — use orbit, pan, tilt, rotate, or stop.`
+    };
   }
   if (motion !== 'orbit' && !['left', 'right', 'up', 'down'].includes(direction)) {
-    return { ok: false, action: 'move_camera', error: `${motion} needs a direction (left/right${motion !== 'rotate' ? '/up/down' : ''}).` };
+    return {
+      ok: false,
+      action: 'move_camera',
+      error: `${motion} needs a direction (left/right${motion !== 'rotate' ? '/up/down' : ''}).`
+    };
   }
   if ((motion === 'rotate') && !['left', 'right'].includes(direction)) {
-    return { ok: false, action: 'move_camera', error: 'rotate needs left or right.' };
+    return {
+      ok: false,
+      action: 'move_camera',
+      error: 'rotate needs left or right.'
+    };
   }
   if (motion === 'tilt') {
     // Honest limits: at the clamp a tilt is a no-op — say so instead of
     // reporting success and letting the model gaslight itself (field test).
     const pitch = _viewer.camera.pitch;
     if (direction === 'up' && pitch >= PITCH_MAX - Cesium.Math.toRadians(0.5)) {
-      return { ok: false, action: 'move_camera', error: 'Already at the upper tilt limit (near the horizon) — tilt down, or zoom/pan instead.' };
+      return {
+        ok: false,
+        action: 'move_camera',
+        error: 'Already at the upper tilt limit (near the horizon) — tilt down, or zoom/pan instead.'
+      };
     }
     if (direction === 'down' && pitch <= PITCH_MIN + Cesium.Math.toRadians(0.5)) {
-      return { ok: false, action: 'move_camera', error: 'Already looking straight down — tilt up to raise the horizon.' };
+      return {
+        ok: false,
+        action: 'move_camera',
+        error: 'Already looking straight down — tilt up to raise the horizon.'
+      };
     }
   }
   if (motion === 'orbit' && _viewer?.trackedEntity && typeof runNavigation !== 'function') {
@@ -1035,27 +1164,64 @@ export function moveCamera(args = {}, runNavigation = null) {
     // by frame and stop rips the camera out (field finding). Honest refusal
     // until tracked-orbit rides the follow camera natively (roadmap).
     const label = _viewer.trackedEntity?.name || _viewer.trackedEntity?.id || 'the tracked target';
-    return { ok: false, action: 'move_camera', error: `Already following ${label} — the follow camera owns the view while tracking. Say "stop tracking" first if you want a free orbit.` };
+    return {
+      ok: false,
+      action: 'move_camera',
+      error: `Already following ${label} — the follow camera owns the view while tracking. Say "stop tracking" first if you want a free orbit.`
+    };
   }
   const start = () => {
     interruptCameraMotion('replaced');
-    const state = { kind: motion, direction: direction || 'right', speed, mode };
+    const state = {
+      kind: motion,
+      direction: direction || 'right',
+      speed,
+      mode
+    };
     if (motion === 'orbit') {
       if (_viewer.scene.tweens.length > 0) {
         // A camera flight is in progress ("fly to X and orbit it") — ALWAYS arm
         // and capture at the destination; a target existing right now is
         // meaningless (the globe is always under the crosshair).
-        _active = { kind: 'orbit', direction: direction || 'right', speed, mode, pending: true };
+        _active = {
+          kind: 'orbit',
+          direction: direction || 'right',
+          speed,
+          mode,
+          pending: true
+        };
         holdContinuousRender('camera-verb');
-        return { ok: true, action: 'move_camera', motion, direction: direction || 'right', speed, mode, armed: 'waiting-for-arrival' };
+        return {
+          ok: true,
+          action: 'move_camera',
+          motion,
+          direction: direction || 'right',
+          speed,
+          mode,
+          armed: 'waiting-for-arrival'
+        };
       }
       const target = _getTarget?.(_viewer);
       if (!target) {
         // Mid-flight chain ("fly to X and orbit it"): ARM the orbit — the tick
         // loop keeps trying for a ground target as the flight settles.
-        _active = { kind: 'orbit', direction: direction || 'right', speed, mode, pending: true };
+        _active = {
+          kind: 'orbit',
+          direction: direction || 'right',
+          speed,
+          mode,
+          pending: true
+        };
         holdContinuousRender('camera-verb');
-        return { ok: true, action: 'move_camera', motion, direction: direction || 'right', speed, mode, armed: 'waiting-for-arrival' };
+        return {
+          ok: true,
+          action: 'move_camera',
+          motion,
+          direction: direction || 'right',
+          speed,
+          mode,
+          armed: 'waiting-for-arrival'
+        };
       }
       const cam = _viewer.camera;
       const range = Cesium.Cartesian3.distance(cam.positionWC, target);
@@ -1072,14 +1238,23 @@ export function moveCamera(args = {}, runNavigation = null) {
     // Verb motion drives the camera per clock tick — hold until interrupted;
     // interruptCameraMotion is the single release path. (perf wave 2)
     holdContinuousRender('camera-verb');
-    return { ok: true, action: 'move_camera', motion, direction: state.direction, speed, mode };
+    return {
+      ok: true,
+      action: 'move_camera',
+      motion,
+      direction: state.direction,
+      speed,
+      mode
+    };
   };
-  const preserveCameraFlight = motion === 'orbit'
-    && _viewer.scene.tweens.length > 0
-    && !_viewer.trackedEntity;
-  return typeof runNavigation === 'function'
-    ? runNavigation(start, { preserveCameraFlight })
-    : start();
+  const preserveCameraFlight = motion === 'orbit' &&
+    _viewer.scene.tweens.length > 0 &&
+    !_viewer.trackedEntity;
+  return typeof runNavigation === 'function' ?
+    runNavigation(start, {
+      preserveCameraFlight
+    }) :
+    start();
 }
 
 /**
@@ -1108,23 +1283,35 @@ export function flyRoute(annoList, args = {}, floorFn = null, runNavigation = nu
   const speed = ROUTE_M_S[String(args.speed || 'normal').toLowerCase()] ? String(args.speed || 'normal').toLowerCase() : 'normal';
   const routes = (annoList || []).filter((a) => a.type === 'route' && Array.isArray(a.path) && a.path.length >= 2);
   if (!routes.length) {
-    return { ok: false, action: 'fly_route', error: 'No route is drawn — draw a route first (e.g. "route from A to B"), then fly it.' };
+    return {
+      ok: false,
+      action: 'fly_route',
+      error: 'No route is drawn — draw a route first (e.g. "route from A to B"), then fly it.'
+    };
   }
   let route = routes[routes.length - 1];
   if (args.label) {
     const wanted = String(args.label).toLowerCase();
     const byLabel = routes.filter((a) => String(a.label || '').toLowerCase().includes(wanted));
     if (!byLabel.length) {
-      return { ok: false, action: 'fly_route', error: `No route matches "${args.label}" — say fly the route without a name for the newest one.` };
+      return {
+        ok: false,
+        action: 'fly_route',
+        error: `No route matches "${args.label}" — say fly the route without a name for the newest one.`
+      };
     }
     route = byLabel[byLabel.length - 1];
   }
-  if (route.path.some((point) => !Number.isFinite(point?.lat)
-    || point.lat < -90 || point.lat > 90
-    || !Number.isFinite(point?.lon)
-    || point.lon < -180 || point.lon > 180
-    || (point.height !== undefined && !Number.isFinite(point.height)))) {
-    return { ok: false, action: 'fly_route', error: 'The selected route has an invalid waypoint.' };
+  if (route.path.some((point) => !Number.isFinite(point?.lat) ||
+      point.lat < -90 || point.lat > 90 ||
+      !Number.isFinite(point?.lon) ||
+      point.lon < -180 || point.lon > 180 ||
+      (point.height !== undefined && !Number.isFinite(point.height)))) {
+    return {
+      ok: false,
+      action: 'fly_route',
+      error: 'The selected route has an invalid waypoint.'
+    };
   }
   const pts = route.path.map((p) => Cesium.Cartesian3.fromDegrees(p.lon, p.lat, (p.height || 0)));
   const cumM = [0];
@@ -1132,7 +1319,11 @@ export function flyRoute(annoList, args = {}, floorFn = null, runNavigation = nu
     cumM.push(cumM[i - 1] + Cesium.Cartesian3.distance(pts[i - 1], pts[i]));
   }
   if (!Number.isFinite(cumM.at(-1)) || cumM.at(-1) <= 0) {
-    return { ok: false, action: 'fly_route', error: 'The selected route has no flyable distance.' };
+    return {
+      ok: false,
+      action: 'fly_route',
+      error: 'The selected route has no flyable distance.'
+    };
   }
   const start = () => {
     interruptCameraMotion('replaced');
@@ -1148,8 +1339,12 @@ export function flyRoute(annoList, args = {}, floorFn = null, runNavigation = nu
     });
     holdContinuousRender('camera-verb');
     return {
-      ok: true, action: 'fly_route', label: route.label || null, speed,
-      distanceM: Math.round(_active.totalM), durationS: Math.round(_active.durationS),
+      ok: true,
+      action: 'fly_route',
+      label: route.label || null,
+      speed,
+      distanceM: Math.round(_active.totalM),
+      durationS: Math.round(_active.durationS),
       waypoints: pts.length,
     };
   };
