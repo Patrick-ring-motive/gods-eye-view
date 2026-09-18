@@ -1,4 +1,6 @@
-import { createAwarenessLayer } from '../layers/awareness/index.js';
+import {
+  createAwarenessLayer
+} from '../layers/awareness/index.js';
 import flights from './flights.js';
 import military from './militaryFlights.js';
 import vessels from './aisLiveVessels.js';
@@ -42,5 +44,8 @@ export const restoreAwarenessPanelFocus = layer.restoreAwarenessPanelFocus;
 export const awarenessResultsAreLive = layer.awarenessResultsAreLive;
 export const awarenessNeedsContinuousRender =
   layer.awarenessNeedsContinuousRender;
-export { AWARENESS_QUERY_LIMIT } from '../layers/awareness/index.js';
+export {
+  AWARENESS_QUERY_LIMIT
+}
+from '../layers/awareness/index.js';
 export default layer;
