@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * scripts/qa-floorhold-staircase.mjs — what a grounded contact DOES while its
  * floor data arrives, tick by tick.
@@ -19,46 +20,73 @@
  * Pure module-level: no browser, no network, no GPU.
  */
 import * as Cesium from 'cesium';
-import { pickRenderAltitudeM } from '../src/data/renderAltitude.js';
 import {
-  _floorGroundedDisplayPositionForTest, _clearDisplayFloorStateForTest,
+  pickRenderAltitudeM
+} from '../src/data/renderAltitude.js';
+import {
+  _floorGroundedDisplayPositionForTest,
+  _clearDisplayFloorStateForTest,
 } from '../src/data/flights.js';
 import {
-  reportMeshFloorCell, setMeshFloorPreferred, _clearMeshFloorCellsForTest, GROUND_FLOOR_LIFT_M,
+  reportMeshFloorCell,
+  setMeshFloorPreferred,
+  _clearMeshFloorCellsForTest,
+  GROUND_FLOOR_LIFT_M,
 } from '../src/data/groundFloor.js';
 
-const LAT = 30.2004, LON = -97.6604;          // own cell 30.200 / -97.660
-const APRON = -22.0, ROOF = -4.0, START = -32.0; // ellipsoidal; SFO-ish geoid start
-const TARGET = APRON + GROUND_FLOOR_LIFT_M;    // -20.5
-const N = { up: [30.2014, LON], down: [30.1994, LON], left: [LAT, -97.6614], right: [LAT, -97.6594] };
+const LAT = 30.2004,
+  LON = -97.6604; // own cell 30.200 / -97.660
+const APRON = -22.0,
+  ROOF = -4.0,
+  START = -32.0; // ellipsoidal; SFO-ish geoid start
+const TARGET = APRON + GROUND_FLOOR_LIFT_M; // -20.5
+const N = {
+  up: [30.2014, LON],
+  down: [30.1994, LON],
+  left: [LAT, -97.6614],
+  right: [LAT, -97.6594]
+};
 
 const SCENARIOS = [
   ['S1 flat apron cold start (own cell warms last)', [
-    [1120, () => { reportMeshFloorCell(...N.up, APRON); reportMeshFloorCell(...N.down, APRON); }],
+    [1120, () => {
+      reportMeshFloorCell(...N.up, APRON);
+      reportMeshFloorCell(...N.down, APRON);
+    }],
     [5200, () => reportMeshFloorCell(LAT, LON, APRON)],
   ]],
   ['S2 apron beside a terminal (one neighbour is a roof)', [
-    [1120, () => { reportMeshFloorCell(...N.up, ROOF); reportMeshFloorCell(...N.down, APRON); }],
+    [1120, () => {
+      reportMeshFloorCell(...N.up, ROOF);
+      reportMeshFloorCell(...N.down, APRON);
+    }],
     [5200, () => reportMeshFloorCell(LAT, LON, APRON)],
   ]],
   ['S3 own cell never warms (roof neighbour only)', [
     [1120, () => reportMeshFloorCell(...N.up, ROOF)],
   ]],
   ['S3b own cell never warms (roof + apron neighbours)', [
-    [1120, () => { reportMeshFloorCell(...N.up, ROOF); reportMeshFloorCell(...N.down, APRON);
-                   reportMeshFloorCell(...N.left, APRON); }],
+    [1120, () => {
+      reportMeshFloorCell(...N.up, ROOF);
+      reportMeshFloorCell(...N.down, APRON);
+      reportMeshFloorCell(...N.left, APRON);
+    }],
   ]],
 ];
 
 const summary = [];
 for (const [name, schedule] of SCENARIOS) {
-  _clearDisplayFloorStateForTest(); _clearMeshFloorCellsForTest(); setMeshFloorPreferred(true);
+  _clearDisplayFloorStateForTest();
+  _clearMeshFloorCellsForTest();
+  setMeshFloorPreferred(true);
   const pos = Cesium.Cartesian3.fromDegrees(LON, LAT, START);
   const samples = [];
   let pending = [...schedule];
   for (let t = 0; t <= 12000; t += 80) {
     while (pending.length && pending[0][0] <= t) pending.shift()[1]();
-    const out = _floorGroundedDisplayPositionForTest({ onGround: true }, pos, false, name, 1000 + t);
+    const out = _floorGroundedDisplayPositionForTest({
+      onGround: true
+    }, pos, false, name, 1000 + t);
     samples.push([t, Cesium.Cartographic.fromCartesian(out, Cesium.Ellipsoid.WGS84).height]);
   }
   const settle = samples.find(([, h]) => Math.abs(h - TARGET) < 0.1);
@@ -104,7 +132,7 @@ console.log(`\nSUMMARY (this tree, post-fix)\n${summary.join('\n')}\n`);
 // separation (~4 m here). What the hold changed is what happens AFTER the flap
 // — 12 of 22 grounded ticks buried and not recovering, versus none.
 // ---------------------------------------------------------------------------
-const JFK_GROUND = -28.5;   // ~4 m MSL field, geoid N ~ -32.5 m
+const JFK_GROUND = -28.5; // ~4 m MSL field, geoid N ~ -32.5 m
 const JFK_GEOID = -32.5;
 const JFK_LON = -73.78;
 
@@ -114,25 +142,29 @@ console.log(`    grounded, own cell warm       = ${pickRenderAltitudeM({ geoAltM
 console.log(`    airborne, baro appears at 0 ft = ${pickRenderAltitudeM({ geoAltM: null, baroAltM: 0, onGround: false, surfaceM: null, geoidN: JFK_GEOID })} m`);
 console.log(`    the source switch alone drops the fix ${(JFK_GROUND - JFK_GEOID).toFixed(1)} m, to below the runway`);
 
-_clearDisplayFloorStateForTest(); _clearMeshFloorCellsForTest(); setMeshFloorPreferred(true);
+_clearDisplayFloorStateForTest();
+_clearMeshFloorCellsForTest();
+setMeshFloorPreferred(true);
 // Only the cell it STARTED on is warm: at 23 m/s it outruns its own floor data,
 // which is the whole reason the hold exists.
 reportMeshFloorCell(40.64, JFK_LON, JFK_GROUND);
 let rollLat = 40.64;
 const rollRows = [];
 for (let i = 0; i <= 22; i += 1) {
-  const onGround = i !== 10;               // ONE airborne poll mid-roll
+  const onGround = i !== 10; // ONE airborne poll mid-roll
   const pos = Cesium.Cartesian3.fromDegrees(JFK_LON, rollLat, JFK_GEOID);
-  const out = _floorGroundedDisplayPositionForTest({ onGround }, pos, false, 'VIR138M', 1000 + i * 80);
+  const out = _floorGroundedDisplayPositionForTest({
+    onGround
+  }, pos, false, 'VIR138M', 1000 + i * 80);
   rollRows.push([i, onGround, Cesium.Cartographic.fromCartesian(out, Cesium.Ellipsoid.WGS84).height]);
-  rollLat += 0.00021;                      // ~23 m per 80 ms tick
+  rollLat += 0.00021; // ~23 m per 80 ms tick
 }
 const below = ([, , h]) => h < JFK_GROUND - 0.05;
 for (const row of rollRows) {
   const [i, og, h] = row;
-  const mark = below(row)
-    ? (og ? '   <-- BELOW THE RUNWAY' : '   <-- below the runway (airborne pass-through)')
-    : '';
+  const mark = below(row) ?
+    (og ? '   <-- BELOW THE RUNWAY' : '   <-- below the runway (airborne pass-through)') :
+    '';
   console.log(`  tick ${String(i).padStart(2)}  onGround=${og ? 'T' : 'F'}  render=${h.toFixed(2)}${mark}`);
 }
 const groundedRows = rollRows.filter(([, og]) => og);
