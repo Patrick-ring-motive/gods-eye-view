@@ -1,5 +1,9 @@
-import { normalizeRadioCountryInput } from '../../data/radioCountry.js';
-import { RADIO_UUID_RE } from './policy.js';
+import {
+  normalizeRadioCountryInput
+} from '../../data/radioCountry.js';
+import {
+  RADIO_UUID_RE
+} from './policy.js';
 
 export function createCatalogModel({
   state: layerState,
@@ -59,7 +63,9 @@ export function createCatalogModel({
   }
 
   function isValidRadioDirectoryStation(station) {
-    const cleanText = (value, maxLength, { allowEmpty = true } = {}) =>
+    const cleanText = (value, maxLength, {
+        allowEmpty = true
+      } = {}) =>
       typeof value === 'string' &&
       value.length <= maxLength &&
       (allowEmpty || value.trim().length > 0) &&
@@ -70,12 +76,16 @@ export function createCatalogModel({
       Array.isArray(value) &&
       value.length <= limit &&
       value.every((item) =>
-        cleanText(item, itemMaxLength, { allowEmpty: false }),
+        cleanText(item, itemMaxLength, {
+          allowEmpty: false
+        }),
       );
     return Boolean(
       station &&
       RADIO_UUID_RE.test(station.id) &&
-      cleanText(station.name, 140, { allowEmpty: false }) &&
+      cleanText(station.name, 140, {
+        allowEmpty: false
+      }) &&
       Number.isFinite(station.lat) &&
       station.lat >= -90 &&
       station.lat <= 90 &&
@@ -92,7 +102,9 @@ export function createCatalogModel({
       (station.countryCode === '' ||
         normalizeRadioCountryInput(station.countryCode).valid) &&
       station.metadataTrust === 'untrusted-community' &&
-      cleanText(station.codec, 16, { allowEmpty: false }) &&
+      cleanText(station.codec, 16, {
+        allowEmpty: false
+      }) &&
       /^(?:MP3|AAC(?:\+|-LC|-HE)?|HE-AAC)$/i.test(station.codec) &&
       (station.bitrate === null ||
         (Number.isInteger(station.bitrate) &&
