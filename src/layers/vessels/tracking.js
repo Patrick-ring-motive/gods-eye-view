@@ -14,9 +14,15 @@ export function createTracking({
   layer,
   options,
 }) {
-  const { state } = vesselState;
-  const { geoidHeight } = services.geoid;
-  const { createTrail } = services.trails;
+  const {
+    state
+  } = vesselState;
+  const {
+    geoidHeight
+  } = services.geoid;
+  const {
+    createTrail
+  } = services.trails;
 
   /**
    * Geoid undulation N at (lat, lon), or null until the grid has loaded.
@@ -115,12 +121,14 @@ export function createTracking({
 
   async function backfillVesselTrail(mmsi, token, reference = mmsi) {
     const owner = state.trailAbort;
-    const signal = owner
-      ? AbortSignal.any([owner.signal, AbortSignal.timeout(8000)])
-      : AbortSignal.timeout(8000);
+    const signal = owner ?
+      AbortSignal.any([owner.signal, AbortSignal.timeout(8000)]) :
+      AbortSignal.timeout(8000);
     let samples = null;
     try {
-      const track = await vesselState._source.getTrack?.(reference, { signal });
+      const track = await vesselState._source.getTrack?.(reference, {
+        signal
+      });
       samples = track?.records ?? null;
     } catch {
       return; // silent — keep the live-accumulated trail
