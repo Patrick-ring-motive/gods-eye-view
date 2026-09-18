@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { createIonImagery } from './imagery.js';
-import { createWorldTerrain } from './terrain.js';
+import {
+  createIonImagery
+} from './imagery.js';
+import {
+  createWorldTerrain
+} from './terrain.js';
 
 test('imagery and terrain pass their own ion token without relying on SDK defaults', async () => {
   const originalImagery = Cesium.IonImageryProvider.fromAssetId;
@@ -12,16 +16,34 @@ test('imagery and terrain pass their own ion token without relying on SDK defaul
   const defaultToken = Cesium.Ion.defaultAccessToken;
   try {
     Cesium.IonImageryProvider.fromAssetId = async (id, options) => {
-      calls.push({ kind: 'imagery', id, options });
-      return { id };
+      calls.push({
+        kind: 'imagery',
+        id,
+        options
+      });
+      return {
+        id
+      };
     };
     Cesium.IonResource.fromAssetId = async (id, options) => {
-      calls.push({ kind: 'resource', id, options });
-      return { id };
+      calls.push({
+        kind: 'resource',
+        id,
+        options
+      });
+      return {
+        id
+      };
     };
     Cesium.CesiumTerrainProvider.fromUrl = async (resource, options) => {
-      calls.push({ kind: 'terrain', resource, options });
-      return { id: 'terrain' };
+      calls.push({
+        kind: 'terrain',
+        resource,
+        options
+      });
+      return {
+        id: 'terrain'
+      };
     };
     await createIonImagery(Cesium.IonWorldImageryStyle.AERIAL, 'imagery-token');
     const result = await createWorldTerrain('terrain-token');
@@ -50,8 +72,11 @@ test('cancellation after ion metadata prevents terrain construction', async () =
     Cesium.CesiumTerrainProvider.fromUrl = () =>
       assert.fail('cancelled terrain construction');
     await assert.rejects(
-      createWorldTerrain('test-token', { signal: controller.signal }),
-      { name: 'AbortError' },
+      createWorldTerrain('test-token', {
+        signal: controller.signal
+      }), {
+        name: 'AbortError'
+      },
     );
   } finally {
     Cesium.IonResource.fromAssetId = originalResource;
