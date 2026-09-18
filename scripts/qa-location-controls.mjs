@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /** Location UI acceptance; controlled search results isolate UI races from geocoder availability. */
 import fs from 'node:fs';
 import puppeteer from 'puppeteer';
@@ -6,9 +7,9 @@ const browser = await puppeteer.launch({
   headless: true,
   args: [
     '--no-sandbox',
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
   ],
 });
 const page = await browser.newPage();
@@ -20,16 +21,21 @@ const check = (name, ok) => {
   if (!ok) failures++;
 };
 try {
-  await page.setViewport({ width: 1440, height: 900 });
+  await page.setViewport({
+    width: 1440,
+    height: 900
+  });
   await page.goto(
-    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`,
-    { waitUntil: 'domcontentloaded' },
+    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`, {
+      waitUntil: 'domcontentloaded'
+    },
   );
   await page.waitForFunction(
     () =>
-      window.__godsEyeView?.styleManager?._locationControls &&
-      document.getElementById('loading-screen')?.classList.contains('hidden'),
-    { timeout: 60000 },
+    window.__godsEyeView?.styleManager?._locationControls &&
+    document.getElementById('loading-screen')?.classList.contains('hidden'), {
+      timeout: 60000
+    },
   );
   await page.click('#location-bar-toggle');
   await page.click('[data-pin-target="location-bar"]');
@@ -45,9 +51,9 @@ try {
     'native city selection highlights and expands its POIs',
     await page.evaluate(
       (id) =>
-        window.__godsEyeView.styleManager._activeLocationId === id &&
-        document.querySelector('.location-pill.active')?.dataset.locationId ===
-          id,
+      window.__godsEyeView.styleManager._activeLocationId === id &&
+      document.querySelector('.location-pill.active')?.dataset.locationId ===
+      id,
       cityId,
     ),
   );
@@ -56,8 +62,8 @@ try {
     'POI keyboard action selects the second landmark',
     await page.evaluate(
       () =>
-        window.__godsEyeView.styleManager._activePoiIndex === 1 &&
-        document.querySelector('.poi-pill.active')?.dataset.poiIndex === '1',
+      window.__godsEyeView.styleManager._activePoiIndex === 1 &&
+      document.querySelector('.poi-pill.active')?.dataset.poiIndex === '1',
     ),
   );
   check(
@@ -93,7 +99,11 @@ try {
     );
     lookup.search = (query, options) =>
       new Promise((resolve) =>
-        window.__qaSearchRequests.push({ query, options, resolve }),
+        window.__qaSearchRequests.push({
+          query,
+          options,
+          resolve
+        }),
       );
     document.getElementById('location-search').value = 'First';
   });
@@ -109,10 +119,10 @@ try {
     'second native submit aborts the first request and keeps current busy state',
     await page.evaluate(
       () =>
-        window.__qaSearchRequests[0].options.signal.aborted &&
-        document
-          .getElementById('location-search')
-          .classList.contains('searching'),
+      window.__qaSearchRequests[0].options.signal.aborted &&
+      document
+      .getElementById('location-search')
+      .classList.contains('searching'),
     ),
   );
   await page.evaluate(() =>
@@ -122,8 +132,8 @@ try {
   );
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.styleManager._searchedLocationLabel ===
-      'Second landmark, Test city',
+    window.__godsEyeView.styleManager._searchedLocationLabel ===
+    'Second landmark, Test city',
   );
   await page.evaluate(() =>
     window.__qaSearchRequests[0].resolve({
@@ -147,8 +157,12 @@ try {
     'Location subscriptions accept only the current result and retain request identities',
     await page.evaluate(() => {
       const seen = window.__qaLocationState;
-      const started = seen.filter(({ change }) => change?.type === 'started');
-      const found = seen.filter(({ change }) => change?.type === 'found');
+      const started = seen.filter(({
+        change
+      }) => change?.type === 'started');
+      const found = seen.filter(({
+        change
+      }) => change?.type === 'found');
       return (
         seen[0].initial &&
         started.length === 2 &&
@@ -183,14 +197,15 @@ try {
   );
   // Finish the camera's existing city flight before inspecting both layouts.
   await page.waitForFunction(
-    () => !window.__godsEyeView.viewer.camera._currentFlight,
-    { timeout: 10000 },
+    () => !window.__godsEyeView.viewer.camera._currentFlight, {
+      timeout: 10000
+    },
   );
   await page.evaluate(
     () =>
-      new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      ),
+    new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    ),
   );
   const settled = await page
     .waitForFunction(
@@ -205,23 +220,33 @@ try {
             return false;
         }
         return true;
+      }, {
+        timeout: 60000
       },
-      { timeout: 60000 },
     )
     .then(
       () => true,
       () => false,
     );
   check('visible city tiles settle before screenshots', settled);
-  fs.mkdirSync('qa-shots/location-controls', { recursive: true });
-  await page.screenshot({ path: 'qa-shots/location-controls/desktop.png' });
-  await page.setViewport({ width: 620, height: 900 });
+  fs.mkdirSync('qa-shots/location-controls', {
+    recursive: true
+  });
+  await page.screenshot({
+    path: 'qa-shots/location-controls/desktop.png'
+  });
+  await page.setViewport({
+    width: 620,
+    height: 900
+  });
   await page.waitForFunction(
     () =>
-      document.getElementById('left-panel-stack')?.dataset.layoutMode ===
-      'mobile',
+    document.getElementById('left-panel-stack')?.dataset.layoutMode ===
+    'mobile',
   );
-  await page.screenshot({ path: 'qa-shots/location-controls/narrow.png' });
+  await page.screenshot({
+    path: 'qa-shots/location-controls/narrow.png'
+  });
   check(
     'native reset returns through the existing camera handoff',
     await page.evaluate(async () => {
@@ -246,7 +271,10 @@ try {
       ui._locationPills.querySelector('button').click();
       ui._resetGlobeBtn.click();
       ui._locationSearch.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }),
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true
+        }),
       );
       return (
         before === ui._navigationGeneration &&
