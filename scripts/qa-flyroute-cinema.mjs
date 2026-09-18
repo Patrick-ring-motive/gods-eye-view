@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * fly_route cinematic evidence — drives the REAL voice runner headlessly and
  * measures the REAL camera (Cesium heading/pitch/roll + position) every
@@ -11,7 +12,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import puppeteer from 'puppeteer';
 import sharp from 'sharp';
 
@@ -29,45 +32,84 @@ const CHROME_CANDIDATES = [
   process.env.PUPPETEER_EXECUTABLE_PATH,
   await puppeteer.executablePath().catch(() => null),
 ].filter(Boolean);
-const CHROME_EXECUTABLE = CHROME_CANDIDATES.find((c) => { try { return fs.existsSync(c); } catch { return false; } });
+const CHROME_EXECUTABLE = CHROME_CANDIDATES.find((c) => {
+  try {
+    return fs.existsSync(c);
+  } catch {
+    return false;
+  }
+});
 
 // A 6-waypoint downtown Austin route: north, right, left, right, left.
-const ROUTE_POINTS = [
-  { latitude: 30.2620, longitude: -97.7431 },
-  { latitude: 30.2650, longitude: -97.7431 },
-  { latitude: 30.2650, longitude: -97.7397 },
-  { latitude: 30.2680, longitude: -97.7397 },
-  { latitude: 30.2680, longitude: -97.7363 },
-  { latitude: 30.2712, longitude: -97.7363 },
+const ROUTE_POINTS = [{
+    latitude: 30.2620,
+    longitude: -97.7431
+  },
+  {
+    latitude: 30.2650,
+    longitude: -97.7431
+  },
+  {
+    latitude: 30.2650,
+    longitude: -97.7397
+  },
+  {
+    latitude: 30.2680,
+    longitude: -97.7397
+  },
+  {
+    latitude: 30.2680,
+    longitude: -97.7363
+  },
+  {
+    latitude: 30.2712,
+    longitude: -97.7363
+  },
 ];
 
 const results = [];
 const report = (ok, name, detail = '') => {
-  results.push({ ok, name, detail });
+  results.push({
+    ok,
+    name,
+    detail
+  });
   const mark = ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  ${mark} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 const note = (name, detail) => {
-  results.push({ ok: null, name, detail });
+  results.push({
+    ok: null,
+    name,
+    detail
+  });
   console.log(`  \x1b[33mNOTE\x1b[0m ${name}${detail ? ` — ${detail}` : ''}`);
 };
-const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+const sleep = (ms) => new Promise((resolve) => {
+  setTimeout(resolve, ms);
+});
 const wrapDeg = (deg) => ((deg + 540) % 360) - 180;
 
-fs.mkdirSync(OUT_DIR, { recursive: true });
-if (MIRROR_DIR) fs.mkdirSync(MIRROR_DIR, { recursive: true });
+fs.mkdirSync(OUT_DIR, {
+  recursive: true
+});
+if (MIRROR_DIR) fs.mkdirSync(MIRROR_DIR, {
+  recursive: true
+});
 
 const browser = await puppeteer.launch({
   headless: 'new',
-  ...(CHROME_EXECUTABLE ? { executablePath: CHROME_EXECUTABLE } : {}),
+  ...(CHROME_EXECUTABLE ? {
+    executablePath: CHROME_EXECUTABLE
+  } : {}),
   args: [
     '--no-sandbox',
     '--disable-setuid-sandbox',
     // Real GPU when the host has one: the dolly is frame-rate independent, but
     // a higher sample rate makes the roll and the ease ramps far easier to see.
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
     '--disable-dev-shm-usage',
     '--disable-background-timer-throttling',
     '--disable-renderer-backgrounding',
@@ -76,7 +118,10 @@ const browser = await puppeteer.launch({
   protocolTimeout: 240000,
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1500, height: 950 });
+await page.setViewport({
+  width: 1500,
+  height: 950
+});
 page.on('pageerror', (e) => console.log(`  [page error] ${String(e).slice(0, 160)}`));
 
 // Cold-corridor proof: hold the terrain proxy back so the dolly has to survive
@@ -89,7 +134,9 @@ if (TERRAIN_DELAY_MS > 0) {
   page.on('request', (request) => {
     if (request.url().includes('/api/terrain/heights')) {
       terrainRequests += 1;
-      setTimeout(() => { request.continue().catch(() => {}); }, TERRAIN_DELAY_MS);
+      setTimeout(() => {
+        request.continue().catch(() => {});
+      }, TERRAIN_DELAY_MS);
       return;
     }
     request.continue().catch(() => {});
@@ -100,7 +147,10 @@ if (TERRAIN_DELAY_MS > 0) {
 async function installSampler() {
   await page.evaluate(() => {
     const viewer = window.__godsEyeView.viewer;
-    window.__gevFlyTrace = { rows: [], marks: [] };
+    window.__gevFlyTrace = {
+      rows: [],
+      marks: []
+    };
     if (window.__gevFlyTraceRemove) window.__gevFlyTraceRemove();
     let frame = 0;
     const listener = () => {
@@ -115,7 +165,8 @@ async function installSampler() {
         try {
           const probe = viewer.scene.sampleHeight(carto.clone());
           if (Number.isFinite(probe)) surfaceM = probe;
-        } catch { /* tiles not loaded under the camera */ }
+        } catch {
+          /* tiles not loaded under the camera */ }
       }
       window.__gevFlyTrace.rows.push({
         t: performance.now(),
@@ -151,29 +202,42 @@ function sampleDistanceM(a, b) {
 
 try {
   console.log(`\nfly_route cinematic evidence — ${APP_URL}`);
-  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
+  await page.goto(APP_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: 90000
+  });
   await page.waitForFunction(
-    () => window.__godsEyeView?.viewer && window.__gevVoiceCommands?.runner && window.__gevAnnotations,
-    { timeout: 150000, polling: 250 },
+    () => window.__godsEyeView?.viewer && window.__gevVoiceCommands?.runner && window.__gevAnnotations, {
+      timeout: 150000,
+      polling: 250
+    },
   );
   const run = (name, args = {}) => page.evaluate(
     (n, a) => window.__gevVoiceCommands.runner(n, a), name, args,
   );
 
   // ── Setup: get over downtown Austin, draw the route ───────────────────
-  await run('fly_to_location', { query: 'Texas State Capitol, Austin' });
+  await run('fly_to_location', {
+    query: 'Texas State Capitol, Austin'
+  });
   await sleep(9000);
   await run('clear_annotations', {});
   await sleep(500);
   const drawn = await run('annotate_map', {
     annotations: [{
-      type: 'route', mode: 'driving', label: 'cinema evidence route', points: ROUTE_POINTS,
+      type: 'route',
+      mode: 'driving',
+      label: 'cinema evidence route',
+      points: ROUTE_POINTS,
     }],
   });
   await sleep(6000);
   const routeInfo = await page.evaluate(() => {
     const route = (window.__gevAnnotations.list?.() || []).filter((a) => a.type === 'route').at(-1);
-    return route ? { label: route.label, waypoints: route.path?.length ?? 0 } : null;
+    return route ? {
+      label: route.label,
+      waypoints: route.path?.length ?? 0
+    } : null;
   });
   report(Boolean(routeInfo?.waypoints >= 2), 'route drawn on the board',
     `waypoints=${routeInfo?.waypoints} drawn=${drawn?.drawn}`);
@@ -181,8 +245,14 @@ try {
 
   // ── Run 1: the full cinematic flight ──────────────────────────────────
   await installSampler();
-  const flight = await run('fly_route', { label: 'cinema evidence', speed: 'normal' });
-  await page.evaluate(() => window.__gevFlyTrace.marks.push({ label: 'flight-start', t: performance.now() }));
+  const flight = await run('fly_route', {
+    label: 'cinema evidence',
+    speed: 'normal'
+  });
+  await page.evaluate(() => window.__gevFlyTrace.marks.push({
+    label: 'flight-start',
+    t: performance.now()
+  }));
   report(flight?.ok === true, 'fly_route accepted',
     `distanceM=${flight?.distanceM} durationS=${flight?.durationS} waypoints=${flight?.waypoints}`);
   if (!flight?.ok) throw new Error(`fly_route refused: ${flight?.error}`);
@@ -190,12 +260,14 @@ try {
     try {
       const mod = await import('/src/cameraVerbs.js');
       return mod.getActiveCameraMotion?.() ?? null;
-    } catch { return 'module-unavailable'; }
+    } catch {
+      return 'module-unavailable';
+    }
   });
   if (coldPath && coldPath !== 'module-unavailable') {
     report(true, 'cold-path telemetry read from the live flight',
-      `arming=${coldPath.arming} floorKnown=${coldPath.floorKnown} viaMeshProbe=${coldPath.floorFromMeshProbe}`
-      + (TERRAIN_DELAY_MS ? ` (terrain proxy held back ${TERRAIN_DELAY_MS} ms, ${terrainRequests} request(s))` : ''));
+      `arming=${coldPath.arming} floorKnown=${coldPath.floorKnown} viaMeshProbe=${coldPath.floorFromMeshProbe}` +
+      (TERRAIN_DELAY_MS ? ` (terrain proxy held back ${TERRAIN_DELAY_MS} ms, ${terrainRequests} request(s))` : ''));
   }
 
   // Liveness is read off the CAMERA, never off a module import: under Vite the
@@ -206,8 +278,8 @@ try {
     if (rows.length < 3) return 0;
     const last = rows.at(-1);
     for (let i = rows.length - 2; i >= 0; i -= 1) {
-      const moved = Math.abs(rows[i].lon - last.lon) + Math.abs(rows[i].lat - last.lat)
-        + (Math.abs(rows[i].height - last.height) / 1e5);
+      const moved = Math.abs(rows[i].lon - last.lon) + Math.abs(rows[i].lat - last.lat) +
+        (Math.abs(rows[i].height - last.height) / 1e5);
       if (moved > 1e-7) return last.t - rows[i].t;
     }
     return last.t - rows[0].t;
@@ -220,8 +292,13 @@ try {
   while (Date.now() - startedAt < budgetMs) {
     const file = path.join(OUT_DIR, `flight-${String(shotIndex).padStart(2, '0')}.png`);
     const at = await page.evaluate(() => performance.now());
-    await page.screenshot({ path: file });
-    shots.push({ file, at });
+    await page.screenshot({
+      path: file
+    });
+    shots.push({
+      file,
+      at
+    });
     shotIndex += 1;
     await sleep(SHOT_EVERY_MS);
     if (Date.now() - startedAt > 5000 && (await stillForMs()) > 1500) break;
@@ -261,7 +338,8 @@ try {
     const headingRate = wrapDeg(rows[i].headingDeg - rows[i - span].headingDeg) / dt;
     const roll = wrapDeg(rows[i].rollDeg);
     if (Math.abs(roll) < 2 || Math.abs(headingRate) < 3) continue;
-    if (Math.sign(roll) === Math.sign(headingRate)) agree += 1; else disagree += 1;
+    if (Math.sign(roll) === Math.sign(headingRate)) agree += 1;
+    else disagree += 1;
   }
   const agreement = agree / Math.max(1, agree + disagree);
   report(agreement > 0.85, 'the camera rolls INTO the turn (right turn → right bank)',
@@ -297,7 +375,10 @@ try {
   for (let i = 0, j = 0; i < rows.length; i += 1) {
     while (j < rows.length - 1 && rows[j].t - rows[i].t < 400) j += 1;
     const dt = (rows[j].t - rows[i].t) / 1000;
-    if (dt >= 0.3) speeds.push({ t: rows[i].t - rows[0].t, v: (cumulative[j] - cumulative[i]) / dt });
+    if (dt >= 0.3) speeds.push({
+      t: rows[i].t - rows[0].t,
+      v: (cumulative[j] - cumulative[i]) / dt
+    });
   }
   const window1s = (from, to) => {
     const inWindow = speeds.filter((s) => s.t >= from && s.t <= to);
@@ -315,7 +396,8 @@ try {
   // immune to that tail: a ramp spreads it over a second or more, a hard stop
   // collapses it into a single frame.
   const lastAbove = (fraction) => {
-    for (let i = speeds.length - 1; i >= 0; i -= 1) if (speeds[i].v >= peakV * fraction) return speeds[i].t;
+    for (let i = speeds.length - 1; i >= 0; i -= 1)
+      if (speeds[i].v >= peakV * fraction) return speeds[i].t;
     return Number.NaN;
   };
   const decayMs = lastAbove(0.1) - lastAbove(0.9);
@@ -345,9 +427,17 @@ try {
   const floors = await page.evaluate(async (samples) => {
     try {
       const mod = await import('/src/data/groundFloor.js');
-      return samples.map(({ lat, lon }) => mod.cachedGroundFloor(lat, lon));
-    } catch { return samples.map(() => null); }
-  }, rows.map((r) => ({ lat: r.lat, lon: r.lon })));
+      return samples.map(({
+        lat,
+        lon
+      }) => mod.cachedGroundFloor(lat, lon));
+    } catch {
+      return samples.map(() => null);
+    }
+  }, rows.map((r) => ({
+    lat: r.lat,
+    lon: r.lon
+  })));
   // The strongest terrain check available: the eye against the RENDERED
   // surface under it, sampled live. Independent of our own floor cache, and
   // therefore the one that would catch flying inside a building or a hillside.
@@ -357,11 +447,14 @@ try {
     let worstAt = null;
     for (const row of probed) {
       const clearance = row.height - row.surfaceM;
-      if (clearance < worst) { worst = clearance; worstAt = row; }
+      if (clearance < worst) {
+        worst = clearance;
+        worstAt = row;
+      }
     }
     report(worst > 0, 'the eye is never inside the RENDERED world',
-      `min clearance over the rendered surface ${worst.toFixed(1)} m across ${probed.length} live probes`
-      + (worstAt ? ` (worst at ${worstAt.lat.toFixed(5)}, ${worstAt.lon.toFixed(5)})` : ''));
+      `min clearance over the rendered surface ${worst.toFixed(1)} m across ${probed.length} live probes` +
+      (worstAt ? ` (worst at ${worstAt.lat.toFixed(5)}, ${worstAt.lon.toFixed(5)})` : ''));
   } else {
     note('rendered-surface clearance', `only ${probed.length} live mesh probes answered`);
   }
@@ -423,7 +516,10 @@ try {
   // the live camera to actually be rolled before it grabs the controls.
   await sleep(1500);
   await installSampler();
-  const second = await run('fly_route', { label: 'cinema evidence', speed: 'normal' });
+  const second = await run('fly_route', {
+    label: 'cinema evidence',
+    speed: 'normal'
+  });
   report(second?.ok === true, 'second flight starts for the interrupt case');
   const liveRollDeg = () => page.evaluate(
     () => (window.__godsEyeView.viewer.camera.roll * 180) / Math.PI,
@@ -436,7 +532,9 @@ try {
   }
   report(Math.abs(rollBeforeCut) >= 3, 'the dolly is genuinely banked before the cut',
     `live camera roll ${rollBeforeCut.toFixed(2)}°`);
-  await page.screenshot({ path: path.join(OUT_DIR, 'interrupt-0-banked.png') });
+  await page.screenshot({
+    path: path.join(OUT_DIR, 'interrupt-0-banked.png')
+  });
 
   const cut = await page.evaluate(async () => {
     const viewer = window.__godsEyeView.viewer;
@@ -451,14 +549,26 @@ try {
       const mod = await import('/src/cameraVerbs.js');
       read = () => mod.getActiveCameraMotion?.() ?? null;
       slotBefore = read();
-    } catch { /* dev-only module read */ }
+    } catch {
+      /* dev-only module read */ }
     const rollBefore = (viewer.camera.roll * 180) / Math.PI;
-    window.__gevFlyTrace.marks.push({ label: 'pointerdown', t: performance.now() });
-    canvas.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+    window.__gevFlyTrace.marks.push({
+      label: 'pointerdown',
+      t: performance.now()
+    });
+    canvas.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true,
+      cancelable: true
+    }));
     // Same synchronous turn as the pointerdown — no frame has rendered yet.
     const rollAfter = (viewer.camera.roll * 180) / Math.PI;
     if (read) slotAfter = read();
-    return { slotBefore, slotAfter, rollBefore, rollAfter };
+    return {
+      slotBefore,
+      slotAfter,
+      rollBefore,
+      rollAfter
+    };
   });
   // The camera-side proof, which needs no module identity at all: a banked
   // horizon is level again inside the same synchronous turn as the pointerdown.
@@ -478,15 +588,17 @@ try {
   const rollAfterSettle = wrapDeg(await liveRollDeg());
   report(Math.abs(rollAfterSettle) < 0.01, 'and the horizon STAYS level after the cut',
     `roll ${rollAfterSettle.toFixed(4)}° 2.5 s later`);
-  await page.screenshot({ path: path.join(OUT_DIR, 'interrupt-1-level.png') });
+  await page.screenshot({
+    path: path.join(OUT_DIR, 'interrupt-1-level.png')
+  });
   const cutTrace = await readTrace();
   await page.evaluate(() => window.__gevFlyTraceRemove?.());
 
   const cutAt = cutTrace.marks.at(-1)?.t ?? 0;
   const before = cutTrace.rows.filter((r) => r.t < cutAt);
   const after = cutTrace.rows.filter((r) => r.t >= cutAt);
-  const movementBefore = before.length > 2
-    ? sampleDistanceM(before.at(-3), before.at(-1)) : Number.NaN;
+  const movementBefore = before.length > 2 ?
+    sampleDistanceM(before.at(-3), before.at(-1)) : Number.NaN;
   let movementAfter = 0;
   for (let i = 1; i < after.length; i += 1) {
     movementAfter = Math.max(movementAfter, sampleDistanceM(after[i - 1], after[i]));
@@ -557,7 +669,9 @@ try {
     const left = gap + (col * (tileW + gap));
     const top = gap + (row * (tileH + labelH + gap));
     composites.push({
-      input: await sharp(shots[i].file).resize(tileW, tileH, { fit: 'fill' }).toBuffer(),
+      input: await sharp(shots[i].file).resize(tileW, tileH, {
+        fit: 'fill'
+      }).toBuffer(),
       left,
       top,
     });
@@ -565,8 +679,8 @@ try {
     const elapsed = ((near.t - rows[0].t) / 1000).toFixed(0);
     const roll = wrapDeg(near.rollDeg);
     const sign = roll >= 0 ? '+' : '−';
-    labels.push(`<text x="${left + 6}" y="${top + tileH + 18}" font-family="monospace" font-size="15" fill="#8fe9ff">`
-      + `${String(i).padStart(2, '0')}  t=${elapsed}s  roll ${sign}${Math.abs(roll).toFixed(1)}°  alt ${near.height.toFixed(0)}m</text>`);
+    labels.push(`<text x="${left + 6}" y="${top + tileH + 18}" font-family="monospace" font-size="15" fill="#8fe9ff">` +
+      `${String(i).padStart(2, '0')}  t=${elapsed}s  roll ${sign}${Math.abs(roll).toFixed(1)}°  alt ${near.height.toFixed(0)}m</text>`);
   }
   composites.push({
     input: Buffer.from(`<svg width="${sheetW}" height="${sheetH}">${labels.join('')}</svg>`),
@@ -574,9 +688,18 @@ try {
     top: 0,
   });
   const sheetPath = path.join(OUT_DIR, 'sequence-contact-sheet.jpg');
-  await sharp({ create: { width: sheetW, height: sheetH, channels: 3, background: '#05080d' } })
+  await sharp({
+      create: {
+        width: sheetW,
+        height: sheetH,
+        channels: 3,
+        background: '#05080d'
+      }
+    })
     .composite(composites)
-    .jpeg({ quality: 86 })
+    .jpeg({
+      quality: 86
+    })
     .toFile(sheetPath);
   console.log(`  contact sheet → ${sheetPath}`);
 
@@ -586,7 +709,9 @@ try {
     for (const entry of fs.readdirSync(OUT_DIR)) {
       const from = path.join(OUT_DIR, entry);
       if (entry.endsWith('.png')) {
-        await sharp(from).jpeg({ quality: 80 })
+        await sharp(from).jpeg({
+            quality: 80
+          })
           .toFile(path.join(MIRROR_DIR, entry.replace(/\.png$/, '.jpg')));
       } else {
         fs.copyFileSync(from, path.join(MIRROR_DIR, entry));
