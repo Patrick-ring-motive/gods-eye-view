@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { satelliteClassColor } from '../../data/satelliteClass.js';
+import {
+  satelliteClassColor
+} from '../../data/satelliteClass.js';
 
 /**
  * Satellite Orbits — Real-time positions via CelesTrak TLE + SGP4 propagation.
@@ -42,13 +44,30 @@ export const RING_ROTATION_MS = 1000;
  * 'glonass-operational' — that name 404s upstream).
  */
 
-export const CATALOG_GROUPS = [
-  { tag: 'stations', path: 'stations' },
-  { tag: 'visual', path: 'visual' },
-  { tag: 'gps-ops', path: 'gps-ops' },
-  { tag: 'glonass', path: 'glo-ops' },
-  { tag: 'galileo', path: 'galileo' },
-  { tag: 'geo', path: 'geo' },
+export const CATALOG_GROUPS = [{
+    tag: 'stations',
+    path: 'stations'
+  },
+  {
+    tag: 'visual',
+    path: 'visual'
+  },
+  {
+    tag: 'gps-ops',
+    path: 'gps-ops'
+  },
+  {
+    tag: 'glonass',
+    path: 'glo-ops'
+  },
+  {
+    tag: 'galileo',
+    path: 'galileo'
+  },
+  {
+    tag: 'geo',
+    path: 'geo'
+  },
 ];
 
 // Dense-catalog mode (setParams({ catalog: 'dense' })): Starlink shell as
