@@ -1,4 +1,7 @@
-import { renderMapStackChips, syncMapStackChips } from '../mapStackChips.js';
+import {
+  renderMapStackChips,
+  syncMapStackChips
+} from '../mapStackChips.js';
 
 /**
  * Own Map Source presentation and selection without constructing map providers.
@@ -20,19 +23,22 @@ export function createMapSourceControls({
     element.addEventListener(type, listener);
     removers.push(() => element.removeEventListener(type, listener));
   };
+
   function render(state) {
     if (destroyed || !state) return;
     syncMapStackChips(container, state.activeId);
     if (statusElement) {
       const stack = state.activeStack;
       statusElement.textContent =
-        state.status === 'switching'
-          ? '...'
-          : stack?.shortLabel || stack?.label || 'MAP';
+        state.status === 'switching' ?
+        '...' :
+        stack?.shortLabel || stack?.label || 'MAP';
       statusElement.classList.toggle('warn', !!state.lastError);
     }
   }
-  async function select(stackId, { syncShare = true } = {}) {
+  async function select(stackId, {
+    syncShare = true
+  } = {}) {
     if (destroyed) return null;
     const current = ++generation;
     if (syncShare) claimSelection();
@@ -55,6 +61,7 @@ export function createMapSourceControls({
     if (syncShare) onStateChanged();
     return state;
   }
+
   function refresh() {
     if (destroyed) return;
     for (const remove of removers.splice(0)) remove();
