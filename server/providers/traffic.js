@@ -1,5 +1,7 @@
 import path from 'node:path';
-import { promises as fsp } from 'node:fs';
+import {
+  promises as fsp
+} from 'node:fs';
 
 import {
   isValidTileCoord as isValidTomTomTile,
@@ -74,7 +76,9 @@ export function tomtomProxy() {
 
   async function persistBudget() {
     try {
-      await fsp.mkdir(CACHE_DIR, { recursive: true });
+      await fsp.mkdir(CACHE_DIR, {
+        recursive: true
+      });
       await fsp.writeFile(BUDGET_PATH, JSON.stringify(budget), 'utf8');
     } catch (err) {
       console.warn('[tomtom-proxy] budget write failed:', err?.message || err);
@@ -103,7 +107,10 @@ export function tomtomProxy() {
         fsp.stat(tilePath(key)),
         fsp.readFile(tilePath(key)),
       ]);
-      return { at: stat.mtimeMs, buf };
+      return {
+        at: stat.mtimeMs,
+        buf
+      };
     } catch {
       return null;
     }
@@ -111,7 +118,9 @@ export function tomtomProxy() {
 
   async function writeDiskTile(key, buf) {
     try {
-      await fsp.mkdir(CACHE_DIR, { recursive: true });
+      await fsp.mkdir(CACHE_DIR, {
+        recursive: true
+      });
       await fsp.writeFile(tilePath(key), buf);
     } catch (err) {
       console.warn(
@@ -185,18 +194,24 @@ export function tomtomProxy() {
 
         const m = urlPath.match(/^\/flow\/(\d+)\/(\d+)\/(\d+)\.pbf$/);
         if (!m) {
-          sendJson(404, { error: 'not_found' });
+          sendJson(404, {
+            error: 'not_found'
+          });
           return;
         }
         const z = Number(m[1]);
         const x = Number(m[2]);
         const y = Number(m[3]);
         if (!isValidTomTomTile(z, x, y)) {
-          sendJson(400, { error: 'invalid_tile' });
+          sendJson(400, {
+            error: 'invalid_tile'
+          });
           return;
         }
         if (!process.env.TOMTOM_API_KEY) {
-          sendJson(503, { error: 'no_key' });
+          sendJson(503, {
+            error: 'no_key'
+          });
           return;
         }
 
@@ -219,7 +234,9 @@ export function tomtomProxy() {
           if (entry) {
             sendTile(entry.buf, 'STALE-BUDGET');
           } else {
-            sendJson(429, { error: 'budget' });
+            sendJson(429, {
+              error: 'budget'
+            });
           }
           return;
         }
@@ -229,19 +246,22 @@ export function tomtomProxy() {
           inflight.set(
             key,
             fetchUpstream(z, x, y)
-              .then(async (buf) => {
-                const fresh = { at: Date.now(), buf };
-                memSet(key, fresh);
-                await writeDiskTile(key, buf);
-                return fresh;
-              })
-              .catch((err) => {
-                console.warn(
-                  `[tomtom-proxy] ${key} fetch failed (${err?.message || err}) — serving stale if any`,
-                );
-                return null;
-              })
-              .finally(() => inflight.delete(key)),
+            .then(async (buf) => {
+              const fresh = {
+                at: Date.now(),
+                buf
+              };
+              memSet(key, fresh);
+              await writeDiskTile(key, buf);
+              return fresh;
+            })
+            .catch((err) => {
+              console.warn(
+                `[tomtom-proxy] ${key} fetch failed (${err?.message || err}) — serving stale if any`,
+              );
+              return null;
+            })
+            .finally(() => inflight.delete(key)),
           );
         }
         const fresh = await inflight.get(key);
@@ -250,11 +270,15 @@ export function tomtomProxy() {
         } else if (entry) {
           sendTile(entry.buf, 'STALE-ERROR'); // upstream down — stale beats empty
         } else {
-          sendJson(502, { error: 'upstream' });
+          sendJson(502, {
+            error: 'upstream'
+          });
         }
       } catch (err) {
         console.warn('[tomtom-proxy] error:', err?.message || err);
-        sendJson(500, { error: 'proxy' });
+        sendJson(500, {
+          error: 'proxy'
+        });
       }
     });
   };
