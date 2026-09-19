@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { satelliteClassLabel } from '../../data/satelliteClass.js';
+import {
+  satelliteClassLabel
+} from '../../data/satelliteClass.js';
 import {
   ISS_NORAD,
   CONTEXT_REFRESH_INTERVAL_MS,
@@ -8,16 +10,26 @@ import {
   TRACK_VIEW_FROM_LEO,
 } from './policy.js';
 
-export function createTracking({ state: layerState, services, parts, source }) {
-  const { clearFocusTarget, publishFocusTargetFromCachedPosition } =
-    services.focus;
+export function createTracking({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    clearFocusTarget,
+    publishFocusTargetFromCachedPosition
+  } =
+  services.focus;
   const {
     clearTrackedSubjectContext,
     getContextStore,
     refreshTrackedSubjectContext,
     selectTrackedSubjectContext,
   } = services.context;
-  const { refreshTrackedReadout } = services.readout;
+  const {
+    refreshTrackedReadout
+  } = services.readout;
 
   function _normalizeTrackedNorad(candidate) {
     const numeric = Number(candidate);
@@ -33,7 +45,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
       typeof CustomEvent === 'undefined'
     )
       return;
-    window.dispatchEvent(new CustomEvent(type, { detail }));
+    window.dispatchEvent(new CustomEvent(type, {
+      detail
+    }));
   }
 
   function _applyPendingTrackingRestore() {
@@ -51,7 +65,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
     )
       return false;
     layerState._pendingTrackingRestore = null;
-    _trackSatellite(pending.id, { origin: pending.origin });
+    _trackSatellite(pending.id, {
+      origin: pending.origin
+    });
     return layerState._trackedNorad === pending.id;
   }
 
@@ -69,8 +85,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
    */
 
   function _clearTracking(
-    skipViewerUntrack = false,
-    { origin = 'programmatic' } = {},
+    skipViewerUntrack = false, {
+      origin = 'programmatic'
+    } = {},
   ) {
     // Untracking dissolves the cluster: every companion returns to its own
     // ambient label on the next collection.
@@ -150,9 +167,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
     ) {
       const pos = parts.orbits.propagatePosition(
         sat.satrec,
-        layerState._trackedFrameNowForTest
-          ? new Date(layerState._trackedFrameNowForTest())
-          : new Date(),
+        layerState._trackedFrameNowForTest ?
+        new Date(layerState._trackedFrameNowForTest()) :
+        new Date(),
       );
       if (!pos) return layerState._trackedFrameGeo; // propagation hiccup — keep last good sample
       layerState._trackedFrameGeo = pos;
@@ -167,9 +184,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
       // Throttled inside; membership changes are rare, so resync the ISS ambient
       // gate only when the cluster actually changed.
       const clusterChanged = parts.labels._refreshDockedCompanions(
-        layerState._trackedFrameNowForTest
-          ? layerState._trackedFrameNowForTest()
-          : Date.now(),
+        layerState._trackedFrameNowForTest ?
+        layerState._trackedFrameNowForTest() :
+        Date.now(),
       );
       _updateTrackedSatelliteLabelModel();
       // The card and the context slot describe the same satellite — keep them
@@ -201,9 +218,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
   /** Cached ECEF display point only; never propagates a fresh SGP4 sample. */
 
   function _trackedDisplayCached() {
-    return layerState._trackedFrameGeo
-      ? layerState._trackedFrameCartesian
-      : null;
+    return layerState._trackedFrameGeo ?
+      layerState._trackedFrameCartesian :
+      null;
   }
 
   /**
@@ -222,9 +239,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
     const pos = position || _getTrackedFramePosition();
     if (!pos) return null;
     const name = sat.name?.trim() || `SAT-${noradId}`;
-    const altitudeKm = Number.isFinite(pos.altitude)
-      ? Math.round(pos.altitude / 1000)
-      : null;
+    const altitudeKm = Number.isFinite(pos.altitude) ?
+      Math.round(pos.altitude / 1000) :
+      null;
     return {
       id: String(noradId),
       layerId: 'satellites',
@@ -239,9 +256,10 @@ export function createTracking({ state: layerState, services, parts, source }) {
         name,
         operator: '',
         noradId: String(noradId),
-        class: satelliteClassLabel(sat.group, { isIss: noradId === ISS_NORAD }),
-        altitude:
-          altitudeKm === null ? '' : `${altitudeKm.toLocaleString('en-US')} km`,
+        class: satelliteClassLabel(sat.group, {
+          isIss: noradId === ISS_NORAD
+        }),
+        altitude: altitudeKm === null ? '' : `${altitudeKm.toLocaleString('en-US')} km`,
       },
     };
   }
@@ -274,9 +292,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
     // then stayed gone, because a refresh can update an existing record but
     // cannot recreate one.
     const denseSettlement =
-      layerState._params.catalog === 'dense'
-        ? layerState._denseLoadPromise
-        : null;
+      layerState._params.catalog === 'dense' ?
+      layerState._denseLoadPromise :
+      null;
     if (denseSettlement) {
       try {
         await denseSettlement;
@@ -388,8 +406,12 @@ export function createTracking({ state: layerState, services, parts, source }) {
     refreshTrackedReadout(layerState._trackedEntity);
   }
 
-  function _trackSatellite(noradId, { origin = 'programmatic' } = {}) {
-    _clearTracking(false, { origin });
+  function _trackSatellite(noradId, {
+    origin = 'programmatic'
+  } = {}) {
+    _clearTracking(false, {
+      origin
+    });
 
     const point = layerState._points.get(noradId);
     const sat = layerState._catalog.get(noradId);
@@ -424,9 +446,9 @@ export function createTracking({ state: layerState, services, parts, source }) {
     // up for MEO/GEO so the camera doesn't land on top of a high-orbit dot.
     const initialPos = parts.orbits.propagatePosition(sat.satrec, new Date());
     const viewScale =
-      initialPos && initialPos.altitude > HIGH_ORBIT_ALTITUDE_M
-        ? TRACK_VIEW_FROM_HIGH_SCALE
-        : 1;
+      initialPos && initialPos.altitude > HIGH_ORBIT_ALTITUDE_M ?
+      TRACK_VIEW_FROM_HIGH_SCALE :
+      1;
     const viewFrom = Cesium.Cartesian3.multiplyByScalar(
       TRACK_VIEW_FROM_LEO,
       viewScale,
