@@ -6,10 +6,15 @@
 // handshake and then never speaks again, which is exactly how AISStream fails
 // (upstream: handshake succeeds, no frames, no error, no close). Everything
 // runs on an ephemeral localhost port; no network access is involved.
-import { test, after } from 'node:test';
+import {
+  test,
+  after
+} from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'node:net';
-import { createHash } from 'node:crypto';
+import {
+  createHash
+} from 'node:crypto';
 import WebSocketImpl from 'ws';
 
 const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
@@ -34,9 +39,9 @@ function startBlackHoleServer() {
       if (!key) return;
       const accept = createHash('sha1').update(key + WS_GUID).digest('base64');
       socket.write(
-        'HTTP/1.1 101 Switching Protocols\r\n'
-        + 'Upgrade: websocket\r\nConnection: Upgrade\r\n'
-        + `Sec-WebSocket-Accept: ${accept}\r\n\r\n`,
+        'HTTP/1.1 101 Switching Protocols\r\n' +
+        'Upgrade: websocket\r\nConnection: Upgrade\r\n' +
+        `Sec-WebSocket-Accept: ${accept}\r\n\r\n`,
       );
       buffer = '';
       // ...and then nothing, ever. Incoming CLOSE frames are ignored.
@@ -53,7 +58,9 @@ function startBlackHoleServer() {
     listen: () => new Promise((resolve) => {
       server.listen(0, '127.0.0.1', () => resolve(`ws://127.0.0.1:${server.address().port}`));
     }),
-    get liveConnections() { return liveConnections; },
+    get liveConnections() {
+      return liveConnections;
+    },
     close: () => new Promise((resolve) => {
       // A socket this suite deliberately wedged in CLOSING keeps the event loop
       // alive forever; server.close() only stops new accepts, so the wedged
@@ -108,16 +115,20 @@ test('the built-in WebSocket close() never completes on a black-holed socket', a
   // assertion below fails loudly and the design can be revisited.
   assert.equal(typeof WebSocket, 'function');
   assert.equal(
-    typeof (new WebSocket(url)).terminate, 'undefined',
+    typeof(new WebSocket(url)).terminate, 'undefined',
     'built-in WebSocket has no hard-abort; that is why ws is a dependency',
   );
 
   const socket = new WebSocket(url);
-  await new Promise((resolve) => socket.addEventListener('open', resolve, { once: true }));
+  await new Promise((resolve) => socket.addEventListener('open', resolve, {
+    once: true
+  }));
   assert.equal(socket.readyState, WebSocket.OPEN);
 
   const closed = firedWithin(
-    (done) => socket.addEventListener('close', done, { once: true }),
+    (done) => socket.addEventListener('close', done, {
+      once: true
+    }),
     1_500,
   );
   socket.close(1000, 'watchdog recycle');
