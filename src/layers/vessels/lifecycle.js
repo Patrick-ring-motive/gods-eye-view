@@ -1,4 +1,6 @@
-import { VESSEL_OVERLAY_SOURCE_ID } from '../../data/vesselLabels.js';
+import {
+  VESSEL_OVERLAY_SOURCE_ID
+} from '../../data/vesselLabels.js';
 import {
   AIS_FIRST_CONNECT_GRACE_MS,
   AIS_FIRST_CONNECT_LABEL,
@@ -12,11 +14,24 @@ export function createLifecycle({
   layer,
   options,
 }) {
-  const { state } = vesselState;
-  const { restoreSpriteOrder, restoreSpriteOrderOnEnable } = services.sprites;
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
-  const { ensureGeoidReady } = services.geoid;
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
+  const {
+    state
+  } = vesselState;
+  const {
+    restoreSpriteOrder,
+    restoreSpriteOrderOnEnable
+  } = services.sprites;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
+  const {
+    ensureGeoidReady
+  } = services.geoid;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
 
   function clearFirstConnectTimer() {
     if (state.firstConnectTimer === null) return;
@@ -62,9 +77,9 @@ export function createLifecycle({
       state.firstConnectTimer = null;
       state.firstConnectPhase = 'unavailable';
       state.loadingLabel = '';
-      state.error = state.lastMessageAt
-        ? 'awaiting usable AIS positions…'
-        : 'awaiting first AIS message…';
+      state.error = state.lastMessageAt ?
+        'awaiting usable AIS positions…' :
+        'awaiting first AIS message…';
       state.stale = state.count > 0;
     }, delayMs);
   }
