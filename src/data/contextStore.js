@@ -48,7 +48,9 @@ export function selectEntityContext(entity) {
   store.selectedEntityId = contextId;
   store.selectedAt = Date.now();
   const record = store.entities.get(contextId);
-  window.dispatchEvent(new CustomEvent('gev:entity-selected', { detail: record }));
+  window.dispatchEvent(new CustomEvent('gev:entity-selected', {
+    detail: record
+  }));
   return record;
 }
 
@@ -81,8 +83,13 @@ export function selectTrackedSubjectContext(metadata) {
     if (record?.layerId === metadata.layerId && key !== id) store.entities.delete(key);
   }
   // Reuse the existing carrier so a per-poll refresh does not churn identity.
-  const carrier = store.entities.get(id)?.entity || { __gevContextId: id };
-  const record = registerEntityContext(carrier, { ...metadata, id });
+  const carrier = store.entities.get(id)?.entity || {
+    __gevContextId: id
+  };
+  const record = registerEntityContext(carrier, {
+    ...metadata,
+    id
+  });
   if (!record) return null;
   store.selectedEntityId = id;
   store.selectedAt = Date.now();
@@ -103,7 +110,10 @@ export function refreshTrackedSubjectContext(metadata) {
   const id = String(metadata.id);
   const existing = store.entities.get(id);
   if (!existing || existing.layerId !== metadata.layerId) return null;
-  return registerEntityContext(existing.entity, { ...metadata, id });
+  return registerEntityContext(existing.entity, {
+    ...metadata,
+    id
+  });
 }
 
 /**
@@ -126,7 +136,9 @@ export function clearTrackedSubjectContext(layerId) {
   }
 }
 
-export function getSelectedEntityContext({ dataManager = null } = {}) {
+export function getSelectedEntityContext({
+  dataManager = null
+} = {}) {
   const store = getContextStore();
   if (!store.selectedEntityId) return null;
   const record = store.entities.get(store.selectedEntityId);
@@ -146,7 +158,9 @@ export function getSelectedEntityContext({ dataManager = null } = {}) {
  *   rather than being deselected. Readouts that stay on screen hold their
  *   last-known values for an eviction and only tear down on a deliberate clear.
  */
-export function clearSelectedEntityContextForLayer(layerId, { evicted = false } = {}) {
+export function clearSelectedEntityContextForLayer(layerId, {
+  evicted = false
+} = {}) {
   const store = getContextStore();
   if (!store.selectedEntityId) return;
   const record = store.entities.get(store.selectedEntityId);
@@ -154,7 +168,10 @@ export function clearSelectedEntityContextForLayer(layerId, { evicted = false } 
     store.selectedEntityId = null;
     store.selectedAt = null;
     window.dispatchEvent(new CustomEvent('gev:entity-selection-cleared', {
-      detail: { layerId, reason: evicted ? 'evicted' : 'deliberate' },
+      detail: {
+        layerId,
+        reason: evicted ? 'evicted' : 'deliberate'
+      },
     }));
   }
 }
@@ -163,7 +180,9 @@ export function clearSelectedEntityContextForLayer(layerId, { evicted = false } 
  * Remove obsolete context records when a viewport-scoped layer refreshes.
  * Optional retainIds keeps surviving records and their current selection intact.
  */
-export function removeEntityContextsForLayer(layerId, { retainIds } = {}) {
+export function removeEntityContextsForLayer(layerId, {
+  retainIds
+} = {}) {
   const store = getContextStore();
   for (const [id, record] of store.entities) {
     if (record?.layerId === layerId && !retainIds?.has(id)) store.entities.delete(id);
@@ -174,7 +193,10 @@ export function removeEntityContextsForLayer(layerId, { retainIds } = {}) {
     // A viewport refresh dropped the record out from under the selection —
     // the user did not deselect anything.
     window.dispatchEvent(new CustomEvent('gev:entity-selection-cleared', {
-      detail: { layerId, reason: 'evicted' },
+      detail: {
+        layerId,
+        reason: 'evicted'
+      },
     }));
   }
 }
