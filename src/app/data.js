@@ -1,4 +1,6 @@
-import { DataLayerManager } from '../data/manager.js';
+import {
+  DataLayerManager
+} from '../data/manager.js';
 import flightsLayer from '../data/flights.js';
 import militaryFlightsLayer from '../data/militaryFlights.js';
 import alprCamerasLayer from '../data/alprCameras.js';
@@ -13,12 +15,18 @@ import aisLiveVesselsLayer from '../data/aisLiveVessels.js';
 import militaryInstallationsLayer from '../data/militaryInstallations.js';
 import militaryAwarenessLayer from '../data/militaryAwareness.js';
 import localDataLayers from '../data/localLayers.js';
-import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
+import {
+  LAYER_STATE_REGISTRY
+} from '../data/layerState.js';
 
 /** Register the application layer catalog before allowing state restoration. */
 export function createApplicationData({
-  scene: { viewer },
-  controls: { styleManager },
+  scene: {
+    viewer
+  },
+  controls: {
+    styleManager
+  },
   allowQaRegistration,
   onData,
   defer,
@@ -78,5 +86,7 @@ export function createApplicationData({
   dataManager.buildTogglePanel(document.getElementById('data-toggles'));
   styleManager.attachDataManager(dataManager);
 
-  return { dataManager };
+  return {
+    dataManager
+  };
 }
