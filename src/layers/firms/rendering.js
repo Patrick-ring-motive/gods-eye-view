@@ -1,7 +1,14 @@
 import * as Cesium from 'cesium';
-import { FIRMS_OVERLAY_SOURCE_ID } from '../../data/firmsLabels.js';
-import { horizonOccluder } from '../../data/iconOrientation.js';
-import { LOD_LEVELS, CONTEXT_TOP_N } from './policy.js';
+import {
+  FIRMS_OVERLAY_SOURCE_ID
+} from '../../data/firmsLabels.js';
+import {
+  horizonOccluder
+} from '../../data/iconOrientation.js';
+import {
+  LOD_LEVELS,
+  CONTEXT_TOP_N
+} from './policy.js';
 
 export function createRendering({
   layerState,
@@ -10,9 +17,16 @@ export function createRendering({
   config,
   feed,
 }) {
-  const { warmFireAnchorFloors } = services.anchors;
-  const { registerSpriteCollection, restoreSpriteOrder } = services.sprites;
-  const { overlayHost } = config;
+  const {
+    warmFireAnchorFloors
+  } = services.anchors;
+  const {
+    registerSpriteCollection,
+    restoreSpriteOrder
+  } = services.sprites;
+  const {
+    overlayHost
+  } = config;
 
   /**
    * Rebuild the render for the current LOD band and viewport. Skips work
@@ -44,12 +58,12 @@ export function createRendering({
       return false;
     layerState._currentLodIndex = lodIndex;
     layerState._currentLodId = lod.id;
-    layerState._lastViewRect = viewRect
-      ? Cesium.Rectangle.clone(viewRect)
-      : null;
-    const bounds = viewRect
-      ? components.model.paddedDegreeBounds(viewRect)
-      : null;
+    layerState._lastViewRect = viewRect ?
+      Cesium.Rectangle.clone(viewRect) :
+      null;
+    const bounds = viewRect ?
+      components.model.paddedDegreeBounds(viewRect) :
+      null;
 
     if (lod.mode === 'detections') {
       renderDetections(lod, bounds);
@@ -319,9 +333,9 @@ export function createRendering({
    */
 
   function fireHorizonOccluder() {
-    const camera = layerState._viewer?.camera?.positionWC
-      ? layerState._viewer.camera
-      : layerState._viewer?.scene?.camera;
+    const camera = layerState._viewer?.camera?.positionWC ?
+      layerState._viewer.camera :
+      layerState._viewer?.scene?.camera;
     if (!camera?.positionWC) return null;
     return horizonOccluder(camera);
   }
