@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   GBFS_MAX_BODY_BYTES,
@@ -15,18 +17,19 @@ const STATION_BODY = '{"data":{"stations":[]}}';
  */
 function endlessResponse(chunk, onCancel) {
   let pulls = 0;
-  const stream = new ReadableStream(
-    {
-      pull(controller) {
-        pulls += 1;
-        controller.enqueue(chunk);
-      },
-      cancel: onCancel,
+  const stream = new ReadableStream({
+    pull(controller) {
+      pulls += 1;
+      controller.enqueue(chunk);
     },
-    { highWaterMark: 0 },
-  );
+    cancel: onCancel,
+  }, {
+    highWaterMark: 0
+  }, );
   return {
-    response: new Response(stream, { status: 200 }),
+    response: new Response(stream, {
+      status: 200
+    }),
     pulls: () => pulls,
   };
 }
@@ -38,7 +41,9 @@ test('GBFS upstream fetch passes a direct 200 through unchanged', async () => {
       observedOptions = options;
       return new Response(STATION_BODY, {
         status: 200,
-        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
       });
     },
   });
@@ -58,7 +63,9 @@ test('GBFS upstream fetch passes a direct 200 through unchanged', async () => {
 
 test('GBFS upstream fetch forwards a non-redirect error status for the middleware to relay', async () => {
   const result = await fetchGbfsUpstream(STATION_URL, {
-    fetchImpl: async () => new Response(null, { status: 404 }),
+    fetchImpl: async () => new Response(null, {
+      status: 404
+    }),
   });
   assert.equal(result.status, 404);
   assert.equal(
@@ -85,8 +92,8 @@ test('GBFS upstream fetch rejects every redirect status and never fetches the ta
         },
       }),
       (error) =>
-        error?.code === 'GBFS_REDIRECT' &&
-        error.redirectHost === 'attacker.example',
+      error?.code === 'GBFS_REDIRECT' &&
+      error.redirectHost === 'attacker.example',
       `status ${status} must be refused`,
     );
     assert.equal(
@@ -103,19 +110,26 @@ test('GBFS upstream fetch names the host of a relative redirect', async () => {
       fetchImpl: async () =>
         new Response(null, {
           status: 302,
-          headers: { Location: '/v2/station_status.json' },
+          headers: {
+            Location: '/v2/station_status.json'
+          },
         }),
     }),
     (error) =>
-      error?.code === 'GBFS_REDIRECT' && error.redirectHost === 'gbfs.lyft.com',
+    error?.code === 'GBFS_REDIRECT' && error.redirectHost === 'gbfs.lyft.com',
   );
 });
 
 test('GBFS upstream fetch rejects an oversized Content-Length before reading the body', async () => {
-  const { response, pulls } = endlessResponse(new Uint8Array(1024));
+  const {
+    response,
+    pulls
+  } = endlessResponse(new Uint8Array(1024));
   response.headers.set('Content-Length', String(GBFS_MAX_BODY_BYTES + 1));
   await assert.rejects(
-    fetchGbfsUpstream(STATION_URL, { fetchImpl: async () => response }),
+    fetchGbfsUpstream(STATION_URL, {
+      fetchImpl: async () => response
+    }),
     (error) => error?.code === 'RESPONSE_TOO_LARGE',
   );
   assert.equal(
@@ -128,7 +142,10 @@ test('GBFS upstream fetch rejects an oversized Content-Length before reading the
 test('GBFS upstream fetch cancels a length-less body the moment it passes the cap', async () => {
   let cancelled = false;
   const chunk = new Uint8Array(1024);
-  const { response, pulls } = endlessResponse(chunk, () => {
+  const {
+    response,
+    pulls
+  } = endlessResponse(chunk, () => {
     cancelled = true;
   });
   await assert.rejects(
@@ -152,7 +169,9 @@ test('GBFS upstream fetch cancels a length-less body the moment it passes the ca
 test('GBFS upstream fetch measures the cap in bytes and accepts a body exactly at it', async () => {
   const body = 'é'.repeat(64);
   const result = await fetchGbfsUpstream(STATION_URL, {
-    fetchImpl: async () => new Response(body, { status: 200 }),
+    fetchImpl: async () => new Response(body, {
+      status: 200
+    }),
     maxBytes: Buffer.byteLength(body),
   });
   assert.equal(result.body, body);
@@ -168,8 +187,9 @@ test('GBFS upstream fetch aborts a stalled connection with the timeout signal', 
         new Promise((_resolve, reject) => {
           options.signal.addEventListener(
             'abort',
-            () => reject(options.signal.reason),
-            { once: true },
+            () => reject(options.signal.reason), {
+              once: true
+            },
           );
         }),
     }),
@@ -180,7 +200,10 @@ test('GBFS upstream fetch aborts a stalled connection with the timeout signal', 
 
 test('GBFS cancels an oversized declared body without pulling it', async () => {
   let cancelled = false;
-  const { response, pulls } = endlessResponse(new Uint8Array(1), () => {
+  const {
+    response,
+    pulls
+  } = endlessResponse(new Uint8Array(1), () => {
     cancelled = true;
   });
   response.headers.set('Content-Length', '100');
@@ -188,8 +211,9 @@ test('GBFS cancels an oversized declared body without pulling it', async () => {
     fetchGbfsUpstream(STATION_URL, {
       maxBytes: 10,
       fetchImpl: async () => response,
-    }),
-    { code: 'RESPONSE_TOO_LARGE' },
+    }), {
+      code: 'RESPONSE_TOO_LARGE'
+    },
   );
   assert.equal(cancelled, true);
   assert.equal(pulls(), 0);
@@ -213,8 +237,9 @@ test('GBFS deadline includes a stalled body after successful headers', async () 
         signal = options.signal;
         return response;
       },
-    }),
-    { name: 'AbortError' },
+    }), {
+      name: 'AbortError'
+    },
   );
   assert.equal(signal.aborted, true);
   assert.equal(cancelled, true);
@@ -222,7 +247,9 @@ test('GBFS deadline includes a stalled body after successful headers', async () 
 });
 
 test('GBFS rejects redirects and caps bodies through both server hooks', async () => {
-  const { gbfsProxy } = await import('../../server/providers/gbfs.js');
+  const {
+    gbfsProxy
+  } = await import('../../server/providers/gbfs.js');
   const originalFetch = globalThis.fetch;
   try {
     for (const hook of ['configureServer', 'configurePreviewServer']) {
@@ -236,29 +263,33 @@ test('GBFS rejects redirects and caps bodies through both server hooks', async (
         },
       });
       for (const response of [
-        new Response(null, { status: 302 }),
-        new Response('x', {
-          headers: { 'Content-Length': String(GBFS_MAX_BODY_BYTES + 1) },
-        }),
-        new Response(STATION_BODY),
-      ]) {
+          new Response(null, {
+            status: 302
+          }),
+          new Response('x', {
+            headers: {
+              'Content-Length': String(GBFS_MAX_BODY_BYTES + 1)
+            },
+          }),
+          new Response(STATION_BODY),
+        ]) {
         const expectedStatus =
-          response.status === 302 || response.headers.has('content-length')
-            ? 502
-            : 200;
+          response.status === 302 || response.headers.has('content-length') ?
+          502 :
+          200;
         globalThis.fetch = async () => response;
         let status, body;
-        await handler(
-          { method: 'GET', url: '/' + encodeURIComponent(STATION_URL) },
-          {
-            writeHead(code) {
-              status = code;
-            },
-            end(value) {
-              body = value;
-            },
+        await handler({
+          method: 'GET',
+          url: '/' + encodeURIComponent(STATION_URL)
+        }, {
+          writeHead(code) {
+            status = code;
           },
-        );
+          end(value) {
+            body = value;
+          },
+        }, );
         assert.equal(status, expectedStatus);
         if (status === 200) assert.equal(body, STATION_BODY);
         else assert.equal(typeof JSON.parse(body).error, 'string');
