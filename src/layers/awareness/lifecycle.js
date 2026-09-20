@@ -1,4 +1,6 @@
-import { cameraPoseSignature } from '../../data/iconOrientation.js';
+import {
+  cameraPoseSignature
+} from '../../data/iconOrientation.js';
 
 export function createLifecycle({
   state: layerState,
@@ -6,7 +8,10 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
 
   /**
    * Quantized camera-pose signature, or '' when the camera cannot report a full
@@ -74,8 +79,7 @@ export function createLifecycle({
         if (!decision.refresh) return;
         layerState.lastSubjectRefreshMs = now;
         if (
-          layerState.subject &&
-          ['flights', 'military', 'ais-live-vessels'].includes(
+          layerState.subject && ['flights', 'military', 'ais-live-vessels'].includes(
             layerState.subject.layerId,
           )
         ) {
