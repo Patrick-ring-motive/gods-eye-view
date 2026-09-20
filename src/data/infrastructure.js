@@ -1,4 +1,6 @@
-import { createLocalGeoJsonLayer } from './localGeojsonCore.js';
+import {
+  createLocalGeoJsonLayer
+} from './localGeojsonCore.js';
 
 // Resolved by Vite in builds and relative to this module in other consumers.
 const datacentersUrl = new URL(
@@ -14,8 +16,7 @@ const damsUrl = new URL('./local_data/dams/dams.geojsonl', import.meta.url)
  * @returns {object[]} Datacenters then dams, with stable standalone identities.
  */
 export function createInfrastructureLayers(services) {
-  const datacenters = createLocalGeoJsonLayer(
-    {
+  const datacenters = createLocalGeoJsonLayer({
       id: 'local-datacenters',
       url: datacentersUrl,
       name: 'Datacenters',
@@ -29,8 +30,7 @@ export function createInfrastructureLayers(services) {
     services,
   );
 
-  const dams = createLocalGeoJsonLayer(
-    {
+  const dams = createLocalGeoJsonLayer({
       id: 'local-dams',
       url: damsUrl,
       name: 'Dams',
