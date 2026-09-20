@@ -57,12 +57,10 @@
   position: absolute;
   inset: 0 0 auto;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(54, 220, 255, 0.8),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(54, 220, 255, 0.8),
+      transparent);
   box-shadow: 0 0 1rem rgba(54, 220, 255, 0.45);
   pointer-events: none;
 }
@@ -119,6 +117,7 @@
 .first-run-choices::-webkit-scrollbar {
   width: 6px;
 }
+
 .first-run-choices::-webkit-scrollbar-thumb {
   background: rgba(54, 220, 255, 0.45);
   border-radius: 3px;
@@ -161,12 +160,12 @@
   pointer-events: none;
 }
 
-.first-run-choices button > .material-symbols-outlined:first-child {
+.first-run-choices button>.material-symbols-outlined:first-child {
   color: #55dff5;
   font-size: 1.35rem;
 }
 
-.first-run-choices button > span:nth-child(2) {
+.first-run-choices button>span:nth-child(2) {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -270,26 +269,32 @@ body.scene-playback-mode #first-run-launcher {
   #first-run-launcher.visible {
     transform: translate(-50%, 0) scale(1);
   }
+
   /* Five tiles have to clear the dock on a 375 x 812 phone, so the rows tighten
      and the redundant "ESC to dismiss" hint (no ESC key on a phone) drops. */
   #first-run-launcher h2 {
     margin-top: 0.45rem;
   }
+
   #first-run-description {
     margin-top: 0.25rem;
     font-size: 0.72rem;
   }
+
   .first-run-choices {
     margin-top: 0.75rem;
   }
+
   .first-run-choices button {
     min-height: 3rem;
     padding: 0.45rem 0.6rem;
   }
+
   .first-run-choices small {
     font-size: 0.62rem;
   }
-  .first-run-footer > span:last-child {
+
+  .first-run-footer>span:last-child {
     display: none;
   }
 }
@@ -303,31 +308,39 @@ body.scene-playback-mode #first-run-launcher {
   #first-run-launcher {
     padding: 0.75rem 0.85rem;
   }
+
   #first-run-launcher h2 {
     margin-top: 0.3rem;
     font-size: 1.1rem;
   }
+
   #first-run-description {
     margin-top: 0.2rem;
     font-size: 0.7rem;
     line-height: 1.4;
   }
+
   .first-run-choices {
     margin-top: 0.55rem;
   }
+
   .first-run-choices button {
     min-height: 2.7rem;
     padding: 0.36rem 0.6rem;
   }
+
   .first-run-choices strong {
     font-size: 0.68rem;
   }
+
   .first-run-choices small {
     font-size: 0.6rem;
   }
+
   .first-run-footer {
     margin-top: 0.5rem;
   }
+
   .first-run-note {
     margin-top: 0.3rem;
     min-height: 0;
@@ -340,16 +353,12 @@ body.scene-playback-mode #first-run-launcher {
    promise content that is not there, which is the opposite of the affordance
    it is meant to be. Decorative only: the list scrolls under it. */
 .first-run-choices[data-scrollable='true'] {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 calc(100% - 1.4rem),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 calc(100% - 1.4rem),
-    transparent 100%
-  );
+  -webkit-mask-image: linear-gradient(to bottom,
+      #000 calc(100% - 1.4rem),
+      transparent 100%);
+  mask-image: linear-gradient(to bottom,
+      #000 calc(100% - 1.4rem),
+      transparent 100%);
 }
 
 /* Scrolled to the end, there is nothing left to promise, so the fade lifts.
@@ -371,11 +380,13 @@ body.scene-playback-mode #first-run-launcher {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   #first-run-launcher,
   .first-run-choices button,
   .first-run-arrow {
     transition: none;
   }
+
   /* Scrolling a tile into view must not animate either. */
   .first-run-choices {
     scroll-behavior: auto;
