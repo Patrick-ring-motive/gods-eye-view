@@ -85,7 +85,10 @@ export function localInfrastructureOverlayCopy(properties, layerId) {
     }
   }
 
-  return { title, details };
+  return {
+    title,
+    details
+  };
 }
 
 /**
@@ -153,8 +156,7 @@ export function createLocalInfrastructureOverlayEntry({
  * @returns {object[]} Bounded overlay entries for shared-host arbitration.
  */
 export function selectLocalInfrastructureOverlayCohort(
-  records,
-  {
+  records, {
     maxEntries,
     gridPx,
     width,
@@ -164,9 +166,9 @@ export function selectLocalInfrastructureOverlayCohort(
   },
 ) {
   const sourceCap = Math.max(0, Math.floor(Number(maxEntries) || 0));
-  const materializationCap = Number.isFinite(Number(cohortLimit))
-    ? Math.max(0, Math.floor(Number(cohortLimit)))
-    : Number.POSITIVE_INFINITY;
+  const materializationCap = Number.isFinite(Number(cohortLimit)) ?
+    Math.max(0, Math.floor(Number(cohortLimit))) :
+    Number.POSITIVE_INFINITY;
   const cap = Math.min(sourceCap, materializationCap);
   const cellSize = Math.max(1, Number(gridPx) || 1);
   if (
@@ -220,7 +222,10 @@ export function selectLocalInfrastructureOverlayCohort(
  * @param {object} [options.host] Test seam for the three host lifecycle calls.
  * @returns {{show:function():void,publish:function(object[]):void,hide:function():void,destroy:function():void}}
  */
-export function createLocalInfrastructureOverlayPublisher({ sourceId, host }) {
+export function createLocalInfrastructureOverlayPublisher({
+  sourceId,
+  host
+}) {
   let visible = false;
   let published = false;
   let destroyed = false;
@@ -313,31 +318,28 @@ export function localDatasetError(error) {
  * One live instance per layer id is allowed in a given viewer/context/overlay host.
  * Destroy the previous instance before replacing it. Importing creates no layers.
  */
-export function createLocalGeoJsonLayer(
-  {
-    id,
-    url,
-    name,
-    color,
-    icon = '📍',
-    source = 'Local JSONL',
-    labels = true,
-    labelMax = DEFAULT_LABEL_MAX,
-    labelGridPx = DEFAULT_LABEL_GRID_PX,
-    screenSpaceEventHandlerFactory = (canvas) =>
-      new Cesium.ScreenSpaceEventHandler(canvas),
-    projectToWindow = (scene, position) =>
-      Cesium.SceneTransforms.worldToWindowCoordinates(scene, position),
-  },
-  {
-    overlayHost,
-    registerEntityContext,
-    selectEntityContext,
-    clearSelectedEntityContextForLayer,
-    removeEntityContextsForLayer,
-    governorRequestRender,
-  },
-) {
+export function createLocalGeoJsonLayer({
+  id,
+  url,
+  name,
+  color,
+  icon = '📍',
+  source = 'Local JSONL',
+  labels = true,
+  labelMax = DEFAULT_LABEL_MAX,
+  labelGridPx = DEFAULT_LABEL_GRID_PX,
+  screenSpaceEventHandlerFactory = (canvas) =>
+  new Cesium.ScreenSpaceEventHandler(canvas),
+  projectToWindow = (scene, position) =>
+  Cesium.SceneTransforms.worldToWindowCoordinates(scene, position),
+}, {
+  overlayHost,
+  registerEntityContext,
+  selectEntityContext,
+  clearSelectedEntityContextForLayer,
+  removeEntityContextsForLayer,
+  governorRequestRender,
+}, ) {
   let _dataSource = null;
   let _enabled = false;
   let _clickHandler = null;
@@ -511,7 +513,11 @@ export function createLocalGeoJsonLayer(
      *   silent zero count as nominal.
      */
     getStats: () => {
-      return { count: _count, lastUpdate: _lastUpdate, error: _error };
+      return {
+        count: _count,
+        lastUpdate: _lastUpdate,
+        error: _error
+      };
     },
 
     /**
@@ -723,16 +729,16 @@ export function createLocalGeoJsonLayer(
                   groundSampled: false,
                   lastGroundSampleMs: 0,
                   priority,
-                  entry: labels
-                    ? createLocalInfrastructureOverlayEntry({
-                        id: recordId,
-                        layerId: id,
-                        position: tip,
-                        properties,
-                        priority,
-                        accent: color,
-                      })
-                    : null,
+                  entry: labels ?
+                    createLocalInfrastructureOverlayEntry({
+                      id: recordId,
+                      layerId: id,
+                      position: tip,
+                      properties,
+                      priority,
+                      accent: color,
+                    }) :
+                    null,
                 });
               }
               // Setup finished — publish it.
@@ -1002,8 +1008,7 @@ export function createLocalGeoJsonLayer(
 
           const canvas = viewer.scene.canvas;
           const cohort = selectLocalInfrastructureOverlayCohort(
-            visibleOverlayRecords,
-            {
+            visibleOverlayRecords, {
               maxEntries: labelMax,
               gridPx: labelGridPx,
               width: canvas.clientWidth || canvas.width || 0,
@@ -1129,9 +1134,9 @@ function sampleLocalGroundHeight(viewer, record, now) {
   // the visible globe. Keep that terrain as a floor while allowing roofs and
   // valid below-sea-level elevations. Photoreal scenes hide the globe, so its
   // inactive terrain must not constrain their geometry.
-  const terrainHeight = globe?.show
-    ? globe.getHeight?.(record.carto)
-    : undefined;
+  const terrainHeight = globe?.show ?
+    globe.getHeight?.(record.carto) :
+    undefined;
   if (
     Number.isFinite(terrainHeight) &&
     Math.abs(terrainHeight) <= GROUND_SAMPLE_MAX_ABS_HEIGHT_M
@@ -1156,9 +1161,9 @@ function setLocalGroundHeight(record, height) {
 }
 
 function updateLocalStemGeometry(viewer, record, now, knownDistance = null) {
-  const distance = Number.isFinite(knownDistance)
-    ? knownDistance
-    : Cesium.Cartesian3.distance(viewer.camera.positionWC, record.base);
+  const distance = Number.isFinite(knownDistance) ?
+    knownDistance :
+    Cesium.Cartesian3.distance(viewer.camera.positionWC, record.base);
   if (distance < GROUND_SAMPLE_MAX_DISTANCE_M)
     sampleLocalGroundHeight(viewer, record, now);
   // Keep the intended screen-size scaling in close-up views too. A 5 km
@@ -1228,9 +1233,9 @@ function labelPriorityFromProperties(props, layerId) {
 function propertyObject(entity) {
   const source = entity?.properties;
   const raw =
-    typeof source?.getValue === 'function'
-      ? source.getValue(Cesium.JulianDate.now())
-      : source || {};
+    typeof source?.getValue === 'function' ?
+    source.getValue(Cesium.JulianDate.now()) :
+    source || {};
   return unwrapProperties(raw);
 }
 
@@ -1240,9 +1245,9 @@ function unwrapProperties(value) {
   const out = {};
   for (const [key, entry] of Object.entries(value)) {
     out[key] =
-      entry && typeof entry.getValue === 'function'
-        ? unwrapProperties(entry.getValue(Cesium.JulianDate.now()))
-        : unwrapProperties(entry);
+      entry && typeof entry.getValue === 'function' ?
+      unwrapProperties(entry.getValue(Cesium.JulianDate.now())) :
+      unwrapProperties(entry);
   }
   return out;
 }
