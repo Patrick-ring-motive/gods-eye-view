@@ -1,10 +1,24 @@
-import { retroShader } from '../styles/retro.js';
-import { animeShader } from '../styles/anime.js';
-import { noirShader } from '../styles/noir.js';
-import { snowShader } from '../styles/snow.js';
-import { nightVisionShader } from '../styles/surveillance.js';
-import { thermalShader } from '../styles/thermal.js';
-import { BLOOM_INTENSITY_DEFAULT } from '../bloom.js';
+import {
+  retroShader
+} from '../styles/retro.js';
+import {
+  animeShader
+} from '../styles/anime.js';
+import {
+  noirShader
+} from '../styles/noir.js';
+import {
+  snowShader
+} from '../styles/snow.js';
+import {
+  nightVisionShader
+} from '../styles/surveillance.js';
+import {
+  thermalShader
+} from '../styles/thermal.js';
+import {
+  BLOOM_INTENSITY_DEFAULT
+} from '../bloom.js';
 
 /** Duration (ms) for shader intensity crossfade between style presets. */
 export const TRANSITION_DURATION_MS = 500;
@@ -42,8 +56,14 @@ export const MILITARY_DETECTION_PRESET = Object.freeze({
 
 /** Baseline post-processing settings applied on first load (before share-link restore). */
 export const GLOBAL_POST_DEFAULTS = {
-  bloom: { enabled: false, intensity: BLOOM_INTENSITY_DEFAULT },
-  sharpen: { enabled: true, intensity: 49 },
+  bloom: {
+    enabled: false,
+    intensity: BLOOM_INTENSITY_DEFAULT
+  },
+  sharpen: {
+    enabled: true,
+    intensity: 49
+  },
   hudVariant: 'tactical',
   hudVisible: true,
   // Detection is ON for EVERY style on a first run, Normal included (owner
@@ -68,8 +88,14 @@ export const GLOBAL_POST_DEFAULTS = {
 // Tactical style defaults applied when users select military style presets.
 export const STYLE_PRESET_DEFAULTS = {
   retro: {
-    bloom: { enabled: false, intensity: BLOOM_INTENSITY_DEFAULT },
-    sharpen: { enabled: true, intensity: 49 },
+    bloom: {
+      enabled: false,
+      intensity: BLOOM_INTENSITY_DEFAULT
+    },
+    sharpen: {
+      enabled: true,
+      intensity: 49
+    },
     styleParams: {
       retro: {
         pixelation: 1.0,
@@ -82,8 +108,14 @@ export const STYLE_PRESET_DEFAULTS = {
     detection: MILITARY_DETECTION_PRESET,
   },
   surveillance: {
-    bloom: { enabled: false, intensity: BLOOM_INTENSITY_DEFAULT },
-    sharpen: { enabled: true, intensity: 49 },
+    bloom: {
+      enabled: false,
+      intensity: BLOOM_INTENSITY_DEFAULT
+    },
+    sharpen: {
+      enabled: true,
+      intensity: 49
+    },
     styleParams: {
       surveillance: {
         gain: 0.18,
@@ -97,8 +129,14 @@ export const STYLE_PRESET_DEFAULTS = {
     detection: MILITARY_DETECTION_PRESET,
   },
   thermal: {
-    bloom: { enabled: false, intensity: BLOOM_INTENSITY_DEFAULT },
-    sharpen: { enabled: true, intensity: 49 },
+    bloom: {
+      enabled: false,
+      intensity: BLOOM_INTENSITY_DEFAULT
+    },
+    sharpen: {
+      enabled: true,
+      intensity: 49
+    },
     styleParams: {
       thermal: {
         sensitivity: 0.85,
