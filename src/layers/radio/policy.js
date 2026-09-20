@@ -165,6 +165,8 @@ export const VOICE_RESTORE_DURATION_MS = 1800;
 export const RADIO_GLOBE_LABEL_MAX_CHARS = 30;
 
 export const RADIO_LABEL_SEGMENTER =
-  typeof Intl?.Segmenter === 'function'
-    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
-    : null;
+  typeof Intl?.Segmenter === 'function' ?
+  new Intl.Segmenter(undefined, {
+    granularity: 'grapheme'
+  }) :
+  null;
