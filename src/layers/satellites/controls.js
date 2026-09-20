@@ -4,10 +4,20 @@ import {
   satelliteClassLegend,
 } from '../../data/satelliteClass.js';
 import * as Cesium from 'cesium';
-import { ISS_NORAD, POINT_STYLES } from './policy.js';
+import {
+  ISS_NORAD,
+  POINT_STYLES
+} from './policy.js';
 
-export function createControls({ state: layerState, services, parts, source }) {
-  const { isExplicitLayerStateOrigin } = services.layerState;
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    isExplicitLayerStateOrigin
+  } = services.layerState;
 
   /**
    * Resolve the canonical point style for a satellite.
@@ -50,7 +60,10 @@ export function createControls({ state: layerState, services, parts, source }) {
     // ISS is ingested as `visual`, and the legend must file it exactly where its
     // card does (STATION) rather than letting STATION vanish from the legend.
     for (const [noradId, sat] of layerState._catalog) {
-      entries.push({ group: sat.group, isIss: noradId === ISS_NORAD });
+      entries.push({
+        group: sat.group,
+        isIss: noradId === ISS_NORAD
+      });
     }
     const counts = tallySatelliteClasses(entries);
     layerState._classTallyCache = {
@@ -108,9 +121,9 @@ export function createControls({ state: layerState, services, parts, source }) {
         1,
         layerState._points.size - layerState._denseIds.length,
       );
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : eligibleCount;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        eligibleCount;
       const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
       const stride = Math.max(1, Math.ceil(eligibleCount / maxCount));
       const start = seed % stride;
@@ -248,7 +261,9 @@ export function createControls({ state: layerState, services, parts, source }) {
      * @param {string|number} noradId NORAD catalog number.
      * @returns {boolean} True if tracking started.
      */
-    trackById(noradId, { origin = 'programmatic' } = {}) {
+    trackById(noradId, {
+      origin = 'programmatic'
+    } = {}) {
       const id = Number(noradId);
       if (
         !Number.isFinite(id) ||
@@ -258,7 +273,9 @@ export function createControls({ state: layerState, services, parts, source }) {
       )
         return false;
       parts.tracking._cancelPendingTrackingRestore();
-      parts.tracking._trackSatellite(id, { origin });
+      parts.tracking._trackSatellite(id, {
+        origin
+      });
       return layerState._trackedNorad === id;
     },
 
@@ -267,8 +284,10 @@ export function createControls({ state: layerState, services, parts, source }) {
      * catalog has settled. A partial catalog can prove presence, never absence.
      */
     async resolveTrackingRestoreTarget(
-      noradId,
-      { signal = null, origin = 'share-restore' } = {},
+      noradId, {
+        signal = null,
+        origin = 'share-restore'
+      } = {},
     ) {
       if (signal?.aborted)
         return {
@@ -276,7 +295,10 @@ export function createControls({ state: layerState, services, parts, source }) {
           reason: String(signal.reason || 'aborted'),
         };
       const id = parts.tracking._normalizeTrackedNorad(noradId);
-      if (id === null) return { status: 'missing', reason: 'invalid-target' };
+      if (id === null) return {
+        status: 'missing',
+        reason: 'invalid-target'
+      };
       const outcome = layerState._lastTrackingRefreshOutcome;
       const found = () =>
         layerState._catalog.has(id) && layerState._points.has(id);
@@ -286,13 +308,18 @@ export function createControls({ state: layerState, services, parts, source }) {
             status: 'cancelled',
             reason: String(signal.reason || 'aborted'),
           };
-        return this.trackById(id, { origin })
-          ? { status: 'found', refreshEpoch: outcome.epoch }
-          : {
-              status: 'source-unavailable',
-              reason: 'target-not-renderable',
-              refreshEpoch: outcome.epoch,
-            };
+        return this.trackById(id, {
+            origin
+          }) ?
+          {
+            status: 'found',
+            refreshEpoch: outcome.epoch
+          } :
+          {
+            status: 'source-unavailable',
+            reason: 'target-not-renderable',
+            refreshEpoch: outcome.epoch,
+          };
       };
 
       if (found()) return follow();
@@ -306,14 +333,19 @@ export function createControls({ state: layerState, services, parts, source }) {
 
       if (layerState._params.catalog === 'dense') {
         const dense = await (layerState._denseLoadPromise ||
-          Promise.resolve({ status: 'source-unavailable' }));
+          Promise.resolve({
+            status: 'source-unavailable'
+          }));
         if (signal?.aborted)
           return {
             status: 'cancelled',
             reason: String(signal.reason || 'aborted'),
           };
         if (layerState._lastTrackingRefreshOutcome.epoch !== outcome.epoch) {
-          return { status: 'superseded', reason: 'newer-catalog-refresh' };
+          return {
+            status: 'superseded',
+            reason: 'newer-catalog-refresh'
+          };
         }
         if (found()) return follow();
         if (dense?.status !== 'ready') {
@@ -344,9 +376,13 @@ export function createControls({ state: layerState, services, parts, source }) {
      * Stop tracking the currently tracked satellite (no-op if none).
      * @returns {boolean} Always true.
      */
-    stopTracking({ origin = 'programmatic' } = {}) {
+    stopTracking({
+      origin = 'programmatic'
+    } = {}) {
       parts.tracking._cancelPendingTrackingRestore();
-      parts.tracking._clearTracking(false, { origin });
+      parts.tracking._clearTracking(false, {
+        origin
+      });
       return true;
     },
 
@@ -383,7 +419,9 @@ export function createControls({ state: layerState, services, parts, source }) {
      * as points-only extras on a relaxed propagation budget).
      * @param {{ catalog?: 'core'|'dense', showPoints?: boolean, showOrbits?: boolean, selectedSatTrackingId?: number|null }} [params]
      */
-    setParams(params = {}, { origin = 'programmatic' } = {}) {
+    setParams(params = {}, {
+      origin = 'programmatic'
+    } = {}) {
       if (
         isExplicitLayerStateOrigin(origin) &&
         !Object.hasOwn(params, 'selectedSatTrackingId')
@@ -439,7 +477,9 @@ export function createControls({ state: layerState, services, parts, source }) {
         } else if (requested === null) {
           parts.tracking._cancelPendingTrackingRestore();
           if (layerState._trackedNorad !== null)
-            parts.tracking._clearTracking(false, { origin });
+            parts.tracking._clearTracking(false, {
+              origin
+            });
         } else {
           const generation = ++layerState._trackingIntentGeneration;
           layerState._pendingTrackingRestore = {
@@ -448,7 +488,9 @@ export function createControls({ state: layerState, services, parts, source }) {
             origin,
           };
           if (layerState._trackedNorad !== null)
-            parts.tracking._clearTracking(false, { origin });
+            parts.tracking._clearTracking(false, {
+              origin
+            });
           parts.tracking._applyPendingTrackingRestore();
         }
       }
@@ -486,7 +528,10 @@ export function createControls({ state: layerState, services, parts, source }) {
       // with showPoints:false. Nothing is rendered, so a legend would describe an
       // empty sky and a chip write would be silently reverted by that owner's
       // restore. Surrender the row rather than lie about it.
-      if (!layerState._params.showPoints) return { chips: [], legend: [] };
+      if (!layerState._params.showPoints) return {
+        chips: [],
+        legend: []
+      };
 
       const loading = layerState._denseStatus === 'loading';
       const failed = layerState._denseStatus === 'failed';
@@ -500,26 +545,26 @@ export function createControls({ state: layerState, services, parts, source }) {
         title = `Starlink ${layerState._denseError || 'load failed'} — click to retry`;
       else if (active)
         title =
-          'Showing the full Starlink shell — click for the core catalog only';
+        'Showing the full Starlink shell — click for the core catalog only';
       return {
-        chips: [
-          {
-            id: 'catalog',
-            label: loading ? 'DENSE ···' : failed ? 'DENSE ✕' : 'DENSE',
-            active,
-            busy: loading,
-            disabled: loading,
-            state: loading
-              ? 'loading'
-              : failed
-                ? 'error'
-                : active
-                  ? 'active'
-                  : 'idle',
-            title,
-            params: { catalog: active ? 'core' : 'dense' },
+        chips: [{
+          id: 'catalog',
+          label: loading ? 'DENSE ···' : failed ? 'DENSE ✕' : 'DENSE',
+          active,
+          busy: loading,
+          disabled: loading,
+          state: loading ?
+            'loading' :
+            failed ?
+            'error' :
+            active ?
+            'active' :
+            'idle',
+          title,
+          params: {
+            catalog: active ? 'core' : 'dense'
           },
-        ],
+        }, ],
         legend: satelliteClassLegend(_classTally()),
       };
     },
@@ -540,12 +585,11 @@ export function createControls({ state: layerState, services, parts, source }) {
         count: layerState._count,
         lastUpdate: layerState._lastUpdate,
         stale: false,
-        status:
-          layerState._lastError === 'CelesTrak unreachable'
-            ? 'unavailable'
-            : layerState._lastError
-              ? 'degraded'
-              : 'nominal',
+        status: layerState._lastError === 'CelesTrak unreachable' ?
+          'unavailable' :
+          layerState._lastError ?
+          'degraded' :
+          'nominal',
         error: layerState._lastError,
       };
     },
