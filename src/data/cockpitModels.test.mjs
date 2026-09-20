@@ -1,7 +1,11 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 
 /**
  * Cockpit 3D aircraft policy.
@@ -13,9 +17,14 @@ import { readFileSync } from 'node:fs';
  * regression would silently revert. These assertions pin the decisions.
  */
 
-const LAYERS = [
-  { name: 'flights', path: new URL('./flights.js', import.meta.url) },
-  { name: 'militaryFlights', path: new URL('./militaryFlights.js', import.meta.url) },
+const LAYERS = [{
+    name: 'flights',
+    path: new URL('./flights.js', import.meta.url)
+  },
+  {
+    name: 'militaryFlights',
+    path: new URL('./militaryFlights.js', import.meta.url)
+  },
 ];
 
 /** Read a `const NAME = <number>;` declaration out of a module's source. */
