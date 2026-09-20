@@ -1,6 +1,8 @@
 // AISStream watchdog state machine. Both clocks are injected and sockets are
 // fakes, so every policy branch runs offline with no timers and no network.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   AIS_WATCHDOG_DEFAULTS,
@@ -9,7 +11,11 @@ import {
   parseSilenceTimeoutEnv,
 } from './aisWatchdog.js';
 
-const LIVE_ENV = { hasKey: true, hasTransport: true, keyFingerprint: 'key-a' };
+const LIVE_ENV = {
+  hasKey: true,
+  hasTransport: true,
+  keyFingerprint: 'key-a'
+};
 
 /**
  * Separately controllable wall and monotonic clocks. `advance` moves both, as
@@ -20,10 +26,20 @@ function fakeClock(startWall = 1_700_000_000_000, startMono = 10_000) {
   let wall = startWall;
   let mono = startMono;
   return {
-    clock: { wall: () => wall, mono: () => mono },
-    advance(ms) { wall += ms; mono += ms; },
-    rollbackWall(ms) { wall -= ms; },
-    get wall() { return wall; },
+    clock: {
+      wall: () => wall,
+      mono: () => mono
+    },
+    advance(ms) {
+      wall += ms;
+      mono += ms;
+    },
+    rollbackWall(ms) {
+      wall -= ms;
+    },
+    get wall() {
+      return wall;
+    },
   };
 }
 
@@ -33,7 +49,10 @@ function fakeClock(startWall = 1_700_000_000_000, startMono = 10_000) {
  */
 function harness(options = {}) {
   const time = fakeClock();
-  const watchdog = createAisWatchdog({ ...options, clock: time.clock });
+  const watchdog = createAisWatchdog({
+    ...options,
+    clock: time.clock
+  });
   const actions = [];
   const openSockets = new Set();
 
@@ -58,19 +77,37 @@ function harness(options = {}) {
     actions,
     openSockets,
     time,
-    advance(ms) { time.advance(ms); },
-    configure(env = LIVE_ENV) { return record(watchdog.configure(env)); },
-    tick() { return record(watchdog.tick()); },
-    open(generation) { return record(watchdog.onOpen(generation)); },
-    message(generation) { return record(watchdog.onMessage(generation)); },
+    advance(ms) {
+      time.advance(ms);
+    },
+    configure(env = LIVE_ENV) {
+      return record(watchdog.configure(env));
+    },
+    tick() {
+      return record(watchdog.tick());
+    },
+    open(generation) {
+      return record(watchdog.onOpen(generation));
+    },
+    message(generation) {
+      return record(watchdog.onMessage(generation));
+    },
     close(generation) {
       openSockets.delete(generation); // a socket that closed itself is gone
       return record(watchdog.onClose(generation));
     },
-    fail(generation, detail) { return record(watchdog.onFailure(generation, detail)); },
-    dispose() { return record(watchdog.dispose()); },
-    snapshot() { return watchdog.snapshot(); },
-    types() { return actions.map((a) => `${a.type}:${a.generation}`); },
+    fail(generation, detail) {
+      return record(watchdog.onFailure(generation, detail));
+    },
+    dispose() {
+      return record(watchdog.dispose());
+    },
+    snapshot() {
+      return watchdog.snapshot();
+    },
+    types() {
+      return actions.map((a) => `${a.type}:${a.generation}`);
+    },
   };
 }
 
@@ -86,7 +123,9 @@ function goLive(h) {
 
 test('keyless install reports the feature as off and never opens a socket', () => {
   const h = harness();
-  h.configure({ hasKey: false });
+  h.configure({
+    hasKey: false
+  });
   h.tick();
   h.advance(10 * 60_000);
   h.tick();
@@ -101,7 +140,9 @@ test('keyless install reports the feature as off and never opens a socket', () =
 
 test('a key added mid-session clears the terminal state and connects at once', () => {
   const h = harness();
-  h.configure({ hasKey: false });
+  h.configure({
+    hasKey: false
+  });
   h.tick();
   assert.deepEqual(h.types(), []);
 
@@ -113,7 +154,9 @@ test('a key added mid-session clears the terminal state and connects at once', (
 
 test('a key removed mid-session terminates the live socket', () => {
   const h = goLive(harness());
-  h.configure({ hasKey: false });
+  h.configure({
+    hasKey: false
+  });
   assert.deepEqual(h.types(), ['connect:1', 'terminate:1']);
   assert.equal(h.snapshot().status, 'missing-key');
   assert.equal(h.openSockets.size, 0);
@@ -265,7 +308,9 @@ test('the machine never emits a graceful close — only terminate', () => {
     h.advance(AIS_WATCHDOG_DEFAULTS.downRetryMs + 1);
     h.tick();
   }
-  h.fail(99, { kind: 'transport' });
+  h.fail(99, {
+    kind: 'transport'
+  });
   h.dispose();
 
   const kinds = new Set(h.actions.map((a) => a.type));
@@ -376,8 +421,16 @@ test('a late-opening orphan is told to hang itself up', () => {
   h.advance(6_000);
   h.tick();
 
-  assert.deepEqual(h.watchdog.onOpen(1), [{ type: 'terminate', generation: 1, reason: 'orphan' }]);
-  assert.deepEqual(h.watchdog.onMessage(1), [{ type: 'terminate', generation: 1, reason: 'orphan' }]);
+  assert.deepEqual(h.watchdog.onOpen(1), [{
+    type: 'terminate',
+    generation: 1,
+    reason: 'orphan'
+  }]);
+  assert.deepEqual(h.watchdog.onMessage(1), [{
+    type: 'terminate',
+    generation: 1,
+    reason: 'orphan'
+  }]);
   assert.equal(h.snapshot().status, 'connecting');
   assert.equal(h.watchdog.debugState().owned, 2);
 });
@@ -410,13 +463,18 @@ test('generations are never reused across dispose', () => {
 
 test('a replacement machine can be seeded past the old generation namespace', () => {
   const time = fakeClock();
-  const first = createAisWatchdog({ clock: time.clock });
+  const first = createAisWatchdog({
+    clock: time.clock
+  });
   first.configure(LIVE_ENV);
   first.tick();
   first.tick();
   const high = first.highWaterGeneration();
 
-  const second = createAisWatchdog({ clock: time.clock, startGeneration: high });
+  const second = createAisWatchdog({
+    clock: time.clock,
+    startGeneration: high
+  });
   second.configure(LIVE_ENV);
   const actions = second.tick();
   assert.ok(actions[0].generation > high, 'a replacement must not re-issue a live generation');
@@ -426,7 +484,10 @@ test('a replacement machine can be seeded past the old generation namespace', ()
 
 test('a transport error terminates immediately and walks the ladder', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'transport', message: 'ECONNRESET' });
+  h.fail(1, {
+    kind: 'transport',
+    message: 'ECONNRESET'
+  });
 
   assert.deepEqual(h.types(), ['connect:1', 'terminate:1']);
   const snap = h.snapshot();
@@ -437,7 +498,10 @@ test('a transport error terminates immediately and walks the ladder', () => {
 
 test('an auth failure is terminal — no ladder, only a very slow probe', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth', message: 'AISStream rejected the API key (HTTP 401)' });
+  h.fail(1, {
+    kind: 'auth',
+    message: 'AISStream rejected the API key (HTTP 401)'
+  });
 
   const snap = h.snapshot();
   assert.equal(snap.status, 'auth-failed');
@@ -462,7 +526,9 @@ test('an auth failure is terminal — no ladder, only a very slow probe', () => 
 
 test('a silent probe socket cannot launder an auth rejection into the fast ladder', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick(); // the hourly probe connects
 
@@ -487,7 +553,10 @@ test('repeated auth rejections never accelerate into the ladder', () => {
   const h = goLive(harness());
   for (let round = 0; round < 5; round += 1) {
     const generation = h.watchdog.debugState().owned;
-    h.fail(generation, { kind: 'auth', message: 'Invalid API key' });
+    h.fail(generation, {
+      kind: 'auth',
+      message: 'Invalid API key'
+    });
     const snap = h.snapshot();
     assert.equal(snap.status, 'auth-failed', `round ${round} must stay terminal`);
     assert.equal(
@@ -501,7 +570,9 @@ test('repeated auth rejections never accelerate into the ladder', () => {
 
 test('the AUTH-FAILED chip does not flicker hopeful while probing', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick();
   assert.equal(h.snapshot().status, 'auth-failed');
@@ -511,10 +582,16 @@ test('the AUTH-FAILED chip does not flicker hopeful while probing', () => {
 
 test('a changed API key clears the terminal auth state immediately', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   assert.equal(h.snapshot().status, 'auth-failed');
 
-  h.configure({ hasKey: true, hasTransport: true, keyFingerprint: 'key-b' });
+  h.configure({
+    hasKey: true,
+    hasTransport: true,
+    keyFingerprint: 'key-b'
+  });
   h.tick();
   assert.equal(h.snapshot().status, 'connecting', 'a new credential earns a fresh attempt');
   assert.equal(h.snapshot().reconnectAttempt, 0);
@@ -522,15 +599,25 @@ test('a changed API key clears the terminal auth state immediately', () => {
 
 test('rotating the key mid-probe terminates the old key socket first', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick(); // the hourly probe opens generation 2, still on key A
   assert.equal(h.watchdog.debugState().owned, 2);
 
   // The operator swaps the key while that probe is in flight.
-  const rotation = h.configure({ hasKey: true, hasTransport: true, keyFingerprint: 'key-b' });
+  const rotation = h.configure({
+    hasKey: true,
+    hasTransport: true,
+    keyFingerprint: 'key-b'
+  });
   assert.deepEqual(
-    rotation, [{ type: 'terminate', generation: 2, reason: 'key-rotated' }],
+    rotation, [{
+      type: 'terminate',
+      generation: 2,
+      reason: 'key-rotated'
+    }],
     'the in-flight old-key socket must be hung up, not left running',
   );
   assert.equal(h.openSockets.size, 0);
@@ -542,18 +629,27 @@ test('rotating the key mid-probe terminates the old key socket first', () => {
 
 test("an old key's late rejection cannot push the new key into auth-failed", () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick(); // probe on key A = generation 2
 
-  h.configure({ hasKey: true, hasTransport: true, keyFingerprint: 'key-b' });
+  h.configure({
+    hasKey: true,
+    hasTransport: true,
+    keyFingerprint: 'key-b'
+  });
   h.tick(); // generation 3 on key B
   h.open(3);
   h.message(3);
   assert.equal(h.snapshot().status, 'live', 'the new key works');
 
   // Generation 2's rejection finally lands, an hour late and about key A.
-  const late = h.watchdog.onFailure(2, { kind: 'auth', message: 'Invalid API key' });
+  const late = h.watchdog.onFailure(2, {
+    kind: 'auth',
+    message: 'Invalid API key'
+  });
   assert.deepEqual(late, [], 'an old-key rejection is an orphan with no effect');
   assert.equal(h.snapshot().status, 'live', 'the new key must not inherit the old one\'s verdict');
   assert.equal(h.snapshot().reconnectAttempt, 0);
@@ -561,8 +657,16 @@ test("an old key's late rejection cannot push the new key into auth-failed", () 
 
 test('rotating the key also replaces a healthy socket built on the old credential', () => {
   const h = goLive(harness());
-  const rotation = h.configure({ hasKey: true, hasTransport: true, keyFingerprint: 'key-b' });
-  assert.deepEqual(rotation, [{ type: 'terminate', generation: 1, reason: 'key-rotated' }],
+  const rotation = h.configure({
+    hasKey: true,
+    hasTransport: true,
+    keyFingerprint: 'key-b'
+  });
+  assert.deepEqual(rotation, [{
+      type: 'terminate',
+      generation: 1,
+      reason: 'key-rotated'
+    }],
     'the live socket subscribed with the old key and must not outlive it');
   h.tick();
   assert.equal(h.watchdog.debugState().owned, 2);
@@ -572,7 +676,9 @@ test('rotating the key also replaces a healthy socket built on the old credentia
 
 test('a probe CLOSE keeps auth-failed at the hourly cadence', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick();
 
@@ -585,11 +691,17 @@ test('a probe CLOSE keeps auth-failed at the hourly cadence', () => {
 
 test('a probe TRANSPORT ERROR keeps auth-failed at the hourly cadence', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth', message: 'AISStream rejected the API key (HTTP 401)' });
+  h.fail(1, {
+    kind: 'auth',
+    message: 'AISStream rejected the API key (HTTP 401)'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick();
 
-  h.fail(h.watchdog.debugState().owned, { kind: 'transport', message: 'ECONNRESET' });
+  h.fail(h.watchdog.debugState().owned, {
+    kind: 'transport',
+    message: 'ECONNRESET'
+  });
 
   const snap = h.snapshot();
   assert.equal(snap.status, 'auth-failed');
@@ -600,11 +712,16 @@ test('a probe TRANSPORT ERROR keeps auth-failed at the hourly cadence', () => {
 
 test('a probe RATE LIMIT keeps auth-failed at the hourly cadence', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick();
 
-  h.fail(h.watchdog.debugState().owned, { kind: 'rate-limit', retryAfterMs: 5_000 });
+  h.fail(h.watchdog.debugState().owned, {
+    kind: 'rate-limit',
+    retryAfterMs: 5_000
+  });
 
   assert.equal(h.snapshot().status, 'auth-failed');
   assert.equal(h.snapshot().nextAttemptAt - h.time.wall, AIS_WATCHDOG_DEFAULTS.authProbeMs);
@@ -612,7 +729,9 @@ test('a probe RATE LIMIT keeps auth-failed at the hourly cadence', () => {
 
 test('ticking past staleMs must not relabel an auth-failed probe', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick(); // hourly probe opens; it will never speak
 
@@ -631,7 +750,10 @@ test('a probe outcome AFTER the stale window still keeps the hourly cadence', ()
   // auth coercion in scheduleRetry would no longer match.
   for (const outcome of ['close', 'transport', 'rate-limit']) {
     const h = goLive(harness());
-    h.fail(1, { kind: 'auth', message: 'AISStream rejected the API key (HTTP 401)' });
+    h.fail(1, {
+      kind: 'auth',
+      message: 'AISStream rejected the API key (HTTP 401)'
+    });
     h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
     h.tick();
     const probe = h.watchdog.debugState().owned;
@@ -643,7 +765,9 @@ test('a probe outcome AFTER the stale window still keeps the hourly cadence', ()
     assert.equal(h.snapshot().status, 'auth-failed', `${outcome}: still terminal before the outcome`);
 
     if (outcome === 'close') h.close(probe);
-    else h.fail(probe, { kind: outcome });
+    else h.fail(probe, {
+      kind: outcome
+    });
 
     const snap = h.snapshot();
     assert.equal(snap.status, 'auth-failed', `${outcome} after the stale window must stay terminal`);
@@ -656,7 +780,9 @@ test('a probe outcome AFTER the stale window still keeps the hourly cadence', ()
 
 test('a silent probe is recycled on the auth cadence, never the silence budget', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   h.advance(AIS_WATCHDOG_DEFAULTS.authProbeMs);
   h.tick();
   const before = h.types().length;
@@ -680,7 +806,9 @@ test('every probe outcome costs at most one attempt per hour', () => {
   // unproven key must never buy more than the hourly probe.
   for (const outcome of ['close', 'transport', 'rate-limit', 'silence']) {
     const h = goLive(harness());
-    h.fail(1, { kind: 'auth' });
+    h.fail(1, {
+      kind: 'auth'
+    });
     let connects = 0;
 
     for (let second = 0; second <= 3600; second += 1) {
@@ -688,8 +816,12 @@ test('every probe outcome costs at most one attempt per hour', () => {
         if (action.type !== 'connect') continue;
         connects += 1;
         if (outcome === 'close') h.close(action.generation);
-        else if (outcome === 'transport') h.fail(action.generation, { kind: 'transport' });
-        else if (outcome === 'rate-limit') h.fail(action.generation, { kind: 'rate-limit' });
+        else if (outcome === 'transport') h.fail(action.generation, {
+          kind: 'transport'
+        });
+        else if (outcome === 'rate-limit') h.fail(action.generation, {
+          kind: 'rate-limit'
+        });
         // 'silence' simply never responds.
       }
       h.advance(1_000);
@@ -701,7 +833,9 @@ test('every probe outcome costs at most one attempt per hour', () => {
 
 test('an unchanged key does not clear the terminal auth state', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'auth' });
+  h.fail(1, {
+    kind: 'auth'
+  });
   const before = h.types().length;
 
   h.configure(LIVE_ENV); // same fingerprint
@@ -712,7 +846,11 @@ test('an unchanged key does not clear the terminal auth state', () => {
 
 test('a rate limit honours Retry-After', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'rate-limit', message: '429', retryAfterMs: 120_000 });
+  h.fail(1, {
+    kind: 'rate-limit',
+    message: '429',
+    retryAfterMs: 120_000
+  });
 
   const snap = h.snapshot();
   assert.equal(snap.status, 'reconnecting');
@@ -721,7 +859,10 @@ test('a rate limit honours Retry-After', () => {
 
 test('a rate limit without Retry-After enters at the SLOWEST rung', () => {
   const h = goLive(harness());
-  h.fail(1, { kind: 'rate-limit', message: '429' });
+  h.fail(1, {
+    kind: 'rate-limit',
+    message: '429'
+  });
 
   const slowest = AIS_WATCHDOG_DEFAULTS.backoffMs[AIS_WATCHDOG_DEFAULTS.backoffMs.length - 1];
   assert.equal(h.snapshot().nextAttemptAt - h.time.wall, slowest);
@@ -743,7 +884,10 @@ function attemptsPerHour(kind, detail = {}) {
     for (const action of h.tick()) {
       if (action.type !== 'connect') continue;
       connects += 1;
-      h.fail(action.generation, { kind, ...detail });
+      h.fail(action.generation, {
+        kind,
+        ...detail
+      });
     }
     h.advance(1_000);
   }
@@ -785,7 +929,12 @@ test('a silent-socket recycle loop also stays in single digits per hour', () => 
 
 test('a custom subscription disarms the silence watch instead of recycling forever', () => {
   const h = harness();
-  h.configure({ hasKey: true, hasTransport: true, silenceWatch: false, keyFingerprint: 'key-a' });
+  h.configure({
+    hasKey: true,
+    hasTransport: true,
+    silenceWatch: false,
+    keyFingerprint: 'key-a'
+  });
   h.tick();
   h.open(1);
   h.message(1);
@@ -804,7 +953,11 @@ test('dispose terminates the live socket and resets the ladder', () => {
   h.advance(6_000);
   h.tick();
 
-  assert.deepEqual(h.dispose(), [{ type: 'terminate', generation: 2, reason: 'dispose' }]);
+  assert.deepEqual(h.dispose(), [{
+    type: 'terminate',
+    generation: 2,
+    reason: 'dispose'
+  }]);
   assert.equal(h.openSockets.size, 0);
   assert.equal(h.snapshot().status, 'idle');
   assert.equal(h.snapshot().reconnectAttempt, 0);
@@ -812,7 +965,9 @@ test('dispose terminates the live socket and resets the ladder', () => {
 
 test('dispose on an idle watchdog is a no-op', () => {
   const h = harness();
-  h.configure({ hasKey: false });
+  h.configure({
+    hasKey: false
+  });
   assert.deepEqual(h.dispose(), []);
 });
 
@@ -844,29 +999,57 @@ test('an empty or unparseable silence override never silently disables the watch
 
   // The dangerous cases: Number('') and Number('  ') are both 0, which under a
   // loose parse would read as the kill switch and mute the whole feature.
-  assert.deepEqual(parseSilenceTimeoutEnv('', warn), { kind: 'default' });
-  assert.deepEqual(parseSilenceTimeoutEnv('   ', warn), { kind: 'default' });
-  assert.deepEqual(parseSilenceTimeoutEnv(undefined, warn), { kind: 'default' });
-  assert.deepEqual(parseSilenceTimeoutEnv(null, warn), { kind: 'default' });
+  assert.deepEqual(parseSilenceTimeoutEnv('', warn), {
+    kind: 'default'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv('   ', warn), {
+    kind: 'default'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv(undefined, warn), {
+    kind: 'default'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv(null, warn), {
+    kind: 'default'
+  });
   assert.equal(warnings.length, 0, 'an absent value is normal, not worth warning about');
 
-  assert.deepEqual(parseSilenceTimeoutEnv('abc', warn), { kind: 'default' });
-  assert.deepEqual(parseSilenceTimeoutEnv('-5', warn), { kind: 'default' });
-  assert.deepEqual(parseSilenceTimeoutEnv('12s', warn), { kind: 'default' });
+  assert.deepEqual(parseSilenceTimeoutEnv('abc', warn), {
+    kind: 'default'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv('-5', warn), {
+    kind: 'default'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv('12s', warn), {
+    kind: 'default'
+  });
   assert.equal(warnings.length, 3, 'each bad value says so exactly once');
   assert.match(warnings[0], /Ignoring AISSTREAM_SILENCE_TIMEOUT_MS="abc"/);
 });
 
 test('only a literal zero is the documented kill switch', () => {
-  assert.deepEqual(parseSilenceTimeoutEnv('0'), { kind: 'off' });
-  assert.deepEqual(parseSilenceTimeoutEnv(0), { kind: 'off' });
-  assert.deepEqual(parseSilenceTimeoutEnv('90000'), { kind: 'timeout', value: 90_000 });
-  assert.deepEqual(parseSilenceTimeoutEnv(' 90000 '), { kind: 'timeout', value: 90_000 });
+  assert.deepEqual(parseSilenceTimeoutEnv('0'), {
+    kind: 'off'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv(0), {
+    kind: 'off'
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv('90000'), {
+    kind: 'timeout',
+    value: 90_000
+  });
+  assert.deepEqual(parseSilenceTimeoutEnv(' 90000 '), {
+    kind: 'timeout',
+    value: 90_000
+  });
 });
 
 test('recycleAfterMs can never be tuned below staleMs', () => {
   const time = fakeClock();
-  const watchdog = createAisWatchdog({ staleMs: 60_000, recycleAfterMs: 1_000, clock: time.clock });
+  const watchdog = createAisWatchdog({
+    staleMs: 60_000,
+    recycleAfterMs: 1_000,
+    clock: time.clock
+  });
   watchdog.configure(LIVE_ENV);
   watchdog.tick();
   watchdog.onMessage(1);
