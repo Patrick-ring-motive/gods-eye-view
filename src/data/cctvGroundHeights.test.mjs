@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,7 +9,9 @@ import {
   joinGroundHeights,
   loadGroundHeights,
 } from '../../server/providers/cctv/groundHeights.js';
-import { poseHash } from './cctvFootprint.js';
+import {
+  poseHash
+} from './cctvFootprint.js';
 
 const source = (over = {}) => ({
   id: 'cam-1',
@@ -27,17 +31,33 @@ test('a shipped entry attaches only while the nominal pose still matches', () =>
     status: 'ok',
     poseHash: poseHash(s),
     mountGroundM: 151.2,
-    supports: { bl: 150.1, bm: 149.9, br: 155.5, tl: null, tm: 'x' },
+    supports: {
+      bl: 150.1,
+      bm: 149.9,
+      br: 155.5,
+      tl: null,
+      tm: 'x'
+    },
   };
-  const [joined] = joinGroundHeights([s], { 'cam-1': entry });
+  const [joined] = joinGroundHeights([s], {
+    'cam-1': entry
+  });
   assert.deepEqual(joined.groundHeights, {
     poseHash: entry.poseHash,
     mountGroundM: 151.2,
-    supports: { bl: 150.1, bm: 149.9, br: 155.5 },
+    supports: {
+      bl: 150.1,
+      bm: 149.9,
+      br: 155.5
+    },
   });
 
-  const moved = source({ lat: 30.2673 });
-  const [notJoined] = joinGroundHeights([moved], { 'cam-1': entry });
+  const moved = source({
+    lat: 30.2673
+  });
+  const [notJoined] = joinGroundHeights([moved], {
+    'cam-1': entry
+  });
   assert.equal(
     notJoined.groundHeights,
     undefined,
@@ -45,7 +65,11 @@ test('a shipped entry attaches only while the nominal pose still matches', () =>
   );
 
   const [missed] = joinGroundHeights([source()], {
-    'cam-1': { ...entry, status: 'miss', mountGroundM: null },
+    'cam-1': {
+      ...entry,
+      status: 'miss',
+      mountGroundM: null
+    },
   });
   assert.equal(missed.groundHeights, undefined, 'a miss ships nothing');
   assert.deepEqual(
@@ -57,8 +81,7 @@ test('a shipped entry attaches only while the nominal pose still matches', () =>
 test('the sidecar loads from the source root and tolerates a missing or malformed file', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gev-heights-'));
   fs.mkdirSync(
-    path.join(dir, 'src', 'data', 'local_data', 'cctv_ground_heights'),
-    {
+    path.join(dir, 'src', 'data', 'local_data', 'cctv_ground_heights'), {
       recursive: true,
     },
   );
@@ -75,7 +98,18 @@ test('the sidecar loads from the source root and tolerates a missing or malforme
   assert.deepEqual(loadGroundHeights(dir), {}, 'malformed file');
   fs.writeFileSync(
     file,
-    JSON.stringify({ schemaVersion: 1, cameras: { a: { status: 'ok' } } }),
+    JSON.stringify({
+      schemaVersion: 1,
+      cameras: {
+        a: {
+          status: 'ok'
+        }
+      }
+    }),
   );
-  assert.deepEqual(loadGroundHeights(dir), { a: { status: 'ok' } });
+  assert.deepEqual(loadGroundHeights(dir), {
+    a: {
+      status: 'ok'
+    }
+  });
 });
