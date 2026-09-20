@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
 import {
@@ -6,20 +8,39 @@ import {
   createFirmsHeatmapLayer,
   fireCullPosition,
 } from './firmsHeatmap.js';
-import { FIRE_ANCHOR_LIFT_M } from './fireAnchors.js';
-import { FIRMS_AMBIENT_COHORT_LIMIT, FIRMS_OVERLAY_SOURCE_ID } from './firmsLabels.js';
+import {
+  FIRE_ANCHOR_LIFT_M
+} from './fireAnchors.js';
+import {
+  FIRMS_AMBIENT_COHORT_LIMIT,
+  FIRMS_OVERLAY_SOURCE_ID
+} from './firmsLabels.js';
 import {
   _clearMeshFloorCellsForTest,
   reportMeshFloorCell,
   setMeshFloorPreferred,
 } from './groundFloor.js';
-import { unregisterSpriteCollection } from './spriteOrder.js';
-import { isOverlayPointVisible, normalizeOverlayEntry } from '../overlays/worldOverlay.js';
+import {
+  unregisterSpriteCollection
+} from './spriteOrder.js';
+import {
+  isOverlayPointVisible,
+  normalizeOverlayEntry
+} from '../overlays/worldOverlay.js';
 
-const AUSTIN = { lon: -97.7, lat: 30.2 };
+const AUSTIN = {
+  lon: -97.7,
+  lat: 30.2
+};
 /** Antipode of Austin — as far behind the limb as a point on Earth can be. */
-const ANTIPODE = { lon: 82.3, lat: -30.2 };
-const TOKYO = { lon: 139.7, lat: 35.7 };
+const ANTIPODE = {
+  lon: 82.3,
+  lat: -30.2
+};
+const TOKYO = {
+  lon: 139.7,
+  lat: 35.7
+};
 /** Reported repro altitude for the through-the-globe defect. */
 const REPRO_HEIGHT_M = 1_500_000;
 /**
@@ -38,14 +59,22 @@ function billboard(position, show = true) {
     position,
     _show: show,
     writes: 0,
-    get show() { return this._show; },
-    set show(value) { this._show = value; this.writes += 1; },
+    get show() {
+      return this._show;
+    },
+    set show(value) {
+      this._show = value;
+      this.writes += 1;
+    },
   };
 }
 
 /** Cesium BillboardCollection-shaped stub. */
 function collection(items) {
-  return { length: items.length, get: (i) => items[i] };
+  return {
+    length: items.length,
+    get: (i) => items[i]
+  };
 }
 
 /** Horizon occluder for a camera directly above Austin at `heightM`. */
@@ -109,7 +138,9 @@ test('applyHorizonCull: only flipped billboards are written (vertex-buffer churn
 
 test('applyHorizonCull: missing collection/occluder/holes are no-ops, not throws', () => {
   assert.equal(applyHorizonCull(null, occluderOverAustin(REPRO_HEIGHT_M)), 0);
-  assert.equal(applyHorizonCull({ length: 3 }, occluderOverAustin(REPRO_HEIGHT_M)), 0, 'non-collection shape');
+  assert.equal(applyHorizonCull({
+    length: 3
+  }, occluderOverAustin(REPRO_HEIGHT_M)), 0, 'non-collection shape');
   const item = billboard(Cesium.Cartesian3.fromDegrees(AUSTIN.lon, AUSTIN.lat, 0));
   assert.equal(applyHorizonCull(collection([item]), null), 0, 'no occluder → leave the layer alone');
   assert.equal(applyHorizonCull(collection([item]), {}), 0, 'occluder without isPointVisible');
@@ -151,7 +182,13 @@ test('fireCullPosition: negative-geoid anchor renders at the datum but culls lif
   setMeshFloorPreferred(true);
   reportMeshFloorCell(lat, lon, -27);
   try {
-    const fire = { index: 1, lat, lon, frp: 10, position: null };
+    const fire = {
+      index: 1,
+      lat,
+      lon,
+      frp: 10,
+      position: null
+    };
     const cull = fireCullPosition(fire);
     const render = fire.position;
     const renderCarto = Cesium.Cartographic.fromCartesian(render);
@@ -181,7 +218,13 @@ test('fireCullPosition: a healthy above-ellipsoid anchor is its own cull point',
   setMeshFloorPreferred(true);
   reportMeshFloorCell(lat, lon, 900);
   try {
-    const fire = { index: 2, lat, lon, frp: 10, position: null };
+    const fire = {
+      index: 2,
+      lat,
+      lon,
+      frp: 10,
+      position: null
+    };
     const cull = fireCullPosition(fire);
     assert.equal(cull, fire.position, 'no second Cartesian is allocated for the common case');
   } finally {
@@ -195,25 +238,38 @@ test('fireCullPosition: a healthy above-ellipsoid anchor is its own cull point',
 // ---------------------------------------------------------------------------
 
 test('isOverlayPointVisible: horizon test prefers entry.cullPosition when present', () => {
-  const viewport = { width: 800, height: 600 };
-  const screen = { x: 400, y: 300 };
+  const viewport = {
+    width: 800,
+    height: 600
+  };
+  const screen = {
+    x: 400,
+    y: 300
+  };
   const render = Cesium.Cartesian3.fromDegrees(AUSTIN.lon + LIMB_DLON, AUSTIN.lat, -22);
   const lifted = Cesium.Cartesian3.fromDegrees(AUSTIN.lon + LIMB_DLON, AUSTIN.lat, 12);
   const occluder = occluderOverAustin(REPRO_HEIGHT_M);
 
   assert.equal(
-    isOverlayPointVisible({ horizonCull: true }, render, screen, viewport, occluder),
+    isOverlayPointVisible({
+      horizonCull: true
+    }, render, screen, viewport, occluder),
     false,
     'baseline: the render anchor alone false-hides the card',
   );
   assert.equal(
-    isOverlayPointVisible({ horizonCull: true, cullPosition: lifted }, render, screen, viewport, occluder),
+    isOverlayPointVisible({
+      horizonCull: true,
+      cullPosition: lifted
+    }, render, screen, viewport, occluder),
     true,
     'the supplied cull position is what the horizon test uses',
   );
   assert.equal(
-    isOverlayPointVisible(
-      { horizonCull: true, cullPosition: Cesium.Cartesian3.fromDegrees(ANTIPODE.lon, ANTIPODE.lat, 12) },
+    isOverlayPointVisible({
+        horizonCull: true,
+        cullPosition: Cesium.Cartesian3.fromDegrees(ANTIPODE.lon, ANTIPODE.lat, 12)
+      },
       render,
       screen,
       viewport,
@@ -225,29 +281,64 @@ test('isOverlayPointVisible: horizon test prefers entry.cullPosition when presen
 });
 
 test('normalizeOverlayEntry: carries a valid cullPosition, nulls a junk one', () => {
-  const position = { x: 1, y: 2, z: 3 };
-  const kept = normalizeOverlayEntry('firms', { id: 'a', position, cullPosition: { x: 4, y: 5, z: 6 } });
+  const position = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
+  const kept = normalizeOverlayEntry('firms', {
+    id: 'a',
+    position,
+    cullPosition: {
+      x: 4,
+      y: 5,
+      z: 6
+    }
+  });
   assert.ok(kept.cullPosition instanceof Cesium.Cartesian3, 'stored as a host-owned Cartesian3');
   assert.deepEqual(
     [kept.cullPosition.x, kept.cullPosition.y, kept.cullPosition.z],
     [4, 5, 6],
   );
-  const dropped = normalizeOverlayEntry('firms', { id: 'b', position, cullPosition: { x: NaN, y: 5, z: 6 } });
+  const dropped = normalizeOverlayEntry('firms', {
+    id: 'b',
+    position,
+    cullPosition: {
+      x: NaN,
+      y: 5,
+      z: 6
+    }
+  });
   assert.equal(dropped.cullPosition, null, 'a malformed cull point falls back to the render position');
-  const notAnObject = normalizeOverlayEntry('firms', { id: 'b2', position, cullPosition: 42 });
+  const notAnObject = normalizeOverlayEntry('firms', {
+    id: 'b2',
+    position,
+    cullPosition: 42
+  });
   assert.equal(notAnObject.cullPosition, null, 'a non-object cull point is rejected');
   // Non-adopting sources keep their existing BEHAVIOUR and steady-frame
   // allocation profile; the normalized record does gain an enumerable
   // `cullPosition: null` field, which is why this asserts null rather than
   // absence.
-  const absent = normalizeOverlayEntry('firms', { id: 'c', position });
+  const absent = normalizeOverlayEntry('firms', {
+    id: 'c',
+    position
+  });
   assert.equal(absent.cullPosition, null, 'sources that do not opt in resolve to no cull anchor');
 });
 
 test('normalizeOverlayEntry: the stored cull anchor is a snapshot, not the caller object', () => {
-  const position = { x: 1, y: 2, z: 3 };
+  const position = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
   const caller = new Cesium.Cartesian3(4, 5, 6);
-  const normalized = normalizeOverlayEntry('firms', { id: 'a', position, cullPosition: caller });
+  const normalized = normalizeOverlayEntry('firms', {
+    id: 'a',
+    position,
+    cullPosition: caller
+  });
   assert.notEqual(normalized.cullPosition, caller, 'the host must not retain the caller reference');
 
   // Sources legitimately recycle scratch vectors between publishes; a mutation
@@ -262,7 +353,11 @@ test('normalizeOverlayEntry: the stored cull anchor is a snapshot, not the calle
 });
 
 test('normalizeOverlayEntry: an accessor-backed cullPosition is read exactly once', () => {
-  const position = { x: 1, y: 2, z: 3 };
+  const position = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
   let reads = 0;
   const entry = {
     id: 'a',
@@ -281,12 +376,18 @@ test('normalizeOverlayEntry: an accessor-backed cullPosition is read exactly onc
 });
 
 test('normalizeOverlayEntry: a throwing cullPosition accessor does not abort normalization', () => {
-  const position = { x: 1, y: 2, z: 3 };
+  const position = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
   const entry = {
     id: 'a',
     position,
     title: 'still normalized',
-    get cullPosition() { throw new Error('hostile accessor'); },
+    get cullPosition() {
+      throw new Error('hostile accessor');
+    },
   };
   const normalized = normalizeOverlayEntry('firms', entry);
   assert.equal(normalized.cullPosition, null, 'the bad anchor degrades to null');
@@ -299,9 +400,16 @@ test('normalizeOverlayEntry: a throwing cullPosition accessor does not abort nor
 // ---------------------------------------------------------------------------
 
 class MockEvent {
-  constructor() { this.listeners = new Set(); }
-  addEventListener(listener) { this.listeners.add(listener); return () => this.listeners.delete(listener); }
-  emit() { for (const listener of [...this.listeners]) listener(); }
+  constructor() {
+    this.listeners = new Set();
+  }
+  addEventListener(listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+  emit() {
+    for (const listener of [...this.listeners]) listener();
+  }
 }
 
 /** Canvas stub good enough for the pre-baked glow sprites. */
@@ -310,7 +418,9 @@ function canvasStub() {
     width: 0,
     height: 0,
     getContext: () => ({
-      createRadialGradient: () => ({ addColorStop() {} }),
+      createRadialGradient: () => ({
+        addColorStop() {}
+      }),
       fillStyle: null,
       fillRect() {},
     }),
@@ -348,10 +458,15 @@ function createHarness(rawFires) {
   globalThis.fetch = async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ fires: rawFires, fetchedAt: Date.now() }),
+    json: async () => ({
+      fires: rawFires,
+      fetchedAt: Date.now()
+    }),
   });
   globalThis.window = globalThis.window || {};
-  globalThis.document = { createElement: () => canvasStub() };
+  globalThis.document = {
+    createElement: () => canvasStub()
+  };
 
   // Deterministic projection: every distinct world position gets its own
   // 200 px grid slot (well clear of LABEL_MIN_SEP_PX) inside a 2000×2000
@@ -371,22 +486,36 @@ function createHarness(rawFires) {
   const primitives = [];
   const entryCalls = [];
   const viewer = {
-    dataSources: { add: (value) => value, remove: () => {} },
+    dataSources: {
+      add: (value) => value,
+      remove: () => {}
+    },
     camera: {
       moveEnd,
       positionWC: Cesium.Cartesian3.fromDegrees(AUSTIN.lon, AUSTIN.lat, REPRO_HEIGHT_M),
       directionWC: new Cesium.Cartesian3(0, 0, -1),
-      positionCartographic: { height: REPRO_HEIGHT_M },
+      positionCartographic: {
+        height: REPRO_HEIGHT_M
+      },
     },
     scene: {
-      canvas: { clientWidth: 2000, clientHeight: 2000 },
+      canvas: {
+        clientWidth: 2000,
+        clientHeight: 2000
+      },
       preRender,
       primitives: {
-        add: (value) => { primitives.push(value); return value; },
+        add: (value) => {
+          primitives.push(value);
+          return value;
+        },
         remove: () => {},
         contains: () => false,
       },
-      frameState: { mode: Cesium.SceneMode.SCENE3D, mapProjection: new Cesium.GeographicProjection() },
+      frameState: {
+        mode: Cesium.SceneMode.SCENE3D,
+        mapProjection: new Cesium.GeographicProjection()
+      },
       mapProjection: new Cesium.GeographicProjection(),
     },
   };
@@ -399,7 +528,10 @@ function createHarness(rawFires) {
       setVisible: () => {},
       clearSource: () => {},
     },
-    screenSpaceEventHandlerFactory: () => ({ setInputAction() {}, destroy() {} }),
+    screenSpaceEventHandlerFactory: () => ({
+      setInputAction() {},
+      destroy() {}
+    }),
   });
 
   return {
@@ -420,15 +552,19 @@ function createHarness(rawFires) {
     },
     moveCameraTo(lon, lat, height = REPRO_HEIGHT_M) {
       viewer.camera.positionWC = Cesium.Cartesian3.fromDegrees(lon, lat, height);
-      viewer.camera.positionCartographic = { height };
+      viewer.camera.positionCartographic = {
+        height
+      };
     },
     cleanup() {
       layer.destroy(viewer);
       unregisterSpriteCollection('firms');
       Cesium.SceneTransforms.worldToWindowCoordinates = originalProject;
       globalThis.fetch = originalFetch;
-      if (originalWindow === undefined) delete globalThis.window; else globalThis.window = originalWindow;
-      if (originalDocument === undefined) delete globalThis.document; else globalThis.document = originalDocument;
+      if (originalWindow === undefined) delete globalThis.window;
+      else globalThis.window = originalWindow;
+      if (originalDocument === undefined) delete globalThis.document;
+      else globalThis.document = originalDocument;
     },
   };
 }
@@ -488,7 +624,9 @@ test('layer: the throttled preRender watcher re-culls on a camera move', async (
     // start-up — so emit, wait out the full throttle window, and emit again.
     // Whichever tick passes the gate, one of them must run the pass.
     harness.preRender.emit();
-    await new Promise((resolve) => { setTimeout(resolve, 700); });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 700);
+    });
     harness.preRender.emit();
 
     const show = harness.showById();
