@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { LAUNCH_PAD_ZONE_RADIUS_M } from './policy.js';
+import {
+  LAUNCH_PAD_ZONE_RADIUS_M
+} from './policy.js';
 
 export function createLaunchPad({
   state: layerState,
@@ -54,8 +56,7 @@ export function createLaunchPad({
       semiMajorAxis: LAUNCH_PAD_ZONE_RADIUS_M,
       semiMinorAxis: LAUNCH_PAD_ZONE_RADIUS_M,
       granularity: Cesium.Math.toRadians(0.08),
-      vertexFormat:
-        Cesium.MaterialAppearance.MaterialSupport.TEXTURED.vertexFormat,
+      vertexFormat: Cesium.MaterialAppearance.MaterialSupport.TEXTURED.vertexFormat,
     });
     layerState._launchPadZonePrimitive =
       layerState._viewer.scene.primitives.add(
