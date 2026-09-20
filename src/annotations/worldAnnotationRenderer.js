@@ -57,7 +57,10 @@ export function createWorldAnnotationRenderer(viewer) {
   }
 
   // A live color that follows the annotation's fade alpha and an optional pulse.
-  function liveColor(anno, base, { alpha = 0.9, pulse = false } = {}) {
+  function liveColor(anno, base, {
+    alpha = 0.9,
+    pulse = false
+  } = {}) {
     return new Cesium.CallbackProperty(() => {
       const a = (anno.alpha ?? 1) * alpha * (pulse ? pulseFactor() : 1);
       return base.withAlpha(Math.max(0, Math.min(1, a)));
@@ -81,8 +84,8 @@ export function createWorldAnnotationRenderer(viewer) {
       // actual tiles. A faint wireframe cage rides on top as a secondary cue.
       const buffered = bufferRing(anno.ring, 3);
       const positions = Cesium.Cartesian3.fromDegreesArray(buffered.flat());
-      const groundH = sampleGroundOutside(viewer.scene, anno.ring)
-        ?? (Number.isFinite(anno.anchor.height) ? anno.anchor.height - (anno.buildingHeight || 25) : 0);
+      const groundH = sampleGroundOutside(viewer.scene, anno.ring) ??
+        (Number.isFinite(anno.anchor.height) ? anno.anchor.height - (anno.buildingHeight || 25) : 0);
       const baseH = groundH - 3;
       // Tall headroom is free: classification only colors where tiles exist, so
       // empty air above the roof isn't tinted — this just guarantees we cover
@@ -96,7 +99,10 @@ export function createWorldAnnotationRenderer(viewer) {
           extrudedHeight: topH,
           perPositionHeight: false,
           classificationType: CLASSIFY,
-          material: new Cesium.ColorMaterialProperty(liveColor(anno, base, { alpha: 0.45, pulse: true })),
+          material: new Cesium.ColorMaterialProperty(liveColor(anno, base, {
+            alpha: 0.45,
+            pulse: true
+          })),
         },
       }));
       // 2) Faint, SIMPLIFIED wireframe cage — secondary, lower opacity. Decimate
@@ -111,7 +117,10 @@ export function createWorldAnnotationRenderer(viewer) {
           perPositionHeight: false,
           fill: false,
           outline: true,
-          outlineColor: liveColor(anno, base, { alpha: 0.32, pulse: true }),
+          outlineColor: liveColor(anno, base, {
+            alpha: 0.32,
+            pulse: true
+          }),
         },
       }));
       // 3) Crisp draped base outline so the footprint reads on the ground.
@@ -119,12 +128,19 @@ export function createWorldAnnotationRenderer(viewer) {
         polyline: {
           positions,
           width: 3,
-          material: new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.25, color: liveColor(anno, base, { alpha: 0.7 }) }),
+          material: new Cesium.PolylineGlowMaterialProperty({
+            glowPower: 0.25,
+            color: liveColor(anno, base, {
+              alpha: 0.7
+            })
+          }),
           clampToGround: true,
           classificationType: CLASSIFY,
         },
       }));
-      if (anno.label) entities.push(labelMarker(anno, base, { point: false }));
+      if (anno.label) entities.push(labelMarker(anno, base, {
+        point: false
+      }));
     } else if (anno.ring && anno.ring.length >= 3) {
       // Larger area (district / compound / park) → flat fill draped on the tiles
       // + a glowing outline. Draping is right here: you can't extrude a whole
@@ -134,7 +150,10 @@ export function createWorldAnnotationRenderer(viewer) {
         polygon: {
           hierarchy: new Cesium.PolygonHierarchy(fillPositions),
           // Synthesized (approximate) areas get a fainter fill so they don't read as solid.
-          material: new Cesium.ColorMaterialProperty(liveColor(anno, base, { alpha: anno.synthesized ? 0.10 : 0.20, pulse: true })),
+          material: new Cesium.ColorMaterialProperty(liveColor(anno, base, {
+            alpha: anno.synthesized ? 0.10 : 0.20,
+            pulse: true
+          })),
           classificationType: CLASSIFY,
         },
       }));
@@ -144,14 +163,26 @@ export function createWorldAnnotationRenderer(viewer) {
           width: 6,
           // Synthesized → DASHED outline (signals "approximate, not an authoritative
           // boundary", research §8.4/§8.6); real footprints → solid glow.
-          material: anno.synthesized
-            ? new Cesium.PolylineDashMaterialProperty({ color: liveColor(anno, base, { alpha: 0.95 }), dashLength: 24 })
-            : new Cesium.PolylineGlowMaterialProperty({ glowPower: 0.35, color: liveColor(anno, base, { alpha: 1 }) }),
+          material: anno.synthesized ?
+            new Cesium.PolylineDashMaterialProperty({
+              color: liveColor(anno, base, {
+                alpha: 0.95
+              }),
+              dashLength: 24
+            }) :
+            new Cesium.PolylineGlowMaterialProperty({
+              glowPower: 0.35,
+              color: liveColor(anno, base, {
+                alpha: 1
+              })
+            }),
           clampToGround: true,
           classificationType: CLASSIFY,
         },
       }));
-      if (anno.label) entities.push(labelMarker(anno, base, { point: false }));
+      if (anno.label) entities.push(labelMarker(anno, base, {
+        point: false
+      }));
     } else if (anno.type === 'route' && Array.isArray(anno.path) && anno.path.length >= 2) {
       // A real path (street-following) draped on the 3D tiles, with dashes that
       // FLOW toward the destination (custom st.s + time material; works on the
@@ -168,7 +199,9 @@ export function createWorldAnnotationRenderer(viewer) {
           classificationType: CLASSIFY,
         },
       }));
-      if (anno.label) entities.push(labelMarker(anno, base, { point: false }));
+      if (anno.label) entities.push(labelMarker(anno, base, {
+        point: false
+      }));
     } else if (anno.type === 'arrow' && anno.to) {
       // Connector draped across the ground from origin to destination.
       const positions = [
@@ -179,7 +212,9 @@ export function createWorldAnnotationRenderer(viewer) {
         polyline: {
           positions,
           width: 16,
-          material: new Cesium.PolylineArrowMaterialProperty(liveColor(anno, base, { alpha: 0.95 })),
+          material: new Cesium.PolylineArrowMaterialProperty(liveColor(anno, base, {
+            alpha: 0.95
+          })),
           clampToGround: true,
           classificationType: CLASSIFY,
         },
@@ -205,24 +240,35 @@ export function createWorldAnnotationRenderer(viewer) {
           ellipse: {
             semiMajorAxis: new Cesium.CallbackProperty(ringRadius, false),
             semiMinorAxis: new Cesium.CallbackProperty(ringRadius, false),
-            material: new Cesium.ColorMaterialProperty(liveColor(anno, base, { alpha: 0.38, pulse: true })),
+            material: new Cesium.ColorMaterialProperty(liveColor(anno, base, {
+              alpha: 0.38,
+              pulse: true
+            })),
             outline: false,
             classificationType: CLASSIFY,
           },
         }));
       }
-      entities.push(labelMarker(anno, base, { point: true }));
+      entities.push(labelMarker(anno, base, {
+        point: true
+      }));
     }
   }
 
   // A clamped point + (optional) label that sits on the tile surface.
-  function labelMarker(anno, base, { point }) {
+  function labelMarker(anno, base, {
+    point
+  }) {
     return dataSource.entities.add({
       position: Cesium.Cartesian3.fromDegrees(anno.anchor.lon, anno.anchor.lat),
       point: point ? {
         pixelSize: anno.type === 'label' ? 8 : 14,
-        color: liveColor(anno, base, { alpha: 1 }),
-        outlineColor: liveColor(anno, Cesium.Color.WHITE, { alpha: 0.95 }),
+        color: liveColor(anno, base, {
+          alpha: 1
+        }),
+        outlineColor: liveColor(anno, Cesium.Color.WHITE, {
+          alpha: 0.95
+        }),
         outlineWidth: 3,
         heightReference: CLAMP,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -235,8 +281,12 @@ export function createWorldAnnotationRenderer(viewer) {
     return {
       text: anno.label,
       font: '600 14px "Inter", system-ui, sans-serif',
-      fillColor: liveColor(anno, Cesium.Color.WHITE, { alpha: 1 }),
-      outlineColor: liveColor(anno, Cesium.Color.BLACK, { alpha: 0.85 }),
+      fillColor: liveColor(anno, Cesium.Color.WHITE, {
+        alpha: 1
+      }),
+      outlineColor: liveColor(anno, Cesium.Color.BLACK, {
+        alpha: 0.85
+      }),
       outlineWidth: 3,
       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
       verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
@@ -277,7 +327,12 @@ export function createWorldAnnotationRenderer(viewer) {
     }
   }
 
-  return { add, remove, sync, destroy };
+  return {
+    add,
+    remove,
+    sync,
+    destroy
+  };
 }
 
 function pulseFactor() {
@@ -344,8 +399,16 @@ function FlowMaterialProperty(colorCss) {
   this._definitionChanged = new Cesium.Event();
 }
 Object.defineProperties(FlowMaterialProperty.prototype, {
-  isConstant: { get() { return false; } }, // re-evaluated each frame → it animates
-  definitionChanged: { get() { return this._definitionChanged; } },
+  isConstant: {
+    get() {
+      return false;
+    }
+  }, // re-evaluated each frame → it animates
+  definitionChanged: {
+    get() {
+      return this._definitionChanged;
+    }
+  },
 });
 FlowMaterialProperty.prototype.getType = function getType() {
   return 'GevRouteFlow';
@@ -384,7 +447,10 @@ function sampleGroundOutside(scene, ring) {
   if (!scene?.clampToHeightSupported || typeof scene.clampToHeight !== 'function') return null;
   let clon = 0;
   let clat = 0;
-  for (const [lon, lat] of ring) { clon += lon; clat += lat; }
+  for (const [lon, lat] of ring) {
+    clon += lon;
+    clat += lat;
+  }
   clon /= ring.length;
   clat /= ring.length;
   const latS = 111320;
@@ -394,7 +460,16 @@ function sampleGroundOutside(scene, ring) {
     maxR = Math.max(maxR, Math.hypot((lon - clon) * lonS, (lat - clat) * latS));
   }
   const out = maxR * 1.5 + 12;
-  const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7]];
+  const dirs = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+    [0.7, 0.7],
+    [-0.7, -0.7],
+    [0.7, -0.7],
+    [-0.7, 0.7]
+  ];
   const samples = [];
   for (const [dx, dy] of dirs) {
     const lon = clon + (dx * out) / lonS;
@@ -405,7 +480,8 @@ function sampleGroundOutside(scene, ring) {
         const h = Cesium.Cartographic.fromCartesian(c).height;
         if (Number.isFinite(h) && h > -430 && h < 9000) samples.push(h);
       }
-    } catch { /* tile not ready */ }
+    } catch {
+      /* tile not ready */ }
   }
   if (!samples.length) return null;
   samples.sort((a, b) => a - b);
@@ -420,7 +496,10 @@ function sampleGroundOutside(scene, ring) {
 function bufferRing(ring, meters) {
   let clon = 0;
   let clat = 0;
-  for (const [lon, lat] of ring) { clon += lon; clat += lat; }
+  for (const [lon, lat] of ring) {
+    clon += lon;
+    clat += lat;
+  }
   clon /= ring.length;
   clat /= ring.length;
   const latScale = 111320;
