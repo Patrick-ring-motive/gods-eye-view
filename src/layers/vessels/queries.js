@@ -15,8 +15,12 @@ export function createQueries({
   layer,
   options,
 }) {
-  const { state } = vesselState;
-  const { formatKnots } = services.labels;
+  const {
+    state
+  } = vesselState;
+  const {
+    formatKnots
+  } = services.labels;
 
   /**
    * Seconds until the server's next reconnect attempt, or 0 when none is
@@ -48,16 +52,16 @@ export function createQueries({
     }
     if (status === 'stale') {
       const silentSec = Math.round(Number(payload?.silentForMs) / 1000);
-      return Number.isFinite(silentSec) && silentSec > 0
-        ? `feed silent ${silentSec}s — no AIS data`
-        : 'feed silent — no AIS data';
+      return Number.isFinite(silentSec) && silentSec > 0 ?
+        `feed silent ${silentSec}s — no AIS data` :
+        'feed silent — no AIS data';
     }
     const attempt = Number(payload?.reconnectAttempt);
     const suffix =
       Number.isFinite(attempt) && attempt >= 1 ? ` (attempt ${attempt})` : '';
-    return status === 'down'
-      ? `feed down — retrying slowly${suffix}`
-      : `reconnecting to feed…${suffix}`;
+    return status === 'down' ?
+      `feed down — retrying slowly${suffix}` :
+      `reconnecting to feed…${suffix}`;
   }
 
   /**
@@ -81,19 +85,19 @@ export function createQueries({
     }
     if (acceptedRowCount > 0) return null; // accepted rows may be stale while reconnecting, but remain usable
     if (AIS_HEALTHY_STATUSES.has(status)) {
-      return payload?.lastMessageAt
-        ? 'awaiting usable AIS positions…'
-        : 'awaiting first AIS message…';
+      return payload?.lastMessageAt ?
+        'awaiting usable AIS positions…' :
+        'awaiting first AIS message…';
     }
     if (!status) return null;
     const detail =
-      typeof payload.error === 'string' && payload.error.trim()
-        ? payload.error.trim()
-        : '';
+      typeof payload.error === 'string' && payload.error.trim() ?
+      payload.error.trim() :
+      '';
     const reason = AIS_STATUS_REASON[status] || 'feed unavailable';
-    return detail && !AIS_STATUS_REASON[status]
-      ? `${reason} (${detail})`
-      : reason;
+    return detail && !AIS_STATUS_REASON[status] ?
+      `${reason} (${detail})` :
+      reason;
   }
 
   /** True when a raw AIS row can enter the production vessel normalizer. */
@@ -124,14 +128,12 @@ export function createQueries({
       lastMessageAt,
       rawRows,
       acceptedRows,
-      rawRowCount:
-        Number.isInteger(payload?.rawRowCount) &&
-        payload.rawRowCount >= rawRows.length
-          ? payload.rawRowCount
-          : rawRows.length,
+      rawRowCount: Number.isInteger(payload?.rawRowCount) &&
+        payload.rawRowCount >= rawRows.length ?
+        payload.rawRowCount :
+        rawRows.length,
       acceptedRowCount,
-      error:
-        deriveAisFeedError(payload, acceptedRowCount) ||
+      error: deriveAisFeedError(payload, acceptedRowCount) ||
         (acceptedRowCount === 0 ? 'awaiting usable AIS positions…' : null),
     };
   }
@@ -203,18 +205,32 @@ export function createQueries({
     const gesture = input.gesture || 'click';
 
     if (gesture === 'escape') {
-      return selectedMmsi ? { action: 'deselect' } : { action: 'none' };
+      return selectedMmsi ? {
+        action: 'deselect'
+      } : {
+        action: 'none'
+      };
     }
     if (gesture !== 'click') {
-      return { action: 'none' };
+      return {
+        action: 'none'
+      };
     }
     if (pickedMmsi) {
       if (pickedMmsi === selectedMmsi) {
-        return { action: 'none' };
+        return {
+          action: 'none'
+        };
       }
-      return { action: 'select' };
+      return {
+        action: 'select'
+      };
     }
-    return selectedMmsi ? { action: 'deselect' } : { action: 'none' };
+    return selectedMmsi ? {
+      action: 'deselect'
+    } : {
+      action: 'none'
+    };
   }
 
   function normalizeSelectionMmsi(value) {
@@ -262,8 +278,8 @@ export function createQueries({
         record =
           records.find((r) =>
             String(r.name || '')
-              .toLowerCase()
-              .includes(lower),
+            .toLowerCase()
+            .includes(lower),
           ) || null;
       }
       if (!record) return null;
@@ -373,9 +389,9 @@ export function createQueries({
       if (!state.enabled) return [];
       const records = state.vesselRecords;
       if (!Array.isArray(records) || !records.length) return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 2000;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        2000;
       const result = [];
       for (const record of records) {
         if (result.length >= limit) break;
@@ -446,9 +462,9 @@ export function createQueries({
       const records = state.vesselRecords;
       if (!Array.isArray(records) || !records.length) return [];
 
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : records.length;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        records.length;
       const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
       // Deterministic stride: evenly space selections across the record list
       const stride = Math.max(1, Math.ceil(records.length / maxCount));
@@ -468,9 +484,9 @@ export function createQueries({
           id: record.name || record.mmsi || 'VESSEL',
           type: 'SEA',
           skipLabel: record === selected,
-          klass: record.type
-            ? String(record.type).toUpperCase().slice(0, 14)
-            : undefined,
+          klass: record.type ?
+            String(record.type).toUpperCase().slice(0, 14) :
+            undefined,
           metric: formatKnots(record.speed), // record.speed is knots
         });
         if (result.length >= maxCount) break;
@@ -478,14 +494,14 @@ export function createQueries({
       return result;
     },
 
-    ...(FOCUS_EVIDENCE_DEV
-      ? {
-          __focusEvidence: Object.freeze({
-            setVessels: components.evidence._setFocusEvidenceVessels,
-            snapshot: components.evidence._focusEvidenceVesselSnapshot,
-          }),
-        }
-      : {}),
+    ...(FOCUS_EVIDENCE_DEV ?
+      {
+        __focusEvidence: Object.freeze({
+          setVessels: components.evidence._setFocusEvidenceVessels,
+          snapshot: components.evidence._focusEvidenceVesselSnapshot,
+        }),
+      } :
+      {}),
 
     getStats() {
       const waitingForFirstPosition = state.firstConnectPhase === 'loading';
@@ -493,13 +509,12 @@ export function createQueries({
         count: state.count,
         lastUpdate: state.lastUpdate,
         loading: state.loading || waitingForFirstPosition,
-        loadingLabel: waitingForFirstPosition
-          ? AIS_FIRST_CONNECT_LABEL
-          : state.loadingLabel,
+        loadingLabel: waitingForFirstPosition ?
+          AIS_FIRST_CONNECT_LABEL :
+          state.loadingLabel,
         error: state.error,
         stale: state.stale,
-        status:
-          state.firstConnectPhase === 'unavailable' ? 'unavailable' : undefined,
+        status: state.firstConnectPhase === 'unavailable' ? 'unavailable' : undefined,
         transportStatus: state.transportStatus,
         lastMessageAt: state.lastMessageAt,
         rawRowCount: state.rawRowCount,
