@@ -1,19 +1,24 @@
 #!/usr/bin/env node
+
 /**
  * Credentialed AI voice acceptance using a prerecorded Chromium microphone.
  *
  * Run: node scripts/qa-voice-wav.mjs http://localhost:4189
  */
-import { createHash } from 'node:crypto';
+import {
+  createHash
+} from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import puppeteer from 'puppeteer';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const appUrl = process.argv[2] || 'http://localhost:4189';
-const wavPath = process.argv[3]
-  || path.join(repoRoot, 'scripts', 'fixtures', 'voice', 'full-globe-turn-on-radio.wav');
+const wavPath = process.argv[3] ||
+  path.join(repoRoot, 'scripts', 'fixtures', 'voice', 'full-globe-turn-on-radio.wav');
 const expectedFixtureSha256 = 'b57af70db1922b72fec2c6c58348ccd3309e10aa1e8edec2890277dff26cc7bb';
 
 if (!wavPath || !fs.existsSync(wavPath)) {
@@ -48,7 +53,11 @@ try {
   const context = browser.defaultBrowserContext();
   await context.overridePermissions(appOrigin, ['microphone']);
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1
+  });
 
   const consoleErrors = [];
   page.on('console', (message) => {
@@ -56,11 +65,16 @@ try {
   });
   page.on('pageerror', (error) => consoleErrors.push(error.message));
 
-  await page.goto(appUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await page.goto(appUrl, {
+    waitUntil: 'domcontentloaded',
+    timeout: 30_000
+  });
   await page.waitForFunction(() => (
-    window.__godsEyeView?.voiceCommands
-    && document.getElementById('gev-voice-button')
-  ), { timeout: 30_000 });
+    window.__godsEyeView?.voiceCommands &&
+    document.getElementById('gev-voice-button')
+  ), {
+    timeout: 30_000
+  });
 
   const readState = () => page.evaluate(() => {
     const voice = window.__godsEyeView?.voiceCommands;
@@ -104,19 +118,19 @@ try {
       lastSignature = signature;
     }
     if (
-      finalState.voiceStatus === 'idle'
-      && finalState.radioAudioState === 'playing'
-      && finalState.radioVoiceDucked === false
-      && Number(finalState.cameraHeightM) >= 10_000_000
+      finalState.voiceStatus === 'idle' &&
+      finalState.radioAudioState === 'playing' &&
+      finalState.radioVoiceDucked === false &&
+      Number(finalState.cameraHeightM) >= 10_000_000
     ) break;
     if (finalState.voiceStatus === 'error') break;
   }
 
   const result = {
-    ok: finalState.voiceStatus === 'idle'
-      && finalState.radioAudioState === 'playing'
-      && finalState.radioVoiceDucked === false
-      && Number(finalState.cameraHeightM) >= 10_000_000,
+    ok: finalState.voiceStatus === 'idle' &&
+      finalState.radioAudioState === 'playing' &&
+      finalState.radioVoiceDucked === false &&
+      Number(finalState.cameraHeightM) >= 10_000_000,
     fixture: wavPath,
     fixtureSha256,
     appUrl,
