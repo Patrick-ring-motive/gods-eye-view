@@ -1,6 +1,10 @@
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import test from 'node:test';
 import {
   shouldExpandGlobalContextPanel,
