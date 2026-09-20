@@ -1,6 +1,10 @@
 import path from 'node:path';
-import { promises as fsp } from 'node:fs';
-import { celestrakTleUrl } from '../../../src/data/spaceProviderRequests.js';
+import {
+  promises as fsp
+} from 'node:fs';
+import {
+  celestrakTleUrl
+} from '../../../src/data/spaceProviderRequests.js';
 
 /**
  * Vite plugin: CelesTrak TLE proxy.
@@ -41,7 +45,9 @@ export function celestrakProxy() {
 
   async function writeDisk(group, entry) {
     try {
-      await fsp.mkdir(CACHE_DIR, { recursive: true });
+      await fsp.mkdir(CACHE_DIR, {
+        recursive: true
+      });
       await fsp.writeFile(diskPath(group), JSON.stringify(entry), 'utf8');
     } catch (err) {
       console.warn('[celestrak-proxy] cache write failed');
@@ -55,15 +61,17 @@ export function celestrakProxy() {
       // CelesTrak 403s bulk groups (e.g. `active`) unless the request carries a
       // descriptive User-Agent with a contact point.
       headers: {
-        'User-Agent':
-          'gods-eye-view-celestrak-proxy/1.0 (+https://github.com/bilawalsidhu/gods-eye-view)',
+        'User-Agent': 'gods-eye-view-celestrak-proxy/1.0 (+https://github.com/bilawalsidhu/gods-eye-view)',
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = await res.text();
     // An upstream error page parses to zero TLEs — treat as failure, keep cache.
     if (!/^1 /m.test(body)) throw new Error('no TLE lines in response');
-    return { at: Date.now(), body };
+    return {
+      at: Date.now(),
+      body
+    };
   }
 
   const installMiddleware = (server) => {
@@ -72,7 +80,9 @@ export function celestrakProxy() {
         .replace(/^\//, '')
         .split('?')[0];
       if (!/^[a-z0-9-]+$/i.test(group)) {
-        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.writeHead(400, {
+          'Content-Type': 'text/plain'
+        });
         res.end('invalid group');
         return;
       }
@@ -103,18 +113,18 @@ export function celestrakProxy() {
           inflight.set(
             group,
             fetchUpstream(group)
-              .then(async (fresh) => {
-                mem.set(group, fresh);
-                await writeDisk(group, fresh);
-                return fresh;
-              })
-              .catch((err) => {
-                console.warn(
-                  '[celestrak-proxy] refresh failed — serving cache if any',
-                );
-                return null;
-              })
-              .finally(() => inflight.delete(group)),
+            .then(async (fresh) => {
+              mem.set(group, fresh);
+              await writeDisk(group, fresh);
+              return fresh;
+            })
+            .catch((err) => {
+              console.warn(
+                '[celestrak-proxy] refresh failed — serving cache if any',
+              );
+              return null;
+            })
+            .finally(() => inflight.delete(group)),
           );
         }
         const fresh = await inflight.get(group);
