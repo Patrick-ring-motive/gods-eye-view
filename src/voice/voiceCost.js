@@ -103,9 +103,9 @@ export function resolveVoiceModel(tier) {
   // ('constructor', 'toString', '__proto__') resolve to truthy Object.prototype
   // members, which would sail past a `||` fallback and hand the token endpoint
   // a bogus entry whose `.id` is undefined.
-  return isKnownVoiceTier(tier)
-    ? VOICE_MODELS[String(tier).trim().toLowerCase()]
-    : VOICE_MODELS[DEFAULT_VOICE_TIER];
+  return isKnownVoiceTier(tier) ?
+    VOICE_MODELS[String(tier).trim().toLowerCase()] :
+    VOICE_MODELS[DEFAULT_VOICE_TIER];
 }
 
 /** True only for a tier name this build knows (own properties only). */
@@ -143,7 +143,10 @@ export function mostExpensiveVoiceModel() {
 export function resolveVoiceModelById(modelId) {
   const id = typeof modelId === 'string' ? modelId.trim() : '';
   for (const entry of Object.values(VOICE_MODELS)) {
-    if (entry.id === id) return { ...entry, recognized: true };
+    if (entry.id === id) return {
+      ...entry,
+      recognized: true
+    };
   }
   const worst = mostExpensiveVoiceModel();
   return {
@@ -367,9 +370,12 @@ export function formatCostUsd(usd) {
  *          limits?: {warnUsd?: number, capUsd?: number}}} [options]
  */
 export function createVoiceCostTracker(options = {}) {
-  const model = options.modelId
-    ? resolveVoiceModelById(options.modelId)
-    : { ...resolveVoiceModel(options.tier), recognized: true };
+  const model = options.modelId ?
+    resolveVoiceModelById(options.modelId) :
+    {
+      ...resolveVoiceModel(options.tier),
+      recognized: true
+    };
   const limits = normalizeCostLimits(options.limits);
 
   let totalUsd = 0;
@@ -409,9 +415,9 @@ export function createVoiceCostTracker(options = {}) {
     /** Compact chip text. The '*' is a see-note mark, NOT a direction claim. */
     display: formatCostUsd(totalUsd) + (incomplete ? '*' : ''),
     /** Prose for the tooltip; null when the accounting is complete. */
-    note: incomplete
-      ? 'Estimate is incomplete — a response was still in flight when the session ended, so its usage was never reported.'
-      : null,
+    note: incomplete ?
+      'Estimate is incomplete — a response was still in flight when the session ended, so its usage was never reported.' :
+      null,
   });
 
   return {
