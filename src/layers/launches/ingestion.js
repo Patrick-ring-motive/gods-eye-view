@@ -1,4 +1,7 @@
-import { MAX_POST_TLE_RETRIES, POST_TLE_RETRY_DELAY_MS } from './policy.js';
+import {
+  MAX_POST_TLE_RETRIES,
+  POST_TLE_RETRY_DELAY_MS
+} from './policy.js';
 
 export function createIngestion({
   state: layerState,
@@ -64,7 +67,9 @@ export function createIngestion({
     )
       return layerState._activeTlePromise;
     const request = source
-      .getActiveTle({ signal: layerState._sourceController.signal })
+      .getActiveTle({
+        signal: layerState._sourceController.signal
+      })
       .then((text) => {
         if (!layerState._enabled || token !== layerState._lifecycleToken)
           return null;
@@ -101,8 +106,7 @@ export function createIngestion({
     layerState._satelliteStateBeforeMission = {
       // Effective visibility: a user enable still mid-activation is intent ON —
       // capturing settled false would restore the user's enable away on exit.
-      enabled:
-        layerState._dataManager.isEffectivelyEnabled?.('satellites') ??
+      enabled: layerState._dataManager.isEffectivelyEnabled?.('satellites') ??
         layerState._dataManager.isEnabled('satellites'),
       params: parts.policyHelpers.satelliteParamsAfterSpaceMissions(
         layerState._dataManager.getLayerParams('satellites'),
