@@ -1,4 +1,6 @@
-import { readResponseTextCapped } from './common/http.js';
+import {
+  readResponseTextCapped
+} from './common/http.js';
 import {
   isAllowedGbfsHost,
   isAllowedGbfsPath,
@@ -44,8 +46,7 @@ function gbfsRedirectHost(location, requestUrl) {
  * @returns {Promise<{status:number,contentType:string,body:string}>}
  */
 export async function fetchGbfsUpstream(
-  url,
-  {
+  url, {
     fetchImpl = fetch,
     timeoutMs = GBFS_PROXY_TIMEOUT_MS,
     maxBytes = GBFS_MAX_BODY_BYTES,
@@ -122,7 +123,9 @@ export function gbfsProxy() {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           });
-          res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+          res.end(JSON.stringify({
+            error: 'Method Not Allowed'
+          }));
           return;
         }
 
@@ -133,7 +136,9 @@ export function gbfsProxy() {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           });
-          res.end(JSON.stringify({ error: 'Missing GBFS upstream target' }));
+          res.end(JSON.stringify({
+            error: 'Missing GBFS upstream target'
+          }));
           return;
         }
 
@@ -145,7 +150,9 @@ export function gbfsProxy() {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           });
-          res.end(JSON.stringify({ error: 'Invalid GBFS target encoding' }));
+          res.end(JSON.stringify({
+            error: 'Invalid GBFS target encoding'
+          }));
           return;
         }
 
@@ -157,7 +164,9 @@ export function gbfsProxy() {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           });
-          res.end(JSON.stringify({ error: 'Invalid GBFS upstream URL' }));
+          res.end(JSON.stringify({
+            error: 'Invalid GBFS upstream URL'
+          }));
           return;
         }
 
@@ -167,7 +176,9 @@ export function gbfsProxy() {
             'Cache-Control': 'no-store',
           });
           res.end(
-            JSON.stringify({ error: 'Only https GBFS targets are allowed' }),
+            JSON.stringify({
+              error: 'Only https GBFS targets are allowed'
+            }),
           );
           return;
         }
@@ -177,7 +188,9 @@ export function gbfsProxy() {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           });
-          res.end(JSON.stringify({ error: 'GBFS host not allowed' }));
+          res.end(JSON.stringify({
+            error: 'GBFS host not allowed'
+          }));
           return;
         }
 
@@ -188,8 +201,7 @@ export function gbfsProxy() {
           });
           res.end(
             JSON.stringify({
-              error:
-                'Only station_information/station_status endpoints are allowed',
+              error: 'Only station_information/station_status endpoints are allowed',
             }),
           );
           return;
@@ -209,7 +221,9 @@ export function gbfsProxy() {
             'Content-Type': 'application/json',
             'Cache-Control': 'no-store',
           });
-          res.end(JSON.stringify({ error: 'GBFS upstream timeout' }));
+          res.end(JSON.stringify({
+            error: 'GBFS upstream timeout'
+          }));
           return;
         }
         if (
@@ -224,10 +238,9 @@ export function gbfsProxy() {
           });
           res.end(
             JSON.stringify({
-              error:
-                error.code === 'GBFS_REDIRECT'
-                  ? 'GBFS upstream redirect refused'
-                  : 'GBFS upstream response too large',
+              error: error.code === 'GBFS_REDIRECT' ?
+                'GBFS upstream redirect refused' :
+                'GBFS upstream response too large',
             }),
           );
           return;
@@ -237,7 +250,9 @@ export function gbfsProxy() {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-store',
         });
-        res.end(JSON.stringify({ error: 'GBFS proxy error' }));
+        res.end(JSON.stringify({
+          error: 'GBFS proxy error'
+        }));
       }
     });
   };
