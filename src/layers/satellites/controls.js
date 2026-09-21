@@ -309,17 +309,15 @@ export function createControls({
             reason: String(signal.reason || 'aborted'),
           };
         return this.trackById(id, {
-            origin
-          }) ?
-          {
-            status: 'found',
-            refreshEpoch: outcome.epoch
-          } :
-          {
-            status: 'source-unavailable',
-            reason: 'target-not-renderable',
-            refreshEpoch: outcome.epoch,
-          };
+          origin
+        }) ? {
+          status: 'found',
+          refreshEpoch: outcome.epoch
+        } : {
+          status: 'source-unavailable',
+          reason: 'target-not-renderable',
+          refreshEpoch: outcome.epoch,
+        };
       };
 
       if (found()) return follow();
@@ -554,12 +552,9 @@ export function createControls({
           busy: loading,
           disabled: loading,
           state: loading ?
-            'loading' :
-            failed ?
-            'error' :
-            active ?
-            'active' :
-            'idle',
+            'loading' : failed ?
+            'error' : active ?
+            'active' : 'idle',
           title,
           params: {
             catalog: active ? 'core' : 'dense'
@@ -586,10 +581,8 @@ export function createControls({
         lastUpdate: layerState._lastUpdate,
         stale: false,
         status: layerState._lastError === 'CelesTrak unreachable' ?
-          'unavailable' :
-          layerState._lastError ?
-          'degraded' :
-          'nominal',
+          'unavailable' : layerState._lastError ?
+          'degraded' : 'nominal',
         error: layerState._lastError,
       };
     },
