@@ -85,14 +85,23 @@ function sanitizeOverpassBody(rawBody) {
   try {
     params = new URLSearchParams(rawBody);
   } catch {
-    return { ok: false, error: 'Malformed query body' };
+    return {
+      ok: false,
+      error: 'Malformed query body'
+    };
   }
   const all = params.getAll('data');
   if (all.length !== 1)
-    return { ok: false, error: 'Exactly one data query is required' };
+    return {
+      ok: false,
+      error: 'Exactly one data query is required'
+    };
   const data = all[0];
   if (!data || !data.trim())
-    return { ok: false, error: 'Missing Overpass data query' };
+    return {
+      ok: false,
+      error: 'Missing Overpass data query'
+    };
 
   // Blank quoted literals + strip comments in one lexer pass so a fake bound or a
   // `//` inside a string can't hide an unbounded selector (or satisfy a bound).
@@ -104,13 +113,16 @@ function sanitizeOverpassBody(rawBody) {
   for (const m of stripped.matchAll(/around(?:\.\w+)?:\s*([\d.eE+-]+)/gi)) {
     const radius = Number(m[1]);
     if (!Number.isFinite(radius) || radius > OVERPASS_MAX_AROUND_M) {
-      return { ok: false, error: 'Overpass around radius too large' };
+      return {
+        ok: false,
+        error: 'Overpass around radius too large'
+      };
     }
   }
   // Reject world-sized / oversized bboxes.
   for (const m of stripped.matchAll(
-    /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g,
-  )) {
+      /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g,
+    )) {
     const s = Number(m[1]);
     const w = Number(m[2]);
     const n = Number(m[3]);
@@ -119,7 +131,10 @@ function sanitizeOverpassBody(rawBody) {
       Math.abs(n - s) > OVERPASS_MAX_BBOX_DEG ||
       Math.abs(e - w) > OVERPASS_MAX_BBOX_DEG
     ) {
-      return { ok: false, error: 'Overpass bbox too large' };
+      return {
+        ok: false,
+        error: 'Overpass bbox too large'
+      };
     }
   }
 
@@ -127,12 +142,18 @@ function sanitizeOverpassBody(rawBody) {
   // are hard to validate statically. The app only uses plain selectors + is_in /
   // area / pivot / recursion, so this denylist closes loop/transform escape hatches.
   if (/\b(?:foreach|complete|retro|compare|convert|make)\b/i.test(stripped)) {
-    return { ok: false, error: 'Unsupported Overpass construct' };
+    return {
+      ok: false,
+      error: 'Unsupported Overpass construct'
+    };
   }
   // `poly:` has unchecked extent and the app never uses it — reject outright
   // (position-independent, so tag filters can't hide it).
   if (/\bpoly\s*:/i.test(stripped)) {
-    return { ok: false, error: 'Overpass poly filter not allowed' };
+    return {
+      ok: false,
+      error: 'Overpass poly filter not allowed'
+    };
   }
 
   // Every selector statement must be individually bounded, WITH set provenance: a
@@ -181,18 +202,28 @@ function sanitizeOverpassBody(rawBody) {
     const bounded = directBound || setBound;
 
     if (hasSelector && !bounded) {
-      return { ok: false, error: 'Overpass query has an unbounded selector' };
+      return {
+        ok: false,
+        error: 'Overpass query has an unbounded selector'
+      };
     }
     // Only a bounded statement can mark its output sets as bounded.
-    if (bounded) for (const name of outSets) boundedSets.add(name);
+    if (bounded)
+      for (const name of outSets) boundedSets.add(name);
   }
 
   const clamped = data.replace(
     /\[timeout:\s*(\d+)\s*\]/gi,
     (_, n) =>
-      `[timeout:${Math.min(Number(n) || OVERPASS_MAX_QL_TIMEOUT, OVERPASS_MAX_QL_TIMEOUT)}]`,
+    `[timeout:${Math.min(Number(n) || OVERPASS_MAX_QL_TIMEOUT, OVERPASS_MAX_QL_TIMEOUT)}]`,
   );
-  return { ok: true, body: `data=${encodeURIComponent(clamped)}` };
+  return {
+    ok: true,
+    body: `data=${encodeURIComponent(clamped)}`
+  };
 }
 
-export { isOverpassBoundaryQuery, sanitizeOverpassBody };
+export {
+  isOverpassBoundaryQuery,
+  sanitizeOverpassBody
+};
