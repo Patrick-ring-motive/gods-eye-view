@@ -1,9 +1,13 @@
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = readStylesheet(path.join(ROOT, 'style.css'));
@@ -96,7 +100,10 @@ function specificity(selector) {
       if (rest[i] === '(') depth += 1;
       else if (rest[i] === ')') {
         depth -= 1;
-        if (depth === 0) { end = i; break; }
+        if (depth === 0) {
+          end = i;
+          break;
+        }
       }
     }
     assert.ok(end > 0, `unbalanced functional pseudo-class in "${selector}"`);
@@ -245,7 +252,10 @@ function ownBoxEntries() {
       const compound = lastCompound(part);
       if (!ELEMENT_KEYS.some((key) => compound.includes(key))) continue;
       if (compound.includes('::')) continue; // a pseudo-element is its own box
-      entries.push({ rule, part });
+      entries.push({
+        rule,
+        part
+      });
     }
   }
   return entries;
@@ -280,13 +290,21 @@ function resolve(candidates, prop, width, label) {
       if (!candidates.includes(part)) continue;
       for (const decl of rule.decls) {
         if (decl.prop !== prop) continue;
-        const contender = { decl, part, order: rule.order, spec: specificity(part) };
-        if (!winner) { winner = contender; continue; }
+        const contender = {
+          decl,
+          part,
+          order: rule.order,
+          spec: specificity(part)
+        };
+        if (!winner) {
+          winner = contender;
+          continue;
+        }
         const byImportance = Number(contender.decl.important) - Number(winner.decl.important);
         const bySpecificity = compareSpecificity(contender.spec, winner.spec);
-        if (byImportance > 0
-          || (byImportance === 0 && bySpecificity > 0)
-          || (byImportance === 0 && bySpecificity === 0 && contender.order > winner.order)) {
+        if (byImportance > 0 ||
+          (byImportance === 0 && bySpecificity > 0) ||
+          (byImportance === 0 && bySpecificity === 0 && contender.order > winner.order)) {
           winner = contender;
         }
       }
@@ -329,12 +347,15 @@ const HEIGHTS = [500, 560, 640, 700, 800, 900, 1000, 1080, 1200, 1440, 1600];
 const CREDIT_SELECTORS = ['#cesium-credits', 'body:not(.ui-clean-view):not(.recording-mode) #cesium-credits'];
 const MINIMAL_HUD_CREDIT = "body:not(.ui-clean-view):not(.recording-mode):has(#intel-hud[data-variant='minimal'].active) #cesium-credits";
 const TRAY_ORDINARY = ['#command-dock .dock-popover-content', '#command-dock #location-bar .dock-popover-content'];
-const TRAY_SCENARIOS = [
-  { name: 'ordinary tray', offset: TRAY_ORDINARY },
+const TRAY_SCENARIOS = [{
+    name: 'ordinary tray',
+    offset: TRAY_ORDINARY
+  },
   {
     name: 'one pinned tray',
     offset: [...TRAY_ORDINARY,
-      '#command-dock.dock-has-pinned-tray #location-bar:not(.collapsed):not(.dock-pinned) .dock-popover-content'],
+      '#command-dock.dock-has-pinned-tray #location-bar:not(.collapsed):not(.dock-pinned) .dock-popover-content'
+    ],
     stackVar: '--dock-pinned-stack-height',
   },
   {
@@ -343,7 +364,8 @@ const TRAY_SCENARIOS = [
       // The stock form still governs above 900px; the ID form is what keeps it
       // ahead of the ordinary narrow rule below it.
       '#command-dock.dock-has-two-pinned-trays .dock-pinned-top.dock-pinned:not(.collapsed) .dock-popover-content',
-      '#command-dock.dock-has-two-pinned-trays #location-bar.dock-pinned-top.dock-pinned:not(.collapsed) .dock-popover-content'],
+      '#command-dock.dock-has-two-pinned-trays #location-bar.dock-pinned-top.dock-pinned:not(.collapsed) .dock-popover-content'
+    ],
     stackVar: '--dock-lower-pinned-height',
   },
 ];
@@ -358,10 +380,10 @@ function trayBottomPx(scenario, width, height) {
   const offset = resolve(scenario.offset, 'bottom', width, scenario.name);
   const margin = resolve(['#command-dock #location-bar:not(.collapsed) .dock-popover-content'],
     'margin-bottom', width, 'open tray margin');
-  return toPx(dock.decl.value, height, 'dock bottom')
-    + COMPACT_DOCK_HEIGHT_PX
-    + toPx(offset.decl.value, height, `${scenario.name} offset`)
-    + toPx(margin.decl.value, height, 'tray margin');
+  return toPx(dock.decl.value, height, 'dock bottom') +
+    COMPACT_DOCK_HEIGHT_PX +
+    toPx(offset.decl.value, height, `${scenario.name} offset`) +
+    toPx(margin.decl.value, height, 'tray margin');
 }
 
 // ── Fail-closed guards ──────────────────────────────────────────────────────
@@ -383,7 +405,11 @@ test('the specificity calculator itself is pinned', () => {
 
 test('the model refuses every cascade construct it cannot resolve', () => {
   const complaints = [];
-  for (const { rule, part } of ownBoxEntries()) {
+  for (const {
+      rule,
+      part
+    }
+    of ownBoxEntries()) {
     const guarded = rule.decls.filter((decl) => GUARDED_PROPS.has(decl.prop));
     if (!guarded.length) continue;
     if (!RECOGNIZED.has(part)) {
@@ -400,8 +426,8 @@ test('the model refuses every cascade construct it cannot resolve', () => {
     }
     for (const decl of guarded) {
       if (decl.important) complaints.push(`!important on ${decl.prop} of "${part}"`);
-      if (decl.prop === 'inset' || decl.prop === 'margin' || decl.prop === 'all'
-        || decl.prop.startsWith('inset-') || decl.prop.startsWith('margin-block')) {
+      if (decl.prop === 'inset' || decl.prop === 'margin' || decl.prop === 'all' ||
+        decl.prop.startsWith('inset-') || decl.prop.startsWith('margin-block')) {
         complaints.push(`shorthand ${decl.prop} on "${part}" — the model reads longhands only`);
       }
       if (decl.prop === 'height' || decl.prop === 'max-height') {
@@ -416,8 +442,8 @@ test('the model refuses every cascade construct it cannot resolve', () => {
       }
       if (decl.prop === 'transform' && /translateY|translate3d|matrix|scale\(/.test(decl.value)) {
         const identity = decl.value === 'translateY(0) scale(1)';
-        const closedTray = part === '#command-dock .dock-popover-content'
-          && decl.value === 'translateY(0.55rem) scale(0.985)';
+        const closedTray = part === '#command-dock .dock-popover-content' &&
+          decl.value === 'translateY(0.55rem) scale(0.985)';
         if (!identity && !closedTray) complaints.push(`vertical transform on "${part}": ${decl.value}`);
       }
       if (decl.prop === 'translate' || decl.prop === 'scale' || decl.prop === 'zoom') {
@@ -466,7 +492,11 @@ test('the inputs behind the measured constants are unchanged', () => {
     assert.equal(declOf(creditBase, prop), undefined, `#cesium-credits gained ${prop}; re-measure CREDIT_HEIGHT_PX`);
   }
   // Only `min-height` may floor the dock — that direction only ADDS clearance.
-  for (const { rule, part } of ownBoxEntries()) {
+  for (const {
+      rule,
+      part
+    }
+    of ownBoxEntries()) {
     if (part !== '#command-dock') continue;
     for (const decl of rule.decls) {
       assert.notEqual(decl.prop, 'height', 'a fixed dock height invalidates COMPACT_DOCK_HEIGHT_PX');
@@ -531,7 +561,10 @@ test('the full-width context rail clears the required credit at every modelled v
   for (const rule of RULES) {
     if (!rule.parts.includes('#right-context-rail')) continue;
     for (const decl of rule.decls) {
-      if (decl.prop === 'bottom') anchors.push({ rule, decl });
+      if (decl.prop === 'bottom') anchors.push({
+        rule,
+        decl
+      });
     }
   }
   assert.equal(anchors.length, 1, 'the rail has exactly one bottom anchor to reason about');
@@ -579,8 +612,8 @@ test('the minimal-HUD credit variant tracks the ordinary one', () => {
 });
 
 test('the tray only spans the credit corner at the widths the model covers', () => {
-  const widened = RULES.filter((rule) => rule.parts.includes('#command-dock .dock-popover-content')
-    && rule.decls.some((decl) => decl.prop === 'width' && decl.value.includes('--dock-popover-mobile-width')));
+  const widened = RULES.filter((rule) => rule.parts.includes('#command-dock .dock-popover-content') &&
+    rule.decls.some((decl) => decl.prop === 'width' && decl.value.includes('--dock-popover-mobile-width')));
   assert.equal(widened.length, 1);
   assert.equal(parseMediaCondition(widened[0].media[0]), 900);
 });
