@@ -1,6 +1,9 @@
 /** Instance-owned military identity and active-layer classification.
  * Both aircraft layers share the same application-supplied registry. */
-export function createMilitaryRegistry({ source, now = Date.now } = {}) {
+export function createMilitaryRegistry({
+  source,
+  now = Date.now
+} = {}) {
   const MIL_POLL_INTERVAL_MS = 60000;
 
   /** @type {Set<string>} Lowercase ICAO24 hexes known to be military. */
@@ -18,7 +21,9 @@ export function createMilitaryRegistry({ source, now = Date.now } = {}) {
   let releaseSource = null;
 
   /** Replace the classification source and cancel its outstanding work. */
-  function configureSource(nextSource, { signal } = {}) {
+  function configureSource(nextSource, {
+    signal
+  } = {}) {
     if (typeof nextSource?.getSnapshot !== 'function')
       throw new TypeError('A snapshot source is required');
     releaseSource?.();
@@ -41,7 +46,9 @@ export function createMilitaryRegistry({ source, now = Date.now } = {}) {
     };
     releaseSource = release;
     if (signal?.aborted) release();
-    else signal?.addEventListener('abort', release, { once: true });
+    else signal?.addEventListener('abort', release, {
+      once: true
+    });
     return release;
   }
 
@@ -130,11 +137,15 @@ export function createMilitaryRegistry({ source, now = Date.now } = {}) {
     _polling = true;
     try {
       const ids =
-        typeof requestSource.getIdentities === 'function'
-          ? await requestSource.getIdentities({}, { signal })
-          : (await requestSource.getSnapshot({}, { signal })).records.map(
-              (record) => record.id,
-            );
+        typeof requestSource.getIdentities === 'function' ?
+        await requestSource.getIdentities({}, {
+          signal
+        }) :
+        (await requestSource.getSnapshot({}, {
+          signal
+        })).records.map(
+          (record) => record.id,
+        );
       signal.throwIfAborted();
       if (lifetime !== owner) return;
       if (!Array.isArray(ids))
@@ -146,6 +157,7 @@ export function createMilitaryRegistry({ source, now = Date.now } = {}) {
       if (lifetime === owner) _polling = false;
     }
   }
+
   function dispose() {
     releaseSource?.();
     _milIcaos.clear();
