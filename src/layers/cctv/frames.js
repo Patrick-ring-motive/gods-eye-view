@@ -12,7 +12,12 @@ import {
   PLACEHOLDER_REPAINT_MS,
 } from './policy.js';
 
-export function createFrames({ state: layerState, services, parts, source }) {
+export function createFrames({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * FNV-1a over the RGB channels of a downsampled frame. Pure (takes the raw
    * pixel buffer, no DOM) so it is unit-testable.
@@ -227,9 +232,9 @@ export function createFrames({ state: layerState, services, parts, source }) {
     if (runtime.imageLoading) return;
     const now = Date.now();
     const refreshMs =
-      record.camera.id === layerState._activeCameraId
-        ? PROJECTION_ACTIVE_REFRESH_MS
-        : PROJECTION_IDLE_REFRESH_MS;
+      record.camera.id === layerState._activeCameraId ?
+      PROJECTION_ACTIVE_REFRESH_MS :
+      PROJECTION_IDLE_REFRESH_MS;
     if (!force && now - runtime.lastImageRefreshAt < refreshMs) return;
     runtime.lastImageRefreshAt = now;
 
