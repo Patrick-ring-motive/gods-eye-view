@@ -1,5 +1,7 @@
 // src/data/trafficFlowStyle.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   flowBucket,
@@ -82,25 +84,45 @@ test('flowDensityMult: non-finite input keeps neutral density (sim parity)', () 
 // ── jam-boost density curve (jamViz density prototype) ──────
 
 test('flowDensityMult jamBoost: identical to base curve down to level 0.4', () => {
-  assert.equal(flowDensityMult(1, { jamBoost: true }), 1);
-  assert.ok(Math.abs(flowDensityMult(0.5, { jamBoost: true }) - 2) < 1e-12);
-  assert.equal(flowDensityMult(0.4, { jamBoost: true }), 2.5);
+  assert.equal(flowDensityMult(1, {
+    jamBoost: true
+  }), 1);
+  assert.ok(Math.abs(flowDensityMult(0.5, {
+    jamBoost: true
+  }) - 2) < 1e-12);
+  assert.equal(flowDensityMult(0.4, {
+    jamBoost: true
+  }), 2.5);
 });
 
 test('flowDensityMult jamBoost: deep jams keep climbing to a 4.0 cap', () => {
-  assert.ok(Math.abs(flowDensityMult(0.3, { jamBoost: true }) - (1 / 0.3)) < 1e-12);
-  assert.equal(flowDensityMult(0.25, { jamBoost: true }), 4);
-  assert.equal(flowDensityMult(0.1, { jamBoost: true }), 4);
-  assert.equal(flowDensityMult(0, { jamBoost: true }), 4);
+  assert.ok(Math.abs(flowDensityMult(0.3, {
+    jamBoost: true
+  }) - (1 / 0.3)) < 1e-12);
+  assert.equal(flowDensityMult(0.25, {
+    jamBoost: true
+  }), 4);
+  assert.equal(flowDensityMult(0.1, {
+    jamBoost: true
+  }), 4);
+  assert.equal(flowDensityMult(0, {
+    jamBoost: true
+  }), 4);
 });
 
 test('flowDensityMult jamBoost: non-finite input still neutral (sim parity)', () => {
-  assert.equal(flowDensityMult(NaN, { jamBoost: true }), 1);
-  assert.equal(flowDensityMult(undefined, { jamBoost: true }), 1);
+  assert.equal(flowDensityMult(NaN, {
+    jamBoost: true
+  }), 1);
+  assert.equal(flowDensityMult(undefined, {
+    jamBoost: true
+  }), 1);
 });
 
 test('flowDensityMult: opts omitted or jamBoost false keeps the shipped 2.5 cap', () => {
   assert.equal(flowDensityMult(0.1), 2.5);
   assert.equal(flowDensityMult(0.1, {}), 2.5);
-  assert.equal(flowDensityMult(0.1, { jamBoost: false }), 2.5);
+  assert.equal(flowDensityMult(0.1, {
+    jamBoost: false
+  }), 2.5);
 });
