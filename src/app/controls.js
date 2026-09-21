@@ -1,10 +1,19 @@
-import { StyleManager } from '../ui/composition.js';
-import { flyToAustin } from '../camera.js';
-import { initCockpitCloudEffects } from '../cockpitCloudEffects.js';
+import {
+  StyleManager
+} from '../ui/composition.js';
+import {
+  flyToAustin
+} from '../camera.js';
+import {
+  initCockpitCloudEffects
+} from '../cockpitCloudEffects.js';
 
 /** Construct the existing controls and camera presentation. */
 export function createApplicationControls({
-  scene: { viewer, mapStackController },
+  scene: {
+    viewer,
+    mapStackController
+  },
   loaderStatus,
   Controls = StyleManager,
   services,
@@ -35,5 +44,9 @@ export function createApplicationControls({
     loaderStatus.textContent = 'Restoring shared view...';
   }
 
-  return { styleManager, weatherEffects, cockpitCloudEffects };
+  return {
+    styleManager,
+    weatherEffects,
+    cockpitCloudEffects
+  };
 }
