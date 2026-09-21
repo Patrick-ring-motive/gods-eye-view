@@ -49,8 +49,7 @@ export function createInstallationSource({
             failureReason: ['rate_limited', 'timeout', 'query_failed'].includes(
                 body?.reason,
               ) ?
-              body.reason :
-              'unavailable',
+              body.reason : 'unavailable',
           },
         );
       if (!Array.isArray(body?.elements))
