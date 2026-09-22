@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { LocationSearch } from './locationSearch.js';
+import {
+  LocationSearch
+} from './locationSearch.js';
 
 function fixture() {
   const calls = [];
@@ -23,7 +25,12 @@ function fixture() {
     },
     search: (query, options) =>
       new Promise((resolve, reject) =>
-        requests.push({ query, options, resolve, reject }),
+        requests.push({
+          query,
+          options,
+          resolve,
+          reject
+        }),
       ),
     onStart: (ticket) => calls.push(['start', ticket]),
     onResult: (result, query) => calls.push(['result', result, query]),
@@ -31,7 +38,12 @@ function fixture() {
     onError: (error) => calls.push(['error', error.message]),
     onSettled: (ticket) => calls.push(['settled', ticket]),
   });
-  return { search, requests, calls, takeCamera: () => ++authority };
+  return {
+    search,
+    requests,
+    calls,
+    takeCamera: () => ++authority
+  };
 }
 
 test('a newer lookup aborts its predecessor and only its result is presented', async () => {
@@ -42,13 +54,21 @@ test('a newer lookup aborts its predecessor and only its result is presented', a
   assert.equal(f.requests[0].options.signal.aborted, true);
   assert.equal(f.requests[0].options.beforeFly(), false);
   assert.equal(f.requests[1].options.beforeFly(), true);
-  f.requests[1].resolve({ label: 'Second' });
+  f.requests[1].resolve({
+    label: 'Second'
+  });
   await second;
-  f.requests[0].resolve({ label: 'First' });
+  f.requests[0].resolve({
+    label: 'First'
+  });
   await first;
   assert.deepEqual(
     f.calls.filter((x) => x[0] === 'result'),
-    [['result', { label: 'Second' }, 'Second']],
+    [
+      ['result', {
+        label: 'Second'
+      }, 'Second']
+    ],
   );
   assert.equal(f.search.controller, null);
 });
@@ -75,7 +95,9 @@ test('missing and failed current lookups settle the exact owning generation', as
   await pending;
   assert.deepEqual(
     f.calls.filter((x) => x[0] === 'error'),
-    [['error', 'unavailable']],
+    [
+      ['error', 'unavailable']
+    ],
   );
   assert.deepEqual(
     f.calls.filter((x) => x[0] === 'settled'),
@@ -91,7 +113,9 @@ test('destruction cancels work and rejects late presentation and future requests
   f.search.destroy();
   f.search.destroy();
   assert.equal(f.requests[0].options.signal.aborted, true);
-  f.requests[0].resolve({ label: 'Place' });
+  f.requests[0].resolve({
+    label: 'Place'
+  });
   await pending;
   await f.search.run('Later');
   assert.equal(f.requests.length, 1);
@@ -116,13 +140,19 @@ test('search snapshots retain the current busy owner when an older request settl
   assert.equal(events[0].state.status, 'idle');
   const first = f.search.run('First');
   const second = f.search.run('Second');
-  f.requests[0].resolve({ label: 'First' });
+  f.requests[0].resolve({
+    label: 'First'
+  });
   await first;
   const settled = events.at(-1);
   assert.equal(settled.change.generation, 1);
   assert.equal(settled.state.generation, 2);
   assert.equal(settled.state.searching, true);
-  f.requests[1].resolve({ label: 'Second', lat: 1, lng: 2 });
+  f.requests[1].resolve({
+    label: 'Second',
+    lat: 1,
+    lng: 2
+  });
   await second;
   const found = events.filter((event) => event.change?.type === 'found');
   assert.equal(found.length, 1);
@@ -141,7 +171,9 @@ test('search snapshots retain the current busy owner when an older request settl
 
 test('a subscriber that destroys a started lookup prevents the provider from being called', async () => {
   const f = fixture();
-  f.search.subscribe(({ change }) => {
+  f.search.subscribe(({
+    change
+  }) => {
     if (change?.type === 'started') f.search.destroy();
   });
   await f.search.run('Place');
@@ -153,7 +185,10 @@ test('a reentrant replacement in a result callback cannot publish the obsolete r
   const f = fixture();
   let replacement;
   const found = [];
-  f.search.subscribe(({ state, change }) => {
+  f.search.subscribe(({
+    state,
+    change
+  }) => {
     if (change?.type === 'found') found.push(state.query);
   });
   f.search.onResult = () => {
@@ -161,12 +196,16 @@ test('a reentrant replacement in a result callback cannot publish the obsolete r
     replacement = f.search.run('Second');
   };
   const first = f.search.run('First');
-  f.requests[0].resolve({ label: 'First' });
+  f.requests[0].resolve({
+    label: 'First'
+  });
   await first;
   assert.equal(f.search.getState().query, 'Second');
   assert.equal(f.search.getState().searching, true);
   assert.deepEqual(found, []);
-  f.requests[1].resolve({ label: 'Second' });
+  f.requests[1].resolve({
+    label: 'Second'
+  });
   await replacement;
   assert.deepEqual(found, ['Second']);
 });
