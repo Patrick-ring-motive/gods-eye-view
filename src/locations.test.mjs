@@ -1,10 +1,14 @@
-import { createStandalonePlaceSearch } from './standalone/placeSearch.js';
+import {
+  createStandalonePlaceSearch
+} from './standalone/placeSearch.js';
 // Camera-framing mode contract for fly_to_location (field test 8 + rootcause doc §3):
 // parks/lakes/campuses and streets are NOT precise POIs — flying to "Zilker Park" at
 // building range (250 m) lands on a random rooftop. Pure mapping tests, no network.
 //
 // Run with: npm test   (node --test)
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as Cesium from 'cesium';
@@ -26,7 +30,13 @@ function stubViewer() {
   const flights = [];
   return {
     flights,
-    scene: { globe: null, canvas: { clientWidth: 0, clientHeight: 0 } },
+    scene: {
+      globe: null,
+      canvas: {
+        clientWidth: 0,
+        clientHeight: 0
+      }
+    },
     camera: {
       positionCartographic: {
         longitude: Cesium.Math.toRadians(-97.7431),
@@ -34,8 +44,15 @@ function stubViewer() {
         height: 1200,
       },
       cancelFlight() {},
-      flyTo(options) { flights.push(options); },
-      flyToBoundingSphere(sphere, options) { flights.push({ sphere, ...options }); },
+      flyTo(options) {
+        flights.push(options);
+      },
+      flyToBoundingSphere(sphere, options) {
+        flights.push({
+          sphere,
+          ...options
+        });
+      },
       lookAt() {},
       lookAtTransform() {},
     },
@@ -46,24 +63,46 @@ const AUSTIN_RESULT = {
   formatted_address: 'Austin, TX, USA',
   types: ['locality', 'political'],
   geometry: {
-    location: { lat: 30.2672, lng: -97.7431 },
+    location: {
+      lat: 30.2672,
+      lng: -97.7431
+    },
     viewport: {
-      southwest: { lat: 30.1, lng: -97.95 },
-      northeast: { lat: 30.5, lng: -97.55 },
+      southwest: {
+        lat: 30.1,
+        lng: -97.95
+      },
+      northeast: {
+        lat: 30.5,
+        lng: -97.55
+      },
     },
   },
 };
 
-async function runSearch(viewer, options, { result = AUSTIN_RESULT, query = 'austin' } = {}) {
+async function runSearch(viewer, options, {
+  result = AUSTIN_RESULT,
+  query = 'austin'
+} = {}) {
   const hadWindow = Object.hasOwn(globalThis, 'window');
   const priorWindow = globalThis.window;
   const priorFetch = globalThis.fetch;
-  globalThis.window = { __GOOGLE_MAPS_API_KEY__: 'test-key' };
+  globalThis.window = {
+    __GOOGLE_MAPS_API_KEY__: 'test-key'
+  };
   globalThis.fetch = async () => ({
-    json: async () => ({ status: 'OK', results: [result] }),
+    json: async () => ({
+      status: 'OK',
+      results: [result]
+    }),
   });
   try {
-    return await searchAndFlyTo(viewer, query, { placeSearch: createStandalonePlaceSearch({ resolveApiKey: () => globalThis.window?.__GOOGLE_MAPS_API_KEY__ }), ...options });
+    return await searchAndFlyTo(viewer, query, {
+      placeSearch: createStandalonePlaceSearch({
+        resolveApiKey: () => globalThis.window?.__GOOGLE_MAPS_API_KEY__
+      }),
+      ...options
+    });
   } finally {
     globalThis.fetch = priorFetch;
     if (hadWindow) globalThis.window = priorWindow;
@@ -125,8 +164,14 @@ test('admin types win over area types when both present', () => {
 test('regionFramingPlan: Rocky-Mountains-scale viewport gets a capped oblique swath', () => {
   // Real-shape geocode bounds for the Rockies: ~25° of latitude, N-S elongated.
   const plan = regionFramingPlan({
-    southwest: { lat: 35.0, lng: -119.0 },
-    northeast: { lat: 60.0, lng: -105.0 },
+    southwest: {
+      lat: 35.0,
+      lng: -119.0
+    },
+    northeast: {
+      lat: 60.0,
+      lng: -105.0
+    },
   });
   assert.equal(plan.mode, 'swath');
   assert.ok(plan.spanKm > 2000, `span should be huge, got ${plan.spanKm}`);
@@ -145,8 +190,14 @@ test('regionFramingPlan: Rocky-Mountains-scale viewport gets a capped oblique sw
 test('regionFramingPlan: E-W elongated region looks along the east axis', () => {
   // Alps-shaped box: ~2.3° lat, ~11° lon.
   const plan = regionFramingPlan({
-    southwest: { lat: 45.5, lng: 5.0 },
-    northeast: { lat: 47.8, lng: 16.0 },
+    southwest: {
+      lat: 45.5,
+      lng: 5.0
+    },
+    northeast: {
+      lat: 47.8,
+      lng: 16.0
+    },
   });
   assert.equal(plan.mode, 'swath');
   assert.equal(plan.headingDeg, 90);
@@ -155,28 +206,52 @@ test('regionFramingPlan: E-W elongated region looks along the east axis', () => 
 test('regionFramingPlan: park- and lake-scale viewports keep full framing', () => {
   // Zilker Park (~3 km).
   assert.equal(regionFramingPlan({
-    southwest: { lat: 30.26, lng: -97.78 },
-    northeast: { lat: 30.28, lng: -97.75 },
+    southwest: {
+      lat: 30.26,
+      lng: -97.78
+    },
+    northeast: {
+      lat: 30.28,
+      lng: -97.75
+    },
   }).mode, 'full');
   // Lake Tahoe (~50 km).
   assert.equal(regionFramingPlan({
-    southwest: { lat: 38.90, lng: -120.20 },
-    northeast: { lat: 39.25, lng: -119.90 },
+    southwest: {
+      lat: 38.90,
+      lng: -120.20
+    },
+    northeast: {
+      lat: 39.25,
+      lng: -119.90
+    },
   }).mode, 'full');
 });
 
 test('regionFramingPlan: threshold splits full vs swath', () => {
   // ~330 km tall box (3° latitude, negligible width) → still full framing.
   const under = regionFramingPlan({
-    southwest: { lat: 40.0, lng: -100.0 },
-    northeast: { lat: 43.0, lng: -99.9 },
+    southwest: {
+      lat: 40.0,
+      lng: -100.0
+    },
+    northeast: {
+      lat: 43.0,
+      lng: -99.9
+    },
   });
   assert.equal(under.mode, 'full');
   assert.ok(under.spanKm < REGION_SWATH_SPAN_KM);
   // ~560 km tall box (5° latitude) → swath.
   const over = regionFramingPlan({
-    southwest: { lat: 40.0, lng: -100.0 },
-    northeast: { lat: 45.0, lng: -99.9 },
+    southwest: {
+      lat: 40.0,
+      lng: -100.0
+    },
+    northeast: {
+      lat: 45.0,
+      lng: -99.9
+    },
   });
   assert.equal(over.mode, 'swath');
   assert.ok(over.spanKm > REGION_SWATH_SPAN_KM);
@@ -185,8 +260,14 @@ test('regionFramingPlan: threshold splits full vs swath', () => {
 test('regionFramingPlan: antimeridian-crossing viewport measured the short way round', () => {
   // 20° of longitude across the date line at the equator (~2,200 km), NOT ~340°.
   const plan = regionFramingPlan({
-    southwest: { lat: -5.0, lng: 170.0 },
-    northeast: { lat: 5.0, lng: -170.0 },
+    southwest: {
+      lat: -5.0,
+      lng: 170.0
+    },
+    northeast: {
+      lat: 5.0,
+      lng: -170.0
+    },
   });
   assert.equal(plan.mode, 'swath');
   assert.ok(plan.spanKm < 3000, `span must use the short arc, got ${plan.spanKm}`);
@@ -210,7 +291,16 @@ test('regionFramingPlan: antimeridian-crossing viewport measured the short way r
 
 /** Synthetic geocode bounds from explicit south/west/north/east degrees. */
 function boxOf(southLat, westLng, northLat, eastLng) {
-  return { southwest: { lat: southLat, lng: westLng }, northeast: { lat: northLat, lng: eastLng } };
+  return {
+    southwest: {
+      lat: southLat,
+      lng: westLng
+    },
+    northeast: {
+      lat: northLat,
+      lng: eastLng
+    }
+  };
 }
 
 /** Synthetic geocode bounds from a centre and its degree spans. */
@@ -225,13 +315,26 @@ function boxAround(centerLat, centerLng, latSpanDeg, lonSpanDeg) {
 
 /** Build a synthetic geocode result around one of the boxes above. */
 function resultOf(types, bounds, lat, lng, label = 'Synthetic Place') {
-  return { formatted_address: label, types, geometry: { location: { lat, lng }, bounds } };
+  return {
+    formatted_address: label,
+    types,
+    geometry: {
+      location: {
+        lat,
+        lng
+      },
+      bounds
+    }
+  };
 }
 
 // ~3,055 km box whose place sits near the NW corner, ~1,352 km off the centroid
 // → ratio ~0.44. Mirrors the Tokyo (0.397) and Hawaii (0.456) failures.
 const OFF_CENTRE_ADMIN_BOX = boxOf(10, 100, 30, 120);
-const OFF_CENTRE_ADMIN_ANCHOR = { lat: 29, lng: 101 };
+const OFF_CENTRE_ADMIN_ANCHOR = {
+  lat: 29,
+  lng: 101
+};
 const OFF_CENTRE_ADMIN_RESULT = resultOf(
   ['administrative_area_level_1', 'political'],
   OFF_CENTRE_ADMIN_BOX,
@@ -365,7 +468,10 @@ test('placeFramingViewport: no usable viewport or anchor leaves framing alone', 
 
 test('an off-centre admin search lands over the place, not the box centroid', async () => {
   const viewer = stubViewer();
-  const result = await runSearch(viewer, {}, { result: OFF_CENTRE_ADMIN_RESULT, query: 'Off-Centre Prefecture' });
+  const result = await runSearch(viewer, {}, {
+    result: OFF_CENTRE_ADMIN_RESULT,
+    query: 'Off-Centre Prefecture'
+  });
   assert.equal(result.navigationMode, 'region-overview', 'the fixture is a prefecture, not a locality');
   const flown = flownRectangleDegrees(viewer);
   const centerLat = (flown.south + flown.north) / 2;
@@ -380,7 +486,10 @@ test('an off-centre admin search lands over the place, not the box centroid', as
 
 test('a well-centred region search still frames its whole bounds', async () => {
   const viewer = stubViewer();
-  const result = await runSearch(viewer, {}, { result: CENTRED_REGION_RESULT, query: 'Centred Province' });
+  const result = await runSearch(viewer, {}, {
+    result: CENTRED_REGION_RESULT,
+    query: 'Centred Province'
+  });
   assert.equal(result.navigationMode, 'region-overview');
   const flown = flownRectangleDegrees(viewer);
   // The region's own bounds, plus flyToViewportBounds' 12% padding — never a metro box.
@@ -394,15 +503,21 @@ test('a well-centred region search still frames its whole bounds', async () => {
 // the whole administrative area must be framed even though the gate would fire.
 test('an explicit overview ask frames the whole administrative area', async () => {
   const gated = stubViewer();
-  await runSearch(gated, {}, { result: OFF_CENTRE_ADMIN_RESULT, query: 'Off-Centre Prefecture' });
+  await runSearch(gated, {}, {
+    result: OFF_CENTRE_ADMIN_RESULT,
+    query: 'Off-Centre Prefecture'
+  });
   const gatedFlight = flownRectangleDegrees(gated);
   assert.ok(gatedFlight.widthDeg < 1, 'without the ask, the gate collapses it to a metro box');
 
   const overview = stubViewer();
   await runSearch(
-    overview,
-    { viewMode: 'overview' },
-    { result: OFF_CENTRE_ADMIN_RESULT, query: 'Off-Centre Prefecture' },
+    overview, {
+      viewMode: 'overview'
+    }, {
+      result: OFF_CENTRE_ADMIN_RESULT,
+      query: 'Off-Centre Prefecture'
+    },
   );
   const flown = flownRectangleDegrees(overview);
   // The full 20x20 degree box plus 12% padding, not a 0.4 degree metro box.
@@ -413,9 +528,12 @@ test('an explicit overview ask frames the whole administrative area', async () =
 test('an explicit overview ask still reaches a well-centred region unchanged', async () => {
   const viewer = stubViewer();
   await runSearch(
-    viewer,
-    { viewMode: 'overview' },
-    { result: CENTRED_REGION_RESULT, query: 'Centred Province' },
+    viewer, {
+      viewMode: 'overview'
+    }, {
+      result: CENTRED_REGION_RESULT,
+      query: 'Centred Province'
+    },
   );
   const flown = flownRectangleDegrees(viewer);
   assert.ok(flown.south <= 30 && flown.north >= 40);
@@ -433,7 +551,10 @@ test('a metro fallback straddling the antimeridian frames a metro box, not a hem
   const bounds = boxOf(10, 161, 30, -159);
   const result = resultOf(['administrative_area_level_1', 'political'], bounds, 29, 179.9, 'Dateline Prefecture');
   const viewer = stubViewer();
-  await runSearch(viewer, {}, { result, query: 'Dateline Prefecture' });
+  await runSearch(viewer, {}, {
+    result,
+    query: 'Dateline Prefecture'
+  });
 
   const flown = flownRectangleDegrees(viewer);
   assert.ok(flown.crossesAntimeridian, 'the framed box must be a real east<west crossing rectangle');
@@ -447,7 +568,10 @@ test('a metro fallback straddling the antimeridian frames a metro box, not a hem
 
 test('an antimeridian REGION frames its own span, not four times it', async () => {
   const viewer = stubViewer();
-  await runSearch(viewer, {}, { result: ANTIMERIDIAN_REGION_RESULT, query: 'Antimeridian Territory' });
+  await runSearch(viewer, {}, {
+    result: ANTIMERIDIAN_REGION_RESULT,
+    query: 'Antimeridian Territory'
+  });
 
   const flown = flownRectangleDegrees(viewer);
   // 60 deg short-way span + 12% padding on each side = 74.4 deg. Raw subtraction
@@ -463,7 +587,10 @@ test('an antimeridian REGION frames its own span, not four times it', async () =
 
 test('ordinary boxes are framed exactly as before the antimeridian fix', async () => {
   const viewer = stubViewer();
-  await runSearch(viewer, {}, { result: CENTRED_REGION_RESULT, query: 'Centred Province' });
+  await runSearch(viewer, {}, {
+    result: CENTRED_REGION_RESULT,
+    query: 'Centred Province'
+  });
   const flown = flownRectangleDegrees(viewer);
   // 10 deg span + 12% padding each side = 12.4 deg, and no crossing.
   assert.equal(flown.crossesAntimeridian, false);
@@ -472,7 +599,16 @@ test('ordinary boxes are framed exactly as before the antimeridian fix', async (
 test('regionFramingPlan: invalid viewports return null', () => {
   assert.equal(regionFramingPlan(null), null);
   assert.equal(regionFramingPlan({}), null);
-  assert.equal(regionFramingPlan({ southwest: { lat: NaN, lng: 0 }, northeast: { lat: 1, lng: 1 } }), null);
+  assert.equal(regionFramingPlan({
+    southwest: {
+      lat: NaN,
+      lng: 0
+    },
+    northeast: {
+      lat: 1,
+      lng: 1
+    }
+  }), null);
 });
 
 // Globe-view preset (owner field test 2026-07-23): "zoom out to a globe view" needs an
@@ -544,7 +680,9 @@ test('globe and city-overview flights name the world frame explicitly', () => {
   assert.equal(globeViewer.flights[0].endTransform, Cesium.Matrix4.IDENTITY);
 
   const cityViewer = stubViewer();
-  flyToPresetLocation(cityViewer, 'austin', { viewMode: 'overview' });
+  flyToPresetLocation(cityViewer, 'austin', {
+    viewMode: 'overview'
+  });
   assert.equal(cityViewer.flights[0].endTransform, Cesium.Matrix4.IDENTITY);
 });
 
@@ -587,7 +725,9 @@ test('beforeFly runs once after resolution and immediately before the flight', a
 
 test('a final authority veto returns cancellation without issuing a flight', async () => {
   const viewer = stubViewer();
-  const result = await runSearch(viewer, { beforeFly: () => false });
+  const result = await runSearch(viewer, {
+    beforeFly: () => false
+  });
   assert.equal(result, CANCELLED_SEARCH);
   assert.equal(viewer.flights.length, 0);
 });
