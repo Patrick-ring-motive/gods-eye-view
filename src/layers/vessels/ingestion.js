@@ -1,4 +1,6 @@
-import { AIS_FIRST_CONNECT_LABEL } from './policy.js';
+import {
+  AIS_FIRST_CONNECT_LABEL
+} from './policy.js';
 
 export function createIngestion({
   vesselState,
@@ -7,7 +9,9 @@ export function createIngestion({
   layer,
   options,
 }) {
-  const { state } = vesselState;
+  const {
+    state
+  } = vesselState;
   const aisLiveVesselsLayer = layer;
 
   async function loadLivePositions(viewer) {
@@ -22,16 +26,17 @@ export function createIngestion({
       // Combine the layer's teardown-abort with a hard timeout so a hung upstream
       // can't wedge the poll indefinitely (parity with the track fetch + flights).
       const signal =
-        typeof AbortSignal.any === 'function'
-          ? AbortSignal.any([
-              requestController.signal,
-              AbortSignal.timeout(10000),
-            ])
-          : requestController.signal;
-      const snapshot = await vesselState._source.getSnapshot(
-        { maxRows: components.rendering.renderRowLimit() },
-        { signal },
-      );
+        typeof AbortSignal.any === 'function' ?
+        AbortSignal.any([
+          requestController.signal,
+          AbortSignal.timeout(10000),
+        ]) :
+        requestController.signal;
+      const snapshot = await vesselState._source.getSnapshot({
+        maxRows: components.rendering.renderRowLimit()
+      }, {
+        signal
+      }, );
       if (!ownsAisRequest(requestController, requestSessionId)) return;
       aisLiveVesselsLayer.source = snapshot.source;
       // Map observations into the existing display store; source fields stop here.
@@ -46,10 +51,9 @@ export function createIngestion({
         lastMessageAt: snapshot.lastMessageAt,
         nextAttemptAt: snapshot.nextAttemptAt,
         refreshing: snapshot.stale,
-        newestPositionAt:
-          snapshot.observedAtMs == null
-            ? null
-            : new Date(snapshot.observedAtMs).toISOString(),
+        newestPositionAt: snapshot.observedAtMs == null ?
+          null :
+          new Date(snapshot.observedAtMs).toISOString(),
         silentForMs: snapshot.silentForMs,
         reconnectAttempt: snapshot.reconnectAttempt,
       });
@@ -108,7 +112,10 @@ export function createIngestion({
         )
       ) {
         components.lifecycle.markAisUnavailable(snapshot.error);
-        return { reconciled: false, ...snapshot };
+        return {
+          reconciled: false,
+          ...snapshot
+        };
       }
       if (
         state.firstConnectPhase === 'loading' &&
@@ -116,14 +123,23 @@ export function createIngestion({
       ) {
         state.error = null;
         state.loadingLabel = AIS_FIRST_CONNECT_LABEL;
-        return { reconciled: false, ...snapshot };
+        return {
+          reconciled: false,
+          ...snapshot
+        };
       }
       if (state.firstConnectPhase === 'loading') {
         components.lifecycle.markAisUnavailable(snapshot.error);
-        return { reconciled: false, ...snapshot };
+        return {
+          reconciled: false,
+          ...snapshot
+        };
       }
       state.error = snapshot.error;
-      return { reconciled: false, ...snapshot };
+      return {
+        reconciled: false,
+        ...snapshot
+      };
     }
 
     components.lifecycle.settleFirstConnectPhase('ready');
@@ -140,10 +156,13 @@ export function createIngestion({
     // cached vessels are still drawable, so the chip cannot go quiet on an
     // outage the user is still looking at.
     state.error = snapshot.error || payload?.reason || null;
-    state.lastUpdate = Object.hasOwn(payload, 'observedAtMs')
-      ? payload.observedAtMs
-      : vesselState._aisRuntime.now();
-    return { reconciled: true, ...snapshot };
+    state.lastUpdate = Object.hasOwn(payload, 'observedAtMs') ?
+      payload.observedAtMs :
+      vesselState._aisRuntime.now();
+    return {
+      reconciled: true,
+      ...snapshot
+    };
   }
 
   function vesselDisplayRow(record) {
@@ -159,12 +178,10 @@ export function createIngestion({
       speed: record.speedMps == null ? null : record.speedMps / 0.514444,
       course: record.courseDeg,
       heading: record.headingDeg,
-      last_position_epoch:
-        record.observedAtMs == null ? null : record.observedAtMs / 1000,
-      last_position_UTC:
-        record.observedAtMs == null
-          ? ''
-          : new Date(record.observedAtMs).toISOString(),
+      last_position_epoch: record.observedAtMs == null ? null : record.observedAtMs / 1000,
+      last_position_UTC: record.observedAtMs == null ?
+        '' :
+        new Date(record.observedAtMs).toISOString(),
     };
   }
   const methods = {
