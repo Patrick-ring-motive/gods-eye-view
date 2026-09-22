@@ -5,7 +5,11 @@ import {
 } from './geometry.js';
 import * as Cesium from 'cesium';
 
-export function createIngestion({ state, parts, source }) {
+export function createIngestion({
+  state,
+  parts,
+  source
+}) {
   async function load(viewer) {
     if (state._loading || state._loaded) return;
 
@@ -28,7 +32,10 @@ export function createIngestion({ state, parts, source }) {
       let cableJson = state._cachedCableJson;
       let landingJson = state._cachedLandingJson;
       if (!cableJson || !landingJson) {
-        ({ cables: cableJson, landingPoints: landingJson } = await source.fetch(
+        ({
+          cables: cableJson,
+          landingPoints: landingJson
+        } = await source.fetch(
           abort.signal,
         ));
         if (!owns()) return;
@@ -47,29 +54,29 @@ export function createIngestion({ state, parts, source }) {
       const cableFeatures = normalizeFeatures(cableJson, 'cable');
       const landingFeatures = normalizeFeatures(landingJson, 'landing');
 
-      const cableDataSource = await Cesium.GeoJsonDataSource.load(
-        { type: 'FeatureCollection', features: cableFeatures },
-        {
-          clampToGround: true,
-          stroke: state.cableColor.withAlpha(0.95),
-          fill: state.cableColor.withAlpha(0.18),
-          strokeWidth: 2,
-          markerColor: state.cableColor,
-          markerSize: 6,
-        },
-      );
+      const cableDataSource = await Cesium.GeoJsonDataSource.load({
+        type: 'FeatureCollection',
+        features: cableFeatures
+      }, {
+        clampToGround: true,
+        stroke: state.cableColor.withAlpha(0.95),
+        fill: state.cableColor.withAlpha(0.18),
+        strokeWidth: 2,
+        markerColor: state.cableColor,
+        markerSize: 6,
+      }, );
       if (!owns()) return;
-      const landingDataSource = await Cesium.GeoJsonDataSource.load(
-        { type: 'FeatureCollection', features: landingFeatures },
-        {
-          clampToGround: true,
-          stroke: state.landingColor.withAlpha(0.9),
-          fill: state.landingColor.withAlpha(0.35),
-          strokeWidth: 2,
-          markerColor: state.landingColor,
-          markerSize: 6,
-        },
-      );
+      const landingDataSource = await Cesium.GeoJsonDataSource.load({
+        type: 'FeatureCollection',
+        features: landingFeatures
+      }, {
+        clampToGround: true,
+        stroke: state.landingColor.withAlpha(0.9),
+        fill: state.landingColor.withAlpha(0.35),
+        strokeWidth: 2,
+        markerColor: state.landingColor,
+        markerSize: 6,
+      }, );
       if (!owns()) return;
 
       cableDataSource.name = `${source.label} Submarine Cables`;
@@ -206,5 +213,7 @@ export function createIngestion({ state, parts, source }) {
       }
     }
   }
-  return { load };
+  return {
+    load
+  };
 }
