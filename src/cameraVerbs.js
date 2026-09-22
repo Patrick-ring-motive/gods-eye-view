@@ -494,7 +494,8 @@ function acquireCorridorFloor(state, takeWhole) {
       try {
         floor = state.floorFn(cell.lat, cell.lon);
       } catch {
-        /* a hostile read is the same as a cold one */ }
+        /* a hostile read is the same as a cold one */
+      }
       if (Number.isFinite(floor)) known.push(floor);
       else cold.push(cell);
     }
@@ -514,7 +515,8 @@ function acquireCorridorFloor(state, takeWhole) {
         state.meshProbeCoveredCold = probe.sampled >= cold.length;
       }
     } catch {
-      /* tiles not streamed, or a scene mid-teardown */ }
+      /* tiles not streamed, or a scene mid-teardown */
+    }
   }
   if (Number.isFinite(state.meshProbeFloorM)) known.push(state.meshProbeFloorM);
   if (!known.length) return false;
@@ -557,7 +559,8 @@ export function probeMeshFloorM(scene, cells) {
       sampled += 1;
       heightM = Number.isFinite(heightM) ? Math.max(heightM, height) : height;
     } catch {
-      /* tiles not ready for this cell */ }
+      /* tiles not ready for this cell */
+    }
   }
   return {
     heightM,
@@ -880,7 +883,8 @@ function clearLookAt() {
   try {
     _viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
   } catch {
-    /* teardown race */ }
+    /* teardown race */
+  }
 }
 
 /**
