@@ -15,11 +15,15 @@
 //      "not found" and a throw would surface as a broken search box.
 //
 // Run with: npm test
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import {
   geocodeKeyless,
   geocodeKeylessWithOutcome,
@@ -31,13 +35,18 @@ import {
   photonSearchUrl,
   selectPhotonFeature,
 } from './keylessGeocoder.js';
-import { geocodeNavigationMode } from './locations.js';
+import {
+  geocodeNavigationMode
+} from './locations.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Photon's real answer for "Hanoi", trimmed to the fields we consume. */
 const HANOI = {
-  geometry: { type: 'Point', coordinates: [105.854041, 21.0283334] },
+  geometry: {
+    type: 'Point',
+    coordinates: [105.854041, 21.0283334]
+  },
   properties: {
     osm_key: 'place',
     osm_value: 'city',
@@ -85,17 +94,61 @@ test('area features keep an area type so the camera frames them, not a rooftop',
   // lake rows are why: Photon tags water as `water=lake`, not `natural=water`,
   // and the guess cost a camera 26 m over Hoan Kiem Lake.
   const cases = [
-    [{ type: 'other', osm_key: 'water', osm_value: 'lake' }, 'natural_feature', 'area-overview'],
-    [{ type: 'other', osm_key: 'leisure', osm_value: 'park' }, 'park', 'area-overview'],
-    [{ type: 'other', osm_key: 'place', osm_value: 'region' }, 'natural_feature', 'area-overview'],
-    [{ type: 'other', osm_key: 'natural', osm_value: 'peak' }, 'natural_feature', 'area-overview'],
-    [{ type: 'other', osm_key: 'waterway', osm_value: 'river' }, 'natural_feature', 'area-overview'],
-    [{ type: 'house', osm_key: 'aeroway', osm_value: 'aerodrome' }, 'airport', 'area-overview'],
-    [{ type: 'house', osm_key: 'amenity', osm_value: 'university' }, 'university', 'area-overview'],
-    [{ type: 'street', osm_key: 'highway', osm_value: 'motorway' }, 'route', 'street-corridor'],
-    [{ type: 'country', osm_key: 'place', osm_value: 'country' }, 'country', 'region-overview'],
-    [{ type: 'state', osm_key: 'place', osm_value: 'state' }, 'administrative_area_level_1', 'region-overview'],
-    [{ type: 'district', osm_key: 'place', osm_value: 'suburb' }, 'sublocality', 'neighborhood-close'],
+    [{
+      type: 'other',
+      osm_key: 'water',
+      osm_value: 'lake'
+    }, 'natural_feature', 'area-overview'],
+    [{
+      type: 'other',
+      osm_key: 'leisure',
+      osm_value: 'park'
+    }, 'park', 'area-overview'],
+    [{
+      type: 'other',
+      osm_key: 'place',
+      osm_value: 'region'
+    }, 'natural_feature', 'area-overview'],
+    [{
+      type: 'other',
+      osm_key: 'natural',
+      osm_value: 'peak'
+    }, 'natural_feature', 'area-overview'],
+    [{
+      type: 'other',
+      osm_key: 'waterway',
+      osm_value: 'river'
+    }, 'natural_feature', 'area-overview'],
+    [{
+      type: 'house',
+      osm_key: 'aeroway',
+      osm_value: 'aerodrome'
+    }, 'airport', 'area-overview'],
+    [{
+      type: 'house',
+      osm_key: 'amenity',
+      osm_value: 'university'
+    }, 'university', 'area-overview'],
+    [{
+      type: 'street',
+      osm_key: 'highway',
+      osm_value: 'motorway'
+    }, 'route', 'street-corridor'],
+    [{
+      type: 'country',
+      osm_key: 'place',
+      osm_value: 'country'
+    }, 'country', 'region-overview'],
+    [{
+      type: 'state',
+      osm_key: 'place',
+      osm_value: 'state'
+    }, 'administrative_area_level_1', 'region-overview'],
+    [{
+      type: 'district',
+      osm_key: 'place',
+      osm_value: 'suburb'
+    }, 'sublocality', 'neighborhood-close'],
   ];
 
   for (const [properties, expectedType, expectedMode] of cases) {
@@ -112,30 +165,49 @@ test('a tag rule wins over the coarse class — a town square is not a city', ()
   // Photon reports Times Square and Quang truong Ba Dinh as place=square with
   // type: 'locality'. Falling through to the coarse class framed a plaza as if
   // it were a whole city.
-  const square = { type: 'locality', osm_key: 'place', osm_value: 'square' };
+  const square = {
+    type: 'locality',
+    osm_key: 'place',
+    osm_value: 'square'
+  };
   assert.deepEqual(photonResultTypes(square), []);
   assert.equal(geocodeNavigationMode(photonResultTypes(square)), 'precise-place');
 });
 
 test('an ordinary building stays a precise place', () => {
-  const types = photonResultTypes({ type: 'house', osm_key: 'building', osm_value: 'yes' });
+  const types = photonResultTypes({
+    type: 'house',
+    osm_key: 'building',
+    osm_value: 'yes'
+  });
   assert.equal(geocodeNavigationMode(types), 'precise-place');
 });
 
 test('the label names the place, then only containers it does not already name', () => {
   assert.equal(
-    photonResultLabel({ name: 'Hoàn Kiếm Lake', district: 'Hoàn Kiếm', city: 'Hà Nội', country: 'Việt Nam' }),
+    photonResultLabel({
+      name: 'Hoàn Kiếm Lake',
+      district: 'Hoàn Kiếm',
+      city: 'Hà Nội',
+      country: 'Việt Nam'
+    }),
     'Hoàn Kiếm Lake, Hoàn Kiếm, Hà Nội, Việt Nam',
   );
   assert.equal(
-    photonResultLabel({ name: 'Hà Nội', city: 'Hà Nội', country: 'Việt Nam' }),
+    photonResultLabel({
+      name: 'Hà Nội',
+      city: 'Hà Nội',
+      country: 'Việt Nam'
+    }),
     'Hà Nội, Việt Nam',
     'a city must not repeat its own name',
   );
 });
 
 test('the Google bias becomes a SOFT proximity bias, never a hard bbox', () => {
-  const url = new URL(photonSearchUrl('Sixth Street', { bias: '30.2000,-97.8000|30.3000,-97.7000' }));
+  const url = new URL(photonSearchUrl('Sixth Street', {
+    bias: '30.2000,-97.8000|30.3000,-97.7000'
+  }));
 
   assert.equal(url.searchParams.get('q'), 'Sixth Street');
   // Five, not one: proximity reorders the list, so the name actually asked for
@@ -153,7 +225,9 @@ test('the Google bias becomes a SOFT proximity bias, never a hard bbox', () => {
 
 test('an absent or unparsable bias drops the bias instead of sending a broken one', () => {
   for (const bias of [undefined, 'nonsense', 'a,b|c,d']) {
-    const url = new URL(photonSearchUrl('Hanoi', bias === undefined ? {} : { bias }));
+    const url = new URL(photonSearchUrl('Hanoi', bias === undefined ? {} : {
+      bias
+    }));
     assert.equal(url.searchParams.get('lat'), null);
     assert.equal(url.searchParams.get('lon'), null);
     assert.equal(url.searchParams.get('bbox'), null);
@@ -162,21 +236,42 @@ test('an absent or unparsable bias drops the bias instead of sending a broken on
 
 test('a network failure resolves to null — callers read null as not-found', async () => {
   const rejecting = () => Promise.reject(new Error('offline'));
-  assert.equal(await geocodeKeyless('Hanoi', { fetchImpl: rejecting }), null);
+  assert.equal(await geocodeKeyless('Hanoi', {
+    fetchImpl: rejecting
+  }), null);
 
-  const notOk = () => Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
-  assert.equal(await geocodeKeyless('somewhere else', { fetchImpl: notOk }), null);
+  const notOk = () => Promise.resolve({
+    ok: false,
+    json: () => Promise.resolve({})
+  });
+  assert.equal(await geocodeKeyless('somewhere else', {
+    fetchImpl: notOk
+  }), null);
 
-  const empty = () => Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [] }) });
-  assert.equal(await geocodeKeyless('third distinct query', { fetchImpl: empty }), null);
+  const empty = () => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      features: []
+    })
+  });
+  assert.equal(await geocodeKeyless('third distinct query', {
+    fetchImpl: empty
+  }), null);
 });
 
 test('an empty query never reaches the network', async () => {
   let calls = 0;
-  const counting = () => { calls += 1; return Promise.reject(new Error('should not run')); };
+  const counting = () => {
+    calls += 1;
+    return Promise.reject(new Error('should not run'));
+  };
 
-  assert.equal(await geocodeKeyless('   ', { fetchImpl: counting }), null);
-  assert.equal(await geocodeKeyless(null, { fetchImpl: counting }), null);
+  assert.equal(await geocodeKeyless('   ', {
+    fetchImpl: counting
+  }), null);
+  assert.equal(await geocodeKeyless(null, {
+    fetchImpl: counting
+  }), null);
   assert.equal(calls, 0);
 });
 
@@ -184,41 +279,87 @@ test('repeat queries are served from the memo, misses included', async () => {
   let calls = 0;
   const counting = () => {
     calls += 1;
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [HANOI] }) });
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        features: [HANOI]
+      })
+    });
   };
 
-  const first = await geocodeKeyless('Ha Noi memo probe', { fetchImpl: counting });
-  const second = await geocodeKeyless('Ha Noi memo probe', { fetchImpl: counting });
+  const first = await geocodeKeyless('Ha Noi memo probe', {
+    fetchImpl: counting
+  });
+  const second = await geocodeKeyless('Ha Noi memo probe', {
+    fetchImpl: counting
+  });
   assert.equal(calls, 1, 'the second lookup must not hit the network');
   assert.deepEqual(second, first);
 
   const missing = () => {
     calls += 1;
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [] }) });
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        features: []
+      })
+    });
   };
-  await geocodeKeyless('typo memo probe', { fetchImpl: missing });
-  await geocodeKeyless('typo memo probe', { fetchImpl: missing });
+  await geocodeKeyless('typo memo probe', {
+    fetchImpl: missing
+  });
+  await geocodeKeyless('typo memo probe', {
+    fetchImpl: missing
+  });
   assert.equal(calls, 2, 'a miss must be memoized too, or a typo costs one request per keystroke');
 });
 
 test('a feature without usable coordinates is rejected', () => {
   assert.equal(normalizePhotonFeature(undefined), null);
-  assert.equal(normalizePhotonFeature({ properties: { name: 'Nowhere' } }), null);
-  assert.equal(normalizePhotonFeature({ geometry: { coordinates: [200, 10] } }), null);
-  assert.equal(normalizePhotonFeature({ geometry: { coordinates: [10, 91] } }), null);
+  assert.equal(normalizePhotonFeature({
+    properties: {
+      name: 'Nowhere'
+    }
+  }), null);
+  assert.equal(normalizePhotonFeature({
+    geometry: {
+      coordinates: [200, 10]
+    }
+  }), null);
+  assert.equal(normalizePhotonFeature({
+    geometry: {
+      coordinates: [10, 91]
+    }
+  }), null);
 });
 
 // ── Bias may choose among matches; it may not change what counts as one ──────
 
 /** Photon's real answers for "Huế": Austin-biased, then unbiased. */
 const HUTTO = {
-  geometry: { type: 'Point', coordinates: [-97.6842, 30.5427] },
-  properties: { osm_key: 'place', osm_value: 'town', type: 'city', name: 'Hutto', country: 'United States' },
+  geometry: {
+    type: 'Point',
+    coordinates: [-97.6842, 30.5427]
+  },
+  properties: {
+    osm_key: 'place',
+    osm_value: 'town',
+    type: 'city',
+    name: 'Hutto',
+    country: 'United States'
+  },
 };
 const HUE = {
-  geometry: { type: 'Point', coordinates: [107.5908, 16.4674] },
+  geometry: {
+    type: 'Point',
+    coordinates: [107.5908, 16.4674]
+  },
   properties: {
-    osm_key: 'place', osm_value: 'city', type: 'city', name: 'Huế', country: 'Việt Nam',
+    osm_key: 'place',
+    osm_value: 'city',
+    type: 'city',
+    name: 'Huế',
+    country: 'Việt Nam',
     extent: [107.3763, 16.7739, 108.0518, 16.1276],
   },
 };
@@ -229,7 +370,12 @@ function photonPair(nearby, anywhere) {
   const impl = (url) => {
     urls.push(url);
     const biased = new URL(url).searchParams.has('lat');
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({ features: biased ? nearby : anywhere }) });
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        features: biased ? nearby : anywhere
+      })
+    });
   };
   impl.urls = urls;
   return impl;
@@ -241,7 +387,10 @@ test('a biased near-miss is refused, and the unbiased answer is taken instead', 
   // outrank the name — three of twelve Vietnamese names crossed a continent.
   const fetchImpl = photonPair([HUTTO], [HUE]);
 
-  const result = await geocodeKeyless('Huế', { bias: '30.20,-97.80|30.30,-97.70', fetchImpl });
+  const result = await geocodeKeyless('Huế', {
+    bias: '30.20,-97.80|30.30,-97.70',
+    fetchImpl
+  });
 
   assert.equal(result.label.startsWith('Huế'), true, `got ${result.label}`);
   assert.equal(Math.round(result.lat), 16);
@@ -252,38 +401,79 @@ test('a biased match that leads with the name is taken without a second request'
   // The other half of the rule, and the reason bias exists at all: "Sixth
   // Street" over Austin must stay Austin's.
   const sixth = {
-    geometry: { type: 'Point', coordinates: [-97.7431, 30.2672] },
-    properties: { osm_key: 'highway', osm_value: 'residential', type: 'street', name: 'Sixth Street', country: 'United States' },
+    geometry: {
+      type: 'Point',
+      coordinates: [-97.7431, 30.2672]
+    },
+    properties: {
+      osm_key: 'highway',
+      osm_value: 'residential',
+      type: 'street',
+      name: 'Sixth Street',
+      country: 'United States'
+    },
   };
   const fetchImpl = photonPair([sixth], [HUE]);
 
-  const result = await geocodeKeyless('Sixth Street', { bias: '30.20,-97.80|30.30,-97.70', fetchImpl });
+  const result = await geocodeKeyless('Sixth Street', {
+    bias: '30.20,-97.80|30.30,-97.70',
+    fetchImpl
+  });
 
   assert.equal(result.label.startsWith('Sixth Street'), true);
   assert.equal(fetchImpl.urls.length, 1);
 });
 
 test('a name is matched at its head, so a street that merely contains it loses', () => {
-  const road = { properties: { name: 'Nguyen Hue Road' } };
-  const city = { properties: { name: 'Huế' } };
+  const road = {
+    properties: {
+      name: 'Nguyen Hue Road'
+    }
+  };
+  const city = {
+    properties: {
+      name: 'Huế'
+    }
+  };
 
   assert.equal(selectPhotonFeature([road, city], 'hue'), city);
   // Relaxing to substring is a second choice only, never a first one.
   assert.equal(selectPhotonFeature([road], 'hue'), null);
-  assert.equal(selectPhotonFeature([road], 'hue', { allowContains: true }), road);
+  assert.equal(selectPhotonFeature([road], 'hue', {
+    allowContains: true
+  }), road);
   assert.equal(selectPhotonFeature([city], ''), null);
   assert.equal(selectPhotonFeature(undefined, 'hue'), null);
 });
 
 test('a "place, region" query is matched on the place, not the region', async () => {
   const lake = {
-    geometry: { type: 'Point', coordinates: [105.8524, 21.0287] },
-    properties: { osm_key: 'natural', osm_value: 'water', water: 'lake', name: 'Hoàn Kiếm Lake', country: 'Việt Nam' },
+    geometry: {
+      type: 'Point',
+      coordinates: [105.8524, 21.0287]
+    },
+    properties: {
+      osm_key: 'natural',
+      osm_value: 'water',
+      water: 'lake',
+      name: 'Hoàn Kiếm Lake',
+      country: 'Việt Nam'
+    },
   };
-  const street = { geometry: { type: 'Point', coordinates: [105.85, 21.03] }, properties: { name: 'Hoan Kiem District Road' } };
+  const street = {
+    geometry: {
+      type: 'Point',
+      coordinates: [105.85, 21.03]
+    },
+    properties: {
+      name: 'Hoan Kiem District Road'
+    }
+  };
   const fetchImpl = photonPair([], [street, lake]);
 
-  const result = await geocodeKeyless('Hoan Kiem Lake, Hanoi', { fetchImpl });
+  const result = await geocodeKeyless('Hoan Kiem Lake, Hanoi', {
+    fetchImpl
+  });
 
   assert.equal(result.label.startsWith('Hoàn Kiếm Lake'), true, `got ${result.label}`);
 });
@@ -345,7 +535,16 @@ test('the normalized result carries the canonical name its callers need', () => 
 });
 
 test('a feature with no name yields an empty string, never undefined', () => {
-  const bare = { geometry: { type: 'Point', coordinates: [105.85, 21.03] }, properties: { osm_key: 'place', osm_value: 'city' } };
+  const bare = {
+    geometry: {
+      type: 'Point',
+      coordinates: [105.85, 21.03]
+    },
+    properties: {
+      osm_key: 'place',
+      osm_value: 'city'
+    }
+  };
   const result = normalizePhotonFeature(bare);
 
   assert.equal(result.name, '');
@@ -377,16 +576,28 @@ test("Photon's own country name stays inside the label — it is not a field", (
 
 test('an unanswered request is never memoized, so the next attempt really retries', async () => {
   let attempts = 0;
-  const offline = () => { attempts += 1; return Promise.reject(new Error('offline')); };
+  const offline = () => {
+    attempts += 1;
+    return Promise.reject(new Error('offline'));
+  };
   const online = () => {
     attempts += 1;
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [HANOI] }) });
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        features: [HANOI]
+      })
+    });
   };
 
-  assert.equal(await geocodeKeyless('blip probe', { fetchImpl: offline }), null);
+  assert.equal(await geocodeKeyless('blip probe', {
+    fetchImpl: offline
+  }), null);
   assert.equal(attempts, 1);
 
-  const recovered = await geocodeKeyless('blip probe', { fetchImpl: online });
+  const recovered = await geocodeKeyless('blip probe', {
+    fetchImpl: online
+  });
   assert.equal(attempts, 2, 'the retry must reach the network, not a memoized blip');
   assert.equal(recovered.name, 'Hà Nội');
 });
@@ -395,36 +606,68 @@ test('an HTTP refusal counts as silence, not as "no such place"', async () => {
   let attempts = 0;
   const refusing = () => {
     attempts += 1;
-    return Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) });
+    return Promise.resolve({
+      ok: false,
+      status: 429,
+      json: () => Promise.resolve({})
+    });
   };
 
-  await geocodeKeyless('throttle probe', { fetchImpl: refusing });
-  await geocodeKeyless('throttle probe', { fetchImpl: refusing });
+  await geocodeKeyless('throttle probe', {
+    fetchImpl: refusing
+  });
+  await geocodeKeyless('throttle probe', {
+    fetchImpl: refusing
+  });
   assert.equal(attempts, 2, 'a 429 must not be remembered as a verdict');
 });
 
 test('the outcome reports which of the two a null result was', async () => {
-  const answeredMiss = () => Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [] }) });
+  const answeredMiss = () => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      features: []
+    })
+  });
   const failure = () => Promise.reject(new Error('offline'));
-  const hit = () => Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [HANOI] }) });
+  const hit = () => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      features: [HANOI]
+    })
+  });
 
   assert.deepEqual(
-    await geocodeKeylessWithOutcome('outcome probe a', { fetchImpl: answeredMiss }),
-    { place: null, answered: true },
+    await geocodeKeylessWithOutcome('outcome probe a', {
+      fetchImpl: answeredMiss
+    }), {
+      place: null,
+      answered: true
+    },
   );
   assert.deepEqual(
-    await geocodeKeylessWithOutcome('outcome probe b', { fetchImpl: failure }),
-    { place: null, answered: false },
+    await geocodeKeylessWithOutcome('outcome probe b', {
+      fetchImpl: failure
+    }), {
+      place: null,
+      answered: false
+    },
   );
 
-  const found = await geocodeKeylessWithOutcome('outcome probe c', { fetchImpl: hit });
+  const found = await geocodeKeylessWithOutcome('outcome probe c', {
+    fetchImpl: hit
+  });
   assert.equal(found.answered, true);
   assert.equal(found.place.name, 'Hà Nội');
 
   // A memo hit is by definition an answer — only answers are stored.
   assert.deepEqual(
-    await geocodeKeylessWithOutcome('outcome probe a', { fetchImpl: failure }),
-    { place: null, answered: true },
+    await geocodeKeylessWithOutcome('outcome probe a', {
+      fetchImpl: failure
+    }), {
+      place: null,
+      answered: true
+    },
   );
 });
 
@@ -435,14 +678,23 @@ test('a biased pass that never answered leaves the whole lookup unanswered', asy
   const urls = [];
   const halfDown = (url) => {
     urls.push(url);
-    return new URL(url).searchParams.has('lat')
-      ? Promise.reject(new Error('timeout'))
-      : Promise.resolve({ ok: true, json: () => Promise.resolve({ features: [] }) });
+    return new URL(url).searchParams.has('lat') ?
+      Promise.reject(new Error('timeout')) :
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          features: []
+        })
+      });
   };
 
   const outcome = await geocodeKeylessWithOutcome('half-down probe', {
-    bias: '30.20,-97.80|30.30,-97.70', fetchImpl: halfDown,
+    bias: '30.20,-97.80|30.30,-97.70',
+    fetchImpl: halfDown,
   });
-  assert.deepEqual(outcome, { place: null, answered: false });
+  assert.deepEqual(outcome, {
+    place: null,
+    answered: false
+  });
   assert.equal(urls.length, 2);
 });
