@@ -8,13 +8,20 @@ import {
   rm,
   symlink,
 } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import {
+  tmpdir
+} from 'node:os';
 import path from 'node:path';
-import { formatAdoptedFiles } from '../../scripts/format.mjs';
+import {
+  formatAdoptedFiles
+} from '../../scripts/format.mjs';
 
 async function fixture(t, scope = ['adopted.js']) {
   const root = await mkdtemp(path.join(tmpdir(), 'gev-format-'));
-  t.after(() => rm(root, { recursive: true, force: true }));
+  t.after(() => rm(root, {
+    recursive: true,
+    force: true
+  }));
   await mkdir(path.join(root, 'scripts'));
   await writeFile(
     path.join(root, 'scripts/format-scope.json'),
@@ -57,12 +64,12 @@ test('format check is read-only; write only changes adopted files and is repeata
 
 test('invalid, ignored and missing scope entries fail before any file is written', async (t) => {
   for (const scope of [
-    [],
-    ['adopted.js', 'adopted.js'],
-    ['adopted.js', '../escape.js'],
-    ['adopted.js', 'ignored.js'],
-    ['adopted.js', 'missing.js'],
-  ]) {
+      [],
+      ['adopted.js', 'adopted.js'],
+      ['adopted.js', '../escape.js'],
+      ['adopted.js', 'ignored.js'],
+      ['adopted.js', 'missing.js'],
+    ]) {
     const root = await fixture(t, scope);
     await writeFile(path.join(root, 'ignored.js'), 'const ignored=1');
     await assert.rejects(formatAdoptedFiles(root, '--write'));
@@ -74,8 +81,9 @@ test('invalid, ignored and missing scope entries fail before any file is written
 });
 
 test(
-  'formatting rejects a symlink outside the repository',
-  { skip: process.platform === 'win32' },
+  'formatting rejects a symlink outside the repository', {
+    skip: process.platform === 'win32'
+  },
   async (t) => {
     const root = await fixture(t, ['adopted.js', 'outside.js']);
     const other = await fixture(t);
