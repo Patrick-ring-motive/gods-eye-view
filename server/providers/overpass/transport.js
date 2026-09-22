@@ -3,8 +3,12 @@ import {
   OVERPASS_UPSTREAMS,
   OVERPASS_TIMEOUT_MS,
 } from './constants.js';
-import { readResponseTextCapped } from '../common/http.js';
-import { simplifyOverpassPayloadBody } from './geometry.js';
+import {
+  readResponseTextCapped
+} from '../common/http.js';
+import {
+  simplifyOverpassPayloadBody
+} from './geometry.js';
 
 /**
  * Detect whether an Overpass API response body indicates rate-limiting.
@@ -70,8 +74,7 @@ function overpassPayloadIsData(payload) {
  */
 async function fetchOverpassPayload(
   body,
-  maxResponseBytes = OVERPASS_MAX_RESPONSE_BYTES,
-  {
+  maxResponseBytes = OVERPASS_MAX_RESPONSE_BYTES, {
     endpoints = OVERPASS_UPSTREAMS,
     fetchImpl = fetch,
     readBody = readResponseTextCapped,
@@ -155,4 +158,7 @@ async function fetchOverpassPayload(
   throw lastError || new Error('All Overpass upstreams failed');
 }
 
-export { overpassPayloadIsData, fetchOverpassPayload };
+export {
+  overpassPayloadIsData,
+  fetchOverpassPayload
+};
