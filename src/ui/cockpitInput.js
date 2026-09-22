@@ -10,8 +10,8 @@ export function onKeyDown(event) {
     if (event.target?.closest?.('.cesium-credit-lightbox')) return;
     if (
       document
-        .getElementById('context-radio-dock')
-        ?.classList.contains('disclosure-open')
+      .getElementById('context-radio-dock')
+      ?.classList.contains('disclosure-open')
     )
       return;
     if (
@@ -28,21 +28,27 @@ export function onKeyDown(event) {
       ) {
         this.contextToggle?.blur?.();
       } else {
-        this.contextToggle?.focus({ preventScroll: true });
+        this.contextToggle?.focus({
+          preventScroll: true
+        });
       }
       return;
     }
     if (this.signalStream?.contains(event.target) && !this.signalCollapsed) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      this.setSignalCollapsed(true, { user: true });
+      this.setSignalCollapsed(true, {
+        user: true
+      });
       if (
         event.target === this.signalToggle ||
         this.signalToggle?.contains?.(event.target)
       ) {
         this.signalToggle?.blur?.();
       } else {
-        this.signalToggle?.focus({ preventScroll: true });
+        this.signalToggle?.focus({
+          preventScroll: true
+        });
       }
       return;
     }
