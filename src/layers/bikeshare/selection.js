@@ -22,12 +22,12 @@ export function createSelection({
     const stationLabel =
       stationName ||
       (record?.stationId ? `Station ${record.stationId}` : 'Station');
-    const bikes = Number.isFinite(record?.bikesAvailable)
-      ? record.bikesAvailable
-      : '?';
-    const docks = Number.isFinite(record?.docksAvailable)
-      ? record.docksAvailable
-      : '?';
+    const bikes = Number.isFinite(record?.bikesAvailable) ?
+      record.bikesAvailable :
+      '?';
+    const docks = Number.isFinite(record?.docksAvailable) ?
+      record.docksAvailable :
+      '?';
     const capacity = Number.isFinite(record?.capacity) ? record.capacity : '?';
 
     const lines = [
