@@ -2,7 +2,9 @@
 // contract: cockpit refuses before anything is released, the release happens
 // before the flight, and a deferred flight retires the moment ANY newer
 // navigation intent claims the camera.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   announceNavigationAuthority,
@@ -21,10 +23,17 @@ test('layer authority announcements distinguish passive autofocus from direct in
     eventTarget,
     cancelPendingSelection: false,
   });
-  announceNavigationAuthority('context-vessel-focus', { eventTarget });
-  assert.deepEqual(events, [
-    { reason: 'context-vessel-autofocus', cancelPendingSelection: false },
-    { reason: 'context-vessel-focus', cancelPendingSelection: true },
+  announceNavigationAuthority('context-vessel-focus', {
+    eventTarget
+  });
+  assert.deepEqual(events, [{
+      reason: 'context-vessel-autofocus',
+      cancelPendingSelection: false
+    },
+    {
+      reason: 'context-vessel-focus',
+      cancelPendingSelection: true
+    },
   ]);
 });
 
@@ -35,7 +44,9 @@ test('an initial globe gesture cancels the passive shared Follow selection', () 
     return 7;
   });
   assert.equal(result, 7);
-  assert.deepEqual(calls, [{ cancelPendingSelection: true }]);
+  assert.deepEqual(calls, [{
+    cancelPendingSelection: true
+  }]);
   assert.equal(stampInitialShareGesture(null), undefined);
 });
 
@@ -47,7 +58,10 @@ function spy(overrides = {}) {
     showToast: (text) => log.push(`toast:${text}`),
     stamp: () => log.push('stamp'),
     release: () => log.push('release'),
-    navigate: () => { log.push('navigate'); return 'flew'; },
+    navigate: () => {
+      log.push('navigate');
+      return 'flew';
+    },
     ...overrides,
   };
 }
@@ -58,8 +72,15 @@ function spy(overrides = {}) {
  * flights capture their stamp and recheck it before flying.
  */
 function navigator() {
-  const state = { generation: 0, cockpitActive: false, log: [] };
-  const stamp = () => { state.generation += 1; return state.generation; };
+  const state = {
+    generation: 0,
+    cockpitActive: false,
+    log: []
+  };
+  const stamp = () => {
+    state.generation += 1;
+    return state.generation;
+  };
   const release = () => state.log.push('release');
   const showToast = (text) => state.log.push(`toast:${text}`);
   return {
@@ -104,20 +125,31 @@ function navigator() {
       stamp();
       state.cockpitActive = true;
     },
-    exitCockpit() { state.cockpitActive = false; },
+    exitCockpit() {
+      state.cockpitActive = false;
+    },
   };
 }
 
 test('a free camera is stamped, released, then flown — in that order', () => {
   const s = spy();
-  const result = runExplicitNavigation({ cockpitActive: false, noun: 'location', ...s });
+  const result = runExplicitNavigation({
+    cockpitActive: false,
+    noun: 'location',
+    ...s
+  });
   assert.equal(result, 'flew');
   assert.deepEqual(s.log, ['stamp', 'release', 'navigate']);
 });
 
 test('the accepted intent hands its stamp to the flight', () => {
   let seen = null;
-  runExplicitNavigation({ stamp: () => 42, navigate: (generation) => { seen = generation; } });
+  runExplicitNavigation({
+    stamp: () => 42,
+    navigate: (generation) => {
+      seen = generation;
+    }
+  });
   assert.equal(seen, 42, 'a deferred flight needs its stamp to recheck later');
 });
 
@@ -126,7 +158,11 @@ test('cockpit refuses without stamping or releasing anything', () => {
   // silently exits on the next update — the refusal must come first.
   for (const noun of ['location', 'camera', 'vessel', 'fire']) {
     const s = spy();
-    const result = runExplicitNavigation({ cockpitActive: true, noun, ...s });
+    const result = runExplicitNavigation({
+      cockpitActive: true,
+      noun,
+      ...s
+    });
     assert.equal(result, false);
     assert.deepEqual(s.log, [`toast:Exit cockpit to fly to a ${noun}`]);
   }
@@ -134,34 +170,59 @@ test('cockpit refuses without stamping or releasing anything', () => {
 
 test('disposed navigation is inert before any camera or UI mutation', () => {
   const s = spy();
-  const result = runExplicitNavigation({ disposed: true, cockpitActive: true, ...s });
+  const result = runExplicitNavigation({
+    disposed: true,
+    cockpitActive: true,
+    ...s
+  });
   assert.equal(result, false);
   assert.deepEqual(s.log, []);
 });
 
 test('the refusal is a strict false, distinguishable from a flight result', () => {
-  const refused = runExplicitNavigation({ cockpitActive: true, showToast() {} });
+  const refused = runExplicitNavigation({
+    cockpitActive: true,
+    showToast() {}
+  });
   assert.strictEqual(refused, false);
   // A navigate() that legitimately returns undefined is not a refusal.
-  assert.strictEqual(runExplicitNavigation({ navigate: () => undefined }), undefined);
+  assert.strictEqual(runExplicitNavigation({
+    navigate: () => undefined
+  }), undefined);
 });
 
 test('deferred handoff: the current request re-releases, then proceeds', () => {
   const s = spy();
-  const ok = reassertNavigationHandoff({ generation: 4, currentGeneration: 4, ...s });
+  const ok = reassertNavigationHandoff({
+    generation: 4,
+    currentGeneration: 4,
+    ...s
+  });
   assert.equal(ok, true);
   assert.deepEqual(s.log, ['release']);
 });
 
 test('deferred intent stamps without releasing a camera owner', () => {
-  const s = spy({ stamp: () => { s.log.push('stamp'); return 7; } });
-  assert.equal(beginDeferredNavigation({ ...s, noun: 'location' }), 7);
+  const s = spy({
+    stamp: () => {
+      s.log.push('stamp');
+      return 7;
+    }
+  });
+  assert.equal(beginDeferredNavigation({
+    ...s,
+    noun: 'location'
+  }), 7);
   assert.deepEqual(s.log, ['stamp']);
 });
 
 test('disposed deferred intent is inert before stamp or UI mutation', () => {
   const s = spy();
-  assert.equal(beginDeferredNavigation({ disposed: true, cockpitActive: true, ...s }), false);
+  assert.equal(beginDeferredNavigation({
+    disposed: true,
+    cockpitActive: true,
+    ...s
+  }), false);
   assert.deepEqual(s.log, []);
 });
 
@@ -179,7 +240,11 @@ test('disposed deferred work is inert before release', () => {
 test('deferred handoff: a superseded request neither flies nor releases', () => {
   // The newer intent owns the camera now — releasing here would yank it.
   const s = spy();
-  const ok = reassertNavigationHandoff({ generation: 3, currentGeneration: 4, ...s });
+  const ok = reassertNavigationHandoff({
+    generation: 3,
+    currentGeneration: 4,
+    ...s
+  });
   assert.equal(ok, false);
   assert.deepEqual(s.log, [], 'a stale flight must be completely inert');
 });
@@ -187,7 +252,10 @@ test('deferred handoff: a superseded request neither flies nor releases', () => 
 test('deferred handoff: cockpit taken mid-flight refuses and explains', () => {
   const s = spy();
   const ok = reassertNavigationHandoff({
-    generation: 4, currentGeneration: 4, cockpitActive: true, ...s,
+    generation: 4,
+    currentGeneration: 4,
+    cockpitActive: true,
+    ...s,
   });
   assert.equal(ok, false);
   assert.deepEqual(s.log, ['toast:Exit cockpit to fly to a location']);
@@ -195,7 +263,12 @@ test('deferred handoff: cockpit taken mid-flight refuses and explains', () => {
 
 test('deferred handoff: supersession is checked before cockpit, so it stays silent', () => {
   const s = spy();
-  reassertNavigationHandoff({ generation: 3, currentGeneration: 4, cockpitActive: true, ...s });
+  reassertNavigationHandoff({
+    generation: 3,
+    currentGeneration: 4,
+    cockpitActive: true,
+    ...s
+  });
   assert.deepEqual(s.log, [], 'a stale request must not toast on the user');
 });
 
