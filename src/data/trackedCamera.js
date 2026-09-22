@@ -26,12 +26,12 @@ export function trackedModelScaleForPixelCap({
   maximumPixelSize,
 }) {
   if (
-    !Number.isFinite(baseScale) || baseScale <= 0
-    || !Number.isFinite(nativeRadiusM) || nativeRadiusM <= 0
-    || !Number.isFinite(rangeM) || rangeM <= 0
-    || !Number.isFinite(viewportHeightPx) || viewportHeightPx <= 0
-    || !Number.isFinite(fovyRad) || fovyRad <= 0
-    || !Number.isFinite(maximumPixelSize) || maximumPixelSize <= 0
+    !Number.isFinite(baseScale) || baseScale <= 0 ||
+    !Number.isFinite(nativeRadiusM) || nativeRadiusM <= 0 ||
+    !Number.isFinite(rangeM) || rangeM <= 0 ||
+    !Number.isFinite(viewportHeightPx) || viewportHeightPx <= 0 ||
+    !Number.isFinite(fovyRad) || fovyRad <= 0 ||
+    !Number.isFinite(maximumPixelSize) || maximumPixelSize <= 0
   ) return baseScale;
   const focalLengthPx = viewportHeightPx / (2 * Math.tan(fovyRad / 2));
   const projectedDiameterPx = (
@@ -52,9 +52,9 @@ export function trackedModelScaleForPixelCap({
  */
 export function trackedDisplayPositionForCamera(entity, time, result) {
   const displayedPosition = entity?.gevDisplayPosition?.();
-  return displayedPosition
-    ? Cesium.Cartesian3.clone(displayedPosition, result)
-    : entity?.position?.getValue(time, result);
+  return displayedPosition ?
+    Cesium.Cartesian3.clone(displayedPosition, result) :
+    entity?.position?.getValue(time, result);
 }
 
 function acquireStableTrackedZoom(controller, entity) {
@@ -108,8 +108,8 @@ export function clampTrackedCameraPosition(
     return true;
   }
   if (
-    forwardDistance < minimumRangeM
-    || rangeSquared < minimumRangeM * minimumRangeM
+    forwardDistance < minimumRangeM ||
+    rangeSquared < minimumRangeM * minimumRangeM
   ) {
     Cesium.Cartesian3.multiplyByScalar(
       camera.direction,
@@ -192,9 +192,9 @@ export function applyTrackedCameraFrame(viewer, entity, viewFrom) {
         Cesium.Ellipsoid.WGS84,
         trackedTransform,
       );
-      const offset = typeof viewFrom.getValue === 'function'
-        ? viewFrom.getValue(viewer.clock.currentTime, resolvedViewFrom)
-        : Cesium.Cartesian3.clone(viewFrom, resolvedViewFrom);
+      const offset = typeof viewFrom.getValue === 'function' ?
+        viewFrom.getValue(viewer.clock.currentTime, resolvedViewFrom) :
+        Cesium.Cartesian3.clone(viewFrom, resolvedViewFrom);
       if (!offset || Cesium.Cartesian3.magnitudeSquared(offset) < Cesium.Math.EPSILON12) {
         stop();
         return;
