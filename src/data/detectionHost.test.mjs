@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
 import {
   countFadingRenderEntries,
@@ -22,20 +24,35 @@ import {
   initWorldOverlay,
   setOverlayEntries,
 } from '../overlays/worldOverlay.js';
-import { DETECTION_THEME_MAP } from '../overlays/worldOverlayTokens.js';
+import {
+  DETECTION_THEME_MAP
+} from '../overlays/worldOverlayTokens.js';
 
 test('detection diagnostics count rendered fading rows instead of absent selected identities', () => {
-  assert.equal(countFadingRenderEntries([
-    { selected: true },
-    { selected: false },
-    { selected: true },
-    { selected: false },
+  assert.equal(countFadingRenderEntries([{
+      selected: true
+    },
+    {
+      selected: false
+    },
+    {
+      selected: true
+    },
+    {
+      selected: false
+    },
   ]), 2);
-  assert.equal(countFadingRenderEntries([{ selected: true }, { selected: true }]), 0);
+  assert.equal(countFadingRenderEntries([{
+    selected: true
+  }, {
+    selected: true
+  }]), 0);
 });
 
 class MockEvent {
-  constructor() { this.listeners = new Set(); }
+  constructor() {
+    this.listeners = new Set();
+  }
 
   addEventListener(listener) {
     this.listeners.add(listener);
@@ -67,46 +84,108 @@ function mockContext(target, trace) {
   return {
     calls,
     font: '',
-    get filter() { return filter; },
-    set filter(value) { filter = value; record('filter', value); },
+    get filter() {
+      return filter;
+    },
+    set filter(value) {
+      filter = value;
+      record('filter', value);
+    },
     fillStyle: '',
-    get strokeStyle() { return strokeStyle; },
-    set strokeStyle(value) { strokeStyle = value; record('strokeStyle', value); },
+    get strokeStyle() {
+      return strokeStyle;
+    },
+    set strokeStyle(value) {
+      strokeStyle = value;
+      record('strokeStyle', value);
+    },
     globalAlpha: 1,
-    get globalCompositeOperation() { return globalCompositeOperation; },
-    set globalCompositeOperation(value) { globalCompositeOperation = value; record('globalCompositeOperation', value); },
+    get globalCompositeOperation() {
+      return globalCompositeOperation;
+    },
+    set globalCompositeOperation(value) {
+      globalCompositeOperation = value;
+      record('globalCompositeOperation', value);
+    },
     lineWidth: 1,
-    measureText(text) { return { width: String(text).length * 6 }; },
-    setTransform(...args) { record('setTransform', ...args); },
-    clearRect(...args) { record('clearRect', ...args); },
-    save() { record('save'); },
-    restore() { record('restore'); },
-    translate(...args) { record('translate', ...args); },
-    scale(...args) { record('scale', ...args); },
-    beginPath() { record('beginPath'); },
-    rect(...args) { record('rect', ...args); },
-    clip(...args) { record('clip', ...args); },
-    moveTo(...args) { record('moveTo', ...args); },
-    lineTo(...args) { record('lineTo', ...args); },
-    arc(...args) { record('arc', ...args); },
-    arcTo(...args) { record('arcTo', ...args); },
-    closePath() { record('closePath'); },
+    measureText(text) {
+      return {
+        width: String(text).length * 6
+      };
+    },
+    setTransform(...args) {
+      record('setTransform', ...args);
+    },
+    clearRect(...args) {
+      record('clearRect', ...args);
+    },
+    save() {
+      record('save');
+    },
+    restore() {
+      record('restore');
+    },
+    translate(...args) {
+      record('translate', ...args);
+    },
+    scale(...args) {
+      record('scale', ...args);
+    },
+    beginPath() {
+      record('beginPath');
+    },
+    rect(...args) {
+      record('rect', ...args);
+    },
+    clip(...args) {
+      record('clip', ...args);
+    },
+    moveTo(...args) {
+      record('moveTo', ...args);
+    },
+    lineTo(...args) {
+      record('lineTo', ...args);
+    },
+    arc(...args) {
+      record('arc', ...args);
+    },
+    arcTo(...args) {
+      record('arcTo', ...args);
+    },
+    closePath() {
+      record('closePath');
+    },
     // The style is recorded AT fill time, not on assignment, so a pin can prove
     // which plate token actually reached the canvas rather than which one was
     // set at some point during the frame. globalAlpha rides along for the same
     // reason: the backdrop feather is an alpha, not a colour.
-    fill(path) { record('fill', path, this.fillStyle, this.globalAlpha); },
-    stroke(path) { record('stroke', path); },
-    fillRect(...args) { record('fillRect', ...args); },
-    fillText(...args) { record('fillText', ...args); },
-    drawImage(...args) { record('drawImage', ...args); },
+    fill(path) {
+      record('fill', path, this.fillStyle, this.globalAlpha);
+    },
+    stroke(path) {
+      record('stroke', path);
+    },
+    fillRect(...args) {
+      record('fillRect', ...args);
+    },
+    fillText(...args) {
+      record('fillText', ...args);
+    },
+    drawImage(...args) {
+      record('drawImage', ...args);
+    },
   };
 }
 
 // `search` seeds window.location.search. The detection mode banner is developer
 // telemetry gated behind ?detectDebug=1, so any test that uses the banner as its
 // "did this frame repaint" probe must opt in explicitly.
-function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } = {}) {
+function installEnvironment({
+  width = 800,
+  height = 600,
+  dpr = 2,
+  search = ''
+} = {}) {
   const byId = new Map();
   const paintTrace = [];
   const ctx = mockContext('shared', paintTrace);
@@ -118,11 +197,13 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
   let performanceStep = 0;
   Object.defineProperty(globalThis, 'performance', {
     configurable: true,
-    value: { now: () => {
-      const value = currentTime;
-      currentTime += performanceStep;
-      return value;
-    } },
+    value: {
+      now: () => {
+        const value = currentTime;
+        currentTime += performanceStep;
+        return value;
+      }
+    },
   });
   Date.now = () => currentTime;
   globalThis.Path2D = MockPath2D;
@@ -140,7 +221,12 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
       this.height = 0;
       this.clientWidth = width;
       this.clientHeight = height;
-      this._rect = { left: 0, top: 0, width, height };
+      this._rect = {
+        left: 0,
+        top: 0,
+        width,
+        height
+      };
     }
 
     appendChild(child) {
@@ -165,7 +251,9 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
       register(this);
     }
 
-    getBoundingClientRect() { return this._rect; }
+    getBoundingClientRect() {
+      return this._rect;
+    }
     getContext() {
       if (this.tagName !== 'CANVAS') return null;
       return this.id === 'world-overlay-detection-surface' ? detectionCtx : ctx;
@@ -184,7 +272,9 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
       this.parentElement = null;
     }
 
-    get nextSibling() { return null; }
+    get nextSibling() {
+      return null;
+    }
   }
 
   function register(element) {
@@ -198,12 +288,22 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
   }
 
   const body = new MockElement('body');
-  body.classList = { contains() { return false; } };
+  body.classList = {
+    contains() {
+      return false;
+    }
+  };
   const document = {
     body,
-    createElement(tagName) { return new MockElement(tagName); },
-    getElementById(id) { return byId.get(id) || null; },
-    querySelector(selector) { return byId.get(selector.slice(1)) || null; },
+    createElement(tagName) {
+      return new MockElement(tagName);
+    },
+    getElementById(id) {
+      return byId.get(id) || null;
+    },
+    querySelector(selector) {
+      return byId.get(selector.slice(1)) || null;
+    },
     querySelectorAll(selector) {
       const element = selector.startsWith('#') ? byId.get(selector.slice(1)) : null;
       return element ? [element] : [];
@@ -211,13 +311,27 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
   };
   const window = {
     devicePixelRatio: dpr,
-    location: { search },
+    location: {
+      search
+    },
     addEventListener() {},
     removeEventListener() {},
-    getComputedStyle() { return { display: 'block', visibility: 'visible', opacity: '1' }; },
+    getComputedStyle() {
+      return {
+        display: 'block',
+        visibility: 'visible',
+        opacity: '1'
+      };
+    },
   };
-  globalThis.ResizeObserver = class { observe() {} disconnect() {} };
-  globalThis.MutationObserver = class { observe() {} disconnect() {} };
+  globalThis.ResizeObserver = class {
+    observe() {}
+    disconnect() {}
+  };
+  globalThis.MutationObserver = class {
+    observe() {}
+    disconnect() {}
+  };
   globalThis.document = document;
   globalThis.window = window;
 
@@ -234,15 +348,25 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
   const postRender = new MockEvent();
   const viewer = {
     container,
-    canvas: { clientWidth: width, clientHeight: height },
+    canvas: {
+      clientWidth: width,
+      clientHeight: height
+    },
     camera: {
       positionWC: new Cesium.Cartesian3(0, 0, 10_000_000),
-      positionCartographic: { height: 1_000_000 },
+      positionCartographic: {
+        height: 1_000_000
+      },
       viewMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY),
-      frustum: { projectionMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY) },
+      frustum: {
+        projectionMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY)
+      },
       moveEnd: new MockEvent(),
     },
-    scene: { postRender, requestRender() {} },
+    scene: {
+      postRender,
+      requestRender() {}
+    },
   };
 
   return {
@@ -252,8 +376,12 @@ function installEnvironment({ width = 800, height = 600, dpr = 2, search = '' } 
     ctx,
     detectionCtx,
     paintTrace,
-    advance(ms) { currentTime += ms; },
-    setPerformanceStep(ms) { performanceStep = ms; },
+    advance(ms) {
+      currentTime += ms;
+    },
+    setPerformanceStep(ms) {
+      performanceStep = ms;
+    },
     cleanup() {
       destroyDetection();
       destroyWorldOverlay();
@@ -313,8 +441,7 @@ function mixedTierLayer() {
   return {
     id: 'mixed',
     getDetectableObjects() {
-      return [
-        {
+      return [{
           position: new Cesium.Cartesian3(-0.4, 0.2, 6_356_752),
           sourceId: 'air-1',
           id: 'AIRONE',
@@ -348,7 +475,9 @@ function settleFrame(env) {
 
 test('detection lifecycle re-hosts unchanged painters behind the sole host listener', () => {
   // Opts into the telemetry banner: this test reads it as the repaint probe.
-  const env = installEnvironment({ search: '?detectDebug=1' });
+  const env = installEnvironment({
+    search: '?detectDebug=1'
+  });
   const modes = [];
   try {
     initWorldOverlay(env.viewer);
@@ -382,8 +511,8 @@ test('detection lifecycle re-hosts unchanged painters behind the sole host liste
     assert.ok(first.solveRevision > 0);
     assert.ok(first.collectiveLabelBudget > 0);
     assert.ok(first.bracketOpacityCounts.full + first.bracketOpacityCounts.partial > 0);
-    assert.ok(env.detectionCtx.calls.some(([name, text]) => name === 'fillText'
-      && String(text).startsWith('DENSE  VIS:')));
+    assert.ok(env.detectionCtx.calls.some(([name, text]) => name === 'fillText' &&
+      String(text).startsWith('DENSE  VIS:')));
     assert.ok(env.detectionCtx.calls.some(([name, path]) => name === 'stroke' && path instanceof MockPath2D));
     assert.ok(env.detectionCtx.calls.some(([name]) => name === 'fillRect'), 'scanlines and banner still paint');
     assert.equal(env.detectionCtx.globalCompositeOperation, 'source-over');
@@ -407,7 +536,10 @@ test('detection lifecycle re-hosts unchanged painters behind the sole host liste
     env.postRender.raise();
     assert.ok(getDetectionDiagnostics().solveRevision > first.solveRevision);
 
-    setDetectionTuning({ densityPct: 25, allocationStrategy: 'WEIGHTED' });
+    setDetectionTuning({
+      densityPct: 25,
+      allocationStrategy: 'WEIGHTED'
+    });
     env.postRender.raise();
     assert.equal(getMode(), 'SPARSE');
     assert.equal(getDetectionDiagnostics().profile, 'SPARSE');
@@ -449,7 +581,9 @@ test('detection lifecycle re-hosts unchanged painters behind the sole host liste
       setDetectionStyle(style);
       assert.equal(surface.style.mixBlendMode, 'screen');
       assert.equal(surface.style.filter, expectedThemes[style]);
-      setDetectionTuning({ densityPct: 75 });
+      setDetectionTuning({
+        densityPct: 75
+      });
       setMode('DENSE');
       env.postRender.raise();
       assert.equal(getDetectionDiagnostics().profile, 'DENSE');
@@ -500,7 +634,10 @@ test('callouts stop painting the moment the last detectable object goes away', (
   }];
   try {
     initWorldOverlay(env.viewer);
-    initDetection(env.viewer, [{ id: 'flights', getDetectableObjects: () => objects }], () => {});
+    initDetection(env.viewer, [{
+      id: 'flights',
+      getDetectableObjects: () => objects
+    }], () => {});
     setMode('DENSE');
     env.advance(250);
     env.postRender.raise();
@@ -612,8 +749,8 @@ test('surveillance military tier reaches the dedicated render target as shipped 
       env.detectionCtx.calls.some(([name, value]) => name === 'strokeStyle' && value === '#ff5a47'),
       'the production projection/tier/batched-bracket paint path emits surveillance military red',
     );
-    assert.ok(env.detectionCtx.calls.some(([name, path]) => name === 'stroke'
-      && path instanceof MockPath2D));
+    assert.ok(env.detectionCtx.calls.some(([name, path]) => name === 'stroke' &&
+      path instanceof MockPath2D));
   } finally {
     env.cleanup();
   }
@@ -621,7 +758,9 @@ test('surveillance military tier reaches the dedicated render target as shipped 
 
 test('pathological detection paint holds alternate frames without freezing shared lanes', () => {
   // Opts into the telemetry banner: the held-frame assertions count banner paints.
-  const env = installEnvironment({ search: '?detectDebug=1' });
+  const env = installEnvironment({
+    search: '?detectDebug=1'
+  });
   try {
     initWorldOverlay(env.viewer);
     initDetection(env.viewer, [detectableLayer()], () => {});
@@ -642,21 +781,21 @@ test('pathological detection paint holds alternate frames without freezing share
     env.postRender.raise();
     env.postRender.raise();
     const detectionClears = env.detectionCtx.calls.filter(([name]) => name === 'clearRect').length;
-    const detectionBanners = env.detectionCtx.calls.filter(([name, text]) => name === 'fillText'
-      && String(text).startsWith('DENSE  VIS:')).length;
+    const detectionBanners = env.detectionCtx.calls.filter(([name, text]) => name === 'fillText' &&
+      String(text).startsWith('DENSE  VIS:')).length;
     const sharedClears = env.ctx.calls.filter(([name]) => name === 'clearRect').length;
-    const sharedCards = env.ctx.calls.filter(([name, text]) => name === 'fillText'
-      && text === 'AMBIENT-CONTINUES').length;
+    const sharedCards = env.ctx.calls.filter(([name, text]) => name === 'fillText' &&
+      text === 'AMBIENT-CONTINUES').length;
 
     env.postRender.raise();
     assert.equal(env.detectionCtx.calls.filter(([name]) => name === 'clearRect').length, detectionClears,
       'the host preserves detection pixels on the held odd frame');
-    assert.equal(env.detectionCtx.calls.filter(([name, text]) => name === 'fillText'
-      && String(text).startsWith('DENSE  VIS:')).length, detectionBanners);
+    assert.equal(env.detectionCtx.calls.filter(([name, text]) => name === 'fillText' &&
+      String(text).startsWith('DENSE  VIS:')).length, detectionBanners);
     assert.equal(env.ctx.calls.filter(([name]) => name === 'clearRect').length, sharedClears + 1,
       'the shared surface still clears');
-    assert.equal(env.ctx.calls.filter(([name, text]) => name === 'fillText'
-      && text === 'AMBIENT-CONTINUES').length, sharedCards + 1,
+    assert.equal(env.ctx.calls.filter(([name, text]) => name === 'fillText' &&
+        text === 'AMBIENT-CONTINUES').length, sharedCards + 1,
       'the shared lane still repaints');
     assert.equal(getDetectionDiagnostics().throttleSkipCount, 1);
 
@@ -671,8 +810,8 @@ test('pathological detection paint holds alternate frames without freezing share
 
 test('detection cannot resurrect a private canvas, listener, matrix, resize, clear, or UI inventory', () => {
   const source = readFileSync(new URL('./detection.js', import.meta.url), 'utf8');
-  const uiSource = readFileSync(new URL('../ui/applicationShell.js', import.meta.url), 'utf8')
-  + '\n' + readFileSync(new URL('../ui/visualPresets.js', import.meta.url), 'utf8');
+  const uiSource = readFileSync(new URL('../ui/applicationShell.js', import.meta.url), 'utf8') +
+    '\n' + readFileSync(new URL('../ui/visualPresets.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /createElement\(\s*['"]canvas['"]\s*\)/);
   assert.doesNotMatch(source, /postRender\.addEventListener/);
   assert.doesNotMatch(source, /['"]detection-overlay['"]/);
@@ -728,7 +867,9 @@ test('the mode banner is absent by default and present behind the flag', () => {
   )).length;
 
   const painted = (search) => {
-    const env = installEnvironment({ search });
+    const env = installEnvironment({
+      search
+    });
     try {
       initWorldOverlay(env.viewer);
       initDetection(env.viewer, [detectableLayer()], () => {});
@@ -776,7 +917,11 @@ test('detection telemetry stays reachable programmatically with the banner hidde
 
 test('civilian and military AIR brackets cover front, left, and right at Sparse density', () => {
   for (const layerId of ['flights', 'military']) {
-    const env = installEnvironment({ width: 900, height: 600, dpr: 1 });
+    const env = installEnvironment({
+      width: 900,
+      height: 600,
+      dpr: 1
+    });
     try {
       const objects = [-0.82, 0, 0.82].map((x, index) => ({
         position: new Cesium.Cartesian3(x, 0, 6_356_752),
@@ -786,14 +931,22 @@ test('civilian and military AIR brackets cover front, left, and right at Sparse 
         type: 'AIR',
       }));
       initWorldOverlay(env.viewer);
-      initDetection(env.viewer, [{ id: layerId, getDetectableObjects: () => objects }], () => {});
-      setDetectionTuning({ densityPct: 25 });
+      initDetection(env.viewer, [{
+        id: layerId,
+        getDetectableObjects: () => objects
+      }], () => {});
+      setDetectionTuning({
+        densityPct: 25
+      });
       setMode('SPARSE');
       settleFrame(env);
       const diagnostics = getDetectionDiagnostics();
       assert.deepEqual(
-        diagnostics.aircraftBracketSectors,
-        { left: 1, front: 1, right: 1 },
+        diagnostics.aircraftBracketSectors, {
+          left: 1,
+          front: 1,
+          right: 1
+        },
         `${layerId} side brackets must not be starved by the central keyhole`,
       );
       assert.equal(diagnostics.visibleCount, 3);
@@ -822,14 +975,19 @@ function backdropLayer() {
   return {
     id: 'flights',
     getDetectableObjects() {
-      return [
-        {
+      return [{
           position: new Cesium.Cartesian3(-0.4, 0.2, 6_356_752),
-          sourceId: 'ground-1', id: 'GROUNDED', metric: 'FL100', type: 'AIR',
+          sourceId: 'ground-1',
+          id: 'GROUNDED',
+          metric: 'FL100',
+          type: 'AIR',
         },
         {
           position: new Cesium.Cartesian3(0.4, -0.2, 20_000_000),
-          sourceId: 'sky-1', id: 'SKYBACK', metric: 'FL400', type: 'AIR',
+          sourceId: 'sky-1',
+          id: 'SKYBACK',
+          metric: 'FL400',
+          type: 'AIR',
         },
       ];
     },
