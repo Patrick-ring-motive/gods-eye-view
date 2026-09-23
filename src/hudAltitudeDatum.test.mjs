@@ -16,16 +16,27 @@
 // globals exist: Cesium's widget bundle probes for a real `document` at module
 // scope and a partial stub sends it down the browser path. Hence hook →
 // import → install DOM, in that order.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { registerHooks } from 'node:module';
-import { ensureGeoidReady } from './data/geoid.js';
+import {
+  readFileSync
+} from 'node:fs';
+import {
+  registerHooks
+} from 'node:module';
+import {
+  ensureGeoidReady
+} from './data/geoid.js';
 
 const MGRS_STUB_URL = 'gev-test-stub:mgrs';
 registerHooks({
   resolve(specifier, context, next) {
-    if (specifier === 'mgrs') return { url: MGRS_STUB_URL, shortCircuit: true };
+    if (specifier === 'mgrs') return {
+      url: MGRS_STUB_URL,
+      shortCircuit: true
+    };
     return next(specifier, context);
   },
   load(url, context, next) {
@@ -40,7 +51,9 @@ registerHooks({
   },
 });
 
-const { IntelHUD } = await import('./hud.js');
+const {
+  IntelHUD
+} = await import('./hud.js');
 
 const source = readFileSync(new URL('./hud.js', import.meta.url), 'utf8');
 // Boolean probes, not assert.match on the whole file — a failure here should
@@ -48,7 +61,10 @@ const source = readFileSync(new URL('./hud.js', import.meta.url), 'utf8');
 const has = (pattern) => pattern.test(source);
 
 /** SFO runway 28R touchdown area — the field report's coordinates. */
-const SFO = { latDeg: 37.616, lonDeg: -122.368 };
+const SFO = {
+  latDeg: 37.616,
+  lonDeg: -122.368
+};
 /** The ellipsoidal camera height the owner's screenshot reported. */
 const SFO_ELLIPSOIDAL_M = -15;
 
@@ -60,7 +76,9 @@ const SFO_ELLIPSOIDAL_M = -15;
 function installHudEnvironment() {
   const elements = new Map(
     ['hud-alt', 'hud-summary', 'hud-mgrs', 'hud-latlon', 'hud-bottom-line', 'hud-gsd', 'hud-coll', 'hud-ona', 'hud-mode']
-      .map((id) => [id, { textContent: '' }]),
+    .map((id) => [id, {
+      textContent: ''
+    }]),
   );
   const previousDocument = globalThis.document;
   globalThis.document = {
@@ -78,7 +96,10 @@ function installHudEnvironment() {
         height: SFO_ELLIPSOIDAL_M,
       },
       computeViewRectangle: () => undefined,
-      moveEnd: { addEventListener() {}, removeEventListener() {} },
+      moveEnd: {
+        addEventListener() {},
+        removeEventListener() {}
+      },
     },
   };
   return {
