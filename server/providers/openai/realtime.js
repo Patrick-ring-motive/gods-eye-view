@@ -1,4 +1,7 @@
-import { enforceOptInRateLimit, openAiRateLimiter } from './rate-limit.js';
+import {
+  enforceOptInRateLimit,
+  openAiRateLimiter
+} from './rate-limit.js';
 import {
   resolveVoiceModel,
   isKnownVoiceTier,
@@ -11,8 +14,12 @@ import {
   OPENAI_REALTIME_CONTEXT_TOKENS_DEFAULT,
   OPENAI_REALTIME_CONTEXT_RETENTION_DEFAULT,
 } from './constants.js';
-import { realtimeInstructions } from './instructions.js';
-import { GEV_REALTIME_TOOLS } from './tools.js';
+import {
+  realtimeInstructions
+} from './instructions.js';
+import {
+  GEV_REALTIME_TOOLS
+} from './tools.js';
 
 function createRealtimeTokenHandler({
   annotationGuidance,
@@ -26,7 +33,9 @@ function createRealtimeTokenHandler({
     if (req.method !== 'GET' && req.method !== 'POST') {
       res.statusCode = 405;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Method not allowed' }));
+      res.end(JSON.stringify({
+        error: 'Method not allowed'
+      }));
       return;
     }
 
@@ -37,7 +46,9 @@ function createRealtimeTokenHandler({
     if (!apiKey) {
       res.statusCode = 503;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'OPENAI_API_KEY is not set' }));
+      res.end(JSON.stringify({
+        error: 'OPENAI_API_KEY is not set'
+      }));
       return;
     }
 
@@ -58,13 +69,13 @@ function createRealtimeTokenHandler({
     })();
     const tier = resolveVoiceModel(requestedTier).tier;
     const model =
-      tier === 'mini'
-        ? models.mini ||
-          process.env.OPENAI_REALTIME_MODEL_MINI ||
-          OPENAI_REALTIME_MODEL_MINI_DEFAULT
-        : models.standard ||
-          process.env.OPENAI_REALTIME_MODEL ||
-          OPENAI_REALTIME_MODEL_DEFAULT;
+      tier === 'mini' ?
+      models.mini ||
+      process.env.OPENAI_REALTIME_MODEL_MINI ||
+      OPENAI_REALTIME_MODEL_MINI_DEFAULT :
+      models.standard ||
+      process.env.OPENAI_REALTIME_MODEL ||
+      OPENAI_REALTIME_MODEL_DEFAULT;
     const voice =
       process.env.OPENAI_REALTIME_VOICE || OPENAI_REALTIME_VOICE_DEFAULT;
     const effort =
@@ -76,7 +87,7 @@ function createRealtimeTokenHandler({
         Math.min(
           12000,
           Number(process.env.OPENAI_REALTIME_CONTEXT_TOKENS) ||
-            OPENAI_REALTIME_CONTEXT_TOKENS_DEFAULT,
+          OPENAI_REALTIME_CONTEXT_TOKENS_DEFAULT,
         ),
       ),
     );
@@ -85,14 +96,16 @@ function createRealtimeTokenHandler({
       Math.min(
         1,
         Number(process.env.OPENAI_REALTIME_CONTEXT_RETENTION) ||
-          OPENAI_REALTIME_CONTEXT_RETENTION_DEFAULT,
+        OPENAI_REALTIME_CONTEXT_RETENTION_DEFAULT,
       ),
     );
     const sessionConfig = {
       session: {
         type: 'realtime',
         model,
-        reasoning: { effort },
+        reasoning: {
+          effort
+        },
         truncation: {
           type: 'retention_ratio',
           retention_ratio: contextRetentionRatio,
@@ -102,7 +115,9 @@ function createRealtimeTokenHandler({
         },
         audio: {
           input: {
-            noise_reduction: { type: 'near_field' },
+            noise_reduction: {
+              type: 'near_field'
+            },
             turn_detection: {
               type: 'semantic_vad',
               eagerness: 'low',
@@ -110,7 +125,9 @@ function createRealtimeTokenHandler({
               interrupt_response: false,
             },
           },
-          output: { voice },
+          output: {
+            voice
+          },
         },
         instructions: realtimeInstructions(annotationGuidance),
         tools: GEV_REALTIME_TOOLS,
@@ -158,4 +175,6 @@ function createRealtimeTokenHandler({
   };
 }
 
-export { createRealtimeTokenHandler };
+export {
+  createRealtimeTokenHandler
+};
