@@ -1,9 +1,24 @@
-import { matchFlowToRoads } from '../../data/flowMatch.js';
-import { TRAFFIC_TIMING_ENABLED, FLOW_RENDER_RACE_MS } from './policy.js';
+import {
+  matchFlowToRoads
+} from '../../data/flowMatch.js';
+import {
+  TRAFFIC_TIMING_ENABLED,
+  FLOW_RENDER_RACE_MS
+} from './policy.js';
 
-export function createFlow({ state: layerState, services, parts, source }) {
-  const { registerDynamicCredit, TOMTOM_CREDIT } = services.credits;
-  const { fetchFlowForBounds } = source;
+export function createFlow({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    registerDynamicCredit,
+    TOMTOM_CREDIT
+  } = services.credits;
+  const {
+    fetchFlowForBounds
+  } = source;
 
   // ─── Live Flow (TomTom) ────────────────────────────────────
 
@@ -102,7 +117,11 @@ export function createFlow({ state: layerState, services, parts, source }) {
           signal: layerState._activeFetchAbort.signal,
         });
         if (generation !== layerState._loadGeneration) return;
-        const { matches, matchedCount, candidateCount } = matchFlowToRoads(
+        const {
+          matches,
+          matchedCount,
+          candidateCount
+        } = matchFlowToRoads(
           roads,
           segments,
         );
@@ -110,9 +129,9 @@ export function createFlow({ state: layerState, services, parts, source }) {
           roads[i].flow = matches[i];
         }
         layerState._flowCoveragePct =
-          candidateCount > 0
-            ? Math.round((matchedCount / candidateCount) * 100)
-            : 0;
+          candidateCount > 0 ?
+          Math.round((matchedCount / candidateCount) * 100) :
+          0;
         layerState._flowError = null;
       } catch (e) {
         if (e?.name === 'AbortError') return;
@@ -157,14 +176,14 @@ export function createFlow({ state: layerState, services, parts, source }) {
     trace = null,
   ) {
     const state =
-      TRAFFIC_TIMING_ENABLED && trace
-        ? parts.timing.trafficTimingRenderState(trace, label)
-        : null;
-    const flowRaceStart = state
-      ? parts.timing.trafficTimingMark(state, 'flow-render-race-start', {
-          deadlineMs: FLOW_RENDER_RACE_MS,
-        })
-      : null;
+      TRAFFIC_TIMING_ENABLED && trace ?
+      parts.timing.trafficTimingRenderState(trace, label) :
+      null;
+    const flowRaceStart = state ?
+      parts.timing.trafficTimingMark(state, 'flow-render-race-start', {
+        deadlineMs: FLOW_RENDER_RACE_MS,
+      }) :
+      null;
     const flowJob = applyFlowToRoads(roads, clamped, generation);
     const outcome = await Promise.race([
       flowJob.then(() => 'flow'),
@@ -175,8 +194,7 @@ export function createFlow({ state: layerState, services, parts, source }) {
     if (state) {
       const flowRaceEnd = parts.timing.trafficTimingMark(
         state,
-        'flow-render-race-end',
-        {
+        'flow-render-race-end', {
           deadlineMs: FLOW_RENDER_RACE_MS,
           outcome,
         },
@@ -185,8 +203,7 @@ export function createFlow({ state: layerState, services, parts, source }) {
         'flow-render-race',
         state,
         flowRaceStart,
-        flowRaceEnd,
-        {
+        flowRaceEnd, {
           deadlineMs: FLOW_RENDER_RACE_MS,
           outcome,
         },
