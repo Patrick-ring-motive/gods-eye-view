@@ -33,9 +33,9 @@ export function updateHud(
     this.callsign.textContent =
       info.callsign || info.registration || info.icao24 || 'AIRCRAFT';
   }
-  const speedKt = Number.isFinite(info.velocityMps)
-    ? info.velocityMps * 1.94384
-    : null;
+  const speedKt = Number.isFinite(info.velocityMps) ?
+    info.velocityMps * 1.94384 :
+    null;
   setCockpitRollingValue(this.speed, formatSpeedRulerTick(speedKt), speedKt, {
     immediate: forceContext,
   });
@@ -60,16 +60,17 @@ export function updateHud(
   });
   const altitudeFt = cockpitAltitudeDisplayFt(info.altitudeM, info.onGround);
   if (this.altitude) {
-    const displayedAltitudeFt = Number.isFinite(altitudeFt)
-      ? Math.round(altitudeFt)
-      : null;
+    const displayedAltitudeFt = Number.isFinite(altitudeFt) ?
+      Math.round(altitudeFt) :
+      null;
     setCockpitRollingValue(
       this.altitude,
-      displayedAltitudeFt !== null
-        ? displayedAltitudeFt.toLocaleString('en-US')
-        : '-----',
-      displayedAltitudeFt,
-      { immediate: forceContext },
+      displayedAltitudeFt !== null ?
+      displayedAltitudeFt.toLocaleString('en-US') :
+      '-----',
+      displayedAltitudeFt, {
+        immediate: forceContext
+      },
     );
   }
   if (this.altitudeRim)
@@ -98,8 +99,10 @@ export function updateHud(
   setCockpitRollingValue(
     this.headingValue,
     String(Math.round(heading) % 360).padStart(3, '0'),
-    heading,
-    { circularRange: 360, immediate: forceContext },
+    heading, {
+      circularRange: 360,
+      immediate: forceContext
+    },
   );
   if (this.compassTape) {
     const divisions = compassDivisions(heading);
@@ -117,22 +120,22 @@ export function updateHud(
   if (this.clock)
     this.clock.textContent = new Date().toISOString().slice(11, 19) + 'Z';
   if (this.position) {
-    const lat = Number.isFinite(info.latitude)
-      ? `${Math.abs(info.latitude).toFixed(3)}°${info.latitude >= 0 ? 'N' : 'S'}`
-      : '--';
-    const lon = Number.isFinite(info.longitude)
-      ? `${Math.abs(info.longitude).toFixed(3)}°${info.longitude >= 0 ? 'E' : 'W'}`
-      : '--';
+    const lat = Number.isFinite(info.latitude) ?
+      `${Math.abs(info.latitude).toFixed(3)}°${info.latitude >= 0 ? 'N' : 'S'}` :
+      '--';
+    const lon = Number.isFinite(info.longitude) ?
+      `${Math.abs(info.longitude).toFixed(3)}°${info.longitude >= 0 ? 'E' : 'W'}` :
+      '--';
     this.position.textContent = `${lat} · ${lon}`;
   }
   if (this.aircraftMeta) {
-    const feedState = this.surfaceAcquiring
-      ? 'ACQUIRING SURFACE'
-      : this.surfaceFallback
-        ? 'SURFACE FALLBACK'
-        : info.stale
-          ? 'STALE FEED'
-          : 'LIVE TRACK';
+    const feedState = this.surfaceAcquiring ?
+      'ACQUIRING SURFACE' :
+      this.surfaceFallback ?
+      'SURFACE FALLBACK' :
+      info.stale ?
+      'STALE FEED' :
+      'LIVE TRACK';
     this.aircraftMeta.textContent = `${info.layerId === 'military' ? 'MILITARY' : 'COMMERCIAL'} · ${feedState} · COURSE ALIGNED`;
   }
   this.updateRoute(info);
@@ -157,14 +160,13 @@ export function updateRoute(info) {
   const destination = info?.route?.destination;
   const validDestination =
     Number.isFinite(destination?.lat) && Number.isFinite(destination?.lon);
-  const routeLabel = (airport) =>
-    [airport?.code, airport?.name].filter(Boolean).join(' · ') || 'UNKNOWN';
+  const routeLabel = (airport) => [airport?.code, airport?.name].filter(Boolean).join(' · ') || 'UNKNOWN';
   if (this.routeFrom) this.routeFrom.textContent = routeLabel(origin);
   if (this.routeTo) this.routeTo.textContent = routeLabel(destination);
   if (this.routeStatus) {
-    this.routeStatus.textContent = validDestination
-      ? 'ARROW · ESTIMATED DIRECTION'
-      : 'ROUTE DATA UNAVAILABLE';
+    this.routeStatus.textContent = validDestination ?
+      'ARROW · ESTIMATED DIRECTION' :
+      'ROUTE DATA UNAVAILABLE';
   }
   if (this.route) this.route.hidden = !origin && !destination;
   if (
@@ -214,7 +216,9 @@ export function syncWeatherToggle(enabled) {
   if (this.weatherState) this.weatherState.textContent = active ? 'ON' : 'OFF';
 }
 
-export function setVisionMode(mode, { revealParameters = false } = {}) {
+export function setVisionMode(mode, {
+  revealParameters = false
+} = {}) {
   const next = normalizeCockpitVisionMode(mode);
   this.visionMode = next;
   const inherited = String(
@@ -244,7 +248,9 @@ export function setVisionMode(mode, { revealParameters = false } = {}) {
   }
   if (this.visionCurrentLabel)
     this.visionCurrentLabel.textContent = labels[next];
-  this.onVisionChange?.(next, this.active, { revealParameters });
+  this.onVisionChange?.(next, this.active, {
+    revealParameters
+  });
 }
 
 export function cycleVisionMode(direction = 1) {
@@ -252,7 +258,9 @@ export function cycleVisionMode(direction = 1) {
   const currentIndex = Math.max(0, modes.indexOf(this.visionMode));
   const step = direction < 0 ? -1 : 1;
   const nextIndex = (currentIndex + step + modes.length) % modes.length;
-  this.setVisionMode(modes[nextIndex], { revealParameters: true });
+  this.setVisionMode(modes[nextIndex], {
+    revealParameters: true
+  });
 }
 
 export function clearPredictiveRoute() {
