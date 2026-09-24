@@ -10,7 +10,9 @@
 // state is re-synced from controller state (never optimistically), so a failed
 // or superseded switch still leaves the truly-active stack lit.
 
-import { keySetupRequirement } from './keySetupCore.mjs';
+import {
+  keySetupRequirement
+} from './keySetupCore.mjs';
 
 export const MAP_STACK_CHIP_CLASS = 'map-stack-chip';
 export const PRESENTED_MAP_STACK_IDS = Object.freeze([
@@ -37,12 +39,12 @@ export function mapStackChipModel(stack, activeId) {
   const available = stack?.available !== false;
   const label = String(stack?.label ?? stack?.id ?? '');
   const requiresIon = stack?.requiresIon === true;
-  const fallbackReason = requiresIon
-    ? keySetupRequirement('cesium-ion')
-    : `${label || 'This map stack'} is unavailable`;
-  const unavailableHint = available
-    ? ''
-    : String(stack?.unavailableReason || fallbackReason);
+  const fallbackReason = requiresIon ?
+    keySetupRequirement('cesium-ion') :
+    `${label || 'This map stack'} is unavailable`;
+  const unavailableHint = available ?
+    '' :
+    String(stack?.unavailableReason || fallbackReason);
   return {
     id: String(stack?.id ?? ''),
     label,
@@ -86,13 +88,12 @@ export function mapStackChipModels(stacks, activeId) {
  */
 export function renderMapStackChips(
   container,
-  stacks,
-  {
+  stacks, {
     activeId = null,
     onSelect = null,
     doc,
     bind = (element, type, listener) =>
-      element.addEventListener(type, listener),
+    element.addEventListener(type, listener),
   } = {},
 ) {
   if (!container) return [];
@@ -106,10 +107,10 @@ export function renderMapStackChips(
     const chip = ownerDoc.createElement('button');
     chip.type = 'button';
     chip.className = [
-      MAP_STACK_CHIP_CLASS,
-      model.active ? 'active' : '',
-      model.available ? '' : 'unavailable',
-    ]
+        MAP_STACK_CHIP_CLASS,
+        model.active ? 'active' : '',
+        model.available ? '' : 'unavailable',
+      ]
       .filter(Boolean)
       .join(' ');
     chip.dataset.stackId = model.id;
