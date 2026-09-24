@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { FIRMS_OVERLAY_SOURCE_ID } from '../../data/firmsLabels.js';
+import {
+  FIRMS_OVERLAY_SOURCE_ID
+} from '../../data/firmsLabels.js';
 
 export function createLifecycle({
   layerState,
@@ -8,10 +10,20 @@ export function createLifecycle({
   config,
   feed,
 }) {
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
-  const { restoreSpriteOrderOnEnable } = services.sprites;
-  const { clearSelectedEntityContextForLayer } = services.context;
-  const { id, overlayHost } = config;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
+  const {
+    restoreSpriteOrderOnEnable
+  } = services.sprites;
+  const {
+    clearSelectedEntityContextForLayer
+  } = services.context;
+  const {
+    id,
+    overlayHost
+  } = config;
 
   const methods = {
     init(viewer) {
@@ -115,5 +127,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
