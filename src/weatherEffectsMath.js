@@ -61,9 +61,9 @@ export function deriveWeatherEffectProfile(weather) {
     droplets: clamp01(rain * (0.58 + storm * 0.42)),
     storm: clamp01(storm),
     wind,
-    windDirectionDeg: Number.isFinite(Number(weather.windDirectionDeg))
-      ? ((Number(weather.windDirectionDeg) % 360) + 360) % 360
-      : 0,
+    windDirectionDeg: Number.isFinite(Number(weather.windDirectionDeg)) ?
+      ((Number(weather.windDirectionDeg) % 360) + 360) % 360 :
+      0,
   };
 }
 
