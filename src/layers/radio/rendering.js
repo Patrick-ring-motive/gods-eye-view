@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { horizonOccluder } from '../../data/iconOrientation.js';
+import {
+  horizonOccluder
+} from '../../data/iconOrientation.js';
 import {
   MARKER_LIFT_M,
   RADIO_PREFIX,
@@ -17,10 +19,18 @@ export function createRendering({
   parts,
   source,
 }) {
-  const { cachedGroundFloor } = services.ground;
-  const { clearOverlaySource, setOverlaySourceVisible, setOverlayEntries } =
-    services.overlays;
-  const { governorRequestRender } = services.render;
+  const {
+    cachedGroundFloor
+  } = services.ground;
+  const {
+    clearOverlaySource,
+    setOverlaySourceVisible,
+    setOverlayEntries
+  } =
+  services.overlays;
+  const {
+    governorRequestRender
+  } = services.render;
 
   function markerPosition(station, liftM = MARKER_LIFT_M) {
     const floor = cachedGroundFloor(station.lat, station.lon);
@@ -176,18 +186,18 @@ export function createRendering({
     );
     const singletonCandidates = parts.clustering.selectRadioSingletonCandidates(
       [...layerState._renderById.values()]
-        .filter(
-          (record) =>
-            record.entity?.show &&
-            record.station?.id !== station?.id &&
-            !clusteredStationIds.has(record.station?.id),
-        )
-        .map((record) => ({
-          ...record,
-          distanceM: cameraPosition
-            ? Cesium.Cartesian3.distance(cameraPosition, record.position)
-            : Number.POSITIVE_INFINITY,
-        })),
+      .filter(
+        (record) =>
+        record.entity?.show &&
+        record.station?.id !== station?.id &&
+        !clusteredStationIds.has(record.station?.id),
+      )
+      .map((record) => ({
+        ...record,
+        distanceM: cameraPosition ?
+          Cesium.Cartesian3.distance(cameraPosition, record.position) :
+          Number.POSITIVE_INFINITY,
+      })),
       singletonAllowance,
     );
     for (let index = 0; index < singletonCandidates.length; index += 1) {
@@ -242,7 +252,9 @@ export function createRendering({
     }, 0);
   }
 
-  function updateRenderVisibility({ force = true } = {}) {
+  function updateRenderVisibility({
+    force = true
+  } = {}) {
     if (!layerState._viewer || !layerState._dataSource) return;
     const cameraPosition = layerState._viewer.camera?.positionWC;
     if (
@@ -253,9 +265,13 @@ export function createRendering({
       )
     )
       return;
-    layerState._lastHorizonCameraPosition = cameraPosition
-      ? { x: cameraPosition.x, y: cameraPosition.y, z: cameraPosition.z }
-      : null;
+    layerState._lastHorizonCameraPosition = cameraPosition ?
+      {
+        x: cameraPosition.x,
+        y: cameraPosition.y,
+        z: cameraPosition.z
+      } :
+      null;
     layerState._horizonScanCount += 1;
     const occluder = horizonOccluder(layerState._viewer.camera);
     let visibilityChanged = false;
@@ -297,13 +313,13 @@ export function createRendering({
     );
     layerState._categories = Object.freeze(
       parts.categories
-        .buildRadioCategories(stations)
-        .map((category) => Object.freeze(category)),
+      .buildRadioCategories(stations)
+      .map((category) => Object.freeze(category)),
     );
     if (
       layerState._filter === DEFAULT_RADIO_FILTER &&
       !parts.categories.filterRadioStations(stations, DEFAULT_RADIO_FILTER)
-        .length
+      .length
     ) {
       layerState._filter = 'all';
     }
@@ -344,7 +360,11 @@ export function createRendering({
           ),
         },
       });
-      layerState._renderById.set(station.id, { station, entity, position });
+      layerState._renderById.set(station.id, {
+        station,
+        entity,
+        position
+      });
     }
     updateSelectionEntity();
     updateRenderVisibility();
