@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * streetview-headings.mjs
  *
@@ -21,30 +22,67 @@
  *   --neighbors  Also fetch 8 images from each first-order neighbor location
  */
 
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { parseEnv } from 'node:util';
-import { resolveGoogleServerKey } from '../scripts/google-server-key.mjs';
+import {
+  readFileSync,
+  mkdirSync,
+  writeFileSync
+} from 'node:fs';
+import {
+  resolve,
+  join
+} from 'node:path';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  parseEnv
+} from 'node:util';
+import {
+  resolveGoogleServerKey
+} from '../scripts/google-server-key.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { fov: 90, pitch: 0, size: '640x640', outdir: 'output', neighbors: false };
+  const opts = {
+    fov: 90,
+    pitch: 0,
+    size: '640x640',
+    outdir: 'output',
+    neighbors: false
+  };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--lat':        opts.lat = parseFloat(args[++i]); break;
-      case '--lon':        opts.lon = parseFloat(args[++i]); break;
-      case '--fov':        opts.fov = parseInt(args[++i], 10); break;
-      case '--pitch':      opts.pitch = parseInt(args[++i], 10); break;
-      case '--size':       opts.size = args[++i]; break;
-      case '--outdir':     opts.outdir = args[++i]; break;
-      case '--key':        opts.key = args[++i]; break;
-      case '--step':       opts.step = parseInt(args[++i], 10); break;
-      case '--neighbors':  opts.neighbors = true; break;
+      case '--lat':
+        opts.lat = parseFloat(args[++i]);
+        break;
+      case '--lon':
+        opts.lon = parseFloat(args[++i]);
+        break;
+      case '--fov':
+        opts.fov = parseInt(args[++i], 10);
+        break;
+      case '--pitch':
+        opts.pitch = parseInt(args[++i], 10);
+        break;
+      case '--size':
+        opts.size = args[++i];
+        break;
+      case '--outdir':
+        opts.outdir = args[++i];
+        break;
+      case '--key':
+        opts.key = args[++i];
+        break;
+      case '--step':
+        opts.step = parseInt(args[++i], 10);
+        break;
+      case '--neighbors':
+        opts.neighbors = true;
+        break;
       case '--help':
         console.log('Usage: node tools/streetview-headings.mjs --lat <lat> --lon <lon> [--fov 90] [--pitch 0] [--size 640x640] [--neighbors]');
         process.exit(0);
@@ -122,16 +160,24 @@ async function getNeighborLocations(lat, lon) {
       // Haversine distance — only keep first-order neighbors (within ~15m)
       const dlat = (nlat - originLat) * Math.PI / 180;
       const dlon = (nlon - originLon) * Math.PI / 180;
-      const a = Math.sin(dlat / 2) ** 2
-        + Math.cos(originLat * Math.PI / 180) * Math.cos(nlat * Math.PI / 180)
-        * Math.sin(dlon / 2) ** 2;
+      const a = Math.sin(dlat / 2) ** 2 +
+        Math.cos(originLat * Math.PI / 180) * Math.cos(nlat * Math.PI / 180) *
+        Math.sin(dlon / 2) ** 2;
       const dist = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       if (dist > 15) continue;
 
       // Extract street name if available
       let street = null;
-      try { street = link[3][2][0][0]; } catch { /* no street name */ }
-      neighbors.push({ lat: nlat, lon: nlon, street, dist });
+      try {
+        street = link[3][2][0][0];
+      } catch {
+        /* no street name */ }
+      neighbors.push({
+        lat: nlat,
+        lon: nlon,
+        street,
+        dist
+      });
     }
   } catch {
     console.log('  Warning: could not extract neighbor links from metadata');
@@ -149,7 +195,11 @@ async function fetchHeadingsForLocation(lat, lon, label, directions, opts, apiKe
 
   for (const dir of directions) {
     const url = `https://maps.googleapis.com/maps/api/streetview?location=${lat},${lon}&heading=${dir.heading}&pitch=${opts.pitch}&fov=${opts.fov}&size=${opts.size}&source=outdoor&key=${apiKey}`;
-    const res = await fetch(url, { headers: { 'Referer': 'http://localhost:4173/' } });
+    const res = await fetch(url, {
+      headers: {
+        'Referer': 'http://localhost:4173/'
+      }
+    });
 
     if (!res.ok) {
       console.log(`    ${dir.name} (${dir.heading}): FAILED ${res.status}`);
@@ -172,19 +222,44 @@ async function main() {
   const apiKey = loadApiKey(opts.key);
 
   const outdir = resolve(PROJECT_ROOT, opts.outdir);
-  mkdirSync(outdir, { recursive: true });
+  mkdirSync(outdir, {
+    recursive: true
+  });
 
   // Generate headings at the specified step size (default 45°)
   const step = opts.step || 45;
   const directions = [];
   const compassNames = {
-    0: 'N', 15: 'NNE', 30: 'NNE2', 45: 'NE', 60: 'ENE', 75: 'ENE2',
-    90: 'E', 105: 'ESE', 120: 'ESE2', 135: 'SE', 150: 'SSE', 165: 'SSE2',
-    180: 'S', 195: 'SSW', 210: 'SSW2', 225: 'SW', 240: 'WSW', 255: 'WSW2',
-    270: 'W', 285: 'WNW', 300: 'WNW2', 315: 'NW', 330: 'NNW', 345: 'NNW2',
+    0: 'N',
+    15: 'NNE',
+    30: 'NNE2',
+    45: 'NE',
+    60: 'ENE',
+    75: 'ENE2',
+    90: 'E',
+    105: 'ESE',
+    120: 'ESE2',
+    135: 'SE',
+    150: 'SSE',
+    165: 'SSE2',
+    180: 'S',
+    195: 'SSW',
+    210: 'SSW2',
+    225: 'SW',
+    240: 'WSW',
+    255: 'WSW2',
+    270: 'W',
+    285: 'WNW',
+    300: 'WNW2',
+    315: 'NW',
+    330: 'NNW',
+    345: 'NNW2',
   };
   for (let h = 0; h < 360; h += step) {
-    directions.push({ name: compassNames[h] || `H${h}`, heading: h });
+    directions.push({
+      name: compassNames[h] || `H${h}`,
+      heading: h
+    });
   }
 
   console.log(`\nStreet View Headings`);
@@ -211,8 +286,11 @@ async function main() {
 
       // Mark origin pano as seen
       const originMeta = await fetch(
-        `https://maps.googleapis.com/maps/api/streetview/metadata?location=${opts.lat},${opts.lon}&source=outdoor&key=${apiKey}`,
-        { headers: { 'Referer': 'http://localhost:4173/' } }
+        `https://maps.googleapis.com/maps/api/streetview/metadata?location=${opts.lat},${opts.lon}&source=outdoor&key=${apiKey}`, {
+          headers: {
+            'Referer': 'http://localhost:4173/'
+          }
+        }
       );
       if (originMeta.ok) {
         const oj = await originMeta.json();
@@ -222,8 +300,11 @@ async function main() {
       const uniqueNeighbors = [];
       for (const n of neighbors) {
         const metaRes = await fetch(
-          `https://maps.googleapis.com/maps/api/streetview/metadata?location=${n.lat},${n.lon}&source=outdoor&key=${apiKey}`,
-          { headers: { 'Referer': 'http://localhost:4173/' } }
+          `https://maps.googleapis.com/maps/api/streetview/metadata?location=${n.lat},${n.lon}&source=outdoor&key=${apiKey}`, {
+            headers: {
+              'Referer': 'http://localhost:4173/'
+            }
+          }
         );
         if (!metaRes.ok) continue;
         const meta = await metaRes.json();
