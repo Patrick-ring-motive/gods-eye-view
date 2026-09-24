@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { ContextControls } from './contextControls.js';
+import {
+  test
+} from 'node:test';
+import {
+  ContextControls
+} from './contextControls.js';
 
 class Button extends EventTarget {
   constructor() {
@@ -15,6 +19,7 @@ class Button extends EventTarget {
   }
 }
 const turn = () => new Promise((resolve) => setImmediate(resolve));
+
 function fixture(t, elements = {}) {
   const calls = [];
   const controls = new ContextControls({
@@ -35,11 +40,16 @@ function fixture(t, elements = {}) {
     controls.stop();
     controls.disconnect();
   });
-  return { controls, calls };
+  return {
+    controls,
+    calls
+  };
 }
 
 test('Context starts with an explicit idle snapshot', (t) => {
-  const { controls } = fixture(t);
+  const {
+    controls
+  } = fixture(t);
   assert.deepEqual(controls.getContextModeState(), {
     mode: null,
     active: false,
@@ -53,7 +63,12 @@ test('Context starts with an explicit idle snapshot', (t) => {
 
 test('a pending Context tab cannot reopen a disposed panel', async (t) => {
   const tab = new Button();
-  const { controls, calls } = fixture(t, { _globalContextFlightsBtn: tab });
+  const {
+    controls,
+    calls
+  } = fixture(t, {
+    _globalContextFlightsBtn: tab
+  });
   let release;
   controls._selectContextMode = () =>
     new Promise((resolve) => {
@@ -70,10 +85,17 @@ test('a pending Context tab cannot reopen a disposed panel', async (t) => {
 
 test('stopping during installations enable prevents the delayed search', async (t) => {
   const button = new Button();
-  const { controls, calls } = fixture(t, { _installationsSearchBtn: button });
+  const {
+    controls,
+    calls
+  } = fixture(t, {
+    _installationsSearchBtn: button
+  });
   let release;
   controls._dataManager = {
-    layers: new Map([['military-installations', {}]]),
+    layers: new Map([
+      ['military-installations', {}]
+    ]),
     setEnabled: () =>
       new Promise((resolve) => {
         release = resolve;
@@ -96,10 +118,17 @@ test('stopping during installations enable prevents the delayed search', async (
 
 test('a late installations search cannot publish a notice after disposal', async (t) => {
   const button = new Button();
-  const { controls, calls } = fixture(t, { _installationsSearchBtn: button });
+  const {
+    controls,
+    calls
+  } = fixture(t, {
+    _installationsSearchBtn: button
+  });
   let release;
   controls._dataManager = {
-    layers: new Map([['military-installations', {}]]),
+    layers: new Map([
+      ['military-installations', {}]
+    ]),
     setEnabled: async () => true,
     isEnabled: () => true,
   };
@@ -116,7 +145,9 @@ test('a late installations search cannot publish a notice after disposal', async
 });
 
 test('reconnecting and disposal release each manager subscription exactly once', (t) => {
-  const { controls } = fixture(t);
+  const {
+    controls
+  } = fixture(t);
   const counts = new Map();
   const manager = (name) =>
     Object.fromEntries(
@@ -145,7 +176,9 @@ test('reconnecting and disposal release each manager subscription exactly once',
 });
 
 test('a rejected tracked reaction settles without an unhandled rejection', async (t) => {
-  const { controls } = fixture(t);
+  const {
+    controls
+  } = fixture(t);
   const failure = new Error('source unavailable');
   const pending = controls._trackContextLayerReaction(Promise.reject(failure));
   await assert.rejects(pending, failure);
