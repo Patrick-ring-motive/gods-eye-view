@@ -12,9 +12,17 @@
 // The fix: `_modelMatrix(pos, heading, result)` writes into each model's OWN `.modelMatrix`. This
 // test locks the invariant at the Cesium level (the module's _modelMatrix is private and pulls the
 // full engine, so we exercise the exact Cesium call it makes).
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { Transforms, Matrix4, Cartesian3, HeadingPitchRoll, Ellipsoid } from '@cesium/engine';
+import {
+  Transforms,
+  Matrix4,
+  Cartesian3,
+  HeadingPitchRoll,
+  Ellipsoid
+} from '@cesium/engine';
 
 const HPR = new HeadingPitchRoll(0, 0, 0);
 const SF = Cartesian3.fromDegrees(-122.4, 37.7, 10000);
@@ -26,8 +34,8 @@ test('THE BUG: one shared scratch matrix stacks every model on the last-written 
   const scratch = new Matrix4();
   const a = frame(SF, scratch); // "model A" handed the shared scratch
   const b = frame(LA, scratch); // "model B" handed the same scratch — overwrites it in place
-  assert.equal(a, b);                  // same object reference (the shared-scratch bug)
-  assert.ok(Matrix4.equals(a, b));     // therefore same value -> A renders on top of B (stacking)
+  assert.equal(a, b); // same object reference (the shared-scratch bug)
+  assert.ok(Matrix4.equals(a, b)); // therefore same value -> A renders on top of B (stacking)
 });
 
 test('THE FIX: each model writing into its OWN matrix yields distinct transforms', () => {
@@ -35,10 +43,10 @@ test('THE FIX: each model writing into its OWN matrix yields distinct transforms
   const matB = new Matrix4(); // model B's own .modelMatrix
   const a = frame(SF, matA);
   const b = frame(LA, matB);
-  assert.notEqual(a, b);               // distinct objects
-  assert.equal(a, matA);               // wrote in place into A's own matrix
+  assert.notEqual(a, b); // distinct objects
+  assert.equal(a, matA); // wrote in place into A's own matrix
   assert.equal(b, matB);
-  assert.ok(!Matrix4.equals(a, b));    // distinct transforms — no stacking
+  assert.ok(!Matrix4.equals(a, b)); // distinct transforms — no stacking
   const ta = Matrix4.getTranslation(matA, new Cartesian3());
   const tb = Matrix4.getTranslation(matB, new Cartesian3());
   assert.ok(Cartesian3.distance(ta, tb) > 500000); // ~560 km SF->LA, not zero
