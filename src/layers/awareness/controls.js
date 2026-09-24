@@ -1,6 +1,13 @@
-import { AWARENESS_RADIUS_M } from '../../data/militaryAwarenessEngine.js';
+import {
+  AWARENESS_RADIUS_M
+} from '../../data/militaryAwarenessEngine.js';
 
-export function createControls({ state: layerState, services, parts, source }) {
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const flightsLayer = services.flights;
   const militaryFlightsLayer = services.military;
   const aisLiveVesselsLayer = services.vessels;
@@ -35,7 +42,9 @@ export function createControls({ state: layerState, services, parts, source }) {
 
     /** @returns {{ passive: boolean }} Current runtime parameters. */
     getParams() {
-      return { passive: layerState.passive };
+      return {
+        passive: layerState.passive
+      };
     },
 
     getStats() {
@@ -52,23 +61,22 @@ export function createControls({ state: layerState, services, parts, source }) {
     getContextSnapshot() {
       if (!layerState.enabled || !layerState.subject) return null;
       if (!layerState.results) {
-        return parts.model.buildAwarenessContextSnapshot(
-          {
-            subject: { ...layerState.subject },
+        return parts.model.buildAwarenessContextSnapshot({
+            subject: {
+              ...layerState.subject
+            },
             evaluatedAt: null,
             radiusM: AWARENESS_RADIUS_M,
             cohorts: [],
           },
-          parts.model.navigationState(),
-          {
+          parts.model.navigationState(), {
             subjectPresent: !layerState.subjectMissing,
           },
         );
       }
       return parts.model.buildAwarenessContextSnapshot(
         layerState.results,
-        parts.model.navigationState(),
-        {
+        parts.model.navigationState(), {
           subjectPresent: !layerState.subjectMissing,
         },
       );
@@ -93,8 +101,12 @@ export function createControls({ state: layerState, services, parts, source }) {
         parts.subject.subjectKey(layerState.subject) || 'camera-release';
       layerState.pendingSelectionKey = preservedSelectionKey;
       try {
-        flightsLayer.stopTracking?.({ origin });
-        militaryFlightsLayer.stopTracking?.({ origin });
+        flightsLayer.stopTracking?.({
+          origin
+        });
+        militaryFlightsLayer.stopTracking?.({
+          origin
+        });
         if (!preserveVesselSelection) aisLiveVesselsLayer.clearSelection?.();
       } finally {
         if (layerState.pendingSelectionKey === preservedSelectionKey) {
@@ -122,5 +134,7 @@ export function createControls({ state: layerState, services, parts, source }) {
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
