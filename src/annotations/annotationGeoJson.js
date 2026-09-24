@@ -31,7 +31,14 @@ function toPosition(p) {
 /** GeoJSON position -> {lon,lat,height?}, or null if malformed. */
 function fromPosition(c) {
   if (!Array.isArray(c) || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) return null;
-  return Number.isFinite(c[2]) ? { lon: c[0], lat: c[1], height: c[2] } : { lon: c[0], lat: c[1] };
+  return Number.isFinite(c[2]) ? {
+    lon: c[0],
+    lat: c[1],
+    height: c[2]
+  } : {
+    lon: c[0],
+    lat: c[1]
+  };
 }
 
 /** Mean of a runtime ring (`[[lon,lat],...]`), used as a fallback area anchor on import. */
@@ -39,8 +46,14 @@ function ringCentroid(ring) {
   if (!Array.isArray(ring) || ring.length === 0) return null;
   let sx = 0;
   let sy = 0;
-  for (const [lon, lat] of ring) { sx += lon; sy += lat; }
-  return { lon: sx / ring.length, lat: sy / ring.length };
+  for (const [lon, lat] of ring) {
+    sx += lon;
+    sy += lat;
+  }
+  return {
+    lon: sx / ring.length,
+    lat: sy / ring.length
+  };
 }
 
 /**
@@ -63,7 +76,10 @@ export function annotationToFeature(anno) {
   if (type === 'route') {
     const coords = (Array.isArray(anno.path) ? anno.path : []).map(toPosition).filter(Boolean);
     if (coords.length < 2) return null;
-    geometry = { type: 'LineString', coordinates: coords };
+    geometry = {
+      type: 'LineString',
+      coordinates: coords
+    };
     properties['gev:mode'] = anno.mode ?? null;
     properties['gev:distanceM'] = anno.distanceM ?? null;
     properties['gev:durationS'] = anno.durationS ?? null;
@@ -72,7 +88,10 @@ export function annotationToFeature(anno) {
     const from = toPosition(anno.anchor);
     const to = toPosition(anno.to);
     if (!from || !to) return null;
-    geometry = { type: 'LineString', coordinates: [from, to] };
+    geometry = {
+      type: 'LineString',
+      coordinates: [from, to]
+    };
   } else if (type === 'area' && Array.isArray(anno.ring) && anno.ring.length >= 3) {
     const ring = [];
     for (const pair of anno.ring) {
@@ -83,7 +102,10 @@ export function annotationToFeature(anno) {
     const first = ring[0];
     const last = ring[ring.length - 1];
     if (first[0] !== last[0] || first[1] !== last[1]) ring.push([first[0], first[1]]);
-    geometry = { type: 'Polygon', coordinates: [ring] };
+    geometry = {
+      type: 'Polygon',
+      coordinates: [ring]
+    };
     properties['gev:footprintKind'] = anno.footprintKind ?? null;
     properties['gev:buildingHeight'] = anno.buildingHeight ?? null;
     properties['gev:synthesized'] = Boolean(anno.synthesized);
@@ -93,14 +115,21 @@ export function annotationToFeature(anno) {
     // pin / highlight / label, or a degenerate `area` with no ring -> a Point at the anchor.
     const anchor = toPosition(anno.anchor);
     if (!anchor) return null;
-    geometry = { type: 'Point', coordinates: anchor };
+    geometry = {
+      type: 'Point',
+      coordinates: anchor
+    };
     if (type === 'area') {
       properties['gev:footprintKind'] = anno.footprintKind ?? null;
       properties['gev:synthesized'] = Boolean(anno.synthesized);
     }
   }
 
-  return { type: 'Feature', geometry, properties };
+  return {
+    type: 'Feature',
+    geometry,
+    properties
+  };
 }
 
 /**
@@ -147,7 +176,12 @@ export function featureToAnnotation(feature) {
     const from = fromPosition(g.coordinates[0]);
     const to = fromPosition(g.coordinates[1]);
     if (!from || !to) return null;
-    return { ...base, anchor: from, to, ring: null };
+    return {
+      ...base,
+      anchor: from,
+      to,
+      ring: null
+    };
   }
 
   if (g.type === 'Polygon') {
@@ -179,7 +213,12 @@ export function featureToAnnotation(feature) {
   if (g.type !== 'Point') return null;
   const anchor = fromPosition(g.coordinates);
   if (!anchor) return null;
-  const out = { ...base, anchor, to: null, ring: null };
+  const out = {
+    ...base,
+    anchor,
+    to: null,
+    ring: null
+  };
   if (type === 'area') {
     out.footprintKind = p['gev:footprintKind'] ?? null;
     out.buildingHeight = null;
@@ -198,7 +237,10 @@ export function annotationsToFeatureCollection(annotations) {
   const features = (Array.isArray(annotations) ? annotations : [])
     .map(annotationToFeature)
     .filter(Boolean);
-  return { type: 'FeatureCollection', features };
+  return {
+    type: 'FeatureCollection',
+    features
+  };
 }
 
 /**
