@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { poseHash } from '../../../src/data/cctvFootprint.js';
+import {
+  poseHash
+} from '../../../src/data/cctvFootprint.js';
 
 /** Sidecar written by scripts/precompute-cctv-heights.mjs. */
 export const DEFAULT_GROUND_HEIGHTS_FILE =
@@ -20,9 +22,9 @@ let _cache = null;
 export function loadGroundHeights(sourceRoot = process.cwd()) {
   const file =
     process.env.CCTV_GROUND_HEIGHTS_FILE || DEFAULT_GROUND_HEIGHTS_FILE;
-  const resolved = path.isAbsolute(file)
-    ? file
-    : path.resolve(sourceRoot, file);
+  const resolved = path.isAbsolute(file) ?
+    file :
+    path.resolve(sourceRoot, file);
   try {
     const stat = fs.statSync(resolved);
     if (_cache && _cache.path === resolved && _cache.mtimeMs === stat.mtimeMs) {
@@ -33,10 +35,14 @@ export function loadGroundHeights(sourceRoot = process.cwd()) {
       parsed &&
       typeof parsed === 'object' &&
       parsed.cameras &&
-      typeof parsed.cameras === 'object'
-        ? parsed.cameras
-        : {};
-    _cache = { path: resolved, mtimeMs: stat.mtimeMs, cameras };
+      typeof parsed.cameras === 'object' ?
+      parsed.cameras :
+      {};
+    _cache = {
+      path: resolved,
+      mtimeMs: stat.mtimeMs,
+      cameras
+    };
     return cameras;
   } catch {
     _cache = null;
