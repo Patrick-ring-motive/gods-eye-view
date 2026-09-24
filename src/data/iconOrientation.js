@@ -69,8 +69,8 @@ export function screenProjectedRotation(scene, position, courseDeg, previous = n
   const dx = Cesium.Cartesian3.dot(_scratchWorldForward, camera.rightWC);
   const dy = -Cesium.Cartesian3.dot(_scratchWorldForward, camera.upWC);
   if (
-    (dx * dx + dy * dy)
-    < MIN_SCREEN_COMPONENT_M * MIN_SCREEN_COMPONENT_M
+    (dx * dx + dy * dy) <
+    MIN_SCREEN_COMPONENT_M * MIN_SCREEN_COMPONENT_M
   ) return previous;
 
   // Window y grows downward; rotation 0 = icon pointing screen-up.
