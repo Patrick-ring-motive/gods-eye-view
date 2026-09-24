@@ -1,11 +1,17 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   loadTxdotSourcesFromOpenData,
   normalizeTxdotDistrictPayload,
 } from '../../server/providers/cctv/sources.js';
-import { fetchTxdotSnapshot } from '../../server/providers/cctv/media.js';
-import { TXDOT_CCTV_STATUS_URL } from '../../server/providers/cctv/constants.js';
+import {
+  fetchTxdotSnapshot
+} from '../../server/providers/cctv/media.js';
+import {
+  TXDOT_CCTV_STATUS_URL
+} from '../../server/providers/cctv/constants.js';
 
 /** Minimal valid JPEG head: SOI marker plus a byte of payload. */
 const JPEG_BYTES = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00]);
@@ -21,13 +27,18 @@ function cameraRow(overrides = {}) {
     statusDescription: 'Device Online',
     hasSnapshot: true,
     dirDescription: 'North',
-    equipLoc: { roadway: 'FM-734', direction: 'North' },
+    equipLoc: {
+      roadway: 'FM-734',
+      direction: 'North'
+    },
     ...overrides,
   };
 }
 
 const districtPayload = (rows) => ({
-  roadwayCctvStatuses: { 'FM-734': rows },
+  roadwayCctvStatuses: {
+    'FM-734': rows
+  },
 });
 
 function quiet(t) {
@@ -38,23 +49,47 @@ function quiet(t) {
 test('TxDOT catalog keeps only online cameras with finite coordinates', () => {
   const cameras = normalizeTxdotDistrictPayload(
     districtPayload([
-      cameraRow({ icd_Id: 'a', name: 'a' }),
+      cameraRow({
+        icd_Id: 'a',
+        name: 'a'
+      }),
       cameraRow({
         icd_Id: 'b',
         name: 'b',
         statusDescription: 'Device Offline',
       }),
-      cameraRow({ icd_Id: 'c', name: 'c', statusDescription: 'Device Error' }),
-      cameraRow({ icd_Id: 'd', name: 'd', latitude: null }),
-      cameraRow({ icd_Id: 'e', name: 'e', longitude: 'not-a-number' }),
-      cameraRow({ icd_Id: 'f', name: 'f', latitude: 0, longitude: 0 }),
+      cameraRow({
+        icd_Id: 'c',
+        name: 'c',
+        statusDescription: 'Device Error'
+      }),
+      cameraRow({
+        icd_Id: 'd',
+        name: 'd',
+        latitude: null
+      }),
+      cameraRow({
+        icd_Id: 'e',
+        name: 'e',
+        longitude: 'not-a-number'
+      }),
+      cameraRow({
+        icd_Id: 'f',
+        name: 'f',
+        latitude: 0,
+        longitude: 0
+      }),
       cameraRow({
         icd_Id: 'g',
         name: 'g',
         latitude: '30.1',
         longitude: '-97.7',
       }),
-      cameraRow({ icd_Id: 'h', name: 'h', hasSnapshot: false }),
+      cameraRow({
+        icd_Id: 'h',
+        name: 'h',
+        hasSnapshot: false
+      }),
     ]),
     'AUS',
   );
@@ -79,11 +114,23 @@ test('TxDOT ids stay distinct for distinct device keys, whatever they hash or sl
   const ids = normalizeTxdotDistrictPayload(
     districtPayload([
       // These two share a 32-bit FNV hash.
-      cameraRow({ icd_Id: 'costarring', name: 'costarring' }),
-      cameraRow({ icd_Id: 'liquid', name: 'liquid' }),
+      cameraRow({
+        icd_Id: 'costarring',
+        name: 'costarring'
+      }),
+      cameraRow({
+        icd_Id: 'liquid',
+        name: 'liquid'
+      }),
       // These two share a lowercase slug and a hash.
-      cameraRow({ icd_Id: 'abcDEfaBCDEFAbcdEFABCdEfAbcdeFaB', name: 'x' }),
-      cameraRow({ icd_Id: 'ABcDeFABCDefaBCDeFAbCdeFabcdefAB', name: 'y' }),
+      cameraRow({
+        icd_Id: 'abcDEfaBCDEFAbcdEFABCdEfAbcdeFaB',
+        name: 'x'
+      }),
+      cameraRow({
+        icd_Id: 'ABcDeFABCDefaBCDeFAbCdeFabcdefAB',
+        name: 'y'
+      }),
     ]),
     'AUS',
   ).map((camera) => camera.id);
@@ -98,11 +145,16 @@ test('TxDOT ids stay distinct for distinct device keys, whatever they hash or sl
 });
 
 test('TxDOT catalog dedupes a camera listed under two roadways', () => {
-  const cameras = normalizeTxdotDistrictPayload(
-    {
+  const cameras = normalizeTxdotDistrictPayload({
       roadwayCctvStatuses: {
-        'IH-35': [cameraRow({ icd_Id: 'shared', name: 'IH-35 @ SH-71' })],
-        'SH-71': [cameraRow({ icd_Id: 'shared', name: 'IH-35 @ SH-71' })],
+        'IH-35': [cameraRow({
+          icd_Id: 'shared',
+          name: 'IH-35 @ SH-71'
+        })],
+        'SH-71': [cameraRow({
+          icd_Id: 'shared',
+          name: 'IH-35 @ SH-71'
+        })],
       },
     },
     'AUS',
@@ -113,9 +165,18 @@ test('TxDOT catalog dedupes a camera listed under two roadways', () => {
 test('TxDOT heading comes from an explicit travel token, never the roadway direction', () => {
   const [eastbound, westbound, plain] = normalizeTxdotDistrictPayload(
     districtPayload([
-      cameraRow({ icd_Id: 'eb', name: 'FM-734 @ US-290 EB' }),
-      cameraRow({ icd_Id: 'wb', name: 'FM-734 @ US-290 WB' }),
-      cameraRow({ icd_Id: 'plain', name: 'FM-734 @ Bellingham Dr' }),
+      cameraRow({
+        icd_Id: 'eb',
+        name: 'FM-734 @ US-290 EB'
+      }),
+      cameraRow({
+        icd_Id: 'wb',
+        name: 'FM-734 @ US-290 WB'
+      }),
+      cameraRow({
+        icd_Id: 'plain',
+        name: 'FM-734 @ Bellingham Dr'
+      }),
     ]),
     'AUS',
   );
@@ -130,8 +191,14 @@ test('TxDOT heading comes from an explicit travel token, never the roadway direc
 test('TxDOT heading refuses bare cardinals in Texas route names', () => {
   const cameras = normalizeTxdotDistrictPayload(
     districtPayload([
-      cameraRow({ icd_Id: 'lamar', name: 'N Lamar Blvd @ Rundberg Ln' }),
-      cameraRow({ icd_Id: 'west', name: 'West Ave @ 6th St' }),
+      cameraRow({
+        icd_Id: 'lamar',
+        name: 'N Lamar Blvd @ Rundberg Ln'
+      }),
+      cameraRow({
+        icd_Id: 'west',
+        name: 'West Ave @ 6th St'
+      }),
     ]),
     'AUS',
   );
@@ -147,7 +214,7 @@ test('TxDOT heading refuses bare cardinals in Texas route names', () => {
 test('TxDOT camera ids are district-scoped and stable across runs', () => {
   const build = (district) =>
     normalizeTxdotDistrictPayload(districtPayload([cameraRow()]), district)[0]
-      .id;
+    .id;
   assert.equal(build('AUS'), build('AUS'));
   assert.ok(build('AUS').startsWith('txdot-aus-'));
   assert.ok(build('HOU').startsWith('txdot-hou-'));
@@ -157,7 +224,7 @@ test('TxDOT camera ids are district-scoped and stable across runs', () => {
 test('TxDOT ground elevation uses a per-district prior', () => {
   const at = (district) =>
     normalizeTxdotDistrictPayload(districtPayload([cameraRow()]), district)[0]
-      .groundElevationM;
+    .groundElevationM;
   assert.equal(at('HOU'), 15);
   assert.equal(at('ELP'), 1140);
   assert.equal(at('AUS'), 149);
@@ -168,12 +235,17 @@ test('TxDOT catalog tolerates a malformed payload', () => {
   assert.deepEqual(normalizeTxdotDistrictPayload(null, 'AUS'), []);
   assert.deepEqual(normalizeTxdotDistrictPayload({}, 'AUS'), []);
   assert.deepEqual(
-    normalizeTxdotDistrictPayload({ roadwayCctvStatuses: [] }, 'AUS'),
+    normalizeTxdotDistrictPayload({
+      roadwayCctvStatuses: []
+    }, 'AUS'),
     [],
   );
   assert.deepEqual(
-    normalizeTxdotDistrictPayload(
-      { roadwayCctvStatuses: { 'IH-35': null } },
+    normalizeTxdotDistrictPayload({
+        roadwayCctvStatuses: {
+          'IH-35': null
+        }
+      },
       'AUS',
     ),
     [],
@@ -190,7 +262,10 @@ test('TxDOT loader fetches each configured district and ignores unknown codes', 
     const district = new URL(String(url)).searchParams.get('districtCode');
     return Response.json(
       districtPayload([
-        cameraRow({ icd_Id: `${district}-1`, name: `${district}-1` }),
+        cameraRow({
+          icd_Id: `${district}-1`,
+          name: `${district}-1`
+        }),
       ]),
     );
   });
@@ -214,14 +289,18 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
   const jsonResponse = (body) =>
     new Response(JSON.stringify(body), {
       status: 200,
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8'
+      },
     });
   const official =
     'https://its.txdot.gov/its/DistrictIts/GetCctvSnapshotByIcdId?icdId=x&districtCode=AUS';
 
   const frame = await fetchTxdotSnapshot(official, {
     timeoutMs: 100,
-    fetchImpl: async () => jsonResponse({ snippet: JPEG_B64 }),
+    fetchImpl: async () => jsonResponse({
+      snippet: JPEG_B64
+    }),
   });
   assert.equal(frame?.ok, true);
   assert.equal(frame?.contentType, 'image/jpeg');
@@ -230,13 +309,15 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
   // Off-origin with the right path, and right origin with the wrong path,
   // are each refused on their own.
   for (const bad of [
-    'https://evil.example/its/DistrictIts/GetCctvSnapshotByIcdId?icdId=x',
-    'https://its.txdot.gov/its/DistrictIts/Other?icdId=x',
-  ]) {
+      'https://evil.example/its/DistrictIts/GetCctvSnapshotByIcdId?icdId=x',
+      'https://its.txdot.gov/its/DistrictIts/Other?icdId=x',
+    ]) {
     assert.equal(
       await fetchTxdotSnapshot(bad, {
         timeoutMs: 100,
-        fetchImpl: async () => jsonResponse({ snippet: JPEG_B64 }),
+        fetchImpl: async () => jsonResponse({
+          snippet: JPEG_B64
+        }),
       }),
       null,
       bad,
@@ -252,7 +333,9 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
         assert.equal(init.redirect, 'manual');
         return new Response(null, {
           status: 302,
-          headers: { location: 'https://evil.example/x.json' },
+          headers: {
+            location: 'https://evil.example/x.json'
+          },
         });
       },
     }),
@@ -263,7 +346,9 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
   assert.equal(
     await fetchTxdotSnapshot(official, {
       timeoutMs: 100,
-      fetchImpl: async () => jsonResponse({ snippet: '/9!@#j/4AA=' }),
+      fetchImpl: async () => jsonResponse({
+        snippet: '/9!@#j/4AA='
+      }),
     }),
     null,
   );
@@ -271,7 +356,9 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
   assert.equal(
     await fetchTxdotSnapshot(official, {
       timeoutMs: 100,
-      fetchImpl: async () => jsonResponse({ snippet: '/9j/4AA==' }),
+      fetchImpl: async () => jsonResponse({
+        snippet: '/9j/4AA=='
+      }),
     }),
     null,
   );
@@ -283,7 +370,9 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
       timeoutMs: 100,
       maxBytes: 8,
       fetchImpl: async () =>
-        jsonResponse({ snippet: bigJpeg.toString('base64') }),
+        jsonResponse({
+          snippet: bigJpeg.toString('base64')
+        }),
     }),
     null,
   );
@@ -293,7 +382,9 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
         timeoutMs: 100,
         maxBytes: 64,
         fetchImpl: async () =>
-          jsonResponse({ snippet: bigJpeg.toString('base64') }),
+          jsonResponse({
+            snippet: bigJpeg.toString('base64')
+          }),
       })
     )?.body.length,
     64,
@@ -306,17 +397,25 @@ test('TxDOT snapshot decodes JSON only from the official origin and only as JPEG
       timeoutMs: 100,
       maxBytes: 8,
       fetchImpl: async () =>
-        jsonResponse({ snippet: hugeJpeg.toString('base64') }),
+        jsonResponse({
+          snippet: hugeJpeg.toString('base64')
+        }),
     }),
     null,
   );
   const notJpeg = Buffer.from('<html>nope</html>').toString('base64');
   for (const body of [
-    null,
-    { snippet: null },
-    { snippet: '' },
-    { snippet: notJpeg },
-  ]) {
+      null,
+      {
+        snippet: null
+      },
+      {
+        snippet: ''
+      },
+      {
+        snippet: notJpeg
+      },
+    ]) {
     assert.equal(
       await fetchTxdotSnapshot(official, {
         timeoutMs: 100,
