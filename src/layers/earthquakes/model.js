@@ -66,7 +66,7 @@ export function selectEarthquakeOverlayCohort(
     .slice()
     .sort(
       (a, b) =>
-        b.priority - a.priority || String(a.id).localeCompare(String(b.id)),
+      b.priority - a.priority || String(a.id).localeCompare(String(b.id)),
     )
     .slice(0, cap);
 }
@@ -130,9 +130,9 @@ export function normalizeEarthquakeSnapshot(geojson) {
     // A missing magnitude cannot establish that this event meets M2.5+.
     if (mag == null || mag < 2.5) continue;
     const stableId =
-      feature.id == null || feature.id === ''
-        ? `event-${index + 1}`
-        : String(feature.id);
+      feature.id == null || feature.id === '' ?
+      `event-${index + 1}` :
+      String(feature.id);
     if (ids.has(stableId)) return null;
     ids.add(stableId);
     rows.push({
