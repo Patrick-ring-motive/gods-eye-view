@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
-import { getTrafficTimingDiagnostics } from './traffic.js';
+import {
+  getTrafficTimingDiagnostics
+} from './traffic.js';
 
 const SOURCE = readLayerSource(new URL('./traffic.js', import.meta.url), 'utf8').replace(/parts\.(?:model|timing)\./g, '');
 
@@ -123,7 +129,9 @@ test('traffic timing stays inert when the DEV flag is off under bare Node', () =
 });
 
 test('traffic timing pairs real ordering to the scheduling change and guards re-arms', async () => {
-  const { createServer } = await import('vite');
+  const {
+    createServer
+  } = await import('vite');
   const originalWindow = globalThis.window;
   const originalDocument = globalThis.document;
   const originalFetch = globalThis.fetch;
@@ -154,7 +162,9 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
 
   try {
     globalThis.window = {
-      location: { search: '?trafficDebug=1' },
+      location: {
+        search: '?trafficDebug=1'
+      },
       addEventListener() {},
     };
     server = await createServer({
@@ -162,7 +172,9 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
       configFile: false,
       appType: 'custom',
       logLevel: 'silent',
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true
+      },
       plugins: [{
         name: 'traffic-timing-test-hooks',
         transform(code, id) {
@@ -174,18 +186,31 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
     const traffic = await server.ssrLoadModule('/src/data/traffic.js');
     trafficLayer = traffic.default;
 
-    globalThis.document = { documentElement: { dataset: {} } };
+    globalThis.document = {
+      documentElement: {
+        dataset: {}
+      }
+    };
     globalThis.fetch = async (url) => ({
       ok: true,
       status: 200,
-      headers: { get: () => null },
-      json: async () => (String(url).includes('/api/tomtom/status')
-        ? { hasKey: false }
-        : { elements: [] }),
+      headers: {
+        get: () => null
+      },
+      json: async () => (String(url).includes('/api/tomtom/status') ?
+        {
+          hasKey: false
+        } :
+        {
+          elements: []
+        }),
     });
     globalThis.setTimeout = (callback, delay) => {
       const id = ++timerId;
-      timeouts.set(id, { callback, delay });
+      timeouts.set(id, {
+        callback,
+        delay
+      });
       return id;
     };
     globalThis.clearTimeout = (id) => timeouts.delete(id);
@@ -203,7 +228,11 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
       moveEnd,
       changed,
       percentageChanged: 0.5,
-      positionCartographic: { latitude: Math.PI / 6, longitude: 0, height: 5000 },
+      positionCartographic: {
+        latitude: Math.PI / 6,
+        longitude: 0,
+        height: 5000
+      },
       computeViewRectangle() {
         const west = longitude * Math.PI / 180;
         return {
@@ -222,10 +251,18 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
     viewer = {
       camera,
       scene: {
-        canvas: { clientWidth: 0, clientHeight: 0, width: 0, height: 0 },
+        canvas: {
+          clientWidth: 0,
+          clientHeight: 0,
+          width: 0,
+          height: 0
+        },
         preRender,
         postRender,
-        primitives: { add: (primitive) => primitive, remove: () => true },
+        primitives: {
+          add: (primitive) => primitive,
+          remove: () => true
+        },
       },
     };
 
@@ -249,8 +286,8 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
     changed.raise();
     const anchorA = traffic.default.__trafficTimingTestHooks.currentAnchor();
     const anchorMarkA = performance.getEntriesByType('mark').find((entry) => (
-      entry.detail?.segment === 'last-camera-change'
-      && entry.detail?.interactionId === anchorA.interactionId
+      entry.detail?.segment === 'last-camera-change' &&
+      entry.detail?.interactionId === anchorA.interactionId
     ));
     assert.ok(anchorMarkA, 'the scheduling camera change must be marked');
     assert.equal(anchorMarkA.startTime, anchorA.timestamp);
@@ -263,8 +300,8 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
     });
     assert.equal(traffic.default.__trafficTimingTestHooks.currentAnchor(), null);
     const fetchFromA = performance.getEntriesByType('measure').find((entry) => (
-      entry.detail?.segment === 'last-camera-change-to-fetch-start'
-      && entry.detail?.interactionId === anchorA.interactionId
+      entry.detail?.segment === 'last-camera-change-to-fetch-start' &&
+      entry.detail?.interactionId === anchorA.interactionId
     ));
     assert.ok(fetchFromA, 'the load must pair to A without waiting for moveEnd');
     assert.equal(fetchFromA.startTime, anchorA.timestamp);
