@@ -1,9 +1,13 @@
 // src/data/aisLiveVessels.analyst.test.mjs
 // Focused tests for the pure analyst-record mapper (analyst query engine seam).
 // Separate file from aisLiveVessels.test.mjs (feed-status helper) by design.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { mapAnalystRecord } from './aisLiveVessels.js';
+import {
+  mapAnalystRecord
+} from './aisLiveVessels.js';
 
 const FULL_RECORD = {
   mmsi: '353136000',
@@ -33,13 +37,22 @@ test('ais analyst record: full record maps every contract field', () => {
 });
 
 test('ais analyst record: nameless vessel falls back to mmsi id', () => {
-  const r = mapAnalystRecord({ ...FULL_RECORD, name: '  ' });
+  const r = mapAnalystRecord({
+    ...FULL_RECORD,
+    name: '  '
+  });
   assert.equal(r.id, '353136000');
   assert.equal(r.name, null);
 });
 
 test('ais analyst record: empty strings and NaN become null, never undefined', () => {
-  const r = mapAnalystRecord({ mmsi: '', name: 'TUG', speed: NaN, type: '', destination: '' });
+  const r = mapAnalystRecord({
+    mmsi: '',
+    name: 'TUG',
+    speed: NaN,
+    type: '',
+    destination: ''
+  });
   assert.equal(r.mmsi, null);
   assert.equal(r.speedKts, null);
   assert.equal(r.shipType, null);
@@ -52,7 +65,14 @@ test('ais analyst record: empty strings and NaN become null, never undefined', (
 
 test('ais analyst record: output is JSON-safe (no Cesium types leak from the record)', () => {
   // Real records carry Cesium positions/billboards — the mapper must not copy them.
-  const r = mapAnalystRecord({ ...FULL_RECORD, position: { x: 1 }, billboard: {}, normal: {} });
+  const r = mapAnalystRecord({
+    ...FULL_RECORD,
+    position: {
+      x: 1
+    },
+    billboard: {},
+    normal: {}
+  });
   assert.deepEqual(JSON.parse(JSON.stringify(r)), r);
   assert.equal('position' in r, false);
 });
