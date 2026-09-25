@@ -97,9 +97,16 @@ export function tileToBBox(z, x, y) {
  * @param {number} [opts.maxTiles=64] - Safety cap on returned tiles.
  * @returns {Array<{z:number, x:number, y:number}>} Covering tiles.
  */
-export function tilesForBounds(bounds, zoom = 12, { maxTiles = 64 } = {}) {
+export function tilesForBounds(bounds, zoom = 12, {
+  maxTiles = 64
+} = {}) {
   if (!bounds) return [];
-  const { south, west, north, east } = bounds;
+  const {
+    south,
+    west,
+    north,
+    east
+  } = bounds;
   if (![south, west, north, east].every(Number.isFinite)) return [];
   // Northwest corner has the min x and min y (y grows southward).
   const nw = lonLatToTile(Math.min(west, east), Math.max(south, north), zoom);
@@ -108,7 +115,11 @@ export function tilesForBounds(bounds, zoom = 12, { maxTiles = 64 } = {}) {
   for (let y = nw.y; y <= se.y; y++) {
     for (let x = nw.x; x <= se.x; x++) {
       if (tiles.length >= maxTiles) return tiles;
-      tiles.push({ z: zoom, x, y });
+      tiles.push({
+        z: zoom,
+        x,
+        y
+      });
     }
   }
   return tiles;
@@ -142,7 +153,10 @@ export function normalizeBudget(state, dayKey) {
     state.date === dayKey &&
     Number.isFinite(state.count) &&
     state.count >= 0;
-  return valid ? state : { date: dayKey, count: 0 };
+  return valid ? state : {
+    date: dayKey,
+    count: 0
+  };
 }
 
 /**
