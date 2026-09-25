@@ -73,7 +73,9 @@ export function flowSpeedScale(level) {
  * @param {boolean} [opts.jamBoost=false] - Deepen the curve below the 2.5 cap.
  * @returns {number} Multiplier within [1, 2.5] (or [1, 4] boosted); non-finite input → 1.
  */
-export function flowDensityMult(level, { jamBoost = false } = {}) {
+export function flowDensityMult(level, {
+  jamBoost = false
+} = {}) {
   if (!Number.isFinite(level)) return 1;
   if (jamBoost) return Math.min(4, 1 / Math.max(level, 0.25));
   return Math.min(2.5, 1 / Math.max(level, 0.4));
