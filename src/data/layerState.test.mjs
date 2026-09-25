@@ -1,9 +1,15 @@
-import { expandApplicationHtml } from '../../build/application-html.js';
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  expandApplicationHtml
+} from '../../build/application-html.js';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { DataLayerManager } from './manager.js';
+import {
+  DataLayerManager
+} from './manager.js';
 import {
   LAYER_STATE_REGISTRY,
   LAYER_STATE_STORAGE_KEY,
@@ -19,20 +25,37 @@ import {
   validateLayerStateRegistry,
 } from './layerState.js';
 import radioLayer from './radio.js';
-import { stampInitialShareGesture } from '../navigationPolicy.js';
+import {
+  stampInitialShareGesture
+} from '../navigationPolicy.js';
 
 function deferred() {
   let resolve;
   let reject;
-  const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
-  return { promise, resolve, reject };
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return {
+    promise,
+    resolve,
+    reject
+  };
 }
 
 function paramsForLayer(id) {
   if (id === 'flights' || id === 'military') {
-    return { models3d: false, models3dMode: 'proximity', irBoost: true };
+    return {
+      models3d: false,
+      models3dMode: 'proximity',
+      irBoost: true
+    };
   }
-  if (id === 'satellites') return { catalog: 'core', showPoints: false, showOrbits: false };
+  if (id === 'satellites') return {
+    catalog: 'core',
+    showPoints: false,
+    showOrbits: false
+  };
   if (id === 'cctv') {
     return {
       coverageMode: 'on',
@@ -41,7 +64,12 @@ function paramsForLayer(id) {
       autoHopSec: 22,
       selectedCameraId: 'secret-camera',
       calibrationMode: true,
-      calibration: { cameraId: 'secret-camera', values: { heading: 12 } },
+      calibration: {
+        cameraId: 'secret-camera',
+        values: {
+          heading: 12
+        }
+      },
     };
   }
   if (id === 'radio') {
@@ -63,10 +91,18 @@ function fakeLayer(id, hooks = {}) {
     name: id,
     icon: '',
     source: 'test',
-    async init() { return hooks.init ? hooks.init() : true; },
-    async enable() { return hooks.enable ? hooks.enable() : true; },
-    async update() { return hooks.update ? hooks.update() : true; },
-    async disable() { return hooks.disable ? hooks.disable() : true; },
+    async init() {
+      return hooks.init ? hooks.init() : true;
+    },
+    async enable() {
+      return hooks.enable ? hooks.enable() : true;
+    },
+    async update() {
+      return hooks.update ? hooks.update() : true;
+    },
+    async disable() {
+      return hooks.disable ? hooks.disable() : true;
+    },
     ...(hooks.resolveTrackingRestoreTarget ? {
       async resolveTrackingRestoreTarget(targetId, options) {
         return hooks.resolveTrackingRestoreTarget(targetId, options);
@@ -82,14 +118,28 @@ function fakeLayer(id, hooks = {}) {
           // previous (still-untracked) value until the subject really arrives.
           if (result === 'defer') return true;
         }
-        params = { ...params, ...next };
+        params = {
+          ...params,
+          ...next
+        };
         return true;
       },
       /** Test seam: a deferred subject finally arrives on a later poll. */
-      _arrive(next) { params = { ...params, ...next }; },
-      getParams() { return { ...params }; },
+      _arrive(next) {
+        params = {
+          ...params,
+          ...next
+        };
+      },
+      getParams() {
+        return {
+          ...params
+        };
+      },
       ...(hooks.cancelPendingTrackingRestore ? {
-        cancelPendingTrackingRestore(options) { hooks.cancelPendingTrackingRestore(options); },
+        cancelPendingTrackingRestore(options) {
+          hooks.cancelPendingTrackingRestore(options);
+        },
       } : {}),
     } : {}),
   };
@@ -111,8 +161,16 @@ function manualTimers(startMs = 0) {
   let queued = null;
   return {
     now: () => nowMs,
-    setTimer: (fn, ms) => { queued = { fn, ms }; return queued; },
-    clearTimer: (handle) => { if (queued === handle) queued = null; },
+    setTimer: (fn, ms) => {
+      queued = {
+        fn,
+        ms
+      };
+      return queued;
+    },
+    clearTimer: (handle) => {
+      if (queued === handle) queued = null;
+    },
     /** Fire queued polls, advancing the clock, until nothing re-arms. */
     runUntilIdle(maxTicks = 2_000) {
       for (let tick = 0; tick < maxTicks; tick += 1) {
@@ -132,7 +190,9 @@ function memoryStorage(initial = null) {
   if (initial !== null) values.set(LAYER_STATE_STORAGE_KEY, initial);
   return {
     writes: [],
-    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    getItem(key) {
+      return values.has(key) ? values.get(key) : null;
+    },
     setItem(key, value) {
       values.set(key, value);
       this.writes.push([key, value]);
@@ -144,13 +204,19 @@ function shareSink() {
   return {
     provider: null,
     updates: 0,
-    setLayerStateProvider(provider) { this.provider = provider; },
-    onLayerStateChange() { this.updates += 1; },
+    setLayerStateProvider(provider) {
+      this.provider = provider;
+    },
+    onLayerStateChange() {
+      this.updates += 1;
+    },
   };
 }
 
 function encode(state) {
-  const params = new URLSearchParams([['v', '2']]);
+  const params = new URLSearchParams([
+    ['v', '2']
+  ]);
   encodeLayerStateParams(params, state);
   return params.toString();
 }
@@ -168,20 +234,31 @@ test('production registry is exact, canonical, and rejects incomplete contracts'
   const manager = new DataLayerManager({});
   manager.register(fakeLayer('earthquakes'));
   assert.throws(() => manager.register(fakeLayer('earthquakes')), /Duplicate data-layer id/);
-  await assert.rejects(manager.restoreLayerState('earthquakes', { enabled: true }), /finalized/);
+  await assert.rejects(manager.restoreLayerState('earthquakes', {
+    enabled: true
+  }), /finalized/);
   assert.throws(() => manager.finalizeRegistrations([]), /registry mismatch/);
   assert.throws(
-    () => manager.finalizeRegistrations([{ id: 'earthquakes', disposition: 'default' }]),
+    () => manager.finalizeRegistrations([{
+      id: 'earthquakes',
+      disposition: 'default'
+    }]),
     /Invalid layer serialization disposition/,
   );
-  assert.equal(manager.finalizeRegistrations([
-    { id: 'earthquakes', disposition: 'enabled-only' },
-  ]), true);
+  assert.equal(manager.finalizeRegistrations([{
+    id: 'earthquakes',
+    disposition: 'enabled-only'
+  }, ]), true);
   assert.throws(() => manager.register(fakeLayer('radio')), /finalized/);
   assert.throws(() => manager.registerForQa(fakeLayer('radio')), /not authorized/);
-  const qaManager = new DataLayerManager({}, { allowQaRegistration: true });
+  const qaManager = new DataLayerManager({}, {
+    allowQaRegistration: true
+  });
   qaManager.register(fakeLayer('earthquakes'));
-  qaManager.finalizeRegistrations([{ id: 'earthquakes', disposition: 'enabled-only' }]);
+  qaManager.finalizeRegistrations([{
+    id: 'earthquakes',
+    disposition: 'enabled-only'
+  }]);
   qaManager.registerForQa(fakeLayer('radio'));
   assert.equal(qaManager.layers.has('radio'), true);
   assert.equal(await qaManager.unregisterForQa('radio'), true);
@@ -205,19 +282,43 @@ test('v2 codec distinguishes absent from empty and keeps canonical deterministic
   const first = normalizeLayerState({
     enabledLayerIds: ['traffic', 'cctv', 'earthquakes', 'cctv'],
     options: {
-      radio: { volume: 0.37, filter: 'news' },
-      cctv: { autoHop: true, coverageMode: 'viewshed', showProjection: false },
-      flights: { models3dMode: 'all', models3d: true },
-      satellites: { catalog: 'dense' },
+      radio: {
+        volume: 0.37,
+        filter: 'news'
+      },
+      cctv: {
+        autoHop: true,
+        coverageMode: 'viewshed',
+        showProjection: false
+      },
+      flights: {
+        models3dMode: 'all',
+        models3d: true
+      },
+      satellites: {
+        catalog: 'dense'
+      },
     },
   });
   const second = normalizeLayerState({
     enabledLayerIds: ['earthquakes', 'cctv', 'traffic'],
     options: {
-      satellites: { catalog: 'dense' },
-      flights: { models3d: true, models3dMode: 'all' },
-      cctv: { showProjection: false, coverageMode: 'viewshed', autoHop: true },
-      radio: { filter: 'news', volume: 0.37 },
+      satellites: {
+        catalog: 'dense'
+      },
+      flights: {
+        models3d: true,
+        models3dMode: 'all'
+      },
+      cctv: {
+        showProjection: false,
+        coverageMode: 'viewshed',
+        autoHop: true
+      },
+      radio: {
+        filter: 'news',
+        volume: 0.37
+      },
     },
   });
   assert.equal(encode(first), encode(second));
@@ -245,7 +346,10 @@ test('unknown and forbidden option fields are ignored while missing options use 
     selectedFlightsTrackingId: null,
     selectedMilitaryTrackingId: null,
   });
-  assert.deepEqual(decoded.options.radio, { filter: 'news', volume: 0.35 });
+  assert.deepEqual(decoded.options.radio, {
+    filter: 'news',
+    volume: 0.35
+  });
 
   const raw = normalizeLayerState({
     enabledLayerIds: ['cctv', 'unknown-layer'],
@@ -254,11 +358,20 @@ test('unknown and forbidden option fields are ignored while missing options use 
         coverageMode: 'off',
         selectedCameraId: 'private-camera',
         calibrationMode: true,
-        calibration: { secret: 'do-not-share' },
+        calibration: {
+          secret: 'do-not-share'
+        },
         autoHopSec: 99,
       },
-      flights: { models3d: true, irBoost: true },
-      satellites: { catalog: 'dense', showPoints: false, showOrbits: false },
+      flights: {
+        models3d: true,
+        irBoost: true
+      },
+      satellites: {
+        catalog: 'dense',
+        showPoints: false,
+        showOrbits: false
+      },
       radio: {
         filter: 'genre:ambient',
         volume: 0.66,
@@ -270,16 +383,21 @@ test('unknown and forbidden option fields are ignored while missing options use 
   });
   const serialized = `${encode(raw)} ${serializeStoredLayerState(raw)}`;
   for (const forbidden of [
-    'private-camera', 'calibration', 'autoHopSec', 'irBoost', 'showPoints',
-    'showOrbits', 'private-station', 'audioState', 'voiceDucked', 'secret',
-  ]) assert.equal(serialized.includes(forbidden), false, forbidden);
+      'private-camera', 'calibration', 'autoHopSec', 'irBoost', 'showPoints',
+      'showOrbits', 'private-station', 'audioState', 'voiceDucked', 'secret',
+    ]) assert.equal(serialized.includes(forbidden), false, forbidden);
 });
 
 test('Radio genre ids with spaces and ampersands round-trip through v2', () => {
   for (const filter of ['genre:hip hop', 'genre:r&b']) {
     const state = normalizeLayerState({
       enabledLayerIds: ['radio'],
-      options: { radio: { filter, volume: 0.5 } },
+      options: {
+        radio: {
+          filter,
+          volume: 0.5
+        }
+      },
     });
     const decoded = decodeLayerStateParams(new URLSearchParams(encode(state)));
     assert.equal(decoded.options.radio.filter, filter);
@@ -321,8 +439,18 @@ test('compact URL omits absent-meaning option state and still resolves to it', (
   // meant to the links already in the wild, so `false` is what belongs in a
   // URL-omission test. The default's own value is pinned in the fresh-boot test
   // below, and the divergence itself in the two codec tests above.
-  state.options.flights = { models3d: false, models3dMode: 'proximity', selectedFlightsTrackingId: null, selectedMilitaryTrackingId: null };
-  state.options.satellites = { catalog: 'core', showPoints: true, showOrbits: true, selectedSatTrackingId: null };
+  state.options.flights = {
+    models3d: false,
+    models3dMode: 'proximity',
+    selectedFlightsTrackingId: null,
+    selectedMilitaryTrackingId: null
+  };
+  state.options.satellites = {
+    catalog: 'core',
+    showPoints: true,
+    showOrbits: true,
+    selectedSatTrackingId: null
+  };
   const params = encodeLayerStateParams(new URLSearchParams('v=2'), state);
   assert.equal(params.has('lo'), false);
   const roundTrip = decodeLayerStateParams(params);
@@ -351,10 +479,26 @@ test('a fresh boot starts 3D aircraft ON in proximity — codec, both layers, an
 
   const paramsCalls = [];
   const manager = productionManager({
-    flights: { setParams: (params) => { paramsCalls.push({ ...params }); return true; } },
-    military: { setParams: (params) => { paramsCalls.push({ ...params }); return true; } },
+    flights: {
+      setParams: (params) => {
+        paramsCalls.push({
+          ...params
+        });
+        return true;
+      }
+    },
+    military: {
+      setParams: (params) => {
+        paramsCalls.push({
+          ...params
+        });
+        return true;
+      }
+    },
   });
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
   await coordinator.start();
   assert.equal(coordinator.source, 'defaults');
   assert.equal(coordinator.getDurableState().options.flights.models3d, true);
@@ -365,7 +509,9 @@ test('a fresh boot starts 3D aircraft ON in proximity — codec, both layers, an
 
   // The other three surfaces, read from source, because each is the literal a
   // first-run session actually boots from.
-  const { readFile } = await import('node:fs/promises');
+  const {
+    readFile
+  } = await import('node:fs/promises');
   for (const name of ['flights.js', 'militaryFlights.js']) {
     const source = readLayerSource(new URL(`./${name}`, import.meta.url));
     assert.match(source, /^\s*(?:let |flightState\.)_models3dEnabled = true;$/m,
@@ -432,7 +578,10 @@ test('the new default is written EXPLICITLY, so no omission is ambiguous', () =>
   // encoding, across both eras.
   const off = createDefaultLayerState();
   off.enabledLayerIds = ['flights'];
-  off.options.flights = { ...off.options.flights, models3d: false };
+  off.options.flights = {
+    ...off.options.flights,
+    models3d: false
+  };
   const offEncoded = encode(off);
   assert.doesNotMatch(offEncoded, /f\.e\./,
     'OFF is the absent token, exactly as it was before the flip');
@@ -451,7 +600,10 @@ test('a share link that carries 3D OFF still restores OFF at both aircraft layer
   // absent token, which is what v2 always meant.
   const state = createDefaultLayerState();
   state.enabledLayerIds = ['flights', 'military'];
-  state.options.flights = { ...state.options.flights, models3d: false };
+  state.options.flights = {
+    ...state.options.flights,
+    models3d: false
+  };
   const encoded = encode(state);
 
   const decoded = decodeLayerStateParams(new URLSearchParams(encoded));
@@ -460,28 +612,68 @@ test('a share link that carries 3D OFF still restores OFF at both aircraft layer
 
   // And the restore really pushes OFF at both aircraft layers — `military`
   // mirrors the `flights` option owner, so one shared link disarms both.
-  const calls = { flights: [], military: [] };
+  const calls = {
+    flights: [],
+    military: []
+  };
   const manager = productionManager({
-    flights: { setParams: (params) => { calls.flights.push({ ...params }); return true; } },
-    military: { setParams: (params) => { calls.military.push({ ...params }); return true; } },
+    flights: {
+      setParams: (params) => {
+        calls.flights.push({
+          ...params
+        });
+        return true;
+      }
+    },
+    military: {
+      setParams: (params) => {
+        calls.military.push({
+          ...params
+        });
+        return true;
+      }
+    },
   });
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
-  await coordinator.start({ shareLayerState: decoded, shareCreatedAtMs: 1_000 });
-  assert.deepEqual(calls.flights, [{ models3d: false, models3dMode: 'proximity' }]);
-  assert.deepEqual(calls.military, [{ models3d: false, models3dMode: 'proximity' }]);
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
+  await coordinator.start({
+    shareLayerState: decoded,
+    shareCreatedAtMs: 1_000
+  });
+  assert.deepEqual(calls.flights, [{
+    models3d: false,
+    models3dMode: 'proximity'
+  }]);
+  assert.deepEqual(calls.military, [{
+    models3d: false,
+    models3dMode: 'proximity'
+  }]);
   assert.equal(coordinator.getDurableState().options.flights.models3d, false);
   coordinator.destroy();
 });
 
 test('explicit navigation tracking clear removes the active durable ID from the generated hash', async () => {
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
   await coordinator.start();
-  await manager.setEnabled('flights', true, { origin: 'user' });
-  manager.setLayerParams('flights', { selectedFlightsTrackingId: 'abc123' }, { origin: 'user' });
+  await manager.setEnabled('flights', true, {
+    origin: 'user'
+  });
+  manager.setLayerParams('flights', {
+    selectedFlightsTrackingId: 'abc123'
+  }, {
+    origin: 'user'
+  });
   assert.equal(coordinator.getDurableState().options.flights.selectedFlightsTrackingId, 'abc123');
   assert.equal(encode(coordinator.getDurableState()).includes('abc123'), true);
-  manager.setLayerParams('flights', { selectedFlightsTrackingId: null }, { origin: 'tool' });
+  manager.setLayerParams('flights', {
+    selectedFlightsTrackingId: null
+  }, {
+    origin: 'tool'
+  });
   assert.equal(coordinator.getDurableState().options.flights.selectedFlightsTrackingId, null);
   assert.equal(encode(coordinator.getDurableState()).includes('abc123'), false);
   coordinator.destroy();
@@ -489,22 +681,30 @@ test('explicit navigation tracking clear removes the active durable ID from the 
 
 test('a direct Context selection promotes its owned tracker layer before persisting the ID', async () => {
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
   await coordinator.start();
-  await manager.setEnabled('flights', true, { origin: 'programmatic' });
+  await manager.setEnabled('flights', true, {
+    origin: 'programmatic'
+  });
   manager.setLayerParams(
-    'flights',
-    { selectedFlightsTrackingId: 'context-flight' },
-    { origin: 'programmatic' },
+    'flights', {
+      selectedFlightsTrackingId: 'context-flight'
+    }, {
+      origin: 'programmatic'
+    },
   );
   assert.equal(manager.adoptLayerVisibility('flights', true, {
     origin: 'user',
     adoptedFromSelection: true,
   }), true);
   assert.equal(manager.adoptLayerParams(
-    'flights',
-    { selectedFlightsTrackingId: 'context-flight' },
-    { origin: 'user' },
+    'flights', {
+      selectedFlightsTrackingId: 'context-flight'
+    }, {
+      origin: 'user'
+    },
   ), true);
   const durable = coordinator.getDurableState();
   assert.equal(durable.enabledLayerIds.includes('flights'), true);
@@ -515,21 +715,41 @@ test('a direct Context selection promotes its owned tracker layer before persist
 
 test('explicit Flight to Satellite replacement keeps the new Satellite ID durable', async () => {
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
   await coordinator.start();
-  await manager.setEnabled('flights', true, { origin: 'user' });
-  await manager.setEnabled('satellites', true, { origin: 'user' });
-  manager.setLayerParams('flights', { selectedFlightsTrackingId: 'abc123' }, { origin: 'user' });
+  await manager.setEnabled('flights', true, {
+    origin: 'user'
+  });
+  await manager.setEnabled('satellites', true, {
+    origin: 'user'
+  });
+  manager.setLayerParams('flights', {
+    selectedFlightsTrackingId: 'abc123'
+  }, {
+    origin: 'user'
+  });
   assert.equal(coordinator.getDurableState().options.flights.selectedFlightsTrackingId, 'abc123');
 
   // UI replacement ordering clears the prior family before a direct tracker
   // publishes its already-applied selection through adoptLayerParams().
-  manager.setLayerParams('flights', { selectedFlightsTrackingId: null }, { origin: 'user' });
-  manager.setLayerParams('satellites', { selectedSatTrackingId: 25544 }, { origin: 'programmatic' });
+  manager.setLayerParams('flights', {
+    selectedFlightsTrackingId: null
+  }, {
+    origin: 'user'
+  });
+  manager.setLayerParams('satellites', {
+    selectedSatTrackingId: 25544
+  }, {
+    origin: 'programmatic'
+  });
   assert.equal(manager.adoptLayerParams(
-    'satellites',
-    { selectedSatTrackingId: 25544 },
-    { origin: 'user' },
+    'satellites', {
+      selectedSatTrackingId: 25544
+    }, {
+      origin: 'user'
+    },
   ), true);
 
   const durable = coordinator.getDurableState();
@@ -542,12 +762,22 @@ test('explicit Flight to Satellite replacement keeps the new Satellite ID durabl
 
 test('explicit layer OFF clears its durable selected entity and prevents later resurrection', async () => {
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
   await coordinator.start();
-  await manager.setEnabled('flights', true, { origin: 'user' });
-  manager.setLayerParams('flights', { selectedFlightsTrackingId: 'abc123' }, { origin: 'user' });
+  await manager.setEnabled('flights', true, {
+    origin: 'user'
+  });
+  manager.setLayerParams('flights', {
+    selectedFlightsTrackingId: 'abc123'
+  }, {
+    origin: 'user'
+  });
   assert.equal(coordinator.getDurableState().options.flights.selectedFlightsTrackingId, 'abc123');
-  await manager.setEnabled('flights', false, { origin: 'user' });
+  await manager.setEnabled('flights', false, {
+    origin: 'user'
+  });
   assert.equal(coordinator.getDurableState().options.flights.selectedFlightsTrackingId, null);
   assert.equal(Boolean(
     new URLSearchParams(encode(coordinator.getDurableState())).get('lo')?.includes('f.t.'),
@@ -557,15 +787,23 @@ test('explicit layer OFF clears its durable selected entity and prevents later r
 
 test('unrelated explicit params retain the family live active ID while cancelling only pending state', async () => {
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
   await coordinator.start();
   assert.equal(manager.setLayerParams('flights', {
     selectedFlightsTrackingId: 'active001',
-  }, { origin: 'programmatic' }), true);
-  await manager.setEnabled('flights', true, { origin: 'user' });
+  }, {
+    origin: 'programmatic'
+  }), true);
+  await manager.setEnabled('flights', true, {
+    origin: 'user'
+  });
   assert.equal(manager.setLayerParams('flights', {
     models3d: true,
-  }, { origin: 'user' }), true);
+  }, {
+    origin: 'user'
+  }), true);
   assert.equal(
     coordinator.getDurableState().options.flights.selectedFlightsTrackingId,
     'active001',
@@ -576,10 +814,22 @@ test('unrelated explicit params retain the family live active ID while cancellin
 test('stored state is deterministic, rejects other versions, and stays within a tested URL bound', () => {
   const state = createDefaultLayerState();
   state.enabledLayerIds = [...REGISTERED_LAYER_IDS].reverse();
-  state.options.flights = { models3d: true, models3dMode: 'all' };
-  state.options.satellites = { catalog: 'dense' };
-  state.options.cctv = { coverageMode: 'viewshed', showProjection: false, autoHop: true };
-  state.options.radio = { filter: 'genre:experimental-ambient', volume: 1 };
+  state.options.flights = {
+    models3d: true,
+    models3dMode: 'all'
+  };
+  state.options.satellites = {
+    catalog: 'dense'
+  };
+  state.options.cctv = {
+    coverageMode: 'viewshed',
+    showProjection: false,
+    autoHop: true
+  };
+  state.options.radio = {
+    filter: 'genre:experimental-ambient',
+    volume: 1
+  };
   const stored = serializeStoredLayerState(state);
   assert.deepEqual(parseStoredLayerState(stored), normalizeLayerState(state));
   assert.equal(parseStoredLayerState('{"v":1,"l":[]}'), null);
@@ -590,55 +840,101 @@ test('restore applies sanitized params after init and before enable', async () =
   const order = [];
   const manager = productionManager({
     flights: {
-      init: () => { order.push('init'); return true; },
-      setParams: () => { order.push('params'); return true; },
-      enable: () => { order.push('enable'); return true; },
-      update: () => { order.push('update'); return true; },
+      init: () => {
+        order.push('init');
+        return true;
+      },
+      setParams: () => {
+        order.push('params');
+        return true;
+      },
+      enable: () => {
+        order.push('enable');
+        return true;
+      },
+      update: () => {
+        order.push('update');
+        return true;
+      },
     },
   });
   const outcome = await manager.restoreLayerState('flights', {
     enabled: true,
-    params: { models3d: true, models3dMode: 'all' },
-  }, { origin: 'share-restore' });
+    params: {
+      models3d: true,
+      models3dMode: 'all'
+    },
+  }, {
+    origin: 'share-restore'
+  });
   assert.deepEqual(order, ['init', 'params', 'enable', 'update']);
   assert.equal(outcome.succeeded, true);
   assert.equal(outcome.persistenceWrite, false);
-  assert.deepEqual(outcome.appliedOptions, { models3d: true, models3dMode: 'all' });
+  assert.deepEqual(outcome.appliedOptions, {
+    models3d: true,
+    models3dMode: 'all'
+  });
 });
 
 test('manager forwards passive restore origin into module parameter application', async () => {
   const seen = [];
   const manager = productionManager({
     flights: {
-      setParams: (_params, options) => { seen.push(options); },
+      setParams: (_params, options) => {
+        seen.push(options);
+      },
     },
   });
   await manager.restoreLayerState('flights', {
     enabled: false,
-    params: { selectedFlightsTrackingId: 'abc123' },
-  }, { origin: 'share-restore' });
-  assert.deepEqual(seen, [{ origin: 'share-restore', paramsIntentEpoch: 1 }]);
+    params: {
+      selectedFlightsTrackingId: 'abc123'
+    },
+  }, {
+    origin: 'share-restore'
+  });
+  assert.deepEqual(seen, [{
+    origin: 'share-restore',
+    paramsIntentEpoch: 1
+  }]);
 });
 
 test('explicit manager params and visibility revoke module-owned pending tracking restore', async () => {
   const cancellations = [];
   const manager = productionManager({
     flights: {
-      cancelPendingTrackingRestore: (options) => { cancellations.push(options); },
+      cancelPendingTrackingRestore: (options) => {
+        cancellations.push(options);
+      },
     },
   });
 
   await manager.restoreLayerState('flights', {
     enabled: false,
-    params: { selectedFlightsTrackingId: 'late001' },
-  }, { origin: 'share-restore' });
+    params: {
+      selectedFlightsTrackingId: 'late001'
+    },
+  }, {
+    origin: 'share-restore'
+  });
   assert.deepEqual(cancellations, [], 'passive restoration cannot cancel itself');
 
-  manager.setLayerParams('flights', { models3d: true }, { origin: 'voice' });
-  await manager.setEnabled('flights', false, { origin: 'user' });
-  assert.deepEqual(cancellations, [
-    { origin: 'voice', reason: 'explicit-params' },
-    { origin: 'user', reason: 'explicit-visibility' },
+  manager.setLayerParams('flights', {
+    models3d: true
+  }, {
+    origin: 'voice'
+  });
+  await manager.setEnabled('flights', false, {
+    origin: 'user'
+  });
+  assert.deepEqual(cancellations, [{
+      origin: 'voice',
+      reason: 'explicit-params'
+    },
+    {
+      origin: 'user',
+      reason: 'explicit-visibility'
+    },
   ]);
 });
 
@@ -648,28 +944,42 @@ test('share payload wins over local, passive restore writes nothing, and explici
   const storage = memoryStorage(serializeStoredLayerState(local));
   const manager = productionManager();
   const share = shareSink();
-  const coordinator = new LayerStateCoordinator(manager, share, { storage });
+  const coordinator = new LayerStateCoordinator(manager, share, {
+    storage
+  });
   const explicitEmpty = createDefaultLayerState();
-  await coordinator.start({ shareLayerState: explicitEmpty });
+  await coordinator.start({
+    shareLayerState: explicitEmpty
+  });
 
   assert.equal(coordinator.source, 'share');
   assert.deepEqual(coordinator.getDurableState().enabledLayerIds, []);
   assert.deepEqual(storage.writes, []);
   assert.equal(share.provider().enabledLayerIds.length, 0);
 
-  await manager.setEnabled('earthquakes', true, { origin: 'user' });
+  await manager.setEnabled('earthquakes', true, {
+    origin: 'user'
+  });
   assert.deepEqual(coordinator.getDurableState().enabledLayerIds, ['earthquakes']);
   assert.equal(storage.writes.length, 1);
 
-  await manager.setEnabled('traffic', true, { origin: 'scene' });
+  await manager.setEnabled('traffic', true, {
+    origin: 'scene'
+  });
   assert.equal(storage.writes.length, 1);
   assert.deepEqual(coordinator.getDurableState().enabledLayerIds, ['earthquakes']);
 
-  await manager.setEnabled('traffic', true, { origin: 'tool' });
+  await manager.setEnabled('traffic', true, {
+    origin: 'tool'
+  });
   assert.equal(storage.writes.length, 2);
   assert.deepEqual(coordinator.getDurableState().enabledLayerIds, ['earthquakes', 'traffic']);
 
-  manager.setLayerParams('cctv', { selectedCameraId: 'private-camera' }, { origin: 'user' });
+  manager.setLayerParams('cctv', {
+    selectedCameraId: 'private-camera'
+  }, {
+    origin: 'user'
+  });
   assert.equal(storage.writes.length, 2);
   assert.deepEqual(coordinator.getDurableState().options.cctv, {
     coverageMode: 'on',
@@ -677,11 +987,19 @@ test('share payload wins over local, passive restore writes nothing, and explici
     autoHop: false,
   });
 
-  manager.setLayerParams('cctv', { coverageMode: 'off' }, { origin: 'scene' });
+  manager.setLayerParams('cctv', {
+    coverageMode: 'off'
+  }, {
+    origin: 'scene'
+  });
   assert.equal(storage.writes.length, 2);
   assert.equal(coordinator.getDurableState().options.cctv.coverageMode, 'on');
 
-  manager.setLayerParams('cctv', { coverageMode: 'viewshed' }, { origin: 'voice' });
+  manager.setLayerParams('cctv', {
+    coverageMode: 'viewshed'
+  }, {
+    origin: 'voice'
+  });
   assert.equal(storage.writes.length, 3);
   assert.equal(coordinator.getDurableState().options.cctv.coverageMode, 'viewshed');
   coordinator.destroy();
@@ -690,10 +1008,15 @@ test('share payload wins over local, passive restore writes nothing, and explici
 test('absent share payload restores local state without rewriting it', async () => {
   const local = createDefaultLayerState();
   local.enabledLayerIds = ['earthquakes', 'radio'];
-  local.options.radio = { filter: 'talk', volume: 0.42 };
+  local.options.radio = {
+    filter: 'talk',
+    volume: 0.42
+  };
   const storage = memoryStorage(serializeStoredLayerState(local));
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage
+  });
   const results = await coordinator.start();
   assert.equal(coordinator.source, 'local');
   assert.equal(manager.isEnabled('earthquakes'), true);
@@ -715,8 +1038,12 @@ test('historical share payload suppresses unrelated local layer preferences', as
   local.enabledLayerIds = ['traffic', 'radio'];
   const storage = memoryStorage(serializeStoredLayerState(local));
   const manager = productionManager();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage });
-  await coordinator.start({ allowLocalState: false });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage
+  });
+  await coordinator.start({
+    allowLocalState: false
+  });
   assert.equal(coordinator.source, 'legacy-share');
   assert.deepEqual(coordinator.getDurableState().enabledLayerIds, []);
   assert.equal(manager.getEnabledLayerIds().size, 0);
@@ -726,12 +1053,20 @@ test('historical share payload suppresses unrelated local layer preferences', as
 
 test('one layer failure is isolated from sibling restoration', async () => {
   const manager = productionManager({
-    cctv: { init: () => { throw new Error('missing key'); } },
+    cctv: {
+      init: () => {
+        throw new Error('missing key');
+      }
+    },
   });
   const state = createDefaultLayerState();
   state.enabledLayerIds = ['cctv', 'earthquakes'];
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
-  const results = await coordinator.start({ shareLayerState: state });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
+  const results = await coordinator.start({
+    shareLayerState: state
+  });
   assert.equal(manager.isEnabled('cctv'), false);
   assert.equal(manager.isEnabled('earthquakes'), true);
   const failed = results.find((result) => result.layerId === 'cctv');
@@ -753,8 +1088,12 @@ test('later explicit visibility during delayed restore wins for that layer only'
     storage,
     restoreGate: gate.promise,
   });
-  const restore = coordinator.start({ shareLayerState: state });
-  await manager.setEnabled('radio', false, { origin: 'user' });
+  const restore = coordinator.start({
+    shareLayerState: state
+  });
+  await manager.setEnabled('radio', false, {
+    origin: 'user'
+  });
   gate.resolve();
   const results = await restore;
   assert.equal(manager.isEnabled('radio'), false);
@@ -787,15 +1126,27 @@ test('share restore waits for a superseding same-target visibility successor', a
   });
   const state = createDefaultLayerState();
   state.enabledLayerIds = ['radio'];
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
 
   let restoreSettled = false;
-  const restore = coordinator.start({ shareLayerState: state })
-    .then((result) => { restoreSettled = true; return result; });
+  const restore = coordinator.start({
+      shareLayerState: state
+    })
+    .then((result) => {
+      restoreSettled = true;
+      return result;
+    });
   await firstUpdateStarted.promise;
   let successorSettled = false;
-  const explicitOn = manager.setEnabled('radio', true, { origin: 'user' })
-    .then((result) => { successorSettled = true; return result; });
+  const explicitOn = manager.setEnabled('radio', true, {
+      origin: 'user'
+    })
+    .then((result) => {
+      successorSettled = true;
+      return result;
+    });
   releaseFirstUpdate.resolve();
   await secondUpdateStarted.promise;
   await Promise.resolve();
@@ -836,13 +1187,22 @@ test('share restore waits for a superseding opposite-target visibility successor
   });
   const state = createDefaultLayerState();
   state.enabledLayerIds = ['radio'];
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
 
   let restoreSettled = false;
-  const restore = coordinator.start({ shareLayerState: state })
-    .then((result) => { restoreSettled = true; return result; });
+  const restore = coordinator.start({
+      shareLayerState: state
+    })
+    .then((result) => {
+      restoreSettled = true;
+      return result;
+    });
   await updateStarted.promise;
-  const explicitOff = manager.setEnabled('radio', false, { origin: 'user' });
+  const explicitOff = manager.setEnabled('radio', false, {
+    origin: 'user'
+  });
   releaseUpdate.resolve();
   await disableStarted.promise;
   await Promise.resolve();
@@ -882,13 +1242,19 @@ test('later explicit params during init replace options without cancelling visib
     selectedFlightsTrackingId: 'late001',
   };
   const share = shareSink();
-  const coordinator = new LayerStateCoordinator(manager, share, { storage });
-  const restore = coordinator.start({ shareLayerState: state });
+  const coordinator = new LayerStateCoordinator(manager, share, {
+    storage
+  });
+  const restore = coordinator.start({
+    shareLayerState: state
+  });
   await initStarted.promise;
   assert.equal(manager.setLayerParams('flights', {
     models3d: false,
     models3dMode: 'proximity',
-  }, { origin: 'user' }), true);
+  }, {
+    origin: 'user'
+  }), true);
   initGate.resolve();
   const results = await restore;
   assert.equal(manager.isEnabled('flights'), true);
@@ -918,7 +1284,10 @@ test('explicit navigation preserves unrelated visibility and option restoration'
         await initGate.promise;
         return true;
       },
-      setParams: (params) => { paramsCalls.push(params); return true; },
+      setParams: (params) => {
+        paramsCalls.push(params);
+        return true;
+      },
     },
   });
   const state = createDefaultLayerState();
@@ -929,8 +1298,12 @@ test('explicit navigation preserves unrelated visibility and option restoration'
     selectedFlightsTrackingId: 'stale-flight',
     selectedMilitaryTrackingId: null,
   };
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage: memoryStorage() });
-  const restore = coordinator.start({ shareLayerState: state });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage: memoryStorage()
+  });
+  const restore = coordinator.start({
+    shareLayerState: state
+  });
   await initStarted.promise;
   // Navigation owns only camera and pending entity selection. It must not
   // revoke the layer visibility or unrelated display-option lanes.
@@ -974,17 +1347,28 @@ test('startup gesture clears passive Follow but preserves slow layer and display
     selectedFlightsTrackingId: 'late-share',
     selectedMilitaryTrackingId: null,
   };
-  state.options.radio = { filter: 'genre:r&b', volume: 0.42 };
+  state.options.radio = {
+    filter: 'genre:r&b',
+    volume: 0.42
+  };
   const storage = memoryStorage();
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage });
-  const restore = coordinator.start({ shareLayerState: state });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage
+  });
+  const restore = coordinator.start({
+    shareLayerState: state
+  });
   await Promise.all([flightsStarted.promise, radioStarted.promise]);
 
   let cameraGeneration = 0;
-  stampInitialShareGesture(({ cancelPendingSelection }) => {
+  stampInitialShareGesture(({
+    cancelPendingSelection
+  }) => {
     cameraGeneration += 1;
     if (cancelPendingSelection) {
-      coordinator.cancelPendingShareTracking('startup-gesture', { clearSelection: true });
+      coordinator.cancelPendingShareTracking('startup-gesture', {
+        clearSelection: true
+      });
     }
   });
   flightsInit.resolve();
@@ -1017,14 +1401,22 @@ test('tracking restore refreshes the destination feed before the module resolves
   const order = [];
   const manager = productionManager({
     flights: {
-      update: () => { order.push('refresh'); return true; },
+      update: () => {
+        order.push('refresh');
+        return true;
+      },
       resolveTrackingRestoreTarget: (targetId, options) => {
         order.push(`resolve:${targetId}:${options.origin}`);
-        return { status: 'found', source: 'test' };
+        return {
+          status: 'found',
+          source: 'test'
+        };
       },
     },
   });
-  await manager.setEnabled('flights', true, { origin: 'scene' });
+  await manager.setEnabled('flights', true, {
+    origin: 'scene'
+  });
   order.length = 0;
   const result = await manager.resolveLayerTrackingTarget('flights', 'abc123', {
     origin: 'share-restore',
@@ -1040,8 +1432,16 @@ test('shared flight selection is deferred until destination refresh and then fol
   const paramsCalls = [];
   const manager = productionManager({
     flights: {
-      setParams: (params) => { paramsCalls.push({ ...params }); return true; },
-      resolveTrackingRestoreTarget: (targetId) => ({ status: 'found', targetId }),
+      setParams: (params) => {
+        paramsCalls.push({
+          ...params
+        });
+        return true;
+      },
+      resolveTrackingRestoreTarget: (targetId) => ({
+        status: 'found',
+        targetId
+      }),
     },
   });
   const state = createDefaultLayerState();
@@ -1055,8 +1455,14 @@ test('shared flight selection is deferred until destination refresh and then fol
     storage,
     onTrackingRestoreStatus: (status) => statuses.push(status),
   });
-  await coordinator.start({ shareLayerState: state, shareCreatedAtMs: 1_000 });
-  assert.deepEqual(paramsCalls, [{ models3d: true, models3dMode: 'proximity' }]);
+  await coordinator.start({
+    shareLayerState: state,
+    shareCreatedAtMs: 1_000
+  });
+  assert.deepEqual(paramsCalls, [{
+    models3d: true,
+    models3dMode: 'proximity'
+  }]);
 
   const result = await coordinator.restoreShareTrackingSelection();
   assert.equal(result.status, 'found');
@@ -1069,15 +1475,20 @@ test('shared flight selection is deferred until destination refresh and then fol
 });
 
 test('authoritative missing target clears only the passive ID and uses strict expiry boundary', async () => {
-  const run = async ({ nowMs, copiedAtMs }) => {
+  const run = async ({
+    nowMs,
+    copiedAtMs
+  }) => {
     const storage = memoryStorage();
     const manager = productionManager({
       flights: {
-        resolveTrackingRestoreTarget: () => ({ status: 'missing' }),
+        resolveTrackingRestoreTarget: () => ({
+          status: 'missing'
+        }),
         setParams: (next) => (
-          Object.hasOwn(next, 'selectedFlightsTrackingId') && next.selectedFlightsTrackingId
-            ? 'defer'
-            : true
+          Object.hasOwn(next, 'selectedFlightsTrackingId') && next.selectedFlightsTrackingId ?
+          'defer' :
+          true
         ),
       },
     });
@@ -1100,7 +1511,10 @@ test('authoritative missing target clears only the passive ID and uses strict ex
       clearTimer: timers.clearTimer,
       onTrackingRestoreStatus: (status) => statuses.push(status),
     });
-    await coordinator.start({ shareLayerState: state, shareCreatedAtMs: copiedAtMs });
+    await coordinator.start({
+      shareLayerState: state,
+      shareCreatedAtMs: copiedAtMs
+    });
     const pending = await coordinator.restoreShareTrackingSelection();
     assert.equal(pending.classification, 'pending', 'absence must first be held pending');
     assert.equal(statuses.length, 1, 'pending is published for soft progress feedback');
@@ -1109,10 +1523,17 @@ test('authoritative missing target clears only the passive ID and uses strict ex
     const result = statuses.at(-1);
     const durable = coordinator.getDurableState();
     coordinator.destroy();
-    return { result, durable, writes: storage.writes };
+    return {
+      result,
+      durable,
+      writes: storage.writes
+    };
   };
 
-  const boundary = await run({ nowMs: 190_000, copiedAtMs: 100_000 });
+  const boundary = await run({
+    nowMs: 190_000,
+    copiedAtMs: 100_000
+  });
   assert.equal(boundary.result.classification, 'unavailable');
   assert.equal(boundary.result.cleared, true);
   assert.equal(boundary.durable.options.flights.selectedFlightsTrackingId, null);
@@ -1120,7 +1541,10 @@ test('authoritative missing target clears only the passive ID and uses strict ex
   assert.equal(boundary.durable.options.flights.models3dMode, 'all');
   assert.deepEqual(boundary.writes, []);
 
-  const expired = await run({ nowMs: 190_001, copiedAtMs: 100_000 });
+  const expired = await run({
+    nowMs: 190_001,
+    copiedAtMs: 100_000
+  });
   assert.equal(expired.result.classification, 'expired');
 });
 
@@ -1129,11 +1553,14 @@ test('feed failure is not misreported as target absence and malformed time never
   const statuses = [];
   const manager = productionManager({
     satellites: {
-      resolveTrackingRestoreTarget: () => ({ status: 'source-unavailable', reason: 'partial catalog' }),
+      resolveTrackingRestoreTarget: () => ({
+        status: 'source-unavailable',
+        reason: 'partial catalog'
+      }),
       setParams: (next) => (
-        Object.hasOwn(next, 'selectedSatTrackingId') && next.selectedSatTrackingId
-          ? 'defer'
-          : true
+        Object.hasOwn(next, 'selectedSatTrackingId') && next.selectedSatTrackingId ?
+        'defer' :
+        true
       ),
     },
   });
@@ -1151,7 +1578,10 @@ test('feed failure is not misreported as target absence and malformed time never
     clearTimer: timers.clearTimer,
     onTrackingRestoreStatus: (status) => statuses.push(status),
   });
-  await coordinator.start({ shareLayerState: state, shareCreatedAtMs: null });
+  await coordinator.start({
+    shareLayerState: state,
+    shareCreatedAtMs: null
+  });
   const pending = await coordinator.restoreShareTrackingSelection();
   // A partial catalog is a "not here YET" too — hold it, do not announce.
   assert.equal(pending.classification, 'pending');
@@ -1178,21 +1608,31 @@ test('feed failure is not misreported as target absence and malformed time never
 // the share. These pin both directions.
 // ---------------------------------------------------------------------------
 
-function pendingTrackingFixture({ resolveStatus = 'missing', copiedAtMs = null } = {}) {
+function pendingTrackingFixture({
+  resolveStatus = 'missing',
+  copiedAtMs = null
+} = {}) {
   const storage = memoryStorage();
   const statuses = [];
   const paramsCalls = [];
   const cancellations = [];
   const manager = productionManager({
     flights: {
-      resolveTrackingRestoreTarget: () => ({ status: resolveStatus }),
+      resolveTrackingRestoreTarget: () => ({
+        status: resolveStatus
+      }),
       setParams: (next, options) => {
-        paramsCalls.push({ params: { ...next }, origin: options?.origin });
+        paramsCalls.push({
+          params: {
+            ...next
+          },
+          origin: options?.origin
+        });
         // Production holds the id pending; getParams keeps reporting untracked
         // until the subject actually arrives on a later poll.
-        return Object.hasOwn(next, 'selectedFlightsTrackingId') && next.selectedFlightsTrackingId
-          ? 'defer'
-          : true;
+        return Object.hasOwn(next, 'selectedFlightsTrackingId') && next.selectedFlightsTrackingId ?
+          'defer' :
+          true;
       },
       cancelPendingTrackingRestore: (options) => cancellations.push(options),
     },
@@ -1249,7 +1689,10 @@ test('share tracking policies pin each owner, key, label, and acquisition deadli
 
 test('a shared subject that has not arrived yet is held pending, never declared gone', async () => {
   const f = pendingTrackingFixture();
-  await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+  await f.coordinator.start({
+    shareLayerState: f.state,
+    shareCreatedAtMs: f.copiedAtMs
+  });
   const pending = await f.coordinator.restoreShareTrackingSelection();
 
   assert.equal(pending.status, 'pending');
@@ -1273,13 +1716,18 @@ test('a shared subject that has not arrived yet is held pending, never declared 
 
 test('a pending shared subject latches on when it arrives on a later poll', async () => {
   const f = pendingTrackingFixture();
-  await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+  await f.coordinator.start({
+    shareLayerState: f.state,
+    shareCreatedAtMs: f.copiedAtMs
+  });
   await f.coordinator.restoreShareTrackingSelection();
   assert.equal(f.statuses.length, 1);
   assert.equal(f.statuses[0].classification, 'pending');
 
   // The contact shows up on a later feed poll, exactly as the layer latch would.
-  f.manager.layers.get('flights').module._arrive({ selectedFlightsTrackingId: 'late007' });
+  f.manager.layers.get('flights').module._arrive({
+    selectedFlightsTrackingId: 'late007'
+  });
   f.timers.runUntilIdle();
 
   assert.equal(f.statuses.length, 2);
@@ -1296,8 +1744,13 @@ test('a pending shared subject latches on when it arrives on a later poll', asyn
 test('caller abort after pending handoff revokes the watch and layer latch exactly once', async () => {
   const f = pendingTrackingFixture();
   const caller = new AbortController();
-  await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
-  const pending = await f.coordinator.restoreShareTrackingSelection({ signal: caller.signal });
+  await f.coordinator.start({
+    shareLayerState: f.state,
+    shareCreatedAtMs: f.copiedAtMs
+  });
+  const pending = await f.coordinator.restoreShareTrackingSelection({
+    signal: caller.signal
+  });
   assert.equal(pending.classification, 'pending');
 
   caller.abort('caller-cancelled');
@@ -1318,17 +1771,22 @@ test('caller abort after pending handoff revokes the watch and layer latch exact
 
 test('a failed deferred-latch arm publishes one terminal failure and never ACQUIRING', async () => {
   for (const armFailure of [
-    () => false,
-    () => Promise.reject(new Error('async latch rejection')),
-    () => { throw new Error('sync latch throw'); },
-  ]) {
+      () => false,
+      () => Promise.reject(new Error('async latch rejection')),
+      () => {
+        throw new Error('sync latch throw');
+      },
+    ]) {
     const f = pendingTrackingFixture();
-    await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+    await f.coordinator.start({
+      shareLayerState: f.state,
+      shareCreatedAtMs: f.copiedAtMs
+    });
     const setLayerParams = f.manager.setLayerParams.bind(f.manager);
     f.manager.setLayerParams = (layerId, params, options) => (
-      params?.selectedFlightsTrackingId
-        ? armFailure()
-        : setLayerParams(layerId, params, options)
+      params?.selectedFlightsTrackingId ?
+      armFailure() :
+      setLayerParams(layerId, params, options)
     );
 
     const result = await f.coordinator.restoreShareTrackingSelection();
@@ -1349,7 +1807,10 @@ test('a failed deferred-latch arm publishes one terminal failure and never ACQUI
 
 test('same-target supersession cancels the old acquisition before publishing the successor', async () => {
   const f = pendingTrackingFixture();
-  await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+  await f.coordinator.start({
+    shareLayerState: f.state,
+    shareCreatedAtMs: f.copiedAtMs
+  });
   await f.coordinator.restoreShareTrackingSelection();
   await f.coordinator.restoreShareTrackingSelection();
 
@@ -1364,12 +1825,15 @@ test('same-target supersession cancels the old acquisition before publishing the
 
 test('destroying or superseding the coordinator clears pending progress explicitly', async () => {
   for (const teardown of [
-    (coordinator) => coordinator.destroy(),
-    (coordinator) => coordinator.cancelPendingShareTracking('explicit-navigation'),
-    (coordinator) => coordinator.cancelPendingRestores('explicit-navigation'),
-  ]) {
+      (coordinator) => coordinator.destroy(),
+      (coordinator) => coordinator.cancelPendingShareTracking('explicit-navigation'),
+      (coordinator) => coordinator.cancelPendingRestores('explicit-navigation'),
+    ]) {
     const f = pendingTrackingFixture();
-    await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+    await f.coordinator.start({
+      shareLayerState: f.state,
+      shareCreatedAtMs: f.copiedAtMs
+    });
     await f.coordinator.restoreShareTrackingSelection();
     teardown(f.coordinator);
     f.timers.runUntilIdle();
@@ -1383,11 +1847,17 @@ test('destroying or superseding the coordinator clears pending progress explicit
 });
 
 test('tracking resolver false and rejection stay source-unavailable while AbortError stays cancelled', async () => {
-  const run = async (resolveTrackingRestoreTarget, { signal = null } = {}) => {
+  const run = async (resolveTrackingRestoreTarget, {
+    signal = null
+  } = {}) => {
     const manager = productionManager({
-      flights: { resolveTrackingRestoreTarget },
+      flights: {
+        resolveTrackingRestoreTarget
+      },
     });
-    await manager.setEnabled('flights', true, { origin: 'scene' });
+    await manager.setEnabled('flights', true, {
+      origin: 'scene'
+    });
     return manager.resolveLayerTrackingTarget('flights', 'abc123', {
       origin: 'share-restore',
       signal,
@@ -1427,10 +1897,14 @@ test('late target resolution after coordinator destroy cannot clear state or pub
     storage,
     onTrackingRestoreStatus: (status) => statuses.push(status),
   });
-  await coordinator.start({ shareLayerState: state });
+  await coordinator.start({
+    shareLayerState: state
+  });
   const restore = coordinator.restoreShareTrackingSelection();
   coordinator.destroy();
-  resolution.resolve({ status: 'missing' });
+  resolution.resolve({
+    status: 'missing'
+  });
   const result = await restore;
 
   assert.equal(result.status, 'cancelled');
@@ -1452,13 +1926,21 @@ test('newer explicit tracked target cancels stale shared resolution without clea
     ...state.options.flights,
     selectedFlightsTrackingId: 'stale001',
   };
-  const coordinator = new LayerStateCoordinator(manager, shareSink(), { storage });
-  await coordinator.start({ shareLayerState: state });
+  const coordinator = new LayerStateCoordinator(manager, shareSink(), {
+    storage
+  });
+  await coordinator.start({
+    shareLayerState: state
+  });
   const restore = coordinator.restoreShareTrackingSelection();
   manager.setLayerParams('flights', {
     selectedFlightsTrackingId: 'newer002',
-  }, { origin: 'user' });
-  resolution.resolve({ status: 'missing' });
+  }, {
+    origin: 'user'
+  });
+  resolution.resolve({
+    status: 'missing'
+  });
   const result = await restore;
   assert.equal(result.status, 'cancelled');
   assert.equal(coordinator.getDurableState().options.flights.selectedFlightsTrackingId, 'newer002');
@@ -1467,11 +1949,20 @@ test('newer explicit tracked target cancels stale shared resolution without clea
 });
 
 test('Radio durable params work before enable and never start playback', () => {
-  assert.equal(radioLayer.setParams({ filter: 'news', volume: 0.33 }), true);
-  assert.deepEqual(radioLayer.getParams(), { filter: 'news', volume: 0.33 });
+  assert.equal(radioLayer.setParams({
+    filter: 'news',
+    volume: 0.33
+  }), true);
+  assert.deepEqual(radioLayer.getParams(), {
+    filter: 'news',
+    volume: 0.33
+  });
   assert.equal(radioLayer.getUIState().audioState, 'stopped');
   assert.equal(radioLayer.getUIState().playingStationId, null);
-  radioLayer.setParams({ filter: 'all', volume: 0.8 });
+  radioLayer.setParams({
+    filter: 'all',
+    volume: 0.8
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1489,7 +1980,11 @@ test('oversized and out-of-grammar tracking IDs are rejected, never truncated', 
   // Normalization (the durable-state door).
   const normalized = normalizeLayerState({
     enabledLayerIds: ['flights'],
-    options: { flights: { selectedFlightsTrackingId: huge } },
+    options: {
+      flights: {
+        selectedFlightsTrackingId: huge
+      }
+    },
   });
   assert.equal(
     normalized.options.flights.selectedFlightsTrackingId,
@@ -1499,14 +1994,18 @@ test('oversized and out-of-grammar tracking IDs are rejected, never truncated', 
 
   // Decoding (the untrusted-URL door).
   const decoded = decodeLayerStateParams(new URLSearchParams([
-    ['v', '2'], ['l', 'f'], ['lo', `f.t.${huge}`],
+    ['v', '2'],
+    ['l', 'f'],
+    ['lo', `f.t.${huge}`],
   ]));
   assert.equal(decoded, null, 'an oversized lo payload fails closed');
 
   // A merely long-but-under-cap ID is still out of grammar, and rejected
   // WITHOUT taking the rest of the payload down with it.
   const longish = decodeLayerStateParams(new URLSearchParams([
-    ['v', '2'], ['l', 'f'], ['lo', `f.e.1_f.t.${'b'.repeat(40)}`],
+    ['v', '2'],
+    ['l', 'f'],
+    ['lo', `f.e.1_f.t.${'b'.repeat(40)}`],
   ]));
   assert.deepEqual(longish.enabledLayerIds, ['flights']);
   assert.equal(longish.options.flights.selectedFlightsTrackingId, null);
@@ -1516,7 +2015,11 @@ test('oversized and out-of-grammar tracking IDs are rejected, never truncated', 
     assert.equal(
       normalizeLayerState({
         enabledLayerIds: ['flights'],
-        options: { flights: { selectedFlightsTrackingId: bad } },
+        options: {
+          flights: {
+            selectedFlightsTrackingId: bad
+          }
+        },
       }).options.flights.selectedFlightsTrackingId,
       null,
       `out-of-grammar ID rejected: ${JSON.stringify(bad)}`,
@@ -1527,10 +2030,16 @@ test('oversized and out-of-grammar tracking IDs are rejected, never truncated', 
   for (const good of ['aaa001', 'ae1fa4', '~ab1234', 'A1B2C3']) {
     const state = normalizeLayerState({
       enabledLayerIds: ['flights'],
-      options: { flights: { selectedFlightsTrackingId: good } },
+      options: {
+        flights: {
+          selectedFlightsTrackingId: good
+        }
+      },
     });
     assert.equal(state.options.flights.selectedFlightsTrackingId, good.toLowerCase());
-    const params = new URLSearchParams([['v', '2']]);
+    const params = new URLSearchParams([
+      ['v', '2']
+    ]);
     encodeLayerStateParams(params, state);
     assert.equal(
       decodeLayerStateParams(params).options.flights.selectedFlightsTrackingId,
@@ -1542,7 +2051,10 @@ test('oversized and out-of-grammar tracking IDs are rejected, never truncated', 
 
 test('an oversized enabled-layer field fails closed instead of decoding a prefix', () => {
   assert.equal(
-    decodeLayerStateParams(new URLSearchParams([['v', '2'], ['l', 'f.'.repeat(5_000)]])),
+    decodeLayerStateParams(new URLSearchParams([
+      ['v', '2'],
+      ['l', 'f.'.repeat(5_000)]
+    ])),
     null,
   );
 });
@@ -1561,13 +2073,20 @@ test('an oversized enabled-layer field fails closed instead of decoding a prefix
 
 test('an explicit parameter change revokes the pending watch, not just its controller', async () => {
   const f = pendingTrackingFixture();
-  await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+  await f.coordinator.start({
+    shareLayerState: f.state,
+    shareCreatedAtMs: f.copiedAtMs
+  });
   await f.coordinator.restoreShareTrackingSelection();
   assert.deepEqual(f.statuses.map((status) => status.classification), ['pending']);
 
   // The operator changes an unrelated Flights option. Production cancels the
   // module latch on exactly this event, so nothing is restoring any more.
-  await f.manager.setLayerParams('flights', { models3d: true }, { origin: 'user' });
+  await f.manager.setLayerParams('flights', {
+    models3d: true
+  }, {
+    origin: 'user'
+  });
   f.timers.runUntilIdle();
 
   assert.deepEqual(
@@ -1581,11 +2100,16 @@ test('an explicit parameter change revokes the pending watch, not just its contr
 test('the owner layer going away revokes the pending watch at any origin', async () => {
   for (const origin of ['programmatic', 'user']) {
     const f = pendingTrackingFixture();
-    await f.coordinator.start({ shareLayerState: f.state, shareCreatedAtMs: f.copiedAtMs });
+    await f.coordinator.start({
+      shareLayerState: f.state,
+      shareCreatedAtMs: f.copiedAtMs
+    });
     await f.coordinator.restoreShareTrackingSelection();
     assert.deepEqual(f.statuses.map((status) => status.classification), ['pending']);
 
-    await f.manager.setEnabled('flights', false, { origin });
+    await f.manager.setEnabled('flights', false, {
+      origin
+    });
     f.timers.runUntilIdle();
 
     assert.deepEqual(
