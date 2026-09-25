@@ -1,18 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { createTrafficLayer } from './index.js';
+import {
+  createTrafficLayer
+} from './index.js';
 
 function deferred() {
   let resolve;
   const promise = new Promise((done) => {
     resolve = done;
   });
-  return { promise, resolve };
+  return {
+    promise,
+    resolve
+  };
 }
 
 function setup(t, requestRoads) {
-  t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout', 'setInterval']
+  });
   const camera = {
     positionCartographic: Cesium.Cartographic.fromDegrees(
       -97.744,
@@ -30,7 +37,10 @@ function setup(t, requestRoads) {
     moveEnd: new Cesium.Event(),
     percentageChanged: 0.5,
     computeViewRectangle() {
-      const { longitude, latitude } = this.positionCartographic;
+      const {
+        longitude,
+        latitude
+      } = this.positionCartographic;
       return new Cesium.Rectangle(
         longitude - 0.0002,
         latitude - 0.0002,
@@ -43,21 +53,34 @@ function setup(t, requestRoads) {
   const viewer = {
     camera,
     scene: {
-      canvas: { width: 100, height: 100 },
+      canvas: {
+        width: 100,
+        height: 100
+      },
       preRender: new Cesium.Event(),
-      primitives: { add: (value) => value, remove: () => true },
+      primitives: {
+        add: (value) => value,
+        remove: () => true
+      },
     },
   };
   const layer = createTrafficLayer({
     services: {
       credits: {},
-      render: { holdContinuousRender() {}, releaseContinuousRender() {} },
+      render: {
+        holdContinuousRender() {},
+        releaseContinuousRender() {}
+      },
     },
     source: {
       requestRoads,
-      getStatus: async () => ({ hasKey: false }),
+      getStatus: async () => ({
+        hasKey: false
+      }),
       fetchFlowForBounds: async () => [],
-      getFlowSessionStats: () => ({ tilesFetched: 0 }),
+      getFlowSessionStats: () => ({
+        tilesFetched: 0
+      }),
       resetFlowTileCache() {},
     },
   });
@@ -76,29 +99,45 @@ function setup(t, requestRoads) {
     t.mock.timers.tick(ms);
     for (let i = 0; i < 30; i++) await Promise.resolve();
   };
-  return { layer, viewer, move, tick };
+  return {
+    layer,
+    viewer,
+    move,
+    tick
+  };
 }
+
 function roads(bounds) {
   return {
     ok: true,
     json: async () => ({
-      elements: [
-        {
-          type: 'way',
-          tags: { highway: 'primary' },
-          geometry: [
-            { lat: bounds.south, lon: bounds.west },
-            { lat: bounds.south + 0.005, lon: bounds.west + 0.005 },
-          ],
+      elements: [{
+        type: 'way',
+        tags: {
+          highway: 'primary'
         },
-      ],
+        geometry: [{
+            lat: bounds.south,
+            lon: bounds.west
+          },
+          {
+            lat: bounds.south + 0.005,
+            lon: bounds.west + 0.005
+          },
+        ],
+      }, ],
     }),
   };
 }
 
 test('traffic recovers a failed destination request after another city has loaded', async (t) => {
   let londonCalls = 0;
-  const { layer, viewer, move, tick } = setup(t, async (bounds) => {
+  const {
+    layer,
+    viewer,
+    move,
+    tick
+  } = setup(t, async (bounds) => {
     if (bounds.south > 50 && ++londonCalls === 1)
       throw new Error('temporary Overpass outage');
     return roads(bounds);
@@ -122,9 +161,20 @@ test('traffic recovers a failed destination request after another city has loade
 
 test('a superseded road response cannot release the current request controller', async (t) => {
   const pending = [];
-  const { layer, viewer, move, tick } = setup(t, (bounds, { signal }) => {
+  const {
+    layer,
+    viewer,
+    move,
+    tick
+  } = setup(t, (bounds, {
+    signal
+  }) => {
     const result = deferred();
-    pending.push({ ...result, bounds, signal });
+    pending.push({
+      ...result,
+      bounds,
+      signal
+    });
     return result.promise;
   });
   layer.enable(viewer);
@@ -149,9 +199,20 @@ test('a superseded road response cannot release the current request controller',
 
 test('leaving traffic altitude cancels queued and in-flight work', async (t) => {
   const pending = [];
-  const { layer, viewer, move, tick } = setup(t, (bounds, { signal }) => {
+  const {
+    layer,
+    viewer,
+    move,
+    tick
+  } = setup(t, (bounds, {
+    signal
+  }) => {
     const result = deferred();
-    pending.push({ ...result, bounds, signal });
+    pending.push({
+      ...result,
+      bounds,
+      signal
+    });
     return result.promise;
   });
   layer.enable(viewer);
@@ -175,7 +236,11 @@ test('leaving traffic altitude cancels queued and in-flight work', async (t) => 
 
 test('arrival below the camera change threshold loads the final city and unsubscribes on disable', async (t) => {
   const seen = [];
-  const { layer, viewer, tick } = setup(t, async (bounds) => {
+  const {
+    layer,
+    viewer,
+    tick
+  } = setup(t, async (bounds) => {
     seen.push(bounds);
     return roads(bounds);
   });
@@ -196,7 +261,11 @@ test('arrival below the camera change threshold loads the final city and unsubsc
 
 test('parked failures back off and disabling cancels the scheduled retry', async (t) => {
   let calls = 0;
-  const { layer, viewer, tick } = setup(t, async () => {
+  const {
+    layer,
+    viewer,
+    tick
+  } = setup(t, async () => {
     calls++;
     throw new Error('temporary Overpass outage');
   });
