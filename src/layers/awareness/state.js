@@ -1,17 +1,21 @@
 import * as Cesium from 'cesium';
 
-export function createState({ services }) {
+export function createState({
+  services
+}) {
   const state = {};
 
-  state.DIRECTION_SCRATCH = Array.from(
-    { length: 3 },
+  state.DIRECTION_SCRATCH = Array.from({
+      length: 3
+    },
     () => new Cesium.Cartesian3(),
   );
 
   state.SUBJECT_CARTOGRAPHIC_SCRATCH = new Cesium.Cartographic();
 
-  state.TARGET_CARTOGRAPHIC_SCRATCH = Array.from(
-    { length: 3 },
+  state.TARGET_CARTOGRAPHIC_SCRATCH = Array.from({
+      length: 3
+    },
     () => new Cesium.Cartographic(),
   );
 
