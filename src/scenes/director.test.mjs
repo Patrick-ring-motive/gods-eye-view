@@ -14,9 +14,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 
-import { SceneDirector } from './director.js';
-import { SCENE_TRACKING_PARAM_KEYS } from './scenePolicy.js';
-import { SCENE_RECIPES } from './recipes.js';
+import {
+  SceneDirector
+} from './director.js';
+import {
+  SCENE_TRACKING_PARAM_KEYS
+} from './scenePolicy.js';
+import {
+  SCENE_RECIPES
+} from './recipes.js';
 
 /** The layer registry as main.js builds it (src/main.js dataManager.register calls). */
 const REGISTERED = [
@@ -34,24 +40,49 @@ const PROJECT_FIXTURE = {
   scenes: [{
     id: 'scene-1',
     title: 'Fixture Scene',
-    shots: [
-      {
+    shots: [{
         id: 'shot-a',
         title: 'Shot A',
         durationSec: 0.2,
         holdSec: 0,
-        camera: { lat: 10, lon: 20, alt: 500000, heading: 0, pitch: -40, roll: 0 },
-        visual: { style: 'normal' },
-        layers: { flights: { enabled: true } },
+        camera: {
+          lat: 10,
+          lon: 20,
+          alt: 500000,
+          heading: 0,
+          pitch: -40,
+          roll: 0
+        },
+        visual: {
+          style: 'normal'
+        },
+        layers: {
+          flights: {
+            enabled: true
+          }
+        },
       },
       {
         id: 'shot-b',
         title: 'Shot B',
         durationSec: 0.2,
         holdSec: 0,
-        camera: { lat: -30, lon: 140, alt: 900000, heading: 0, pitch: -40, roll: 0 },
-        visual: { style: 'retro' },
-        layers: { traffic: { enabled: true } },
+        camera: {
+          lat: -30,
+          lon: 140,
+          alt: 900000,
+          heading: 0,
+          pitch: -40,
+          roll: 0
+        },
+        visual: {
+          style: 'retro'
+        },
+        layers: {
+          traffic: {
+            enabled: true
+          }
+        },
       },
     ],
   }],
@@ -61,14 +92,27 @@ const PROJECT_FIXTURE = {
 function installSceneRuntime(project = PROJECT_FIXTURE) {
   const originalDocument = globalThis.document;
   const originalLocalStorage = globalThis.localStorage;
-  const noopClassList = { add() {}, remove() {}, toggle() {}, contains: () => false };
+  const noopClassList = {
+    add() {},
+    remove() {},
+    toggle() {},
+    contains: () => false
+  };
 
   globalThis.document = {
     getElementById: () => null,
-    createElement: () => ({ classList: noopClassList, style: {}, appendChild() {}, remove() {} }),
+    createElement: () => ({
+      classList: noopClassList,
+      style: {},
+      appendChild() {},
+      remove() {}
+    }),
     addEventListener() {},
     removeEventListener() {},
-    body: { classList: noopClassList, appendChild() {} },
+    body: {
+      classList: noopClassList,
+      appendChild() {}
+    },
   };
   globalThis.localStorage = {
     getItem: () => JSON.stringify(project),
@@ -90,7 +134,10 @@ function installSceneRuntime(project = PROJECT_FIXTURE) {
  * abort leaves NO half-applied layer — which is the whole point of passing the
  * signal rather than only checking a boolean afterwards.
  */
-function fakeDataManager({ registered = REGISTERED, refuse = () => false } = {}) {
+function fakeDataManager({
+  registered = REGISTERED,
+  refuse = () => false
+} = {}) {
   const enabled = new Map();
   const setEnabledCalls = [];
   const setParamsCalls = [];
@@ -99,27 +146,45 @@ function fakeDataManager({ registered = REGISTERED, refuse = () => false } = {})
     setEnabledCalls,
     setParamsCalls,
     committed,
-    getAll: () => registered.map((id) => ({ id, enabled: !!enabled.get(id) })),
+    getAll: () => registered.map((id) => ({
+      id,
+      enabled: !!enabled.get(id)
+    })),
     getLayerParams: () => null,
-    async setEnabled(id, shouldEnable, { signal } = {}) {
-      setEnabledCalls.push({ id, enabled: shouldEnable, signal });
+    async setEnabled(id, shouldEnable, {
+      signal
+    } = {}) {
+      setEnabledCalls.push({
+        id,
+        enabled: shouldEnable,
+        signal
+      });
       if (refuse(id, shouldEnable)) return false;
       // Yield once so a stop landing during the transition is observable.
       await Promise.resolve();
       if (signal?.aborted) return false;
       enabled.set(id, shouldEnable);
-      committed.push({ id, enabled: shouldEnable });
+      committed.push({
+        id,
+        enabled: shouldEnable
+      });
       return true;
     },
     setLayerParams(id, params) {
-      setParamsCalls.push({ id, params });
+      setParamsCalls.push({
+        id,
+        params
+      });
       return true;
     },
   };
 }
 
 /** Style manager double covering the camera, visual, and Context facades. */
-function fakeStyleManager({ contextMode = null, exitFails = false } = {}) {
+function fakeStyleManager({
+  contextMode = null,
+  exitFails = false
+} = {}) {
   const manager = {
     contextMode,
     contextExits: [],
@@ -128,18 +193,38 @@ function fakeStyleManager({ contextMode = null, exitFails = false } = {}) {
     runImmediateNavigation: (noun, navigate) => navigate(),
     applyVisualState: async (visual, options = {}) => {
       manager.visualStates.push(visual);
-      manager.visualCalls.push({ visual, isCurrent: options.isCurrent });
+      manager.visualCalls.push({
+        visual,
+        isCurrent: options.isCurrent
+      });
       return true;
     },
-    getCameraState: () => ({ lat: 0, lon: 0, alt: 1000, heading: 0, pitch: -40, roll: 0 }),
-    getVisualState: () => ({ style: 'normal' }),
+    getCameraState: () => ({
+      lat: 0,
+      lon: 0,
+      alt: 1000,
+      heading: 0,
+      pitch: -40,
+      roll: 0
+    }),
+    getVisualState: () => ({
+      style: 'normal'
+    }),
     setRecordingMode() {},
-    getContextModeState: () => ({ mode: manager.contextMode, entering: null }),
+    getContextModeState: () => ({
+      mode: manager.contextMode,
+      entering: null
+    }),
     async setContextMode(mode) {
       manager.contextExits.push(mode);
-      if (exitFails) return { ok: false, error: 'transition did not complete' };
+      if (exitFails) return {
+        ok: false,
+        error: 'transition did not complete'
+      };
       manager.contextMode = null;
-      return { ok: true };
+      return {
+        ok: true
+      };
     },
   };
   return manager;
@@ -151,13 +236,17 @@ function fakeViewer() {
   let cancelled = 0;
   return {
     flights,
-    get cancelledFlights() { return cancelled; },
+    get cancelledFlights() {
+      return cancelled;
+    },
     camera: {
       flyTo(options) {
         flights.push(options);
         Promise.resolve().then(() => options.complete?.());
       },
-      cancelFlight() { cancelled++; },
+      cancelFlight() {
+        cancelled++;
+      },
     },
   };
 }
@@ -176,15 +265,25 @@ function makeDirector(options = {}) {
   const director = new SceneDirector(viewer, styleManager, dataManager);
   // Telemetry is only accumulated during a run; observable-failure assertions
   // need the accumulator without driving a whole run.
-  director._activeRun = { events: [] };
-  return { director, viewer, styleManager, dataManager, restore };
+  director._activeRun = {
+    events: []
+  };
+  return {
+    director,
+    viewer,
+    styleManager,
+    dataManager,
+    restore
+  };
 }
 
 /** The layer map a shipped recipe declares, in normalized form. */
 function recipeLayers(recipeId) {
   const recipe = SCENE_RECIPES.find((item) => item.id === recipeId);
   return Object.fromEntries(
-    Object.entries(recipe.layers).map(([id, enabled]) => [id, { enabled }]),
+    Object.entries(recipe.layers).map(([id, enabled]) => [id, {
+      enabled
+    }]),
   );
 }
 
@@ -192,14 +291,36 @@ test('the director reconciles only the layers a shot declares', async () => {
   // Regression: _applyLayerStates walked the LIVE registry and forced every
   // undeclared layer off, tearing down CCTV/vessels/fires with no restore pass.
   // Pinned here rather than only on the helper, because the walk lived here.
-  const { director, dataManager, restore } = makeDirector();
+  const {
+    director,
+    dataManager,
+    restore
+  } = makeDirector();
   try {
-    await director._applyLayerStates({ flights: { enabled: true }, satellites: { enabled: false } });
+    await director._applyLayerStates({
+      flights: {
+        enabled: true
+      },
+      satellites: {
+        enabled: false
+      }
+    });
     assert.deepEqual(
-      dataManager.setEnabledCalls.map(({ id, enabled }) => ({ id, enabled })),
-      [
-        { id: 'flights', enabled: true },
-        { id: 'satellites', enabled: false },
+      dataManager.setEnabledCalls.map(({
+        id,
+        enabled
+      }) => ({
+        id,
+        enabled
+      })),
+      [{
+          id: 'flights',
+          enabled: true
+        },
+        {
+          id: 'satellites',
+          enabled: false
+        },
       ],
     );
   } finally {
@@ -211,17 +332,42 @@ test('a shot captured while tracking never re-establishes tracking on playback',
   // Two writers on the camera is the documented jitter failure mode: the scene
   // claims the camera, then a captured tracking id hands it straight back to
   // the follow loop. Playback drops those keys on the way to the layer.
-  const { director, dataManager, restore } = makeDirector();
+  const {
+    director,
+    dataManager,
+    restore
+  } = makeDirector();
   try {
     await director._applyLayerStates({
-      flights: { enabled: true, params: { models3d: true, selectedFlightsTrackingId: 'a835af' } },
-      military: { enabled: true, params: { selectedMilitaryTrackingId: 'ae1460' } },
-      satellites: { enabled: true, params: { catalog: 'dense', selectedSatTrackingId: 25544 } },
+      flights: {
+        enabled: true,
+        params: {
+          models3d: true,
+          selectedFlightsTrackingId: 'a835af'
+        }
+      },
+      military: {
+        enabled: true,
+        params: {
+          selectedMilitaryTrackingId: 'ae1460'
+        }
+      },
+      satellites: {
+        enabled: true,
+        params: {
+          catalog: 'dense',
+          selectedSatTrackingId: 25544
+        }
+      },
     });
 
     const pushed = Object.fromEntries(dataManager.setParamsCalls.map((call) => [call.id, call.params]));
-    assert.deepEqual(pushed.flights, { models3d: true });
-    assert.deepEqual(pushed.satellites, { catalog: 'dense' });
+    assert.deepEqual(pushed.flights, {
+      models3d: true
+    });
+    assert.deepEqual(pushed.satellites, {
+      catalog: 'dense'
+    });
     // Nothing survived military's params, so nothing is pushed at all.
     assert.equal(Object.hasOwn(pushed, 'military'), false);
     for (const call of dataManager.setParamsCalls) {
@@ -238,14 +384,24 @@ test('a dirty Space Missions state is exited before a recipe applies its layers'
   // Space Missions refuses every enable outside its own replay bundle. The old
   // full-registry walk dismantled it by accident; the sparse policy never does,
   // so all four Flights Radar enables were refused and reported as success.
-  const style = { contextMode: 'space-missions' };
+  const style = {
+    contextMode: 'space-missions'
+  };
   const holder = {};
   const data = {
-    refuse: (id, on) => on
-      && holder.styleManager?.contextMode === 'space-missions'
-      && !SPACE_MISSIONS_ALLOWED.has(id),
+    refuse: (id, on) => on &&
+      holder.styleManager?.contextMode === 'space-missions' &&
+      !SPACE_MISSIONS_ALLOWED.has(id),
   };
-  const { director, styleManager, dataManager, restore } = makeDirector({ style, data });
+  const {
+    director,
+    styleManager,
+    dataManager,
+    restore
+  } = makeDirector({
+    style,
+    data
+  });
   holder.styleManager = styleManager;
   try {
     const result = await director._applyLayerStates(recipeLayers('flights-radar'));
@@ -267,8 +423,15 @@ test('Orbital Watch does not compose over a Space Missions replay', async () => 
   // Orbital Watch declares satellites, which the guard permits — so nothing is
   // refused and a refusal-only check would pass while rocket-launches stayed
   // on screen. Playback leaves an isolating mode whether or not it refuses.
-  const { director, styleManager, dataManager, restore } = makeDirector({
-    style: { contextMode: 'space-missions' },
+  const {
+    director,
+    styleManager,
+    dataManager,
+    restore
+  } = makeDirector({
+    style: {
+      contextMode: 'space-missions'
+    },
   });
   try {
     await director._applyLayerStates(recipeLayers('orbital-watch'));
@@ -285,9 +448,21 @@ test('Orbital Watch does not compose over a Space Missions replay', async () => 
 
 test('a non-isolating context mode is left alone', async () => {
   for (const contextMode of [null, 'flights']) {
-    const { director, styleManager, restore } = makeDirector({ style: { contextMode } });
+    const {
+      director,
+      styleManager,
+      restore
+    } = makeDirector({
+      style: {
+        contextMode
+      }
+    });
     try {
-      await director._applyLayerStates({ flights: { enabled: true } });
+      await director._applyLayerStates({
+        flights: {
+          enabled: true
+        }
+      });
       assert.deepEqual(styleManager.contextExits, [], `${contextMode} must not be exited`);
     } finally {
       restore();
@@ -296,13 +471,26 @@ test('a non-isolating context mode is left alone', async () => {
 });
 
 test('a refused layer is reported, never counted as applied', async () => {
-  const { director, dataManager, restore } = makeDirector({
-    data: { refuse: (id) => id === 'flights' },
+  const {
+    director,
+    dataManager,
+    restore
+  } = makeDirector({
+    data: {
+      refuse: (id) => id === 'flights'
+    },
   });
   try {
     const result = await director._applyLayerStates({
-      flights: { enabled: true, params: { models3d: true } },
-      traffic: { enabled: false },
+      flights: {
+        enabled: true,
+        params: {
+          models3d: true
+        }
+      },
+      traffic: {
+        enabled: false
+      },
     });
 
     assert.deepEqual(result.refused, ['flights']);
@@ -311,15 +499,23 @@ test('a refused layer is reported, never counted as applied', async () => {
     assert.deepEqual(dataManager.setParamsCalls, []);
     const refusals = director._activeRun.events.filter((event) => event.type === 'shot_layers_refused');
     assert.equal(refusals.length, 1);
-    assert.deepEqual(refusals[0].payload, { layerIds: ['flights'] });
+    assert.deepEqual(refusals[0].payload, {
+      layerIds: ['flights']
+    });
   } finally {
     restore();
   }
 });
 
 test('cancellation between two layers ends the reconcile where it stands', async () => {
-  const { director, dataManager, restore } = makeDirector();
-  const token = { cancelled: false };
+  const {
+    director,
+    dataManager,
+    restore
+  } = makeDirector();
+  const token = {
+    cancelled: false
+  };
   const inner = dataManager.setEnabled.bind(dataManager);
   dataManager.setEnabled = async (id, on) => {
     const settled = await inner(id, on);
@@ -328,9 +524,15 @@ test('cancellation between two layers ends the reconcile where it stands', async
   };
   try {
     const result = await director._applyLayerStates({
-      flights: { enabled: true },
-      satellites: { enabled: true },
-      traffic: { enabled: true },
+      flights: {
+        enabled: true
+      },
+      satellites: {
+        enabled: true
+      },
+      traffic: {
+        enabled: true
+      },
     }, token);
 
     assert.deepEqual(dataManager.setEnabledCalls.map((call) => call.id), ['flights']);
@@ -343,14 +545,24 @@ test('cancellation between two layers ends the reconcile where it stands', async
 test('STOP during a suspended visual transition lands no layer changes', async () => {
   // Repro shape from review: applyVisualState suspends (a map-stack switch),
   // STOP arrives, the visual resolves — and the shot's layer pass still ran.
-  const { director, viewer, styleManager, dataManager, restore } = makeDirector();
+  const {
+    director,
+    viewer,
+    styleManager,
+    dataManager,
+    restore
+  } = makeDirector();
   let releaseVisual;
   styleManager.applyVisualState = (visual) => {
     styleManager.visualStates.push(visual);
-    return new Promise((resolve) => { releaseVisual = resolve; });
+    return new Promise((resolve) => {
+      releaseVisual = resolve;
+    });
   };
   try {
-    const run = director.startScene('scene-1', { single: true });
+    const run = director.startScene('scene-1', {
+      single: true
+    });
     await settle();
     assert.equal(styleManager.visualStates.length, 1, 'the run must be parked on the visual await');
 
@@ -367,7 +579,11 @@ test('STOP during a suspended visual transition lands no layer changes', async (
 });
 
 test('STOP between two layers lands no further layer changes', async () => {
-  const { director, dataManager, restore } = makeDirector({
+  const {
+    director,
+    dataManager,
+    restore
+  } = makeDirector({
     project: {
       version: 3,
       scenes: [{
@@ -378,9 +594,28 @@ test('STOP between two layers lands no further layer changes', async () => {
           title: 'Shot A',
           durationSec: 0.2,
           holdSec: 0,
-          camera: { lat: 10, lon: 20, alt: 500000, heading: 0, pitch: -40, roll: 0 },
-          visual: { style: 'normal' },
-          layers: { flights: { enabled: true }, satellites: { enabled: true }, traffic: { enabled: true } },
+          camera: {
+            lat: 10,
+            lon: 20,
+            alt: 500000,
+            heading: 0,
+            pitch: -40,
+            roll: 0
+          },
+          visual: {
+            style: 'normal'
+          },
+          layers: {
+            flights: {
+              enabled: true
+            },
+            satellites: {
+              enabled: true
+            },
+            traffic: {
+              enabled: true
+            }
+          },
         }],
       }],
     },
@@ -392,7 +627,9 @@ test('STOP between two layers lands no further layer changes', async () => {
     return settled;
   };
   try {
-    await director.startScene('scene-1', { single: true });
+    await director.startScene('scene-1', {
+      single: true
+    });
     assert.deepEqual(dataManager.setEnabledCalls.map((call) => call.id), ['flights']);
   } finally {
     restore();
@@ -404,7 +641,11 @@ test('STOP aborts the layer transition in flight, not merely the next one', asyn
   // un-aborted transition has already committed, and the pass returns without
   // its params — the layer left enabled carrying stale ones. The signal is
   // what actually stops the layer that is currently moving.
-  const { director, dataManager, restore } = makeDirector({
+  const {
+    director,
+    dataManager,
+    restore
+  } = makeDirector({
     project: {
       version: 3,
       scenes: [{
@@ -415,11 +656,27 @@ test('STOP aborts the layer transition in flight, not merely the next one', asyn
           title: 'Shot A',
           durationSec: 0.2,
           holdSec: 0,
-          camera: { lat: 10, lon: 20, alt: 500000, heading: 0, pitch: -40, roll: 0 },
-          visual: { style: 'normal' },
+          camera: {
+            lat: 10,
+            lon: 20,
+            alt: 500000,
+            heading: 0,
+            pitch: -40,
+            roll: 0
+          },
+          visual: {
+            style: 'normal'
+          },
           layers: {
-            flights: { enabled: true, params: { models3d: true } },
-            satellites: { enabled: true },
+            flights: {
+              enabled: true,
+              params: {
+                models3d: true
+              }
+            },
+            satellites: {
+              enabled: true
+            },
           },
         }],
       }],
@@ -432,7 +689,9 @@ test('STOP aborts the layer transition in flight, not merely the next one', asyn
     return inner(id, on, options);
   };
   try {
-    await director.startScene('scene-1', { single: true });
+    await director.startScene('scene-1', {
+      single: true
+    });
 
     assert.equal(dataManager.setEnabledCalls.length, 1, 'only the in-flight layer is touched');
     assert.ok(
@@ -448,11 +707,21 @@ test('STOP aborts the layer transition in flight, not merely the next one', asyn
 });
 
 test('a newer LOAD aborts the previous LOAD transition rather than disowning it', async () => {
-  const { director, styleManager, dataManager, restore } = makeDirector();
+  const {
+    director,
+    styleManager,
+    dataManager,
+    restore
+  } = makeDirector();
   const gates = [];
   styleManager.applyVisualState = (visual, options = {}) => {
-    styleManager.visualCalls.push({ visual, isCurrent: options.isCurrent });
-    return new Promise((resolve) => { gates.push(resolve); });
+    styleManager.visualCalls.push({
+      visual,
+      isCurrent: options.isCurrent
+    });
+    return new Promise((resolve) => {
+      gates.push(resolve);
+    });
   };
   try {
     const first = director.loadShot('scene-1', 'shot-a');
@@ -518,11 +787,20 @@ test('a superseded LOAD is refused its visual commit', async () => {
   // uniforms AFTER that await. A stale LOAD resuming there would commit the
   // look of a shot the operator has already moved past, so the director hands
   // it a liveness predicate that is false by the time it would commit.
-  const { director, styleManager, restore } = makeDirector();
+  const {
+    director,
+    styleManager,
+    restore
+  } = makeDirector();
   const gates = [];
   styleManager.applyVisualState = (visual, options = {}) => {
-    styleManager.visualCalls.push({ visual, isCurrent: options.isCurrent });
-    return new Promise((resolve) => { gates.push(resolve); });
+    styleManager.visualCalls.push({
+      visual,
+      isCurrent: options.isCurrent
+    });
+    return new Promise((resolve) => {
+      gates.push(resolve);
+    });
   };
   try {
     const first = director.loadShot('scene-1', 'shot-a');
@@ -542,13 +820,24 @@ test('a superseded LOAD is refused its visual commit', async () => {
 });
 
 test('a run refuses the visual commit of a shot cancelled mid-transition', async () => {
-  const { director, styleManager, restore } = makeDirector();
+  const {
+    director,
+    styleManager,
+    restore
+  } = makeDirector();
   let releaseVisual;
   styleManager.applyVisualState = (visual, options = {}) => {
-    styleManager.visualCalls.push({ visual, isCurrent: options.isCurrent });
-    return new Promise((resolve) => { releaseVisual = resolve; });
+    styleManager.visualCalls.push({
+      visual,
+      isCurrent: options.isCurrent
+    });
+    return new Promise((resolve) => {
+      releaseVisual = resolve;
+    });
   };
-  const run = director.startScene('scene-1', { single: true });
+  const run = director.startScene('scene-1', {
+    single: true
+  });
   try {
     await settle();
     const call = styleManager.visualCalls[0];
@@ -571,11 +860,19 @@ test('a run refuses the visual commit of a shot cancelled mid-transition', async
 test('the newest LOAD wins when two loads race', async () => {
   // Both loads suspend on their visual await; the OLDER one resolves second.
   // Without a generation it completes last and overwrites the newer intent.
-  const { director, viewer, styleManager, dataManager, restore } = makeDirector();
+  const {
+    director,
+    viewer,
+    styleManager,
+    dataManager,
+    restore
+  } = makeDirector();
   const gates = [];
   styleManager.applyVisualState = (visual) => {
     styleManager.visualStates.push(visual);
-    return new Promise((resolve) => { gates.push(resolve); });
+    return new Promise((resolve) => {
+      gates.push(resolve);
+    });
   };
   try {
     const first = director.loadShot('scene-1', 'shot-a');
@@ -588,8 +885,17 @@ test('the newest LOAD wins when two loads race', async () => {
     await Promise.all([first, second]);
 
     assert.deepEqual(
-      dataManager.setEnabledCalls.map(({ id, enabled }) => ({ id, enabled })),
-      [{ id: 'traffic', enabled: true }],
+      dataManager.setEnabledCalls.map(({
+        id,
+        enabled
+      }) => ({
+        id,
+        enabled
+      })),
+      [{
+        id: 'traffic',
+        enabled: true
+      }],
     );
     assert.equal(viewer.flights.length, 1);
     assert.equal(director._selectedShotId, 'shot-b');
@@ -599,18 +905,27 @@ test('the newest LOAD wins when two loads race', async () => {
 });
 
 test('a scene run supersedes a LOAD still suspended on its visual await', async () => {
-  const { director, styleManager, dataManager, restore } = makeDirector();
+  const {
+    director,
+    styleManager,
+    dataManager,
+    restore
+  } = makeDirector();
   let releaseLoadVisual;
   let calls = 0;
   styleManager.applyVisualState = (visual) => {
     styleManager.visualStates.push(visual);
-    if (++calls === 1) return new Promise((resolve) => { releaseLoadVisual = resolve; });
+    if (++calls === 1) return new Promise((resolve) => {
+      releaseLoadVisual = resolve;
+    });
     return Promise.resolve();
   };
   try {
     const load = director.loadShot('scene-1', 'shot-a');
     await settle();
-    const run = director.startScene('scene-1', { single: true });
+    const run = director.startScene('scene-1', {
+      single: true
+    });
     releaseLoadVisual();
     await Promise.all([load, run]);
 
@@ -629,13 +944,21 @@ test('destroy drains cancelled LOAD work before its viewer can be discarded', as
   t.after(restore);
   let finishVisual;
   const dataManager = fakeDataManager();
-  const viewer = { camera: { cancelFlight() {} } };
+  const viewer = {
+    camera: {
+      cancelFlight() {}
+    }
+  };
   const director = new SceneDirector(viewer, {
-    applyVisualState: () => new Promise((resolve) => { finishVisual = resolve; }),
+    applyVisualState: () => new Promise((resolve) => {
+      finishVisual = resolve;
+    }),
   }, dataManager);
   const loading = director.loadShot('scene-1', 'shot-a');
   let destroyed = false;
-  const stopping = director.destroy().then(() => { destroyed = true; });
+  const stopping = director.destroy().then(() => {
+    destroyed = true;
+  });
   await Promise.resolve();
   assert.equal(destroyed, false);
   finishVisual();
@@ -647,7 +970,10 @@ test('destroy drains cancelled LOAD work before its viewer can be discarded', as
 });
 
 test('Scene snapshots are immutable and editing outcomes retain the affected shot and index', async () => {
-  const { director, restore } = makeDirector();
+  const {
+    director,
+    restore
+  } = makeDirector();
   try {
     director._activeRun = null;
     const seen = [];
@@ -656,12 +982,16 @@ test('Scene snapshots are immutable and editing outcomes retain the affected sho
     assert.equal(seen[0].state.selectedShotId, 'shot-a');
     assert.ok(Object.isFrozen(seen[0].state));
     director.captureShot();
-    const captured = seen.find(({ change }) => change?.type === 'shot-captured');
+    const captured = seen.find(({
+      change
+    }) => change?.type === 'shot-captured');
     assert.equal(captured.change.index, 2);
     assert.ok(Object.isFrozen(captured.change.shot.camera));
     const id = captured.change.shot.id;
     director.deleteShot('scene-1', id);
-    const deleted = seen.find(({ change }) => change?.type === 'shot-deleted');
+    const deleted = seen.find(({
+      change
+    }) => change?.type === 'shot-deleted');
     assert.equal(deleted.change.index, 2);
     assert.equal(deleted.change.shot.id, id);
     assert.equal(captured.state.selectedShotId, id);
@@ -670,15 +1000,25 @@ test('Scene snapshots are immutable and editing outcomes retain the affected sho
     director.captureShot();
     assert.equal(seen.length, count);
     await director.destroy();
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
 
 test('Scene load outcomes exclude superseded and disposed completions', async () => {
-  const { director, styleManager, restore } = makeDirector();
+  const {
+    director,
+    styleManager,
+    restore
+  } = makeDirector();
   try {
     director._activeRun = null;
     const seen = [];
-    director.subscribe(({ change }) => { if (change) seen.push(change); });
+    director.subscribe(({
+      change
+    }) => {
+      if (change) seen.push(change);
+    });
     const pending = [];
     styleManager.applyVisualState = () => new Promise((resolve) => pending.push(resolve));
     const old = director.loadShot('scene-1', 'shot-a');
@@ -695,5 +1035,7 @@ test('Scene load outcomes exclude superseded and disposed completions', async ()
     await Promise.all([late, disposal]);
     director.subscribe(() => assert.fail('disposed director must not notify'));
     assert.equal(seen.length, count);
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
 });
