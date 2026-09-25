@@ -171,7 +171,8 @@ async function getNeighborLocations(lat, lon) {
       try {
         street = link[3][2][0][0];
       } catch {
-        /* no street name */ }
+        /* no street name */
+      }
       neighbors.push({
         lat: nlat,
         lon: nlon,
