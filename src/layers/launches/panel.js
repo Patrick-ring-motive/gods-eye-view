@@ -4,7 +4,12 @@ import {
   MISSION_GLOBE_VIEW_RANGE_M,
 } from './policy.js';
 
-export function createPanel({ state: layerState, services, parts, source }) {
+export function createPanel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Preserve the user's globe scale for roster previews while avoiding an
    * accidental surface-level fly-to when the list is opened from a close view.
@@ -31,7 +36,10 @@ export function createPanel({ state: layerState, services, parts, source }) {
    *   reset: () => void}}
    */
 
-  function createMissionRosterPreviewOwnership({ preview, clear }) {
+  function createMissionRosterPreviewOwnership({
+    preview,
+    clear
+  }) {
     let pointerIndex = null;
     let focusIndex = null;
     let latestOwner = null;
@@ -39,9 +47,9 @@ export function createPanel({ state: layerState, services, parts, source }) {
 
     const sync = () => {
       const nextIndex =
-        latestOwner === 'pointer'
-          ? (pointerIndex ?? focusIndex)
-          : (focusIndex ?? pointerIndex);
+        latestOwner === 'pointer' ?
+        (pointerIndex ?? focusIndex) :
+        (focusIndex ?? pointerIndex);
       if (nextIndex === activeIndex) return;
       activeIndex = nextIndex;
       if (Number.isInteger(nextIndex)) preview(nextIndex);
@@ -69,11 +77,11 @@ export function createPanel({ state: layerState, services, parts, source }) {
         focusIndex = Number.isInteger(nextIndex) ? nextIndex : null;
         if (latestOwner === 'focus')
           latestOwner =
-            focusIndex === null
-              ? pointerIndex === null
-                ? null
-                : 'pointer'
-              : 'focus';
+          focusIndex === null ?
+          pointerIndex === null ?
+          null :
+          'pointer' :
+          'focus';
         sync();
       },
       reset() {
@@ -109,9 +117,9 @@ export function createPanel({ state: layerState, services, parts, source }) {
         '[data-mission-roster-index]',
       );
       const nextIndex =
-        nextButton && roster.contains(nextButton)
-          ? Number(nextButton.dataset.missionRosterIndex)
-          : null;
+        nextButton && roster.contains(nextButton) ?
+        Number(nextButton.dataset.missionRosterIndex) :
+        null;
       ownership.blur(nextIndex);
     });
   }
@@ -125,7 +133,9 @@ export function createPanel({ state: layerState, services, parts, source }) {
     const button = activeElement?.closest?.('[data-mission-roster-id]');
     if (!button || !list?.contains(button)) return null;
     const launchId = button.dataset.missionRosterId;
-    return launchId ? { launchId } : null;
+    return launchId ? {
+      launchId
+    } : null;
   }
 
   /** Restore focus by mission identity, or continue after the list if it departed. */
@@ -138,11 +148,15 @@ export function createPanel({ state: layerState, services, parts, source }) {
       (candidate) => candidate.dataset.missionRosterId === snapshot.launchId,
     );
     if (button) {
-      button.focus({ preventScroll: true });
+      button.focus({
+        preventScroll: true
+      });
       return 'restored';
     }
     if (continuation?.focus) {
-      continuation.focus({ preventScroll: true });
+      continuation.focus({
+        preventScroll: true
+      });
       return 'continued';
     }
     return 'none';
@@ -193,9 +207,9 @@ export function createPanel({ state: layerState, services, parts, source }) {
     setMissionPanelField('[data-mission-status]', launch.status);
     setMissionPanelField(
       '[data-mission-site]',
-      launch.launchSite && launch.launchSite !== 'Unknown launch site'
-        ? launch.launchSite
-        : null,
+      launch.launchSite && launch.launchSite !== 'Unknown launch site' ?
+      launch.launchSite :
+      null,
     );
     setMissionPanelField('[data-mission-time]', launch.launchTime);
     const pathPresentation = parts.policyHelpers.missionPathPresentation(
@@ -206,22 +220,22 @@ export function createPanel({ state: layerState, services, parts, source }) {
     layerState._missionPanel.querySelector(
       '[data-mission-ascent-source]',
     ).textContent = pathPresentation.ascent;
-    const payloadRows = launch.payloads.length
-      ? launch.payloads.slice(0, 5).map((payload) => {
-          const detail = [
+    const payloadRows = launch.payloads.length ?
+      launch.payloads.slice(0, 5).map((payload) => {
+        const detail = [
             payload.manufacturer,
-            payload.operator && payload.operator !== payload.manufacturer
-              ? payload.operator
-              : null,
-            Number.isFinite(payload.massKg)
-              ? `${payload.massKg.toLocaleString()} KG`
-              : null,
+            payload.operator && payload.operator !== payload.manufacturer ?
+            payload.operator :
+            null,
+            Number.isFinite(payload.massKg) ?
+            `${payload.massKg.toLocaleString()} KG` :
+            null,
           ]
-            .filter(Boolean)
-            .join(' · ');
-          return `<tr><td>${escapeMissionText(payload.name)}${payload.amount > 1 ? ` ×${payload.amount}` : ''}${detail ? `<small>${escapeMissionText(detail)}</small>` : ''}</td><td>${escapeMissionText(payload.type || 'UNSPECIFIED')}</td><td>${escapeMissionText(payload.destination || launch.orbit?.name || 'UNAVAILABLE')}</td></tr>`;
-        })
-      : [];
+          .filter(Boolean)
+          .join(' · ');
+        return `<tr><td>${escapeMissionText(payload.name)}${payload.amount > 1 ? ` ×${payload.amount}` : ''}${detail ? `<small>${escapeMissionText(detail)}</small>` : ''}</td><td>${escapeMissionText(payload.type || 'UNSPECIFIED')}</td><td>${escapeMissionText(payload.destination || launch.orbit?.name || 'UNAVAILABLE')}</td></tr>`;
+      }) :
+      [];
     if (launch.payloads.length > 5) {
       payloadRows.push(
         `<tr><td colspan="3" class="mission-table-empty">+${launch.payloads.length - 5} additional payload records</td></tr>`,
@@ -234,21 +248,21 @@ export function createPanel({ state: layerState, services, parts, source }) {
       const endpoint = stage.endpoint;
       const destination =
         stage.destination ||
-        (endpoint?.accuracy === 'PAD / RTLS'
-          ? launch.launchSite
-          : 'UNAVAILABLE');
-      const position = endpoint
-        ? `${endpoint.lat.toFixed(2)}, ${endpoint.lon.toFixed(2)} · ${endpoint.accuracy}`
-        : stage.downrangeKm > 0
-          ? `${stage.downrangeKm.toLocaleString()} KM DOWNRANGE`
-          : 'POSITION UNAVAILABLE';
+        (endpoint?.accuracy === 'PAD / RTLS' ?
+          launch.launchSite :
+          'UNAVAILABLE');
+      const position = endpoint ?
+        `${endpoint.lat.toFixed(2)}, ${endpoint.lon.toFixed(2)} · ${endpoint.accuracy}` :
+        stage.downrangeKm > 0 ?
+        `${stage.downrangeKm.toLocaleString()} KM DOWNRANGE` :
+        'POSITION UNAVAILABLE';
       const stageDetail = [
-        Number.isFinite(stage.flightNumber)
-          ? `FLIGHT ${stage.flightNumber}`
-          : null,
-        stage.reused ? 'REUSED' : null,
-        stage.recoveryType,
-      ]
+          Number.isFinite(stage.flightNumber) ?
+          `FLIGHT ${stage.flightNumber}` :
+          null,
+          stage.reused ? 'REUSED' : null,
+          stage.recoveryType,
+        ]
         .filter(Boolean)
         .join(' · ');
       return `<tr><td>${escapeMissionText(stage.name)}${stageDetail ? `<small>${escapeMissionText(stageDetail)}</small>` : ''}</td><td>${escapeMissionText(stage.status)}</td><td>${escapeMissionText(destination)}<small>${escapeMissionText(position)}</small></td></tr>`;
@@ -301,7 +315,10 @@ export function createPanel({ state: layerState, services, parts, source }) {
       return;
     }
     list.innerHTML = entries
-      .map(({ launch, index }) => {
+      .map(({
+        launch,
+        index
+      }) => {
         const color = parts.model.missionMarkerColor(launch).toCssColorString();
         const date = launch.launchTime?.slice(0, 10) || 'DATE UNAVAILABLE';
         const provider = launch.provider || 'UNSPECIFIED OPERATOR';
@@ -333,13 +350,13 @@ export function createPanel({ state: layerState, services, parts, source }) {
     return String(value ?? '').replace(
       /[&<>"']/g,
       (character) =>
-        ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;',
-        })[character],
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[character],
     );
   }
 
@@ -359,26 +376,26 @@ export function createPanel({ state: layerState, services, parts, source }) {
     const position = satellite?.position?.getValue(
       Cesium.JulianDate.now(layerState._declutterTime),
     );
-    const altitudeM = position
-      ? Cesium.Cartographic.fromCartesian(position)?.height
-      : null;
+    const altitudeM = position ?
+      Cesium.Cartographic.fromCartesian(position)?.height :
+      null;
     setMissionPanelField(
       '[data-mission-distance]',
-      Number.isFinite(altitudeM)
-        ? `${Math.max(0, altitudeM / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 })} KM`
-        : null,
+      Number.isFinite(altitudeM) ?
+      `${Math.max(0, altitudeM / 1000).toLocaleString(undefined, { maximumFractionDigits: 0 })} KM` :
+      null,
     );
     const speedMps = layerState._satelliteTelemetry.get(
       layerState._selectedLaunchId,
     )?.speedMps;
     setMissionPanelField(
       '[data-mission-speed]',
-      Number.isFinite(speedMps)
-        ? `${(speedMps / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM/S`
-        : null,
-      Number.isFinite(speedMps)
-        ? `${(speedMps * 3.6).toLocaleString(undefined, { maximumFractionDigits: 0 })} km/h`
-        : '',
+      Number.isFinite(speedMps) ?
+      `${(speedMps / 1000).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KM/S` :
+      null,
+      Number.isFinite(speedMps) ?
+      `${(speedMps * 3.6).toLocaleString(undefined, { maximumFractionDigits: 0 })} km/h` :
+      '',
     );
   }
 
@@ -438,9 +455,9 @@ export function createPanel({ state: layerState, services, parts, source }) {
         });
       layerState._missionRoster.onclick = (event) => {
         const button =
-          event.target instanceof Element
-            ? event.target.closest('[data-mission-roster-index]')
-            : null;
+          event.target instanceof Element ?
+          event.target.closest('[data-mission-roster-index]') :
+          null;
         if (!button) return;
         selectMissionAt(Number(button.dataset.missionRosterIndex));
       };
