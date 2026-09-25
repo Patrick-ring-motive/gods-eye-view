@@ -1,7 +1,14 @@
 import * as Cesium from 'cesium';
-import { WINDOW_DAYS } from './policy.js';
+import {
+  WINDOW_DAYS
+} from './policy.js';
 
-export function createModel({ state: layerState, services, parts, source }) {
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function finiteCoordinate(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
@@ -11,8 +18,7 @@ export function createModel({ state: layerState, services, parts, source }) {
     const flights =
       launch.rocket?.payloads ||
       launch.payloads ||
-      launch.mission?.payloads ||
-      [];
+      launch.mission?.payloads || [];
     if (!Array.isArray(flights)) return [];
     return flights.map((flight, index) => {
       const payload = flight.payload || flight;
@@ -23,16 +29,15 @@ export function createModel({ state: layerState, services, parts, source }) {
         manufacturer: payload.manufacturer?.name || null,
         operator: payload.operator?.name || null,
         destination: flight.destination || payload.destination || null,
-        amount: Number.isFinite(Number(flight.amount))
-          ? Number(flight.amount)
-          : 1,
-        massKg:
-          (typeof payload.mass === 'number' ||
+        amount: Number.isFinite(Number(flight.amount)) ?
+          Number(flight.amount) :
+          1,
+        massKg: (typeof payload.mass === 'number' ||
             (typeof payload.mass === 'string' && payload.mass.trim() !== '')) &&
           Number.isFinite(Number(payload.mass)) &&
-          Number(payload.mass) >= 0
-            ? Number(payload.mass)
-            : null,
+          Number(payload.mass) >= 0 ?
+          Number(payload.mass) :
+          null,
       };
     });
   }
@@ -48,17 +53,17 @@ export function createModel({ state: layerState, services, parts, source }) {
     const recoveryType = landing?.type?.name || null;
     const launcherStatus = launcher.status?.name || null;
     const status =
-      success === true
-        ? 'RECOVERED'
-        : success === false
-          ? 'LOST'
-          : attempted
-            ? 'RECOVERY ATTEMPT'
-            : recoveryType
-              ? recoveryType.toUpperCase()
-              : launcherStatus
-                ? launcherStatus.toUpperCase()
-                : 'NO RECOVERY DATA';
+      success === true ?
+      'RECOVERED' :
+      success === false ?
+      'LOST' :
+      attempted ?
+      'RECOVERY ATTEMPT' :
+      recoveryType ?
+      recoveryType.toUpperCase() :
+      launcherStatus ?
+      launcherStatus.toUpperCase() :
+      'NO RECOVERY DATA';
     return {
       id: String(stage?.id || landing?.id || `${category}-${index}`),
       category,
@@ -70,8 +75,7 @@ export function createModel({ state: layerState, services, parts, source }) {
       attempted,
       success: success === true ? true : success === false ? false : null,
       recoveryType,
-      destination:
-        location.name || landing?.destination || landing?.type?.name || null,
+      destination: location.name || landing?.destination || landing?.type?.name || null,
       description: landing?.description || null,
       downrangeKm: finiteCoordinate(landing?.downrange_distance),
       lat: finiteCoordinate(location.latitude ?? landing?.latitude),
@@ -81,12 +85,12 @@ export function createModel({ state: layerState, services, parts, source }) {
 
   function normalizeRecoveryStages(launch, payloads) {
     const rocket = launch.rocket || {};
-    const launcherStages = Array.isArray(rocket.launcher_stage)
-      ? rocket.launcher_stage
-      : [];
-    const spacecraftStages = Array.isArray(rocket.spacecraft_stage)
-      ? rocket.spacecraft_stage
-      : [];
+    const launcherStages = Array.isArray(rocket.launcher_stage) ?
+      rocket.launcher_stage :
+      [];
+    const spacecraftStages = Array.isArray(rocket.spacecraft_stage) ?
+      rocket.spacecraft_stage :
+      [];
     const stages = [
       ...launcherStages.map((stage, index) =>
         normalizeLanding(
@@ -110,8 +114,7 @@ export function createModel({ state: layerState, services, parts, source }) {
       payloadFlights.forEach((flight, index) => {
         if (!flight?.landing) return;
         stages.push(
-          normalizeLanding(
-            {
+          normalizeLanding({
               ...flight,
               type: payloads[index]?.type || 'Payload',
               serial_number: payloads[index]?.name,
@@ -180,12 +183,12 @@ export function createModel({ state: layerState, services, parts, source }) {
         const [coordinateLon, coordinateLat] = String(coordinates)
           .split(',')
           .map(Number);
-        const lat = Number.isFinite(Number(pad.latitude))
-          ? Number(pad.latitude)
-          : coordinateLat;
-        const lon = Number.isFinite(Number(pad.longitude))
-          ? Number(pad.longitude)
-          : coordinateLon;
+        const lat = Number.isFinite(Number(pad.latitude)) ?
+          Number(pad.latitude) :
+          coordinateLat;
+        const lon = Number.isFinite(Number(pad.longitude)) ?
+          Number(pad.longitude) :
+          coordinateLon;
         const payloads = normalizePayloadFlights(launch);
         return {
           id: String(
@@ -193,9 +196,9 @@ export function createModel({ state: layerState, services, parts, source }) {
           ),
           name: launch.name || 'Unnamed launch',
           status: launch.status?.name || 'Unknown',
-          launchTime: Number.isFinite(date)
-            ? new Date(date).toISOString()
-            : null,
+          launchTime: Number.isFinite(date) ?
+            new Date(date).toISOString() :
+            null,
           launchSite: pad.name || location.name || 'Unknown launch site',
           lat: Number.isFinite(lat) ? lat : null,
           lon: Number.isFinite(lon) ? lon : null,
@@ -206,28 +209,26 @@ export function createModel({ state: layerState, services, parts, source }) {
           payloads,
           recoveryStages: normalizeRecoveryStages(launch, payloads),
           trajectory: Array.isArray(launch.trajectory) ? launch.trajectory : [],
-          timeline: Array.isArray(launch.timeline)
-            ? launch.timeline.map((event) => ({
-                name:
-                  event.type?.abbrev ||
-                  event.type?.name ||
-                  event.name ||
-                  'Mission event',
-                relativeTime: event.relative_time || event.relativeTime || null,
-                offsetSeconds: parts.policyHelpers.parseMissionDurationSeconds(
-                  event.relative_time || event.relativeTime,
-                ),
-              }))
-            : [],
+          timeline: Array.isArray(launch.timeline) ?
+            launch.timeline.map((event) => ({
+              name: event.type?.abbrev ||
+                event.type?.name ||
+                event.name ||
+                'Mission event',
+              relativeTime: event.relative_time || event.relativeTime || null,
+              offsetSeconds: parts.policyHelpers.parseMissionDurationSeconds(
+                event.relative_time || event.relativeTime,
+              ),
+            })) :
+            [],
           orbit: launch.mission?.orbit || launch.orbit || null,
           source: 'Launch Library 2',
-          inWindow:
-            Number.isFinite(date) && date >= cutoff && date <= now.getTime(),
+          inWindow: Number.isFinite(date) && date >= cutoff && date <= now.getTime(),
         };
       })
       .filter(
         (launch) =>
-          launch.inWindow && launch.lat !== null && launch.lon !== null,
+        launch.inWindow && launch.lat !== null && launch.lon !== null,
       );
   }
   return {
