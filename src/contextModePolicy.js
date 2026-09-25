@@ -9,11 +9,14 @@ export function isExplicitUserIntentOrigin(origin, layerId = null) {
 }
 
 /** Preserve explicit layer intent that completes while a stale restore is queued. */
-export function recordContextRestoreExplicitChange({ restoreState, change }) {
+export function recordContextRestoreExplicitChange({
+  restoreState,
+  change
+}) {
   if (
-    !restoreState?.enabledLayerIds
-    || change?.type !== 'visibility'
-    || !isExplicitUserIntentOrigin(change.origin, change.layerId)
+    !restoreState?.enabledLayerIds ||
+    change?.type !== 'visibility' ||
+    !isExplicitUserIntentOrigin(change.origin, change.layerId)
   ) return false;
   if (!restoreState.explicitLayerStates) restoreState.explicitLayerStates = new Map();
   restoreState.explicitLayerStates.set(change.layerId, Boolean(change.enabled));
@@ -23,13 +26,19 @@ export function recordContextRestoreExplicitChange({ restoreState, change }) {
 }
 
 /** Settle every explicit Context-restore replay without losing semantic failures. */
-export async function settleContextIntentReplay({ restoreState, setEnabled, notificationToken = null }) {
+export async function settleContextIntentReplay({
+  restoreState,
+  setEnabled,
+  notificationToken = null
+}) {
   if (restoreState?.cancelled) return null;
   const entries = [...(restoreState?.explicitLayerStates || [])];
   const results = await Promise.allSettled(entries.map(([layerId, enabled]) => (
     setEnabled(layerId, enabled, {
       origin: 'context-intent-replay',
-      ...(notificationToken ? { notificationToken } : {}),
+      ...(notificationToken ? {
+        notificationToken
+      } : {}),
     })
   )));
   const failedIndexes = results.flatMap((result, index) => (
@@ -40,9 +49,9 @@ export async function settleContextIntentReplay({ restoreState, setEnabled, noti
   const rejected = failedIndexes
     .map((index) => results[index])
     .find((result) => result.status === 'rejected');
-  const error = rejected?.reason instanceof Error
-    ? rejected.reason
-    : new Error(`Context intent replay failed for ${failedLayerIds.map((layerId) => `"${layerId}"`).join(', ')}`);
+  const error = rejected?.reason instanceof Error ?
+    rejected.reason :
+    new Error(`Context intent replay failed for ${failedLayerIds.map((layerId) => `"${layerId}"`).join(', ')}`);
   error.failedLayerIds = [...new Set([
     ...(Array.isArray(error.failedLayerIds) ? error.failedLayerIds : []),
     ...failedLayerIds,
@@ -62,7 +71,11 @@ export function mergeContextTransitionErrors(primaryError, secondaryError) {
 }
 
 /** Settle a user-facing Context action and convert every failure form to false. */
-export async function settleUserFacingContextAction({ operation, onFailure, falseIsFailure = true }) {
+export async function settleUserFacingContextAction({
+  operation,
+  onFailure,
+  falseIsFailure = true
+}) {
   try {
     const result = await operation();
     if (falseIsFailure && result === false) throw new Error('Context transition did not complete');
@@ -142,12 +155,16 @@ export async function runWithContextModeChanging(owner, operation) {
  * @param {object|null} input.change DataLayerManager visibility notification.
  * @returns {boolean} Whether the active Context bundle should be disabled.
  */
-export function shouldExitContextForLayerChange({ contextMode, globalContextEnabled, change }) {
+export function shouldExitContextForLayerChange({
+  contextMode,
+  globalContextEnabled,
+  change
+}) {
   if (
-    change?.type !== 'visibility'
-    || !isExplicitUserIntentOrigin(change.origin, change.layerId)
-    || change.layerId === 'military-awareness'
-    || CONTEXT_COMPANIONS.has(change.layerId)
+    change?.type !== 'visibility' ||
+    !isExplicitUserIntentOrigin(change.origin, change.layerId) ||
+    change.layerId === 'military-awareness' ||
+    CONTEXT_COMPANIONS.has(change.layerId)
   ) {
     return false;
   }
@@ -181,10 +198,10 @@ export function contextAllowedLayerIds(contextMode) {
  */
 export function shouldCaptureContextSession(change) {
   return Boolean(
-    ['visibility-requested', 'visibility-will-change'].includes(change?.type)
-    && isExplicitUserIntentOrigin(change.origin, change.layerId)
-    && change.enabled
-    && CONTEXT_ENTRY_LAYER_IDS.includes(change.layerId)
+    ['visibility-requested', 'visibility-will-change'].includes(change?.type) &&
+    isExplicitUserIntentOrigin(change.origin, change.layerId) &&
+    change.enabled &&
+    CONTEXT_ENTRY_LAYER_IDS.includes(change.layerId)
   );
 }
 
@@ -192,14 +209,17 @@ export function shouldCaptureContextSession(change) {
  * Return whether one explicit mission intent superseded an in-flight Clear All
  * reservation and therefore needs deferred Context adoption.
  */
-export function shouldDeferContextEntryDuringClear({ change, clearInFlight }) {
+export function shouldDeferContextEntryDuringClear({
+  change,
+  clearInFlight
+}) {
   return Boolean(
-    clearInFlight
-    && change?.type === 'visibility-requested'
-    && change.layerId === 'rocket-launches'
-    && change.enabled === true
-    && isExplicitUserIntentOrigin(change.origin, change.layerId)
-    && Number.isInteger(change.intentEpoch)
+    clearInFlight &&
+    change?.type === 'visibility-requested' &&
+    change.layerId === 'rocket-launches' &&
+    change.enabled === true &&
+    isExplicitUserIntentOrigin(change.origin, change.layerId) &&
+    Number.isInteger(change.intentEpoch)
   );
 }
 
@@ -218,11 +238,15 @@ export function shouldDeferContextEntryDuringClear({ change, clearInFlight }) {
  * @param {string|null} [input.effectiveContextMode] Committed or entering mode.
  * @returns {boolean} Whether the snapshot's userAdded set was modified.
  */
-export function recordContextSessionUserChange({ snapshot, change, effectiveContextMode = null }) {
+export function recordContextSessionUserChange({
+  snapshot,
+  change,
+  effectiveContextMode = null
+}) {
   if (
-    !snapshot?.userAdded
-    || change?.type !== 'visibility'
-    || !isExplicitUserIntentOrigin(change.origin, change.layerId)
+    !snapshot?.userAdded ||
+    change?.type !== 'visibility' ||
+    !isExplicitUserIntentOrigin(change.origin, change.layerId)
   ) {
     return false;
   }
@@ -276,11 +300,15 @@ export function contextSnapshotLayerIds(
  * @param {string|null} [input.layerName] User-facing layer name.
  * @returns {string|null} Honest user-facing refusal reason, or null when allowed.
  */
-export function contextLayerEnableBlockReason({ contextMode, change, layerName = null }) {
+export function contextLayerEnableBlockReason({
+  contextMode,
+  change,
+  layerName = null
+}) {
   if (
-    contextMode !== 'space-missions'
-    || change?.enabled !== true
-    || contextAllowedLayerIds('space-missions').has(change.layerId)
+    contextMode !== 'space-missions' ||
+    change?.enabled !== true ||
+    contextAllowedLayerIds('space-missions').has(change.layerId)
   ) {
     return null;
   }
@@ -301,15 +329,15 @@ export function spaceMissionEntryCancellationDisposition({
   change,
 }) {
   if (
-    change?.type !== 'visibility-cancelled'
-    || change.layerId !== 'rocket-launches'
-    || change.enabled !== true
+    change?.type !== 'visibility-cancelled' ||
+    change.layerId !== 'rocket-launches' ||
+    change.enabled !== true
   ) return 'ignore';
   if (
-    change.cancellationReason === 'superseded'
-    && Number.isInteger(change.successorIntentEpoch)
-    && change.successorIntentEpoch > change.intentEpoch
-    && change.successorEnabled === true
+    change.cancellationReason === 'superseded' &&
+    Number.isInteger(change.successorIntentEpoch) &&
+    change.successorIntentEpoch > change.intentEpoch &&
+    change.successorEnabled === true
   ) return 'replacement';
   return 'restore';
 }
@@ -348,10 +376,10 @@ export function cockpitEntryAllowed({
   flightsEnabled,
   militaryEnabled,
 }) {
-  return contextMode === 'flights'
-    && !contextModeChanging
-    && Boolean(flightsEnabled)
-    && Boolean(militaryEnabled);
+  return contextMode === 'flights' &&
+    !contextModeChanging &&
+    Boolean(flightsEnabled) &&
+    Boolean(militaryEnabled);
 }
 
 /**
@@ -378,7 +406,9 @@ export const CONTEXT_MODE_VOICE_NAMES = Object.freeze({
  *   calling it 'off' would assert something untrue.
  * @returns {string|null} The shared word for this mode.
  */
-export function contextModeWord(internalMode, { emptyAs = 'off' } = {}) {
+export function contextModeWord(internalMode, {
+  emptyAs = 'off'
+} = {}) {
   if (!internalMode) return emptyAs;
   return CONTEXT_MODE_VOICE_NAMES[internalMode] || internalMode;
 }
