@@ -1,5 +1,9 @@
-import { createMilitaryFlightLayer } from '../layers/military/index.js';
-import { createAdsbLolSource } from '../sources/live/standalone.js';
+import {
+  createMilitaryFlightLayer
+} from '../layers/military/index.js';
+import {
+  createAdsbLolSource
+} from '../sources/live/standalone.js';
 import * as picking from './pickRegistry.js';
 import * as sprites from './spriteOrder.js';
 import * as trails from './trailRenderer.js';
@@ -40,7 +44,10 @@ const militaryFlightsLayer = createMilitaryFlightLayer({
     recession,
   },
 });
-export { TRACKED_MODEL_MAX_PX } from '../layers/military/policy.js';
+export {
+  TRACKED_MODEL_MAX_PX
+}
+from '../layers/military/policy.js';
 export const _setTrackedMilitaryRefreshStateForTest =
   militaryFlightsLayer.testing._setTrackedMilitaryRefreshStateForTest;
 export const _setMilitaryTrackingRefreshOutcomeForTest =
