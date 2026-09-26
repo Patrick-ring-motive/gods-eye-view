@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
-import { MAP_STACKS } from '../mapStackController.js';
+import {
+  MAP_STACKS
+} from '../mapStackController.js';
 import {
   CABLE_LABEL_DEPTH_DECISION,
   CABLE_OVERLAY_COLLISION_CAPACITY,
@@ -24,8 +28,12 @@ import {
 } from './telegeographySubmarineCables.js';
 
 test('cable reference winners remain nearest-first and hard-capped', () => {
-  const records = Array.from({ length: 300 }, (_, index) => ({
-    entity: { id: `reference-${index}` },
+  const records = Array.from({
+    length: 300
+  }, (_, index) => ({
+    entity: {
+      id: `reference-${index}`
+    },
     label: `Reference ${index}`,
     visible: true,
     distanceM: 1000 + index,
@@ -83,8 +91,7 @@ test('cable overlay entries satisfy the shared presentation contract', () => {
   assert.equal(entry.maxDistance, 9_000_000);
   assert.equal(entry.distanceFadeStartRatio, 0.7);
   assert.deepEqual(
-    entry.distanceScale,
-    {
+    entry.distanceScale, {
       near: 250_000,
       nearValue: 1,
       far: 9_000_000,
@@ -140,19 +147,27 @@ test('cable overlay publisher owns the production show/publish/hide lifecycle', 
     },
   });
 
-  publisher.publish([{ id: 'ignored-before-show' }]);
+  publisher.publish([{
+    id: 'ignored-before-show'
+  }]);
   publisher.show();
   publisher.show();
-  publisher.publish([{ id: 'cable-1' }]);
+  publisher.publish([{
+    id: 'cable-1'
+  }]);
   publisher.hide();
-  publisher.publish([{ id: 'dropped-while-hidden' }]);
+  publisher.publish([{
+    id: 'dropped-while-hidden'
+  }]);
   publisher.hide();
 
   assert.deepEqual(calls[0], ['visible', CABLE_OVERLAY_SOURCE_ID, true]);
   assert.deepEqual(calls[1].slice(0, 3), [
     'entries',
     CABLE_OVERLAY_SOURCE_ID,
-    [{ id: 'cable-1' }],
+    [{
+      id: 'cable-1'
+    }],
   ]);
   assert.deepEqual(calls[1][3], {
     cohortLimit: CABLE_REFERENCE_LABEL_WINNER_CAP,
@@ -172,12 +187,16 @@ test('cable overlay publisher owns the production show/publish/hide lifecycle', 
   // is intentionally no permanent-destroy method to test.
   assert.equal(publisher.destroy, undefined);
   publisher.show();
-  publisher.publish([{ id: 'cable-2' }]);
+  publisher.publish([{
+    id: 'cable-2'
+  }]);
   assert.deepEqual(calls[4], ['visible', CABLE_OVERLAY_SOURCE_ID, true]);
   assert.deepEqual(calls[5].slice(0, 3), [
     'entries',
     CABLE_OVERLAY_SOURCE_ID,
-    [{ id: 'cable-2' }],
+    [{
+      id: 'cable-2'
+    }],
   ]);
 });
 
@@ -235,11 +254,19 @@ test('cable ground lines classify against exactly the active surface on every st
   // Boot fires no stack event; the initial value derives from live scene
   // state exactly like the height-datum listeners: photoreal ⇔ globe hidden.
   assert.equal(
-    cableClassificationTypeForScene({ globe: { show: false } }),
+    cableClassificationTypeForScene({
+      globe: {
+        show: false
+      }
+    }),
     Cesium.ClassificationType.CESIUM_3D_TILE,
   );
   assert.equal(
-    cableClassificationTypeForScene({ globe: { show: true } }),
+    cableClassificationTypeForScene({
+      globe: {
+        show: true
+      }
+    }),
     Cesium.ClassificationType.TERRAIN,
   );
   assert.equal(
@@ -275,13 +302,23 @@ test('a map-stack change re-classifies every cable line once, and destroy detach
     'init must subscribe to the stack event',
   );
 
-  listener({ detail: { activeId: 'photoreal', status: 'ready' } });
+  listener({
+    detail: {
+      activeId: 'photoreal',
+      status: 'ready'
+    }
+  });
   assert.equal(
     classificationOf(cableEntity),
     Cesium.ClassificationType.CESIUM_3D_TILE,
   );
 
-  listener({ detail: { activeId: 'osm', status: 'ready' } });
+  listener({
+    detail: {
+      activeId: 'osm',
+      status: 'ready'
+    }
+  });
   assert.equal(
     classificationOf(cableEntity),
     Cesium.ClassificationType.TERRAIN,
@@ -300,15 +337,22 @@ test('marker collections blend in a single translucent pass behind a loud shape 
   const ds = new Cesium.CustomDataSource('blend-probe');
   let result = applyTranslucentMarkerBlend(ds);
   assert.deepEqual(
-    result,
-    { applied: 0, pending: 2, invariantFailed: false },
+    result, {
+      applied: 0,
+      pending: 2,
+      invariantFailed: false
+    },
     'pre-visualizer clusters are pending, never a shape failure',
   );
 
   ds.clustering._billboardCollection = new Cesium.BillboardCollection();
   ds.clustering._pointCollection = new Cesium.PointPrimitiveCollection();
   result = applyTranslucentMarkerBlend(ds);
-  assert.deepEqual(result, { applied: 2, pending: 0, invariantFailed: false });
+  assert.deepEqual(result, {
+    applied: 2,
+    pending: 0,
+    invariantFailed: false
+  });
   assert.equal(
     ds.clustering._billboardCollection.blendOption,
     Cesium.BlendOption.TRANSLUCENT,
@@ -321,12 +365,16 @@ test('marker collections blend in a single translucent pass behind a loud shape 
   // Shape drift fails LOUDLY-detectably instead of applying blindly: a
   // renamed field or a foreign object type must never be touched.
   assert.equal(
-    applyTranslucentMarkerBlend({ clustering: {} }).invariantFailed,
+    applyTranslucentMarkerBlend({
+      clustering: {}
+    }).invariantFailed,
     true,
     'missing private fields mean Cesium changed shape',
   );
   const wrongType = new Cesium.CustomDataSource('wrong-type');
-  wrongType.clustering._billboardCollection = { blendOption: 0 };
+  wrongType.clustering._billboardCollection = {
+    blendOption: 0
+  };
   const wrongResult = applyTranslucentMarkerBlend(wrongType);
   assert.equal(wrongResult.invariantFailed, true);
   assert.equal(
@@ -342,7 +390,9 @@ test('marker collections blend in a single translucent pass behind a loud shape 
   // what "leaves Cesium's default blend untouched" has to mean.
   const partial = new Cesium.CustomDataSource('partial-shape');
   partial.clustering._billboardCollection = new Cesium.BillboardCollection();
-  partial.clustering._pointCollection = { blendOption: 0 }; // renamed/reshaped
+  partial.clustering._pointCollection = {
+    blendOption: 0
+  }; // renamed/reshaped
   const partialResult = applyTranslucentMarkerBlend(partial);
   assert.equal(partialResult.invariantFailed, true);
   assert.equal(
@@ -436,8 +486,12 @@ test('the sweep gate falls back to motion probes for cameras that never emit mov
   let clock = 0;
   const frameMs = 1000 / 60;
   const origin = Cesium.Cartesian3.fromDegrees(-40, 35, 4_500_000);
-  const camera = { positionWC: Cesium.Cartesian3.clone(origin) };
-  const gate = createCableReferenceSweepGate({ now: () => clock });
+  const camera = {
+    positionWC: Cesium.Cartesian3.clone(origin)
+  };
+  const gate = createCableReferenceSweepGate({
+    now: () => clock
+  });
   const runFrames = (count, step = () => {}) => {
     let sweeps = 0;
     for (let frame = 0; frame < count; frame++) {
@@ -479,8 +533,12 @@ test('the sweep gate falls back to motion probes for cameras that never emit mov
 
   // TRACKING: a follow camera advances every frame and never emits moveEnd.
   // The sweep must land inside one probe window instead of starving forever.
-  const timedGate = createCableReferenceSweepGate({ now: () => clock });
-  const timedCamera = { positionWC: Cesium.Cartesian3.clone(origin) };
+  const timedGate = createCableReferenceSweepGate({
+    now: () => clock
+  });
+  const timedCamera = {
+    positionWC: Cesium.Cartesian3.clone(origin)
+  };
   assert.equal(timedGate.shouldRun(timedCamera), true, 'the gate starts dirty');
   const trackingStart = clock;
   let sweepAt = null;
@@ -522,7 +580,9 @@ test('the sweep gate falls back to motion probes for cameras that never emit mov
   );
 
   // A gate called without a camera keeps the pure dirty-only contract.
-  const cameraless = createCableReferenceSweepGate({ now: () => clock });
+  const cameraless = createCableReferenceSweepGate({
+    now: () => clock
+  });
   assert.equal(cameraless.shouldRun(), true);
   clock += CABLE_SWEEP_MOTION_PROBE_INTERVAL_MS * 10;
   assert.equal(
@@ -539,7 +599,11 @@ function makeStemRecord(lon = -40, lat = 35) {
     [base, tip],
     [base, tip],
   ];
-  const setCalls = { position: 0, polyline: 0, polylineArrays: [] };
+  const setCalls = {
+    position: 0,
+    polyline: 0,
+    polylineArrays: []
+  };
   return {
     record: {
       entity: {
@@ -562,7 +626,10 @@ function makeStemRecord(lon = -40, lat = 35) {
       nextTip: Cesium.Cartesian3.clone(tip),
       stemPositionBuffers,
       stemPositionBufferIndex: 0,
-      reference: { lon, lat },
+      reference: {
+        lon,
+        lat
+      },
     },
     setCalls,
     stemPositionBuffers,
@@ -570,7 +637,11 @@ function makeStemRecord(lon = -40, lat = 35) {
 }
 
 test('staticized stems redefine constants only on real tip changes, alternating buffers', () => {
-  const { record, setCalls, stemPositionBuffers } = makeStemRecord();
+  const {
+    record,
+    setCalls,
+    stemPositionBuffers
+  } = makeStemRecord();
   const canvasHeight = 900;
   const fov = Math.PI / 3;
   const camera = Cesium.Cartesian3.fromDegrees(-40, 35, 500_000);
@@ -630,15 +701,15 @@ test('the depth decision is the dated Option-2 host migration, superseding Optio
 
 test('cables create no native labels and no per-frame geometry callbacks', () => {
   const source = [
-    '../../data/telegeographySubmarineCables.js',
-    'rendering.js',
-    'overlay.js',
-    'surface.js',
-    'ingestion.js',
-    'interaction.js',
-    'geometry.js',
-    'lifecycle.js',
-  ]
+      '../../data/telegeographySubmarineCables.js',
+      'rendering.js',
+      'overlay.js',
+      'surface.js',
+      'ingestion.js',
+      'interaction.js',
+      'geometry.js',
+      'lifecycle.js',
+    ]
     .map((file) =>
       readFileSync(
         new URL('../layers/submarineCables/' + file, import.meta.url),
@@ -674,56 +745,57 @@ test('cables create no native labels and no per-frame geometry callbacks', () =>
 
 const CABLE_FIXTURE = {
   type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
+  features: [{
+    type: 'Feature',
+    id: 'ac1',
+    properties: {
       id: 'ac1',
-      properties: { id: 'ac1', name: 'Atlantic Crossing-1' },
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [-40, 35],
-          [-30, 40],
-        ],
-      },
+      name: 'Atlantic Crossing-1'
     },
-  ],
+    geometry: {
+      type: 'LineString',
+      coordinates: [
+        [-40, 35],
+        [-30, 40],
+      ],
+    },
+  }, ],
 };
 // Node has no `document`, so Point features (whose GeoJSON default marker
 // needs a canvas PinBuilder) cannot load here. Landing references only need
 // `properties.coordinates`, so a line geometry exercises the same path.
 const LANDING_FIXTURE = {
   type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
+  features: [{
+    type: 'Feature',
+    id: 'lisbon',
+    properties: {
       id: 'lisbon',
-      properties: {
-        id: 'lisbon',
-        name: 'Lisbon, Portugal',
-        coordinates: [-9.1, 38.7],
-      },
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [-9.1, 38.7],
-          [-9.05, 38.72],
-        ],
-      },
+      name: 'Lisbon, Portugal',
+      coordinates: [-9.1, 38.7],
     },
-  ],
+    geometry: {
+      type: 'LineString',
+      coordinates: [
+        [-9.1, 38.7],
+        [-9.05, 38.72],
+      ],
+    },
+  }, ],
 };
 
 function fixtureForUrl(url) {
-  return String(url).includes('landing-point')
-    ? LANDING_FIXTURE
-    : CABLE_FIXTURE;
+  return String(url).includes('landing-point') ?
+    LANDING_FIXTURE :
+    CABLE_FIXTURE;
 }
 
 function makeStubViewer(
   listeners,
   dataSources,
-  addCalls = { count: 0 },
+  addCalls = {
+    count: 0
+  },
   addControl = null,
 ) {
   return {
@@ -765,7 +837,9 @@ function makeStubViewer(
     },
     camera: {
       positionWC: Cesium.Cartesian3.fromDegrees(-40, 35, 4_500_000),
-      frustum: { fov: Math.PI / 3 },
+      frustum: {
+        fov: Math.PI / 3
+      },
       moveEnd: {
         addEventListener: (fn) => {
           listeners.moveEnd.add(fn);
@@ -777,7 +851,9 @@ function makeStubViewer(
       flyTo() {},
     },
     scene: {
-      canvas: { clientHeight: 900 },
+      canvas: {
+        clientHeight: 900
+      },
       requestRender() {},
       pick() {
         return null;
@@ -799,10 +875,19 @@ function makeStubViewer(
  */
 function createDeferredCableLayerHarness() {
   const hostCalls = [];
-  const listeners = { preRender: new Set(), moveEnd: new Set() };
+  const listeners = {
+    preRender: new Set(),
+    moveEnd: new Set()
+  };
   const dataSources = [];
-  const addCalls = { count: 0 };
-  const addControl = { held: false, pending: [], rejectAfterPush: new Set() };
+  const addCalls = {
+    count: 0
+  };
+  const addControl = {
+    held: false,
+    pending: [],
+    rejectAfterPush: new Set()
+  };
   const pendingFetches = [];
   const abortError = () =>
     Object.assign(new Error('The operation was aborted'), {
@@ -817,7 +902,10 @@ function createDeferredCableLayerHarness() {
         release() {
           if (entry.settled) return;
           entry.settled = true;
-          resolve({ ok: true, json: async () => fixtureForUrl(url) });
+          resolve({
+            ok: true,
+            json: async () => fixtureForUrl(url)
+          });
         },
       };
       const signal = options?.signal;
@@ -833,8 +921,9 @@ function createDeferredCableLayerHarness() {
             if (entry.settled) return;
             entry.settled = true;
             reject(abortError());
+          }, {
+            once: true
           },
-          { once: true },
         );
       }
       pendingFetches.push(entry);
@@ -910,7 +999,9 @@ function installGeoJsonLoadGate() {
     const opened = new Promise((resolve) => {
       open = resolve;
     });
-    gates.push({ open });
+    gates.push({
+      open
+    });
     return original
       .apply(Cesium.GeoJsonDataSource, args)
       .then((result) => opened.then(() => result));
@@ -1307,12 +1398,17 @@ async function createRealCableLayerHarness({
       setInputAction() {},
       destroy() {},
     }),
-    ...(source ? { source } : {}),
+    ...(source ? {
+      source
+    } : {}),
     mapStackEventTarget,
     sweepClock: () => clockMs,
   });
 
-  const listeners = { preRender: new Set(), moveEnd: new Set() };
+  const listeners = {
+    preRender: new Set(),
+    moveEnd: new Set()
+  };
   const dataSources = [];
   const viewer = {
     dataSources: {
@@ -1328,7 +1424,9 @@ async function createRealCableLayerHarness({
     },
     camera: {
       positionWC: Cesium.Cartesian3.fromDegrees(-40, 35, 4_500_000),
-      frustum: { fov: Math.PI / 3 },
+      frustum: {
+        fov: Math.PI / 3
+      },
       moveEnd: {
         addEventListener: (fn) => {
           listeners.moveEnd.add(fn);
@@ -1340,7 +1438,9 @@ async function createRealCableLayerHarness({
       flyTo() {},
     },
     scene: {
-      canvas: { clientHeight: 900 },
+      canvas: {
+        clientHeight: 900
+      },
       requestRender() {},
       pick() {
         return null;
@@ -1361,45 +1461,44 @@ async function createRealCableLayerHarness({
   globalThis.fetch = async (url) => ({
     ok: true,
     json: async () =>
-      String(url).includes('landing-point')
-        ? {
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                id: 'lisbon',
-                properties: {
-                  id: 'lisbon',
-                  name: 'Lisbon, Portugal',
-                  coordinates: [-9.1, 38.7],
-                },
-                geometry: {
-                  type: 'LineString',
-                  coordinates: [
-                    [-9.1, 38.7],
-                    [-9.05, 38.72],
-                  ],
-                },
-              },
-            ],
-          }
-        : {
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                id: 'ac1',
-                properties: { id: 'ac1', name: 'Atlantic Crossing-1' },
-                geometry: {
-                  type: 'LineString',
-                  coordinates: [
-                    [-40, 35],
-                    [-30, 40],
-                  ],
-                },
-              },
+      String(url).includes('landing-point') ?
+      {
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          id: 'lisbon',
+          properties: {
+            id: 'lisbon',
+            name: 'Lisbon, Portugal',
+            coordinates: [-9.1, 38.7],
+          },
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [-9.1, 38.7],
+              [-9.05, 38.72],
             ],
           },
+        }, ],
+      } :
+      {
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          id: 'ac1',
+          properties: {
+            id: 'ac1',
+            name: 'Atlantic Crossing-1'
+          },
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [-40, 35],
+              [-30, 40],
+            ],
+          },
+        }, ],
+      },
   });
   try {
     layer.init(viewer);
@@ -1462,8 +1561,8 @@ test('a real enabled cable layer publishes host entries and has zero native labe
   assert.ok(
     referenceEntities.every(
       (entity) =>
-        entity.position?.isConstant === true &&
-        entity.polyline?.positions?.isConstant === true,
+      entity.position?.isConstant === true &&
+      entity.polyline?.positions?.isConstant === true,
     ),
     'stem properties must be constants, never per-frame callbacks',
   );
@@ -1729,10 +1828,15 @@ test('another GeoJSON source renders with its own label and rebuilds from accept
     async fetch(signal) {
       signal.throwIfAborted();
       reads += 1;
-      return { cables: CABLE_FIXTURE, landingPoints: LANDING_FIXTURE };
+      return {
+        cables: CABLE_FIXTURE,
+        landingPoints: LANDING_FIXTURE
+      };
     },
   };
-  const env = await createRealCableLayerHarness({ source });
+  const env = await createRealCableLayerHarness({
+    source
+  });
   try {
     assert.equal(env.layer.source, source.label);
     assert.equal(reads, 1);
