@@ -1,5 +1,7 @@
 import path from 'node:path';
-import { promises as fsp } from 'node:fs';
+import {
+  promises as fsp
+} from 'node:fs';
 
 import {
   fetchTerrainChunkWithRetry,
@@ -51,9 +53,9 @@ export function terrainHeightsProxy() {
       const pointEntries =
         parsed?.version === 2 &&
         parsed.points &&
-        typeof parsed.points === 'object'
-          ? parsed.points
-          : null;
+        typeof parsed.points === 'object' ?
+        parsed.points :
+        null;
       if (pointEntries) {
         for (const [key, entry] of Object.entries(pointEntries)) {
           if (
@@ -82,7 +84,10 @@ export function terrainHeightsProxy() {
             const key = terrainPointKey(points[i]);
             const existing = mem.get(key);
             if (!existing || entry.at > existing.at)
-              mem.set(key, { at: entry.at, result });
+              mem.set(key, {
+                at: entry.at,
+                result
+              });
           }
         }
         diskDirty = mem.size > 0;
@@ -96,8 +101,13 @@ export function terrainHeightsProxy() {
       if (!diskDirty) return;
       diskDirty = false;
       try {
-        await fsp.mkdir(CACHE_DIR, { recursive: true });
-        const obj = { version: 2, points: Object.fromEntries(mem.entries()) };
+        await fsp.mkdir(CACHE_DIR, {
+          recursive: true
+        });
+        const obj = {
+          version: 2,
+          points: Object.fromEntries(mem.entries())
+        };
         await fsp.writeFile(CACHE_PATH, JSON.stringify(obj), 'utf8');
       } catch (err) {
         diskDirty = true; // retry next tick
@@ -159,7 +169,9 @@ export function terrainHeightsProxy() {
     server.middlewares.use('/api/terrain/heights', async (req, res) => {
       const send = (status, bodyObj) => {
         if (res.headersSent) return;
-        res.writeHead(status, { 'Content-Type': 'application/json' });
+        res.writeHead(status, {
+          'Content-Type': 'application/json'
+        });
         res.end(JSON.stringify(bodyObj));
       };
       try {
@@ -169,8 +181,7 @@ export function terrainHeightsProxy() {
         const points = parseTerrainPoints(rawPoints);
         if (!points) {
           send(400, {
-            error:
-              'invalid points parameter — expected "lon,lat;lon,lat;…" with finite numbers',
+            error: 'invalid points parameter — expected "lon,lat;lon,lat;…" with finite numbers',
           });
           return;
         }
@@ -191,7 +202,7 @@ export function terrainHeightsProxy() {
         if (outcome.upstreamError) {
           console.warn(
             '[terrain-heights-proxy] refresh incomplete' +
-              ' — serving stale points when available',
+            ' — serving stale points when available',
           );
         } else if (outcome.absentPoints > 0) {
           // Not a refresh failure. The upstream answered every position and
@@ -200,14 +211,16 @@ export function terrainHeightsProxy() {
           // through its bundled geoid. Informational, not actionable.
           console.info(
             `[terrain-heights-proxy] ${outcome.absentPoints}` +
-              ` of ${outcome.requestedPoints} position(s) had no upstream` +
-              ' height this poll — retrying next cycle',
+            ` of ${outcome.requestedPoints} position(s) had no upstream` +
+            ' height this poll — retrying next cycle',
           );
         }
         send(outcome.status, outcome.body);
       } catch (err) {
         console.error('[terrain-heights-proxy] request failed');
-        send(500, { error: 'terrain heights proxy error' });
+        send(500, {
+          error: 'terrain heights proxy error'
+        });
       }
     });
   };
