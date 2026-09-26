@@ -4,7 +4,10 @@ import {
   QUERY_SNAP_DEGREES,
   QUERY_LIMIT,
 } from './policy.js';
-import { buildOverpassQuery, normalizeAlprNode } from './model.js';
+import {
+  buildOverpassQuery,
+  normalizeAlprNode
+} from './model.js';
 /** Construct the bounded OSM request adapter without starting a request. */
 export function createOverpassAlprSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
@@ -21,7 +24,7 @@ export function createOverpassAlprSource({
       box.north <= box.south ||
       box.east <= box.west ||
       box.north - box.south >
-        MAX_VIEWPORT_DEGREES + 2 * QUERY_SNAP_DEGREES + 1e-9 ||
+      MAX_VIEWPORT_DEGREES + 2 * QUERY_SNAP_DEGREES + 1e-9 ||
       box.east - box.west > MAX_VIEWPORT_DEGREES + 2 * QUERY_SNAP_DEGREES + 1e-9
     ) {
       throw new TypeError('ALPR requires a bounded city viewport');
@@ -29,7 +32,9 @@ export function createOverpassAlprSource({
     const query = buildOverpassQuery(box.south, box.west, box.north, box.east);
     const response = await fetchImpl(OVERPASS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
       body: `data=${encodeURIComponent(query)}`,
       signal,
     });
@@ -40,11 +45,11 @@ export function createOverpassAlprSource({
         /* already closed */
       }
       const message =
-        response.status === 429
-          ? 'Overpass rate-limited'
-          : response.status === 504
-            ? 'Overpass timed out'
-            : 'Overpass temporarily unavailable';
+        response.status === 429 ?
+        'Overpass rate-limited' :
+        response.status === 504 ?
+        'Overpass timed out' :
+        'Overpass temporarily unavailable';
       throw new Error(message);
     }
     const stale = response.headers.get('x-overpass-cache') === 'STALE';
@@ -59,10 +64,10 @@ export function createOverpassAlprSource({
       records: [
         ...new Map(
           payload.elements
-            .slice(0, QUERY_LIMIT)
-            .map(normalizeAlprNode)
-            .filter(Boolean)
-            .map((record) => [record.id, record]),
+          .slice(0, QUERY_LIMIT)
+          .map(normalizeAlprNode)
+          .filter(Boolean)
+          .map((record) => [record.id, record]),
         ).values(),
       ],
       stale,
