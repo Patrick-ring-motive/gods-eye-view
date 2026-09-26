@@ -82,7 +82,10 @@ export function frustumVolumeGeometryData(positions) {
     1, 2, 3,
     1, 3, 4,
   ]);
-  return { positions: flat, indices };
+  return {
+    positions: flat,
+    indices
+  };
 }
 
 /**
@@ -96,7 +99,10 @@ export function frustumVolumeGeometryData(positions) {
  * @returns {Cesium.Primitive}
  */
 export function createFrustumVolumePrimitive(positions, color) {
-  const { positions: flat, indices } = frustumVolumeGeometryData(positions);
+  const {
+    positions: flat,
+    indices
+  } = frustumVolumeGeometryData(positions);
   const geometry = new Cesium.Geometry({
     attributes: {
       position: new Cesium.GeometryAttribute({
@@ -120,7 +126,9 @@ export function createFrustumVolumePrimitive(positions, color) {
       flat: true,
       translucent: true,
       renderState: {
-        cull: { enabled: false },
+        cull: {
+          enabled: false
+        },
       },
     }),
     asynchronous: false,
