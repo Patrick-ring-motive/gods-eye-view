@@ -109,7 +109,10 @@ export function releaseContinuousRender(ownerId) {
 export function governorRequestRender(reason = 'unspecified') {
   if (!_installed || !_viewer?.scene) return;
   if (_holds.size === 0) {
-    _recentRequests.push({ reason, at: Date.now() });
+    _recentRequests.push({
+      reason,
+      at: Date.now()
+    });
     if (_recentRequests.length > RECENT_REQUEST_CAP) _recentRequests.shift();
   }
   _viewer.scene.requestRender?.();
