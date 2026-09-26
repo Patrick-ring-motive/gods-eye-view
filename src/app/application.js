@@ -29,13 +29,19 @@ export function createApplication({
   const cleanups = Object.fromEntries(START_ORDER.map((phase) => [phase, []]));
   const components = {};
   const listeners = new Set();
-  let state = Object.freeze({ status: 'created', phase: null });
+  let state = Object.freeze({
+    status: 'created',
+    phase: null
+  });
   let startPromise;
   let destroyPromise;
   let cleanupPromise;
 
   function publish(status, phase = null) {
-    state = Object.freeze({ status, phase });
+    state = Object.freeze({
+      status,
+      phase
+    });
     for (const listener of [...listeners]) {
       try {
         listener(state);
@@ -91,7 +97,9 @@ export function createApplication({
       }
       publish('ready');
       controller.signal.throwIfAborted();
-      return Object.freeze({ ...components });
+      return Object.freeze({
+        ...components
+      });
     } catch (error) {
       controller.abort();
       let failure = error;
@@ -135,7 +143,9 @@ export function createApplication({
       return destroyPromise;
     },
     getState: () => state,
-    getComponents: () => Object.freeze({ ...components }),
+    getComponents: () => Object.freeze({
+      ...components
+    }),
     subscribe(listener) {
       if (typeof listener !== 'function')
         throw new TypeError('Expected a state listener');
