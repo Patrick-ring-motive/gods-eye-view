@@ -1,4 +1,7 @@
-import { AMBER_TRANSPARENT, TRACKED_ICON_COLOR } from './policy.js';
+import {
+  AMBER_TRANSPARENT,
+  TRACKED_ICON_COLOR
+} from './policy.js';
 
 export function createTesting({
   flightState,
@@ -39,12 +42,18 @@ export function createTesting({
     flightState._viewer = viewer;
     flightState._modelCollection = modelCollection;
     flightState._billboardCollection = billboardCollection;
-    flightState._billboards = new Map([[icao24, billboard]]);
+    flightState._billboards = new Map([
+      [icao24, billboard]
+    ]);
     flightState._models.clear();
     for (const [key, model] of models) flightState._models.set(key, model);
     flightState._detectionObjects = new Map();
-    flightState._flightData = new Map([[icao24, meta]]);
-    flightState._positionHistory = new Map([[icao24, history]]);
+    flightState._flightData = new Map([
+      [icao24, meta]
+    ]);
+    flightState._positionHistory = new Map([
+      [icao24, history]
+    ]);
     flightState._missingPolls = new Map();
     flightState._displayCourse.clear();
     flightState._geoidNCache.clear();
@@ -105,7 +114,10 @@ export function createTesting({
   /** Set the exact Cockpit subject through the production state transition for focused tests. */
 
   function _setCockpitDetectionSubjectForTest(active, subjectId = null) {
-    parts.tracking._applyCockpitState({ active, subjectId });
+    parts.tracking._applyCockpitState({
+      active,
+      subjectId
+    });
   }
 
   /** Evaluate the TRACKED contact's zoom regime through the production predicate.
@@ -126,14 +138,18 @@ export function createTesting({
   /** Evaluate the production tracked-billboard handoff colour for focused tests. */
 
   function _trackedBillboardColorForTest() {
-    return parts.rendering._modelOwnsVisual(flightState._trackedIcao)
-      ? AMBER_TRANSPARENT
-      : TRACKED_ICON_COLOR;
+    return parts.rendering._modelOwnsVisual(flightState._trackedIcao) ?
+      AMBER_TRANSPARENT :
+      TRACKED_ICON_COLOR;
   }
 
   /** Drive the exact fleet billboard-to-model handoff used by `_fleetTick`. */
 
-  function _driveFleetModelHandoffForTest({ icao24, position, course = 0 }) {
+  function _driveFleetModelHandoffForTest({
+    icao24,
+    position,
+    course = 0
+  }) {
     return parts.rendering._driveFleetModelHandoff(
       icao24,
       flightState._models.get(icao24),
