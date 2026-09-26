@@ -1,6 +1,10 @@
 import * as Cesium from 'cesium';
-import { flowBucket } from '../../data/trafficFlowStyle.js';
-import { trafficStyleProfile } from '../../data/trafficPresetStyle.js';
+import {
+  flowBucket
+} from '../../data/trafficFlowStyle.js';
+import {
+  trafficStyleProfile
+} from '../../data/trafficPresetStyle.js';
 import {
   HEAT_LINE_CAP,
   HEAT_JAM_COLOR,
@@ -27,12 +31,12 @@ export function createRendering({
    */
 
   function visibleRoadsForAltitude(roads, altitude) {
-    return altitude > 5000
-      ? roads.filter(
-          (r) =>
-            r.type === 'motorway' || r.type === 'trunk' || r.type === 'primary',
-        )
-      : roads;
+    return altitude > 5000 ?
+      roads.filter(
+        (r) =>
+        r.type === 'motorway' || r.type === 'trunk' || r.type === 'primary',
+      ) :
+      roads;
   }
 
   /** Remove both heat-line ground primitives from the scene. */
@@ -92,7 +96,11 @@ export function createRendering({
       if (bucket === 'free') continue;
       let len = 0;
       for (const d of road.segmentDist) len += d;
-      candidates.push({ road, bucket, len });
+      candidates.push({
+        road,
+        bucket,
+        len
+      });
     }
     candidates.sort((a, b) =>
       a.bucket === b.bucket ? b.len - a.len : a.bucket === 'jam' ? -1 : 1,
@@ -101,16 +109,16 @@ export function createRendering({
 
     const instancesFor = (bucket, width) =>
       kept
-        .filter((c) => c.bucket === bucket)
-        .map(
-          (c) =>
-            new Cesium.GeometryInstance({
-              geometry: new Cesium.GroundPolylineGeometry({
-                positions: c.road.waypoints,
-                width,
-              }),
-            }),
-        );
+      .filter((c) => c.bucket === bucket)
+      .map(
+        (c) =>
+        new Cesium.GeometryInstance({
+          geometry: new Cesium.GroundPolylineGeometry({
+            positions: c.road.waypoints,
+            width,
+          }),
+        }),
+      );
 
     // Mono presets (NVG/FLIR/noir) discard hue — heat-lines re-encode in
     // luminance like the dots: jam = white glow, slow = faint gray.
@@ -118,9 +126,9 @@ export function createRendering({
       layerState._presetDots === 'on' &&
       trafficStyleProfile(layerState._stylePreset) === 'mono';
     const jamLineColor = monoHeat ? Cesium.Color.WHITE : HEAT_JAM_COLOR;
-    const slowLineColor = monoHeat
-      ? new Cesium.Color(0.7, 0.7, 0.7, HEAT_SLOW_COLOR.alpha)
-      : HEAT_SLOW_COLOR;
+    const slowLineColor = monoHeat ?
+      new Cesium.Color(0.7, 0.7, 0.7, HEAT_SLOW_COLOR.alpha) :
+      HEAT_SLOW_COLOR;
 
     const jamInstances = instancesFor('jam', HEAT_LINE_JAM_WIDTH);
     if (jamInstances.length) {
@@ -174,9 +182,9 @@ export function createRendering({
 
   function renderRoadsForAltitude(roads, altitude, label, trace = null) {
     const state =
-      TRAFFIC_TIMING_ENABLED && trace
-        ? parts.timing.trafficTimingRenderState(trace, label)
-        : null;
+      TRAFFIC_TIMING_ENABLED && trace ?
+      parts.timing.trafficTimingRenderState(trace, label) :
+      null;
     const renderId = state ? ++trace.renderSequence : null;
     parts.animation.clearDots();
     layerState._roads = roads;
@@ -187,9 +195,9 @@ export function createRendering({
 
     // Closed roads spawn zero dots (computeDotCount/spawnDotsForRoad) — count
     // them here so the closure signal is visible in stats even at zero dots.
-    layerState._closedRoads = layerState._liveMode
-      ? filteredRoads.reduce((n, r) => n + (r.flow?.closure ? 1 : 0), 0)
-      : 0;
+    layerState._closedRoads = layerState._liveMode ?
+      filteredRoads.reduce((n, r) => n + (r.flow?.closure ? 1 : 0), 0) :
+      0;
 
     // Fade distances must track the camera-to-AREA distance, not assume a
     // nadir view: oblique pitches put the loaded roads many km away even at
@@ -216,14 +224,14 @@ export function createRendering({
     layerState._fadeScaleFar = Math.max(8000, areaDist * 1.5);
     layerState._fadeTransFar = Math.max(10000, areaDist * 1.8);
 
-    const dotStart = state
-      ? parts.timing.trafficTimingMark(state, 'dot-construction-start', {
-          renderId,
-          renderLabel: label,
-          roadCount: roads.length,
-          visibleRoadCount: filteredRoads.length,
-        })
-      : null;
+    const dotStart = state ?
+      parts.timing.trafficTimingMark(state, 'dot-construction-start', {
+        renderId,
+        renderLabel: label,
+        roadCount: roads.length,
+        visibleRoadCount: filteredRoads.length,
+      }) :
+      null;
     const roadBudgets = parts.model.allocateRoadDotBudgets(
       filteredRoads,
       altitude,
@@ -237,15 +245,15 @@ export function createRendering({
       if (layerState._dots.length >= MAX_DOTS) break;
     }
 
-    const renderMetrics = state
-      ? {
-          renderId,
-          renderLabel: label,
-          roadCount: roads.length,
-          visibleRoadCount: filteredRoads.length,
-          dotCount: layerState._dots.length,
-        }
-      : null;
+    const renderMetrics = state ?
+      {
+        renderId,
+        renderLabel: label,
+        roadCount: roads.length,
+        visibleRoadCount: filteredRoads.length,
+        dotCount: layerState._dots.length,
+      } :
+      null;
     if (state) {
       const dotEnd = parts.timing.trafficTimingMark(
         state,
@@ -261,19 +269,18 @@ export function createRendering({
       );
     }
 
-    const heatStart = state
-      ? parts.timing.trafficTimingMark(
-          state,
-          'rebuild-heat-lines-start',
-          renderMetrics,
-        )
-      : null;
+    const heatStart = state ?
+      parts.timing.trafficTimingMark(
+        state,
+        'rebuild-heat-lines-start',
+        renderMetrics,
+      ) :
+      null;
     rebuildHeatLines(filteredRoads);
     if (state) {
       const heatEnd = parts.timing.trafficTimingMark(
         state,
-        'rebuild-heat-lines-end',
-        {
+        'rebuild-heat-lines-end', {
           ...renderMetrics,
           heatLineCount: layerState._heatLineCount,
         },
@@ -282,8 +289,7 @@ export function createRendering({
         'rebuild-heat-lines',
         state,
         heatStart,
-        heatEnd,
-        {
+        heatEnd, {
           ...renderMetrics,
           heatLineCount: layerState._heatLineCount,
         },
