@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   loadNswSourcesFromOpenData,
@@ -17,7 +19,10 @@ import {
 const feature = (overrides = {}, props = {}) => ({
   type: 'Feature',
   id: '5_ways_miranda',
-  geometry: { type: 'Point', coordinates: [151.1036, -34.0337] },
+  geometry: {
+    type: 'Point',
+    coordinates: [151.1036, -34.0337]
+  },
   properties: {
     region: 'SYD_SOUTH',
     title: '5 Ways (Miranda)',
@@ -31,19 +36,30 @@ const feature = (overrides = {}, props = {}) => ({
 
 test('NSW label prefers the view sentence and falls back to the title for works notices', () => {
   assert.equal(
-    nswCameraLabel({ title: '5 Ways (Miranda)', view: '5 Ways looking west.' }),
+    nswCameraLabel({
+      title: '5 Ways (Miranda)',
+      view: '5 Ways looking west.'
+    }),
     '5 Ways looking west.',
   );
   assert.equal(
-    nswCameraLabel({ title: 'Victoria Pass', view: 'x'.repeat(200) }),
+    nswCameraLabel({
+      title: 'Victoria Pass',
+      view: 'x'.repeat(200)
+    }),
     'Victoria Pass',
   );
-  assert.equal(nswCameraLabel({ title: 'T', view: 'line one\nline two' }), 'T');
+  assert.equal(nswCameraLabel({
+    title: 'T',
+    view: 'line one\nline two'
+  }), 'T');
   assert.equal(nswCameraLabel({}), '');
 });
 
 test('NSW feature maps to a source with a compass heading and a pinned image host', () => {
-  const source = nswCameraToSource(feature({}, { direction: 'N-E' }));
+  const source = nswCameraToSource(feature({}, {
+    direction: 'N-E'
+  }));
   assert.equal(source.id, 'nsw-5_ways_miranda');
   assert.equal(source.city, 'SYD SOUTH');
   assert.equal(source.provider, 'Live Traffic NSW');
@@ -58,12 +74,20 @@ test('NSW feature maps to a source with a compass heading and a pinned image hos
 
 test('NSW mapping rejects off-host images and unusable geometry', () => {
   assert.equal(
-    nswCameraToSource(feature({}, { href: 'https://evil.example/x.jpeg' })),
+    nswCameraToSource(feature({}, {
+      href: 'https://evil.example/x.jpeg'
+    })),
     null,
   );
-  assert.equal(nswCameraToSource(feature({ geometry: null })), null);
-  assert.equal(nswCameraToSource(feature({ id: '' })), null);
-  const noBearing = nswCameraToSource(feature({}, { direction: '' }));
+  assert.equal(nswCameraToSource(feature({
+    geometry: null
+  })), null);
+  assert.equal(nswCameraToSource(feature({
+    id: ''
+  })), null);
+  const noBearing = nswCameraToSource(feature({}, {
+    direction: ''
+  }));
   assert.equal(noBearing.headingConfidence, 'low');
   assert.ok(Number.isFinite(noBearing.headingDeg));
 });
@@ -77,7 +101,11 @@ test('NSW loader reads the keyless feed and caps around Sydney', async (t) => {
       type: 'FeatureCollection',
       features: [
         feature(),
-        feature({ id: 'other' }, { href: 'https://evil.example/x.jpeg' }),
+        feature({
+          id: 'other'
+        }, {
+          href: 'https://evil.example/x.jpeg'
+        }),
       ],
     });
   });
@@ -115,13 +143,14 @@ test('the browser User-Agent applies to the NSW image host only', async () => {
 
   const seen = [];
   await fetchCctvImageFromUpstream(
-    'https://cctv.austinmobility.io/image/1.jpg',
-    {
+    'https://cctv.austinmobility.io/image/1.jpg', {
       timeoutMs: 100,
       fetchImpl: async (url, init) => {
         seen.push(init.headers['User-Agent']);
         return new Response(Buffer.from([0xff, 0xd8, 0xff]), {
-          headers: { 'Content-Type': 'image/jpeg' },
+          headers: {
+            'Content-Type': 'image/jpeg'
+          },
         });
       },
     },
@@ -132,10 +161,17 @@ test('the browser User-Agent applies to the NSW image host only', async () => {
 test('the frame path follows redirects within the host only', async () => {
   const jpeg = () =>
     new Response(Buffer.from([0xff, 0xd8, 0xff]), {
-      headers: { 'Content-Type': 'image/jpeg' },
+      headers: {
+        'Content-Type': 'image/jpeg'
+      },
     });
   const redirect = (location) =>
-    new Response(null, { status: 302, headers: { location } });
+    new Response(null, {
+      status: 302,
+      headers: {
+        location
+      }
+    });
   const start = 'https://cctv.austinmobility.io/image/1.jpg';
 
   const sameHost = [];
@@ -167,10 +203,10 @@ test('the frame path follows redirects within the host only', async () => {
   // Same host on another port, a plaintext downgrade, and a protocol-relative
   // other host are all a different origin and are refused.
   for (const target of [
-    'https://cctv.austinmobility.io:8443/image/1.jpg',
-    'http://cctv.austinmobility.io/image/1.jpg',
-    '//evil.example/1.jpg',
-  ]) {
+      'https://cctv.austinmobility.io:8443/image/1.jpg',
+      'http://cctv.austinmobility.io/image/1.jpg',
+      '//evil.example/1.jpg',
+    ]) {
     const seen = [];
     const result = await fetchCctvImageFromUpstream(start, {
       timeoutMs: 100,
