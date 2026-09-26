@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { governorRequestRender } from '../renderGovernor.js';
+import {
+  governorRequestRender
+} from '../renderGovernor.js';
 import {
   DETECTION_ENABLE_FADE_MS,
   countAnimatingRenderEntries,
@@ -19,15 +21,24 @@ import {
   getKeyholeFadeTuning,
   keyholeLabelAlphaFromGeometry,
 } from '../celestialRing.js';
-import { registerWorldOverlayPaintLane } from '../overlays/worldOverlay.js';
+import {
+  registerWorldOverlayPaintLane
+} from '../overlays/worldOverlay.js';
 import {
   DETECTION_STYLE,
   DETECTION_THEME_MAP,
   SKY_PLATE_SCALE,
 } from '../overlays/worldOverlayTokens.js';
-import { skyBackdropFactor } from './iconOrientation.js';
-import { paintDetectionCallout } from '../overlays/worldOverlayDraw.js';
-import { allocateLayerQuotas, LabelArbiter } from './labelArbiter.js';
+import {
+  skyBackdropFactor
+} from './iconOrientation.js';
+import {
+  paintDetectionCallout
+} from '../overlays/worldOverlayDraw.js';
+import {
+  allocateLayerQuotas,
+  LabelArbiter
+} from './labelArbiter.js';
 import {
   BoundedCohort,
   cohortCapForQuota,
@@ -45,7 +56,9 @@ import {
   profileForDensity,
   viewScaleForAltitude,
 } from './detectionPolicy.js';
-import { detectionBracketOpacity } from './detectionPresentation.js';
+import {
+  detectionBracketOpacity
+} from './detectionPresentation.js';
 
 /**
  * @module detection
@@ -343,7 +356,11 @@ export function destroyDetection() {
   _lastLabelSolveAt = 0;
   _labelSolveDirty = true;
   _lastDiagnostics = null;
-  _lastSolveSnapshot = { demandByLayer: {}, cohortByLayer: {}, cohortCount: 0 };
+  _lastSolveSnapshot = {
+    demandByLayer: {},
+    cohortByLayer: {},
+    cohortCount: 0
+  };
   _hostLayoutRevision = -1;
   _charWidth = 0;
   _frameCount = 0;
@@ -487,7 +504,10 @@ export function setDetectionTuning(options = {}) {
  * @returns {{densityPct: number, allocationStrategy: 'ELASTIC'|'WEIGHTED'}} Current tuning.
  */
 export function getDetectionTuning() {
-  return { densityPct: _densityPct, allocationStrategy: _allocationStrategy };
+  return {
+    densityPct: _densityPct,
+    allocationStrategy: _allocationStrategy
+  };
 }
 
 /**
@@ -622,7 +642,11 @@ function _applyModeState() {
     _labelArbiter.clear();
     _lastLabelSolveAt = 0;
     _labelSolveDirty = true;
-    _lastSolveSnapshot = { demandByLayer: {}, cohortByLayer: {}, cohortCount: 0 };
+    _lastSolveSnapshot = {
+      demandByLayer: {},
+      cohortByLayer: {},
+      cohortCount: 0
+    };
   } else {
     _enableTime = _nowMs(); // restart the subtle fade-in on (re)activation
     _syncSurfaceVisibility();
@@ -677,8 +701,14 @@ function _paintDetectionLane(frame) {
     _labelSolveDirty = true;
   }
   const start = performance.now();
-  const result = _drawOverlay(frame)
-    || { didSolve: false, solveMs: 0, fadingCount: 0, animatingCount: 0, solvePending: false };
+  const result = _drawOverlay(frame) ||
+    {
+      didSolve: false,
+      solveMs: 0,
+      fadingCount: 0,
+      animatingCount: 0,
+      solvePending: false
+    };
   _lastRenderMs = performance.now() - start;
   _lastSolveMs = result.solveMs || 0;
   _lastPaintMs = Math.max(0, _lastRenderMs - _lastSolveMs);
@@ -696,16 +726,16 @@ function _paintDetectionLane(frame) {
   // scene with nothing animating it asks for nothing, and the governor stays
   // idle. See `detectionRenderDemand.js`.
   if (detectionNeedsFollowUpFrame({
-    active: _mode !== MODE_OFF && !_suspended,
-    // The frame's OWN timestamp, not a fresh sample — re-reading the clock here
-    // is what dropped the terminal frame of a fade (paint at 219 ms, policy at
-    // 220 ms, and the settled alpha never painted).
-    nowMs: Number.isFinite(frame.timestamp) ? frame.timestamp : _nowMs(),
-    enabledAtMs: _enableTime,
-    fadeMs: FADE_MS,
-    animatingLabelCount: result.animatingCount || 0,
-    solvePending: result.solvePending === true,
-  })) {
+      active: _mode !== MODE_OFF && !_suspended,
+      // The frame's OWN timestamp, not a fresh sample — re-reading the clock here
+      // is what dropped the terminal frame of a fade (paint at 219 ms, policy at
+      // 220 ms, and the settled alpha never painted).
+      nowMs: Number.isFinite(frame.timestamp) ? frame.timestamp : _nowMs(),
+      enabledAtMs: _enableTime,
+      fadeMs: FADE_MS,
+      animatingLabelCount: result.animatingCount || 0,
+      solvePending: result.solvePending === true,
+    })) {
     governorRequestRender('detection-animation');
   }
 }
@@ -725,9 +755,9 @@ function _collectDetectableObjects() {
     const layer = _layers[i];
     if (typeof layer.getDetectableObjects !== 'function') continue;
     try {
-      const maxCount = ['flights', 'military'].includes(layer.id)
-        ? Number.POSITIVE_INFINITY
-        : LAYER_CANDIDATE_CAP;
+      const maxCount = ['flights', 'military'].includes(layer.id) ?
+        Number.POSITIVE_INFINITY :
+        LAYER_CANDIDATE_CAP;
       const items = layer.getDetectableObjects({
         mode: label,
         maxCount,
@@ -852,8 +882,7 @@ function _buildLabelPlacements(
   const gapX = 8;
   const gapY = 12;
   const margin = 4;
-  const raw = [
-    {
+  const raw = [{
       corner: 'NE',
       cardX: sx + halfW + gapX,
       cardY: sy - halfH - gapY - card.h,
@@ -889,11 +918,19 @@ function _buildLabelPlacements(
 
   const placements = [];
   for (const placement of raw) {
-    const { cardX, cardY } = placement;
+    const {
+      cardX,
+      cardY
+    } = placement;
     if (cardX < margin || cardY < margin || cardX + card.w > width - margin || cardY + card.h > height - margin) {
       continue;
     }
-    const cardRect = { x: cardX, y: cardY, w: card.w, h: card.h };
+    const cardRect = {
+      x: cardX,
+      y: cardY,
+      w: card.w,
+      h: card.h
+    };
     if (rectIntersectsAny(cardRect, occlusionRects)) continue;
     const leadToX = placement.leadToSide.endsWith('E') ? cardX + card.w : cardX;
     const leadToY = placement.leadToSide.startsWith('S') ? cardY + card.h : cardY;
@@ -929,7 +966,11 @@ function _buildLabelPlacements(
  * @param {Object} keyhole Frame keyhole geometry.
  */
 function _stashCallout(entry, acquireFade, keyhole) {
-  const { candidate, placement, temporalAlpha } = entry;
+  const {
+    candidate,
+    placement,
+    temporalAlpha
+  } = entry;
   const radialAlpha = keyholeLabelAlphaFromGeometry(placement.centerX, placement.centerY, keyhole);
   const alpha = acquireFade * temporalAlpha * radialAlpha;
   if (alpha <= 0.001) return;
@@ -937,11 +978,26 @@ function _stashCallout(entry, acquireFade, keyhole) {
   let row = _calloutPool[_calloutCount];
   if (!row) {
     row = {
-      x: 0, y: 0, w: 0, h: 0,
-      primaryX: 0, microX: 0, baseline: 0,
-      leadFromX: 0, leadFromY: 0, leadToX: 0, leadToY: 0,
-      plate: '', plateScale: 1, accent: '', label: '', primary: '', micro: '',
-      font: FONT, microFont: MICRO_FONT, alpha: 1,
+      x: 0,
+      y: 0,
+      w: 0,
+      h: 0,
+      primaryX: 0,
+      microX: 0,
+      baseline: 0,
+      leadFromX: 0,
+      leadFromY: 0,
+      leadToX: 0,
+      leadToY: 0,
+      plate: '',
+      plateScale: 1,
+      accent: '',
+      label: '',
+      primary: '',
+      micro: '',
+      font: FONT,
+      microFont: MICRO_FONT,
+      alpha: 1,
     };
     _calloutPool[_calloutCount] = row;
   }
@@ -1061,9 +1117,18 @@ function _materializeCandidate(obj, width, height, keyhole, occlusionRects, came
  * for a bounded cohort on solve ticks.
  */
 function _drawOverlay(frame) {
-  const { width, height } = frame;
+  const {
+    width,
+    height
+  } = frame;
   if (!_ctx || width <= 0 || height <= 0) {
-    return { didSolve: false, solveMs: 0, fadingCount: 0, animatingCount: 0, solvePending: false };
+    return {
+      didSolve: false,
+      solveMs: 0,
+      fadingCount: 0,
+      animatingCount: 0,
+      solvePending: false
+    };
   }
 
   // ONE timestamp per frame, monotonic, shared with the demand policy below and
@@ -1073,10 +1138,16 @@ function _drawOverlay(frame) {
   const bracketPresentationOpacity = detectionBracketOpacity(_cockpitActive);
   const shouldSolve = _labelSolveDirty || now - _lastLabelSolveAt >= LABEL_SOLVE_INTERVAL_MS;
   const calloutOcclusionRects = frame.uiRects;
-  const selectedIdentities = shouldSolve
-    ? _labelArbiter.liveIdentities({ includeFading: false, now })
-    : null;
-  const renderIdentities = _labelArbiter.liveIdentities({ includeFading: true, now });
+  const selectedIdentities = shouldSolve ?
+    _labelArbiter.liveIdentities({
+      includeFading: false,
+      now
+    }) :
+    null;
+  const renderIdentities = _labelArbiter.liveIdentities({
+    includeFading: true,
+    now
+  });
   const objects = _collectDetectableObjects();
   const sampledCount = objects.length;
   if (objects.length === 0) {
@@ -1128,7 +1199,13 @@ function _drawOverlay(frame) {
     // whole mechanism exists to remove.
     _lastLabelSolveAt = now;
     _labelSolveDirty = false;
-    return { didSolve: false, solveMs: 0, fadingCount: 0, animatingCount: 0, solvePending: false };
+    return {
+      didSolve: false,
+      solveMs: 0,
+      fadingCount: 0,
+      animatingCount: 0,
+      solvePending: false
+    };
   }
 
   // Horizon culling, keyhole geometry, and camera transforms are shared with
@@ -1171,15 +1248,27 @@ function _drawOverlay(frame) {
     }
     let entry = bands[band];
     if (!entry) {
-      entry = { color, alpha: band / BRACKET_ALPHA_STEPS, path: new Path2D() };
+      entry = {
+        color,
+        alpha: band / BRACKET_ALPHA_STEPS,
+        path: new Path2D()
+      };
       bands[band] = entry;
     }
     return entry.path;
   };
 
   let visibleCount = 0;
-  const bracketOpacityCounts = { full: 0, partial: 0, hidden: 0 };
-  const aircraftBracketSectors = { left: 0, front: 0, right: 0 };
+  const bracketOpacityCounts = {
+    full: 0,
+    partial: 0,
+    hidden: 0
+  };
+  const aircraftBracketSectors = {
+    left: 0,
+    front: 0,
+    right: 0
+  };
   let protectedVisibleCount = 0;
   const candidateMap = new Map();
   const cohortBuilders = shouldSolve ? new Map() : null;
@@ -1430,5 +1519,11 @@ function _drawOverlay(frame) {
   _drawModeBanner(visibleCount, sampledCount);
   // `_labelSolveDirty` surviving a paint means the solve was owed and did not
   // run — the frame that carried the request cannot be the last one.
-  return { didSolve, solveMs, fadingCount, animatingCount, solvePending: _labelSolveDirty };
+  return {
+    didSolve,
+    solveMs,
+    fadingCount,
+    animatingCount,
+    solvePending: _labelSolveDirty
+  };
 }
