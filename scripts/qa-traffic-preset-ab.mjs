@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-traffic-preset-ab.mjs — A/B screenshot capture for preset-aware
  * traffic dot styling (owner field finding 2026-07-23: NVG/FLIR/CRT
@@ -26,7 +27,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -44,16 +47,23 @@ const OUT_DIR = path.resolve(REPO_ROOT, getOpt('--out', 'qa-shots/preset-traffic
 // rest fade to ~2 px, so no styling is judgeable there. Both views keep the
 // camera close/steep enough that every bucket renders (same reason
 // qa-traffic's proof shot is near-nadir).
-const VIEWS = [
-  {
+const VIEWS = [{
     id: 'i35-close',
     label: 'Austin I-35 jam cluster — close queue read',
-    lon: -97.7365, lat: 30.252, height: 1400, heading: 8, pitch: -65,
+    lon: -97.7365,
+    lat: 30.252,
+    height: 1400,
+    heading: 8,
+    pitch: -65,
   },
   {
     id: 'i35-nadir',
     label: 'Austin I-35 corridor — near-nadir city scale',
-    lon: -97.7365, lat: 30.25, height: 2400, heading: 8, pitch: -70,
+    lon: -97.7365,
+    lat: 30.25,
+    height: 2400,
+    heading: 8,
+    pitch: -70,
   },
 ];
 /**
@@ -61,12 +71,38 @@ const VIEWS = [
  * `ironbow` flips the thermal palette uniform (0 = grayscale WHOT,
  * 1 = Ironbow "Predator" ramp) — round 2 requires the dots to read in both.
  */
-const STYLES = [
-  { id: 'normal', name: 'normal', label: 'Normal', profile: 'normal' },
-  { id: 'surveillance', name: 'surveillance', label: 'NVG', profile: 'mono' },
-  { id: 'thermal', name: 'thermal', label: 'FLIR WHOT', profile: 'mono', ironbow: false },
-  { id: 'thermal-ironbow', name: 'thermal', label: 'FLIR Ironbow', profile: 'mono', ironbow: true },
-  { id: 'retro', name: 'retro', label: 'CRT', profile: 'crt' },
+const STYLES = [{
+    id: 'normal',
+    name: 'normal',
+    label: 'Normal',
+    profile: 'normal'
+  },
+  {
+    id: 'surveillance',
+    name: 'surveillance',
+    label: 'NVG',
+    profile: 'mono'
+  },
+  {
+    id: 'thermal',
+    name: 'thermal',
+    label: 'FLIR WHOT',
+    profile: 'mono',
+    ironbow: false
+  },
+  {
+    id: 'thermal-ironbow',
+    name: 'thermal',
+    label: 'FLIR Ironbow',
+    profile: 'mono',
+    ironbow: true
+  },
+  {
+    id: 'retro',
+    name: 'retro',
+    label: 'CRT',
+    profile: 'crt'
+  },
 ];
 
 const CHROME_EXECUTABLE_CANDIDATES = [
@@ -83,7 +119,13 @@ const CHROME_EXECUTABLE_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
 ].filter(Boolean);
 const findChromeExecutable = () =>
-  CHROME_EXECUTABLE_CANDIDATES.find((c) => { try { return fs.existsSync(c); } catch { return false; } }) || null;
+  CHROME_EXECUTABLE_CANDIDATES.find((c) => {
+    try {
+      return fs.existsSync(c);
+    } catch {
+      return false;
+    }
+  }) || null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -99,26 +141,37 @@ function waitForTilesLoaded(page, timeoutMs) {
         }
       }
       return true;
-    },
-    { timeout: timeoutMs }
+    }, {
+      timeout: timeoutMs
+    }
   ).then(() => true).catch(() => false);
 }
 
 /** Enable traffic + teleport, then poll the layer until settled. */
-function settleTraffic(page, view, { minCount = 100, timeoutS = 45 } = {}) {
+function settleTraffic(page, view, {
+  minCount = 100,
+  timeoutS = 45
+} = {}) {
   return page.evaluate(async (v, minC, tS) => {
     const gev = window.__godsEyeView;
     await gev.dataManager.setEnabled('traffic', true);
     const mod = gev.dataManager.layers.get('traffic').module;
-    try { gev.viewer.camera.cancelFlight(); } catch { /* no flight */ }
+    try {
+      gev.viewer.camera.cancelFlight();
+    } catch {
+      /* no flight */ }
     const ell = gev.viewer.scene.globe.ellipsoid;
     const d2r = Math.PI / 180;
     gev.viewer.camera.setView({
       destination: ell.cartographicToCartesian({
-        longitude: v.lon * d2r, latitude: v.lat * d2r, height: v.height,
+        longitude: v.lon * d2r,
+        latitude: v.lat * d2r,
+        height: v.height,
       }),
       orientation: {
-        heading: (v.heading || 0) * d2r, pitch: (v.pitch ?? -90) * d2r, roll: 0,
+        heading: (v.heading || 0) * d2r,
+        pitch: (v.pitch ?? -90) * d2r,
+        roll: 0,
       },
     });
     let s = null;
@@ -134,7 +187,10 @@ function settleTraffic(page, view, { minCount = 100, timeoutS = 45 } = {}) {
         break;
       }
     }
-    return { ...s, renderSettled };
+    return {
+      ...s,
+      renderSettled
+    };
   }, view, minCount, timeoutS);
 }
 
@@ -156,10 +212,14 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.mkdirSync(OUT_DIR, {
+    recursive: true
+  });
   const browser = await puppeteer.launch({
     headless: 'new',
-    ...(findChromeExecutable() ? { executablePath: findChromeExecutable() } : {}),
+    ...(findChromeExecutable() ? {
+      executablePath: findChromeExecutable()
+    } : {}),
     args: [
       '--no-sandbox', '--disable-setuid-sandbox', '--use-gl=angle', '--use-angle=swiftshader',
       '--disable-dev-shm-usage', '--disable-web-security',
@@ -172,12 +232,19 @@ async function main() {
   let exitCode = 0;
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1600, height: 900 });
+    await page.setViewport({
+      width: 1600,
+      height: 900
+    });
     console.log('Loading app...');
-    await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-      { timeout: 60000 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+        timeout: 60000
+      },
     );
     await sleep(1500);
 
@@ -189,11 +256,11 @@ async function main() {
       // flow feed is actually up. A degraded run renders simulated white dots
       // and must not pass as a live styling capture — and a wait that timed
       // out never rendered this view at all.
-      if (!settled || !settled.renderSettled || settled.count === 0
-          || settled.mode !== 'live' || settled.error) {
-        console.error('  [FAIL] traffic never settled live '
-          + `(count=${settled?.count} mode=${settled?.mode} `
-          + `settled=${Boolean(settled?.renderSettled)} err=${settled?.error || 'none'})`);
+      if (!settled || !settled.renderSettled || settled.count === 0 ||
+        settled.mode !== 'live' || settled.error) {
+        console.error('  [FAIL] traffic never settled live ' +
+          `(count=${settled?.count} mode=${settled?.mode} ` +
+          `settled=${Boolean(settled?.renderSettled)} err=${settled?.error || 'none'})`);
         exitCode = 1;
         continue;
       }
@@ -206,7 +273,9 @@ async function main() {
         // thermal palette uniform selects WHOT vs Ironbow.
         await page.evaluate((s) => {
           const sm = window.__godsEyeView.styleManager;
-          sm.setStyle(s.name, { applyPreset: true });
+          sm.setStyle(s.name, {
+            applyPreset: true
+          });
           if (sm.stages.thermal) sm.stages.thermal.uniforms.palette = s.ironbow ? 1.0 : 0.0;
         }, style);
         await sleep(1800); // 500 ms intensity lerp + settle
@@ -221,10 +290,15 @@ async function main() {
 
           const final = await page.evaluate(() => {
             const mod = window.__godsEyeView.dataManager.layers.get('traffic').module;
-            return { stats: mod.getStats(), params: mod.getParams() };
+            return {
+              stats: mod.getStats(),
+              params: mod.getParams()
+            };
           });
           const shot = `${view.id}--${style.id}--detect-${detect}.png`;
-          await page.screenshot({ path: path.join(OUT_DIR, shot) });
+          await page.screenshot({
+            path: path.join(OUT_DIR, shot)
+          });
 
           const b = final.stats.flowBuckets || {};
           // Bucket colors are the whole point of this capture, so a degraded
@@ -232,22 +306,27 @@ async function main() {
           const colored = (b.free || 0) + (b.slow || 0) + (b.jam || 0);
           // A style swap can kick a re-render; capturing mid-load screenshots
           // the previous style's dots.
-          const ok = !final.stats.loading
-            && final.stats.mode === 'live' && !final.stats.error
-            && final.stats.count > 0 && colored > 0
-            && final.params.presetDots === 'on'
-            && final.stats.stylePreset === style.name
-            && final.stats.styleProfile === style.profile;
+          const ok = !final.stats.loading &&
+            final.stats.mode === 'live' && !final.stats.error &&
+            final.stats.count > 0 && colored > 0 &&
+            final.params.presetDots === 'on' &&
+            final.stats.stylePreset === style.name &&
+            final.stats.styleProfile === style.profile;
           if (!ok) exitCode = 1;
-          console.log(`  [${ok ? 'OK' : 'FAIL'}] ${shot}  dots=${final.stats.count} `
-            + `free=${b.free} slow=${b.slow} jam=${b.jam} sim=${b.sim} `
-            + `stylePreset=${final.stats.stylePreset} profile=${final.stats.styleProfile} `
-            + `err=${final.stats.error || 'none'} loading=${final.stats.loading}`);
+          console.log(`  [${ok ? 'OK' : 'FAIL'}] ${shot}  dots=${final.stats.count} ` +
+            `free=${b.free} slow=${b.slow} jam=${b.jam} sim=${b.sim} ` +
+            `stylePreset=${final.stats.stylePreset} profile=${final.stats.styleProfile} ` +
+            `err=${final.stats.error || 'none'} loading=${final.stats.loading}`);
           manifest.push({
-            view: view.id, label: view.label,
-            style: style.id, styleLabel: style.label, detect, shot,
+            view: view.id,
+            label: view.label,
+            style: style.id,
+            styleLabel: style.label,
+            detect,
+            shot,
             capturedAt: new Date().toISOString(),
-            count: final.stats.count, flowBuckets: b,
+            count: final.stats.count,
+            flowBuckets: b,
             stylePreset: final.stats.stylePreset,
             styleProfile: final.stats.styleProfile,
             coveragePct: final.stats.flowCoveragePct,
@@ -264,7 +343,9 @@ async function main() {
       // Leave the page in the shipped default state between views.
       await page.evaluate(() => {
         const sm = window.__godsEyeView.styleManager;
-        sm.setStyle('normal', { applyPreset: true });
+        sm.setStyle('normal', {
+          applyPreset: true
+        });
         sm._setDetectionMode('OFF');
         if (sm.stages.thermal) sm.stages.thermal.uniforms.palette = 0.0;
       });
@@ -281,4 +362,7 @@ async function main() {
   process.exit(exitCode);
 }
 
-main().catch((e) => { console.error(e); process.exit(3); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(3);
+});
