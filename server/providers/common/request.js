@@ -32,4 +32,7 @@ function readRequestBody(req, maxBytes = 1024 * 1024) {
   });
 }
 
-export { readRequestBodyCapped, readRequestBody };
+export {
+  readRequestBodyCapped,
+  readRequestBody
+};
