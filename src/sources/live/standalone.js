@@ -11,7 +11,10 @@ import {
   readsbSnapshot,
   readsbIdentities,
 } from './aircraft.js';
-import { normalizeVesselTrack, vesselSnapshot } from './vessels.js';
+import {
+  normalizeVesselTrack,
+  vesselSnapshot
+} from './vessels.js';
 
 const defaultFetch = (...args) => globalThis.fetch(...args);
 const header = (response, name) => response.headers?.get?.(name);
@@ -20,8 +23,8 @@ function openSkyError(response) {
   const error = httpError(response, 'OpenSky');
   const mode = String(
     header(response, 'x-opensky-auth-mode-used') ||
-      header(response, 'x-opensky-auth') ||
-      '',
+    header(response, 'x-opensky-auth') ||
+    '',
   ).toLowerCase();
   const reason = String(
     header(response, 'x-opensky-auth-reason') || '',
@@ -40,11 +43,11 @@ function openSkyError(response) {
     };
     error.message =
       reasons[reason] ||
-      (/^(oauth_|basic_)/.test(reason)
-        ? 'OpenSky auth invalid'
-        : mode === 'anon'
-          ? 'OpenSky auth required'
-          : 'OpenSky auth failed');
+      (/^(oauth_|basic_)/.test(reason) ?
+        'OpenSky auth invalid' :
+        mode === 'anon' ?
+        'OpenSky auth required' :
+        'OpenSky auth failed');
   }
   return error;
 }
@@ -56,35 +59,46 @@ export function createOpenSkySource({
 } = {}) {
   return {
     label: 'OpenSky Network',
-    async getSnapshot(query = {}, { signal } = {}) {
+    async getSnapshot(query = {}, {
+      signal
+    } = {}) {
       const params = new URLSearchParams();
       if (Number.isFinite(query.latitude) && Number.isFinite(query.longitude)) {
         params.set('lat', query.latitude.toFixed(4));
         params.set('lon', query.longitude.toFixed(4));
       }
-      const { response, payload } = await readResponse(
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        `/api/opensky${params.size ? '?' + params : ''}`,
-        { signal },
+        `/api/opensky${params.size ? '?' + params : ''}`, {
+          signal
+        },
         'OpenSky',
       );
       if (!response.ok) throw openSkyError(response);
       return {
         ...openSkySnapshot(payload, {
           source: header(response, 'x-flight-source') || 'OpenSky Network',
-          coverage:
-            header(response, 'x-flight-coverage') ||
+          coverage: header(response, 'x-flight-coverage') ||
             'worldwide upstream snapshot',
           now: now(),
         }),
         status: response.status,
       };
     },
-    async getTrack(reference, { signal } = {}) {
-      const { response, payload } = await readResponse(
+    async getTrack(reference, {
+      signal
+    } = {}) {
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        '/api/opensky-track?icao24=' + encodeURIComponent(reference),
-        { signal },
+        '/api/opensky-track?icao24=' + encodeURIComponent(reference), {
+          signal
+        },
         'OpenSky',
       );
       if (!response.ok) throw httpError(response, 'OpenSky');
@@ -93,13 +107,19 @@ export function createOpenSkySource({
         complete: false,
       };
     },
-    async getEnrichment(query, { signal } = {}) {
+    async getEnrichment(query, {
+      signal
+    } = {}) {
       if (!['type', 'route'].includes(query.kind))
         throw new LiveSourceError('unsupported', 'Enrichment unavailable');
-      const { response, payload } = await readResponse(
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        `/api/adsbdb/${query.kind}/${encodeURIComponent(query.id)}`,
-        { signal },
+        `/api/adsbdb/${query.kind}/${encodeURIComponent(query.id)}`, {
+          signal
+        },
         'adsbdb',
       );
       if (!response.ok) throw httpError(response, 'adsbdb');
@@ -114,21 +134,33 @@ export function createAdsbLolSource({
 } = {}) {
   return {
     label: 'adsb.lol',
-    async getIdentities(_query = {}, { signal } = {}) {
-      const { response, payload } = await readResponse(
+    async getIdentities(_query = {}, {
+      signal
+    } = {}) {
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        '/api/adsblol/mil',
-        { signal },
+        '/api/adsblol/mil', {
+          signal
+        },
         'adsb.lol',
       );
       if (!response.ok) throw httpError(response, 'adsb.lol');
       return readsbIdentities(payload);
     },
-    async getSnapshot(_query = {}, { signal } = {}) {
-      const { response, payload } = await readResponse(
+    async getSnapshot(_query = {}, {
+      signal
+    } = {}) {
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        '/api/adsblol/mil',
-        { signal },
+        '/api/adsblol/mil', {
+          signal
+        },
         'adsb.lol',
       );
       if (!response.ok) throw httpError(response, 'adsb.lol');
@@ -142,23 +174,28 @@ export function createAdsbLolSource({
         status: response.status,
       };
     },
-    async getTrack(reference, { signal } = {}) {
-      const { response, payload } = await readResponse(
+    async getTrack(reference, {
+      signal
+    } = {}) {
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        '/api/adsblol/trace?hex=' + encodeURIComponent(reference),
-        { signal },
+        '/api/adsblol/trace?hex=' + encodeURIComponent(reference), {
+          signal
+        },
         'adsb.lol',
       );
       if (!response.ok) throw httpError(response, 'adsb.lol');
       const baseTimeMs = epoch(payload?.timestamp, 1000);
       return {
-        records:
-          baseTimeMs == null
-            ? []
-            : normalizeAircraftTrack(payload?.trace, {
-                baseTimeMs,
-                readsb: true,
-              }),
+        records: baseTimeMs == null ?
+          [] :
+          normalizeAircraftTrack(payload?.trace, {
+            baseTimeMs,
+            readsb: true,
+          }),
         complete: false,
       };
     },
@@ -172,13 +209,22 @@ export function createAisStreamSource({
 } = {}) {
   return {
     label: 'AISStream',
-    async getSnapshot({ maxRows = 12000 } = {}, { signal } = {}) {
+    async getSnapshot({
+      maxRows = 12000
+    } = {}, {
+      signal
+    } = {}) {
       const url = new URL(apiUrl, origin());
       url.searchParams.set('maxRows', String(maxRows));
-      const { response, payload } = await readResponse(
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        url.toString(),
-        { signal, cache: 'no-store' },
+        url.toString(), {
+          signal,
+          cache: 'no-store'
+        },
         'AIS live',
       );
       if (!response.ok) {
@@ -193,13 +239,22 @@ export function createAisStreamSource({
         error.message = reasons[payload?.status] || error.message;
         throw error;
       }
-      return { ...vesselSnapshot(payload), status: response.status };
+      return {
+        ...vesselSnapshot(payload),
+        status: response.status
+      };
     },
-    async getTrack(reference, { signal } = {}) {
-      const { response, payload } = await readResponse(
+    async getTrack(reference, {
+      signal
+    } = {}) {
+      const {
+        response,
+        payload
+      } = await readResponse(
         fetchImpl,
-        '/api/ais-live/track?mmsi=' + encodeURIComponent(reference),
-        { signal },
+        '/api/ais-live/track?mmsi=' + encodeURIComponent(reference), {
+          signal
+        },
         'AIS live',
       );
       if (!response.ok) throw httpError(response, 'AIS live');
