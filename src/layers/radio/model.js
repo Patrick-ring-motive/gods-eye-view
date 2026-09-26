@@ -109,11 +109,9 @@ export function createModel({
     }
     return ['tags', 'languages'].every((key) => {
       const frozenValues = Array.isArray(frozenStation[key]) ?
-        frozenStation[key] :
-        [];
+        frozenStation[key] : [];
       const currentValues = Array.isArray(currentStation[key]) ?
-        currentStation[key] :
-        [];
+        currentStation[key] : [];
       return (
         frozenValues.length === currentValues.length &&
         frozenValues.every((value, index) => value === currentValues[index])
