@@ -53,7 +53,10 @@ export function projectPoint(lat, lon, headingDeg, distM) {
       Math.sin(b) * Math.sin(ad) * Math.cos(la),
       Math.cos(ad) - Math.sin(la) * Math.sin(la2),
     );
-  return { lat: toDeg(la2), lon: toDeg(lo2) };
+  return {
+    lat: toDeg(la2),
+    lon: toDeg(lo2)
+  };
 }
 
 /**
@@ -98,10 +101,19 @@ export function planeSupportPoints(pose) {
   const heading = Number(pose.headingDeg) || 0;
   const cap = projectPoint(pose.lat, pose.lon, heading, dims.horiz);
   const supports = {};
-  const rows = { b: -1, m: 0, t: 1 };
+  const rows = {
+    b: -1,
+    m: 0,
+    t: 1
+  };
   // Column letter: l / r, with the centre spelled `m` in the bottom and top
   // rows (bm, tm) and `c` in the middle row (mc).
-  const cols = { l: -1, m: 0, c: 0, r: 1 };
+  const cols = {
+    l: -1,
+    m: 0,
+    c: 0,
+    r: 1
+  };
   for (const key of SUPPORT_KEYS) {
     const row = rows[key[0]];
     const col = cols[key[1]];
@@ -117,9 +129,21 @@ export function planeSupportPoints(pose) {
       heading,
       row * dims.upHoriz,
     );
-    supports[key] = { lat: along.lat, lon: along.lon, row, col };
+    supports[key] = {
+      lat: along.lat,
+      lon: along.lon,
+      row,
+      col
+    };
   }
-  return { mount: { lat: pose.lat, lon: pose.lon }, capCenter: cap, supports };
+  return {
+    mount: {
+      lat: pose.lat,
+      lon: pose.lon
+    },
+    capCenter: cap,
+    supports
+  };
 }
 
 /**
@@ -154,7 +178,11 @@ export function requiredPlaneLift(
 ) {
   let liftM = 0;
   let limitingKey = null;
-  const rows = { b: -1, m: 0, t: 1 };
+  const rows = {
+    b: -1,
+    m: 0,
+    t: 1
+  };
   for (const key of SUPPORT_KEYS) {
     const raw = groundUnder ? groundUnder[key] : undefined;
     // Strict: a null/absent support must fall back, not read as 0 m.
@@ -168,7 +196,10 @@ export function requiredPlaneLift(
       limitingKey = key;
     }
   }
-  return { liftM, limitingKey };
+  return {
+    liftM,
+    limitingKey
+  };
 }
 
 /**
