@@ -1,5 +1,7 @@
 // src/data/firmsAdapt.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   adaptFirmsRecords,
@@ -57,7 +59,9 @@ test('numeric confidence (MODIS-style) → value/100, clamped', () => {
 });
 
 test('unpadded acq_time parses in the adapter path ("45" = 00:45Z)', () => {
-  const [fire] = adaptFirmsRecords([proxyRecord({ acqTime: '45' })]);
+  const [fire] = adaptFirmsRecords([proxyRecord({
+    acqTime: '45'
+  })]);
   assert.equal(fire.acqMs, Date.UTC(2026, 6, 16, 0, 45));
 });
 
@@ -70,7 +74,9 @@ test('parseAcquisitionMs: memo cache is honored, invalid input → 0', () => {
 });
 
 test('daynight "D" → night false', () => {
-  const [fire] = adaptFirmsRecords([proxyRecord({ daynight: 'D' })]);
+  const [fire] = adaptFirmsRecords([proxyRecord({
+    daynight: 'D'
+  })]);
   assert.equal(fire.night, false);
 });
 
@@ -84,16 +90,25 @@ test('sensor normalization: VIIRS/MODIS detected, junk truncated', () => {
 test('records with non-finite lat/lon are skipped; index stays sequential', () => {
   const fires = adaptFirmsRecords([
     proxyRecord(),
-    proxyRecord({ lat: 'nope' }),
-    proxyRecord({ lon: Infinity }),
-    proxyRecord({ lat: 40.1 }),
+    proxyRecord({
+      lat: 'nope'
+    }),
+    proxyRecord({
+      lon: Infinity
+    }),
+    proxyRecord({
+      lat: 40.1
+    }),
   ]);
   assert.equal(fires.length, 2);
   assert.deepEqual(fires.map((f) => f.index), [0, 1]);
 });
 
 test('non-finite frp/brightness → 0; empty input → []', () => {
-  const [fire] = adaptFirmsRecords([proxyRecord({ frp: 'n/a', brightness: undefined })]);
+  const [fire] = adaptFirmsRecords([proxyRecord({
+    frp: 'n/a',
+    brightness: undefined
+  })]);
   assert.equal(fire.frp, 0);
   assert.equal(fire.brightness, 0);
   assert.deepEqual(adaptFirmsRecords([]), []);
