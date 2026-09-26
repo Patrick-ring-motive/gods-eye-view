@@ -1,4 +1,6 @@
-import { createStateChannel } from '../app/stateChannel.js';
+import {
+  createStateChannel
+} from '../app/stateChannel.js';
 
 /** One cancellable place lookup at a time, under the caller's camera authority. */
 export class LocationSearch {
@@ -96,13 +98,18 @@ export class LocationSearch {
         this.state = {
           ...this.state,
           status: 'found',
-          destination: { ...destination },
+          destination: {
+            ...destination
+          },
         };
         this.channel.publish(change('found'));
       } else {
         this.onMissing?.();
         if (!current() || controller.signal.aborted) return;
-        this.state = { ...this.state, status: 'missing' };
+        this.state = {
+          ...this.state,
+          status: 'missing'
+        };
         this.channel.publish(change('missing'));
       }
     } catch (error) {
@@ -112,7 +119,9 @@ export class LocationSearch {
       this.state = {
         ...this.state,
         status: 'failed',
-        error: { message: String(error?.message || error) },
+        error: {
+          message: String(error?.message || error)
+        },
       };
       this.channel.publish(change('failed'));
     } finally {
@@ -122,10 +131,9 @@ export class LocationSearch {
           this.state = {
             ...this.state,
             searching: false,
-            status:
-              this.state.status === 'searching'
-                ? 'cancelled'
-                : this.state.status,
+            status: this.state.status === 'searching' ?
+              'cancelled' :
+              this.state.status,
           };
         this.onSettled?.(authority);
         this.channel.publish(change('settled'));
@@ -138,7 +146,11 @@ export class LocationSearch {
     this.generation++;
     this.controller?.abort();
     this.controller = null;
-    this.state = { ...this.state, status: 'disposed', searching: false };
+    this.state = {
+      ...this.state,
+      status: 'disposed',
+      searching: false
+    };
     this.channel.getSnapshot();
     this.channel.destroy();
   }
