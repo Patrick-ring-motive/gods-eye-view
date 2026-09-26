@@ -1,11 +1,17 @@
-import { defaultSourceRoot } from '../common/source-root.js';
+import {
+  defaultSourceRoot
+} from '../common/source-root.js';
 import path from 'node:path';
-import { readRequestBody } from '../common/request.js';
+import {
+  readRequestBody
+} from '../common/request.js';
 import fs from 'node:fs';
 
 const REALTIME_DEBUG_LOG_MAX_BYTES = 8 * 1024 * 1024;
 
-function createDebugLogHandler({ sourceRoot = defaultSourceRoot } = {}) {
+function createDebugLogHandler({
+  sourceRoot = defaultSourceRoot
+} = {}) {
   const REALTIME_DEBUG_LOG_DIR = path.join(sourceRoot, '.gev-logs');
   const REALTIME_DEBUG_LOG_FILE = path.join(
     REALTIME_DEBUG_LOG_DIR,
@@ -15,14 +21,18 @@ function createDebugLogHandler({ sourceRoot = defaultSourceRoot } = {}) {
     if (req.method !== 'POST') {
       res.statusCode = 405;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'Method not allowed' }));
+      res.end(JSON.stringify({
+        error: 'Method not allowed'
+      }));
       return;
     }
 
     try {
       const body = await readRequestBody(req, REALTIME_DEBUG_LOG_MAX_BYTES);
       const record = JSON.parse(body || '{}');
-      fs.mkdirSync(REALTIME_DEBUG_LOG_DIR, { recursive: true });
+      fs.mkdirSync(REALTIME_DEBUG_LOG_DIR, {
+        recursive: true
+      });
       fs.appendFileSync(
         REALTIME_DEBUG_LOG_FILE,
         `${JSON.stringify({
@@ -44,4 +54,6 @@ function createDebugLogHandler({ sourceRoot = defaultSourceRoot } = {}) {
   };
 }
 
-export { createDebugLogHandler };
+export {
+  createDebugLogHandler
+};
