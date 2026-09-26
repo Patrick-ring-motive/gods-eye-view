@@ -1,5 +1,9 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
-import { createApplicationRequestServices } from './requests.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
+import {
+  createApplicationRequestServices
+} from './requests.js';
 
 // Compatibility owners are page-scoped, like the viewer and its layer registry.
 const defaults = createApplicationRequestServices();
