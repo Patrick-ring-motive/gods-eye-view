@@ -12,11 +12,9 @@
 #control-panel .panel-glow {
   position: absolute;
   inset: -30px;
-  background: radial-gradient(
-    ellipse at center bottom,
-    var(--accent-dim) 0%,
-    transparent 60%
-  );
+  background: radial-gradient(ellipse at center bottom,
+      var(--accent-dim) 0%,
+      transparent 60%);
   filter: blur(30px);
   opacity: 0.4;
   pointer-events: none;
@@ -189,11 +187,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      transparent 100%);
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
@@ -297,11 +293,13 @@
 }
 
 @keyframes logo-pulse {
+
   0%,
   100% {
     opacity: 0.72;
     transform: scale(0.98);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.02);
@@ -326,10 +324,12 @@
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 0.4;
   }
+
   50% {
     opacity: 1;
   }
@@ -361,9 +361,9 @@
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
 }
 
-#pp-toggles:not(.collapsed) > .pp-header-row,
-#pp-toggles:not(.collapsed) > .pp-toggle-group,
-#pp-toggles:not(.collapsed) > #clean-view-toggle {
+#pp-toggles:not(.collapsed)>.pp-header-row,
+#pp-toggles:not(.collapsed)>.pp-toggle-group,
+#pp-toggles:not(.collapsed)>#clean-view-toggle {
   width: 100%;
 }
 
@@ -424,7 +424,7 @@
 /* Expanded Display already owns the glass shell. Keep its header visually
  * integrated with that container, matching the other expanded panel headers;
  * the collapsed launcher retains the standalone card treatment above. */
-#pp-toggles:not(.collapsed) > .pp-header-row {
+#pp-toggles:not(.collapsed)>.pp-header-row {
   min-height: 32px;
   padding: 0 4px;
   border: 0;
@@ -442,7 +442,7 @@
   color: var(--text-dim);
 }
 
-#pp-toggles > .pp-header-row .pp-collapse-btn {
+#pp-toggles>.pp-header-row .pp-collapse-btn {
   width: 20px;
   height: 20px;
   border-radius: 6px;
@@ -530,7 +530,7 @@
   display: flex;
 }
 
-.pp-toggle-group .pp-slider-row.visible ~ .pp-toggle-btn,
+.pp-toggle-group .pp-slider-row.visible~.pp-toggle-btn,
 .pp-toggle-group:has(.pp-slider-row.visible) .pp-toggle-btn {
   border-radius: 8px 8px 0 0;
 }
@@ -591,11 +591,13 @@
   outline: none;
   cursor: pointer;
 }
+
 .gev-quantitative-slider::-webkit-slider-runnable-track {
   height: 3px;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.08);
 }
+
 .gev-quantitative-slider::-webkit-slider-thumb {
   width: 10px;
   height: 10px;
@@ -608,6 +610,7 @@
   box-shadow: 0 0 6px var(--accent-glow);
   cursor: pointer;
 }
+
 .gev-quantitative-slider::-moz-range-track,
 .gev-quantitative-slider::-moz-range-progress {
   height: 3px;
@@ -615,6 +618,7 @@
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.08);
 }
+
 .gev-quantitative-slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
@@ -624,15 +628,18 @@
   box-shadow: 0 0 6px var(--accent-glow);
   cursor: pointer;
 }
+
 .gev-quantitative-slider:focus-visible {
   border-radius: 4px;
   outline: 1px solid color-mix(in srgb, var(--accent) 80%, transparent);
   outline-offset: 2px;
 }
+
 .gev-quantitative-slider:disabled {
   opacity: 0.42;
   cursor: not-allowed;
 }
+
 .gev-slider-value {
   min-width: 28px;
   color: var(--accent);
@@ -826,6 +833,7 @@
 #models3d-mode-row {
   min-width: 184px;
 }
+
 .pp-mode-seg {
   display: flex;
   flex: 1;
@@ -833,6 +841,7 @@
   border-radius: 6px;
   overflow: hidden;
 }
+
 .pp-mode-btn {
   flex: 1;
   height: 22px;
@@ -848,13 +857,16 @@
     background-color var(--transition-fast),
     color var(--transition-fast);
 }
-.pp-mode-btn + .pp-mode-btn {
+
+.pp-mode-btn+.pp-mode-btn {
   border-left: 1px solid rgba(255, 255, 255, 0.14);
 }
+
 .pp-mode-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
 }
+
 .pp-mode-btn.active {
   background: var(--accent);
   color: #000;
@@ -955,10 +967,12 @@ body.ui-clean-view #scene-runtime.active {
 }
 
 @keyframes detection-pulse {
+
   0%,
   100% {
     box-shadow: 0 0 12px rgba(0, 255, 80, 0.15);
   }
+
   50% {
     box-shadow: 0 0 22px rgba(0, 255, 80, 0.35);
   }
@@ -1009,7 +1023,7 @@ body.ui-clean-view #scene-runtime.active {
 /* Display owns the constrained desktop scroll surface. Keeping Parameters as
  * a second scroll container traps wheel/touch input at its boundary and lets
  * the flex column compress newly added preset rows below the visible panel. */
-#pp-toggles:not(.collapsed) > #param-slider-panel.active {
+#pp-toggles:not(.collapsed)>#param-slider-panel.active {
   flex: 0 0 auto;
   max-height: none;
   overflow-y: visible;
@@ -1038,12 +1052,10 @@ body.ui-clean-view #scene-runtime.active {
 }
 
 #param-slider-panel:not(.collapsed) .param-panel-divider {
-  background: linear-gradient(
-    90deg,
-    rgb(0 212 255 / 28%),
-    rgba(0, 212, 255, 0.18) 58%,
-    transparent
-  );
+  background: linear-gradient(90deg,
+      rgb(0 212 255 / 28%),
+      rgba(0, 212, 255, 0.18) 58%,
+      transparent);
 }
 
 .param-slider-row {
