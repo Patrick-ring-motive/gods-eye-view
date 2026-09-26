@@ -1,4 +1,6 @@
-import { _syncContextModeButtons } from './ui/contextPresentation.js';
+import {
+  _syncContextModeButtons
+} from './ui/contextPresentation.js';
 // Contacts-scoped detection (owner playtest 2026-08-18: "when you click on
 // Contacts, detections should just turn on, and they should stay on in Cockpit
 // or in third-person tracking inside Contacts").
@@ -25,11 +27,13 @@ import {
   setDetectionTuning,
   setMode as setDetectionModeByLabel,
 } from './data/detection.js';
-import { canonicalizeDensity } from './data/detectionPolicy.js';
+import {
+  canonicalizeDensity
+} from './data/detectionPolicy.js';
 
 // Follow the UI wiring and its extracted preset definitions.
-const uiSource = fs.readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8')
-  + '\n' + fs.readFileSync(new URL('./ui/visualPresets.js', import.meta.url), 'utf8');
+const uiSource = fs.readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8') +
+  '\n' + fs.readFileSync(new URL('./ui/visualPresets.js', import.meta.url), 'utf8');
 
 /**
  * The tactical preset ui.js hands Contacts. Read out of the source so this test
@@ -40,19 +44,33 @@ const MILITARY_PRESET = (() => {
     /const MILITARY_DETECTION_PRESET = Object\.freeze\(\{\s*mode: '(\w+)',\s*densityPct: (\d+),?\s*\}\)/,
   );
   assert.ok(match, 'ui.js must expose one shared military detection preset');
-  return { mode: match[1].toUpperCase(), densityPct: Number(match[2]) };
+  return {
+    mode: match[1].toUpperCase(),
+    densityPct: Number(match[2])
+  };
 })();
 
 /** Engine-level equivalent of ui.js's `_applyDetectionPreset`. */
-function applyDetectionState({ mode, densityPct }) {
-  if (Number.isFinite(densityPct)) setDetectionTuning({ densityPct: canonicalizeDensity(densityPct) });
+function applyDetectionState({
+  mode,
+  densityPct
+}) {
+  if (Number.isFinite(densityPct)) setDetectionTuning({
+    densityPct: canonicalizeDensity(densityPct)
+  });
   if (mode) setDetectionModeByLabel(String(mode).toUpperCase());
 }
 
-const readState = () => ({ mode: getDetectionMode(), densityPct: getDetectionTuning().densityPct });
+const readState = () => ({
+  mode: getDetectionMode(),
+  densityPct: getDetectionTuning().densityPct
+});
 
 /** Bind the transition to the real engine, as ui.js does. */
-function transition(active, { restore = null, styleOwnsDetection = false } = {}) {
+function transition(active, {
+  restore = null,
+  styleOwnsDetection = false
+} = {}) {
   return applyContactsDetection({
     active,
     restore,
@@ -65,16 +83,23 @@ function transition(active, { restore = null, styleOwnsDetection = false } = {})
 
 /** Put the real engine in a known starting mode. */
 function startAt(mode, densityPct = null) {
-  if (Number.isFinite(densityPct)) setDetectionTuning({ densityPct: canonicalizeDensity(densityPct) });
+  if (Number.isFinite(densityPct)) setDetectionTuning({
+    densityPct: canonicalizeDensity(densityPct)
+  });
   setDetectionModeByLabel(mode);
   assert.equal(getDetectionMode(), mode, 'engine precondition');
 }
 
 test('activating Contacts turns the real detection engine on from OFF', () => {
   startAt('OFF', 50);
-  const { restore } = transition(true);
+  const {
+    restore
+  } = transition(true);
   assert.notEqual(getDetectionMode(), 'OFF');
-  assert.deepEqual(restore, { mode: 'OFF', densityPct: 50 });
+  assert.deepEqual(restore, {
+    mode: 'OFF',
+    densityPct: 50
+  });
 });
 
 test('the snapshot carries every field activation mutates, not just the mode', () => {
@@ -82,11 +107,18 @@ test('the snapshot carries every field activation mutates, not just the mode', (
   // OFF @ 25% as OFF @ 75%, so the operator's next manual enable came back
   // Dense instead of the Sparse profile they had been using.
   startAt('OFF', 25);
-  const { restore } = transition(true);
-  assert.deepEqual(restore, { mode: 'OFF', densityPct: 25 });
+  const {
+    restore
+  } = transition(true);
+  assert.deepEqual(restore, {
+    mode: 'OFF',
+    densityPct: 25
+  });
   assert.equal(getDetectionTuning().densityPct, MILITARY_PRESET.densityPct, 'activation moved density');
 
-  transition(false, { restore });
+  transition(false, {
+    restore
+  });
   assert.equal(getDetectionMode(), 'OFF');
   assert.equal(getDetectionTuning().densityPct, 25, 'deactivation puts the density back');
 
@@ -100,11 +132,25 @@ test('a density-only difference is still a restore worth making', () => {
   // Same mode either side, different density: the exit plan must not call it a
   // no-op just because the labels match.
   assert.deepEqual(
-    contactsDetectionExitPlan({ mode: 'DENSE', densityPct: 100 }, { mode: 'DENSE', densityPct: 75 }),
-    { mode: 'DENSE', densityPct: 100 },
+    contactsDetectionExitPlan({
+      mode: 'DENSE',
+      densityPct: 100
+    }, {
+      mode: 'DENSE',
+      densityPct: 75
+    }), {
+      mode: 'DENSE',
+      densityPct: 100
+    },
   );
   assert.equal(
-    contactsDetectionExitPlan({ mode: 'DENSE', densityPct: 75 }, { mode: 'DENSE', densityPct: 75 }),
+    contactsDetectionExitPlan({
+      mode: 'DENSE',
+      densityPct: 75
+    }, {
+      mode: 'DENSE',
+      densityPct: 75
+    }),
     null,
   );
 });
@@ -112,7 +158,9 @@ test('a density-only difference is still a restore worth making', () => {
 test('activating Contacts lands on the tactical preset, not the last profile used', () => {
   // Owner playtest: the Contacts default is the military look, and it "should
   // just happen" — so a SPARSE session does NOT drag SPARSE into Contacts.
-  setDetectionTuning({ densityPct: 25 });
+  setDetectionTuning({
+    densityPct: 25
+  });
   startAt('SPARSE');
   startAt('OFF');
   transition(true);
@@ -155,10 +203,16 @@ test('the shared preset applier ignores the style override flag — the caller o
 
 test('activating Contacts leaves an already-on profile untouched', () => {
   startAt('DENSE');
-  const { restore, changed } = transition(true);
+  const {
+    restore,
+    changed
+  } = transition(true);
   assert.equal(getDetectionMode(), 'DENSE');
   assert.equal(changed, false, 'no engine write, so no redundant UI sync');
-  assert.deepEqual(restore, { mode: 'DENSE', densityPct: getDetectionTuning().densityPct });
+  assert.deepEqual(restore, {
+    mode: 'DENSE',
+    densityPct: getDetectionTuning().densityPct
+  });
 });
 
 test('detection survives cockpit enter and exit inside a Contacts session', () => {
@@ -167,58 +221,104 @@ test('detection survives cockpit enter and exit inside a Contacts session', () =
   // the only transitions here are the Contacts ones — repeated syncs while the
   // session stays active.
   startAt('OFF');
-  let { restore } = transition(true);
+  let {
+    restore
+  } = transition(true);
   const insideContacts = getDetectionMode();
   assert.equal(insideContacts, MILITARY_PRESET.mode);
 
   // Cockpit enter, a vision cycle, third-person tracking, cockpit exit: every
   // one of these re-runs the context-mode sync with Contacts still active.
   for (let sync = 0; sync < 4; sync += 1) {
-    ({ restore } = transition(true, { restore }));
+    ({
+      restore
+    } = transition(true, {
+      restore
+    }));
     assert.equal(getDetectionMode(), insideContacts, 'a move within Contacts never changes detection');
   }
-  assert.deepEqual(restore, { mode: 'OFF', densityPct: restore.densityPct }, 'the entry snapshot is not rewritten');
+  assert.deepEqual(restore, {
+    mode: 'OFF',
+    densityPct: restore.densityPct
+  }, 'the entry snapshot is not rewritten');
 });
 
 test('a manual detection-off during a Contacts session holds for the session', () => {
   startAt('OFF');
-  let { restore } = transition(true);
+  let {
+    restore
+  } = transition(true);
   assert.notEqual(getDetectionMode(), 'OFF');
 
   setDetectionModeByLabel('OFF'); // the operator clicks DETECT
   // Entering the cockpit after that must NOT re-force.
-  ({ restore } = transition(true, { restore }));
-  ({ restore } = transition(true, { restore }));
+  ({
+    restore
+  } = transition(true, {
+    restore
+  }));
+  ({
+    restore
+  } = transition(true, {
+    restore
+  }));
   assert.equal(getDetectionMode(), 'OFF');
-  assert.deepEqual(restore, { mode: 'OFF', densityPct: restore.densityPct }, 'the entry snapshot is not rewritten');
+  assert.deepEqual(restore, {
+    mode: 'OFF',
+    densityPct: restore.densityPct
+  }, 'the entry snapshot is not rewritten');
 });
 
 test('deactivating Contacts restores the pre-Contacts state in every direction', () => {
   startAt('OFF');
-  let { restore } = transition(true);
-  ({ restore } = transition(false, { restore }));
+  let {
+    restore
+  } = transition(true);
+  ({
+    restore
+  } = transition(false, {
+    restore
+  }));
   assert.equal(getDetectionMode(), 'OFF', 'a Contacts-forced on reverts on deactivation');
   assert.equal(restore, null);
 
   startAt('DENSE');
-  ({ restore } = transition(true));
-  ({ restore } = transition(false, { restore }));
+  ({
+    restore
+  } = transition(true));
+  ({
+    restore
+  } = transition(false, {
+    restore
+  }));
   assert.equal(getDetectionMode(), 'DENSE', 'on stays on when it was on before');
 
   startAt('DENSE');
-  ({ restore } = transition(true));
+  ({
+    restore
+  } = transition(true));
   setDetectionModeByLabel('OFF');
-  transition(false, { restore });
+  transition(false, {
+    restore
+  });
   assert.equal(getDetectionMode(), 'DENSE', 'the Contacts-scoped off does not leak out');
 });
 
 test('re-activating Contacts re-enables after a session-scoped off', () => {
   startAt('OFF');
-  let { restore } = transition(true);
+  let {
+    restore
+  } = transition(true);
   setDetectionModeByLabel('OFF');
-  ({ restore } = transition(false, { restore }));
+  ({
+    restore
+  } = transition(false, {
+    restore
+  }));
   assert.equal(getDetectionMode(), 'OFF');
-  transition(true, { restore });
+  transition(true, {
+    restore
+  });
   assert.equal(getDetectionMode(), MILITARY_PRESET.mode);
 });
 
@@ -227,9 +327,14 @@ test('a style chosen DURING the session keeps its auto-enable instead of the sna
   // preset is already on, so the style is not fighting Contacts, and on the way
   // out the style rule — younger than the snapshot — wins.
   startAt('OFF');
-  const { restore } = transition(true);
+  const {
+    restore
+  } = transition(true);
   setDetectionModeByLabel('DENSE'); // _applyStylePresetDefaults('surveillance')
-  const result = transition(false, { restore, styleOwnsDetection: true });
+  const result = transition(false, {
+    restore,
+    styleOwnsDetection: true
+  });
   assert.equal(getDetectionMode(), 'DENSE');
   assert.equal(result.changed, false, 'the style rule wins, so nothing is replayed');
   assert.equal(result.restore, null);
@@ -239,40 +344,85 @@ test('an operator who overrode detection still gets the entry snapshot back', ()
   // styleOwnsDetection is false whenever _detectionUserOverridden is true, so an
   // explicit choice is never overwritten by a style preset.
   startAt('OFF');
-  const { restore } = transition(true);
+  const {
+    restore
+  } = transition(true);
   setDetectionModeByLabel('DENSE');
-  transition(false, { restore, styleOwnsDetection: false });
+  transition(false, {
+    restore,
+    styleOwnsDetection: false
+  });
   assert.equal(getDetectionMode(), 'OFF');
 });
 
 test('deactivation with no captured Contacts state changes nothing', () => {
-  assert.equal(contactsDetectionExitPlan(null, { mode: 'OFF', densityPct: 50 }), null);
-  const same = { mode: 'DENSE', densityPct: 75 };
+  assert.equal(contactsDetectionExitPlan(null, {
+    mode: 'OFF',
+    densityPct: 50
+  }), null);
+  const same = {
+    mode: 'DENSE',
+    densityPct: 75
+  };
   assert.equal(contactsDetectionExitPlan(same, same), null);
-  assert.equal(contactsDetectionExitPlan({ mode: 'OFF', densityPct: 25 }, same, true), null);
+  assert.equal(contactsDetectionExitPlan({
+    mode: 'OFF',
+    densityPct: 25
+  }, same, true), null);
   startAt('DENSE');
-  const result = transition(false, { restore: null });
+  const result = transition(false, {
+    restore: null
+  });
   assert.equal(getDetectionMode(), 'DENSE');
   assert.equal(result.changed, false);
 });
 
 test('re-entrancy is decided by the saved snapshot, not the engine state', () => {
   assert.equal(
-    contactsDetectionEnterPlan({ mode: 'OFF', densityPct: 25 }, { mode: 'DENSE', densityPct: 75 }),
+    contactsDetectionEnterPlan({
+      mode: 'OFF',
+      densityPct: 25
+    }, {
+      mode: 'DENSE',
+      densityPct: 75
+    }),
     null,
   );
   assert.deepEqual(
-    contactsDetectionEnterPlan({ mode: 'OFF', densityPct: 25 }, null),
-    { restore: { mode: 'OFF', densityPct: 25 }, turnOn: true },
+    contactsDetectionEnterPlan({
+      mode: 'OFF',
+      densityPct: 25
+    }, null), {
+      restore: {
+        mode: 'OFF',
+        densityPct: 25
+      },
+      turnOn: true
+    },
   );
   assert.deepEqual(
-    contactsDetectionEnterPlan({ mode: 'sparse', densityPct: 25 }, null),
-    { restore: { mode: 'SPARSE', densityPct: 25 }, turnOn: false },
+    contactsDetectionEnterPlan({
+      mode: 'sparse',
+      densityPct: 25
+    }, null), {
+      restore: {
+        mode: 'SPARSE',
+        densityPct: 25
+      },
+      turnOn: false
+    },
   );
   // A missing density is carried as null rather than invented.
   assert.deepEqual(
-    contactsDetectionEnterPlan({ mode: 'OFF' }, null),
-    { restore: { mode: 'OFF', densityPct: null }, turnOn: true },
+    contactsDetectionEnterPlan({
+      mode: 'OFF'
+    }, null), {
+      restore: {
+        mode: 'OFF',
+        densityPct: null
+      },
+      turnOn: true
+    },
   );
 });
 
@@ -318,41 +468,67 @@ test('detection is wired to the Contacts transaction, and cockpit no longer touc
 test('share serialization publishes the operator preference, not the Contacts override', () => {
   // Contacts inactive: the live values ARE the preference.
   assert.deepEqual(
-    shareableDetectionState({ owned: null, liveMode: 'BALANCED', liveDensityPct: 40 }),
-    { mode: 'BALANCED', densityPct: 40 },
+    shareableDetectionState({
+      owned: null,
+      liveMode: 'BALANCED',
+      liveDensityPct: 40
+    }), {
+      mode: 'BALANCED',
+      densityPct: 40
+    },
   );
 
   // Contacts active: the live values are forced Dense @ 75%, but the author's
   // own OFF @ 50% is what deactivation restores — and what the link must carry.
   assert.deepEqual(
     shareableDetectionState({
-      owned: { mode: 'OFF', densityPct: 50 },
+      owned: {
+        mode: 'OFF',
+        densityPct: 50
+      },
       liveMode: 'DENSE',
       liveDensityPct: 75,
-    }),
-    { mode: 'OFF', densityPct: 50 },
+    }), {
+      mode: 'OFF',
+      densityPct: 50
+    },
   );
 
   // A partial snapshot falls back to live values field by field, never to
   // undefined (which would serialize as a malformed dm/dd pair).
   assert.deepEqual(
     shareableDetectionState({
-      owned: { mode: 'SPARSE', densityPct: null },
+      owned: {
+        mode: 'SPARSE',
+        densityPct: null
+      },
       liveMode: 'DENSE',
       liveDensityPct: 75,
-    }),
-    { mode: 'SPARSE', densityPct: 75 },
+    }), {
+      mode: 'SPARSE',
+      densityPct: 75
+    },
   );
   assert.deepEqual(
-    shareableDetectionState({ owned: {}, liveMode: 'DENSE', liveDensityPct: 75 }),
-    { mode: 'DENSE', densityPct: 75 },
+    shareableDetectionState({
+      owned: {},
+      liveMode: 'DENSE',
+      liveDensityPct: 75
+    }), {
+      mode: 'DENSE',
+      densityPct: 75
+    },
   );
 });
 
 test('the share cache is healed whenever Contacts ownership changes, engine or not', () => {
   // Ordinary case: the engine moved, so the cache is republished.
   assert.equal(
-    shareCacheNeedsHeal({ changed: true, hadOwnership: false, hasOwnership: true }),
+    shareCacheNeedsHeal({
+      changed: true,
+      hadOwnership: false,
+      hasOwnership: true
+    }),
     true,
   );
 
@@ -361,24 +537,40 @@ test('the share cache is healed whenever Contacts ownership changes, engine or n
   // but ownership was just released — so serialization flips from the saved
   // snapshot to live state and the cached link is now wrong.
   assert.equal(
-    shareCacheNeedsHeal({ changed: false, hadOwnership: true, hasOwnership: false }),
+    shareCacheNeedsHeal({
+      changed: false,
+      hadOwnership: true,
+      hasOwnership: false
+    }),
     true,
     'releasing ownership must heal the cache even with no engine change',
   );
 
   // Symmetric: acquiring ownership with no engine change flips it the other way.
   assert.equal(
-    shareCacheNeedsHeal({ changed: false, hadOwnership: false, hasOwnership: true }),
+    shareCacheNeedsHeal({
+      changed: false,
+      hadOwnership: false,
+      hasOwnership: true
+    }),
     true,
   );
 
   // Genuine no-op: nothing moved and ownership is unchanged.
   assert.equal(
-    shareCacheNeedsHeal({ changed: false, hadOwnership: false, hasOwnership: false }),
+    shareCacheNeedsHeal({
+      changed: false,
+      hadOwnership: false,
+      hasOwnership: false
+    }),
     false,
   );
   assert.equal(
-    shareCacheNeedsHeal({ changed: false, hadOwnership: true, hasOwnership: true }),
+    shareCacheNeedsHeal({
+      changed: false,
+      hadOwnership: true,
+      hasOwnership: true
+    }),
     false,
   );
 });
