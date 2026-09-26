@@ -1,4 +1,6 @@
-import { createCalibrationGizmo } from '../../data/cctvGizmo.js';
+import {
+  createCalibrationGizmo
+} from '../../data/cctvGizmo.js';
 import {
   DEFAULT_CAMERA_CALIBRATION,
   CCTV_CALIBRATION_STORAGE_KEY_V2,
@@ -184,9 +186,11 @@ export function createCalibration({
           // Only entries that were migrated or saved against the current
           // floor carry the marker; an entry for a camera absent from this
           // catalog keeps its eligibility to migrate when it returns.
-          ...(Number.isFinite(entry.rangeFloorM)
-            ? { rangeFloorM: entry.rangeFloorM }
-            : {}),
+          ...(Number.isFinite(entry.rangeFloorM) ?
+            {
+              rangeFloorM: entry.rangeFloorM
+            } :
+            {}),
         };
       }
       storage.setItem(CCTV_CALIBRATION_STORAGE_KEY_V2, JSON.stringify(payload));
@@ -302,21 +306,23 @@ export function createCalibration({
     // re-resolve the active camera here: a mid-drag voice select or auto-hop
     // would route the captured offsets onto a camera with a different basePose.
     const liveRecord = (record) =>
-      record && layerState._recordById.get(record.camera?.id) === record
-        ? record
-        : null;
+      record && layerState._recordById.get(record.camera?.id) === record ?
+      record :
+      null;
     layerState._gizmo = createCalibrationGizmo({
       viewer: layerState._viewer,
       getActiveRecord: () =>
-        layerState._enabled && layerState._calibrationMode
-          ? parts.selection.getActiveRecord()
-          : null,
+        layerState._enabled && layerState._calibrationMode ?
+        parts.selection.getActiveRecord() :
+        null,
       applyPatch: (patch, draggedRecord) => {
         const record =
-          layerState._enabled && layerState._calibrationMode
-            ? liveRecord(draggedRecord)
-            : null;
-        if (record) applyCalibrationPatch(record, patch, { transient: true });
+          layerState._enabled && layerState._calibrationMode ?
+          liveRecord(draggedRecord) :
+          null;
+        if (record) applyCalibrationPatch(record, patch, {
+          transient: true
+        });
       },
       endPatch: (draggedRecord) => {
         const record = liveRecord(draggedRecord);
