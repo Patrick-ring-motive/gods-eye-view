@@ -976,10 +976,8 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
   return {
     label,
     navigationMode: requestedRange ?
-      'explicit-range' :
-      options.forceClose ?
-      navigationMode.replace('-overview', '-close') :
-      navigationMode,
+      'explicit-range' : options.forceClose ?
+      navigationMode.replace('-overview', '-close') : navigationMode,
     rangeM: Math.round(flight.range),
   };
 }
@@ -1501,8 +1499,7 @@ function elementCoordinates(element) {
     Array.isArray(member.geometry) ?
     member.geometry.filter(
       (point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lon),
-    ) :
-    [],
+    ) : [],
   );
 }
 
