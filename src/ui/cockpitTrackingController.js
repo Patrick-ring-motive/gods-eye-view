@@ -16,18 +16,22 @@ export function readAircraftInfo() {
 }
 
 export function dispatchCockpitModeChanged(active, info = null) {
-  const subjectId = active
-    ? String(info?.icao24 || '')
-        .trim()
-        .toLowerCase() || null
-    : null;
+  const subjectId = active ?
+    String(info?.icao24 || '')
+    .trim()
+    .toLowerCase() || null :
+    null;
   const layerId =
-    active && ['flights', 'military'].includes(info?.layerId)
-      ? info.layerId
-      : null;
+    active && ['flights', 'military'].includes(info?.layerId) ?
+    info.layerId :
+    null;
   window.dispatchEvent(
     new CustomEvent('gev:cockpit-mode-changed', {
-      detail: { active: active === true, subjectId, layerId },
+      detail: {
+        active: active === true,
+        subjectId,
+        layerId
+      },
     }),
   );
 }
@@ -39,9 +43,9 @@ export function toggleTrackedTr3b() {
   if (!icao24) return false;
   this.services.toggleTr3b(icao24);
   const layer =
-    info.layerId === 'military'
-      ? this.services.militaryFlightsLayer
-      : this.services.flightsLayer;
+    info.layerId === 'military' ?
+    this.services.militaryFlightsLayer :
+    this.services.flightsLayer;
   layer.refreshTr3b?.(icao24);
   this._tr3bSignature = null; // force the chip to repaint on the next sync
   this.syncTr3bToggle(info);
@@ -57,9 +61,9 @@ export function syncTr3bToggle(info) {
   this._tr3bSignature = signature;
   this.tr3bToggle.hidden = !icao24;
   this.tr3bToggle.setAttribute('aria-pressed', converted ? 'true' : 'false');
-  this.tr3bToggle.title = converted
-    ? 'Restore real aircraft'
-    : 'Reclassify as TR-3B';
+  this.tr3bToggle.title = converted ?
+    'Restore real aircraft' :
+    'Reclassify as TR-3B';
 }
 
 export function syncEntry() {
@@ -84,9 +88,12 @@ export function navigateContext(direction, options = {}) {
   const method = direction < 0 ? 'navigatePrevious' : 'navigateNext';
   const wasActive = this.active;
   if (wasActive) this.contextNavigationDeadlineMs = performance.now() + 1500;
-  const navigationOptions = wasActive
-    ? { ...options, aircraftOnly: true }
-    : options;
+  const navigationOptions = wasActive ?
+    {
+      ...options,
+      aircraftOnly: true
+    } :
+    options;
   const changed = Boolean(
     this.services.militaryAwarenessLayer?.[method]?.(navigationOptions),
   );
@@ -134,9 +141,9 @@ export function enter() {
   const entity = this.viewer.trackedEntity;
   if (!info || !entity?.position) return false;
   this.entryFocusOrigin =
-    document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    document.activeElement instanceof HTMLElement ?
+    document.activeElement :
+    null;
   // Retire deferred navigation before cancelFlight can run its callbacks.
   this.onCameraTakeover?.();
   this.viewer.camera.cancelFlight();
@@ -196,13 +203,17 @@ export function enter() {
   this.updateHud(info, performance.now(), true);
   this.setVisionMode(this.visionMode);
   this.scheduleContextLayout();
-  this.mapViewButton?.focus({ preventScroll: true });
+  this.mapViewButton?.focus({
+    preventScroll: true
+  });
   this.onEntered?.();
   this.dispatchCockpitModeChanged(true, info);
   return true;
 }
 
-export function exit({ restoreTracking = true } = {}) {
+export function exit({
+  restoreTracking = true
+} = {}) {
   if (!this.active) return false;
   const entity = this.trackedEntity;
   this.active = false;
@@ -243,12 +254,14 @@ export function exit({ restoreTracking = true } = {}) {
   }
   this.syncEntry();
   const restoreTarget =
-    this.entryFocusOrigin === this.entry
-      ? this.entry
-      : this.entry || this.entryFocusOrigin;
+    this.entryFocusOrigin === this.entry ?
+    this.entry :
+    this.entry || this.entryFocusOrigin;
   this.entryFocusOrigin = null;
   if (!this.destroyed && restoreTarget?.isConnected && !restoreTarget.hidden) {
-    restoreTarget.focus({ preventScroll: true });
+    restoreTarget.focus({
+      preventScroll: true
+    });
   }
   return true;
 }
