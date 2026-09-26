@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { createFrustumVolumePrimitive } from '../../data/cctvViewshed.js';
+import {
+  createFrustumVolumePrimitive
+} from '../../data/cctvViewshed.js';
 import {
   PROJECTION_VERT_ASPECT,
   FRUSTUM_GROUND_CLEARANCE_M,
@@ -17,9 +19,19 @@ import {
   requiredPlaneLift,
 } from '../../data/cctvFootprint.js';
 
-export function createGeometry({ state: layerState, services, parts, source }) {
-  const { warmGroundFloor, cachedGroundFloor } = services.ground;
-  const { sampleMeshFloorCells } = services.mesh;
+export function createGeometry({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    warmGroundFloor,
+    cachedGroundFloor
+  } = services.ground;
+  const {
+    sampleMeshFloorCells
+  } = services.mesh;
 
   /**
    * Ground measured under the plane's support points for the record's
@@ -57,9 +69,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
     const camera = record.camera;
     const override = parts.model.safeNumber(record.probeClampRangeM, NaN);
     const rangeM =
-      Number.isFinite(override) && override > 0
-        ? Math.min(camera.rangeM, override)
-        : camera.rangeM;
+      Number.isFinite(override) && override > 0 ?
+      Math.min(camera.rangeM, override) :
+      camera.rangeM;
     return {
       lat: camera.lat,
       lon: camera.lon,
@@ -136,9 +148,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
     const poseRange = Math.max(1, parts.model.safeNumber(camera.rangeM, 700));
     const override = parts.model.safeNumber(rangeOverrideM, NaN);
     const R =
-      Number.isFinite(override) && override > 0
-        ? Math.min(poseRange, override)
-        : poseRange;
+      Number.isFinite(override) && override > 0 ?
+      Math.min(poseRange, override) :
+      poseRange;
     const pitchDeg = parts.model.clamp(
       parts.model.safeNumber(camera.pitchDeg, -17),
       -89,
@@ -151,7 +163,11 @@ export function createGeometry({ state: layerState, services, parts, source }) {
     );
     const heading = parts.model.safeNumber(camera.headingDeg, 0);
     const mountAlt = ground + parts.model.safeNumber(camera.mountHeightM, 24);
-    const dims = planeDimensions({ rangeM: R, pitchDeg, fovDeg });
+    const dims = planeDimensions({
+      rangeM: R,
+      pitchDeg,
+      fovDeg
+    });
 
     const capLL = parts.model.projectPoint(
       camera.lat,
@@ -223,8 +239,16 @@ export function createGeometry({ state: layerState, services, parts, source }) {
       vFovDeg: dims.vFovDeg,
       halfW: dims.halfW,
       halfH: dims.halfH,
-      mount: { lat: camera.lat, lon: camera.lon, alt: mountAlt },
-      capCenter: { lat: capLL.lat, lon: capLL.lon, alt: capAltLifted },
+      mount: {
+        lat: camera.lat,
+        lon: camera.lon,
+        alt: mountAlt
+      },
+      capCenter: {
+        lat: capLL.lat,
+        lon: capLL.lon,
+        alt: capAltLifted
+      },
       corners: {
         tl: corner(capL, 1),
         tr: corner(capR, 1),
@@ -423,14 +447,17 @@ export function createGeometry({ state: layerState, services, parts, source }) {
   function updateRecordGeometry(record, options = {}) {
     const sampleGround = options.sampleGround !== false;
     const regime = parts.ground.currentSurfaceRegime();
-    const point = { lat: record.camera.lat, lon: record.camera.lon };
+    const point = {
+      lat: record.camera.lat,
+      lon: record.camera.lon
+    };
     warmGroundFloor([point]);
 
     if (regime === 'terrain-globe') {
       const cachedFloor = cachedGroundFloor(point.lat, point.lon);
-      const ground = Number.isFinite(cachedFloor)
-        ? cachedFloor
-        : parts.ground.groundPriorAltFor(record);
+      const ground = Number.isFinite(cachedFloor) ?
+        cachedFloor :
+        parts.ground.groundPriorAltFor(record);
       record.groundSamples['terrain-globe'] = ground;
       record.groundResolved['terrain-globe'] = true;
       applyFrustumGeometry(record, ground);
@@ -461,19 +488,19 @@ export function createGeometry({ state: layerState, services, parts, source }) {
         excludeObjects.push(record.projection.planeEntity);
       sampleMeshFloorCells(layerState._viewer?.scene, [point], {
         excludeObjects: excludeObjects.filter(Boolean),
-        viewerLat: viewerCarto
-          ? Cesium.Math.toDegrees(viewerCarto.latitude)
-          : undefined,
-        viewerLon: viewerCarto
-          ? Cesium.Math.toDegrees(viewerCarto.longitude)
-          : undefined,
+        viewerLat: viewerCarto ?
+          Cesium.Math.toDegrees(viewerCarto.latitude) :
+          undefined,
+        viewerLon: viewerCarto ?
+          Cesium.Math.toDegrees(viewerCarto.longitude) :
+          undefined,
       });
     }
 
     const cachedFloor = cachedGroundFloor(point.lat, point.lon);
-    const ground = Number.isFinite(cachedFloor)
-      ? cachedFloor
-      : parts.ground.groundAltFor(record, 'google-3d');
+    const ground = Number.isFinite(cachedFloor) ?
+      cachedFloor :
+      parts.ground.groundAltFor(record, 'google-3d');
     applyFrustumGeometry(record, ground);
 
     record.groundResolved['google-3d'] = Number.isFinite(cachedFloor);
@@ -498,7 +525,10 @@ export function createGeometry({ state: layerState, services, parts, source }) {
 
     const ranked = layerState._records.map((record) => {
       if (record === activeRecord) {
-        return { record, distKm: -1 };
+        return {
+          record,
+          distKm: -1
+        };
       }
       return {
         record,
@@ -515,12 +545,12 @@ export function createGeometry({ state: layerState, services, parts, source }) {
 
     const primary = ranked.filter(
       (entry) =>
-        entry.distKm <= COVERAGE_NEIGHBOR_RADIUS_KM || entry.distKm === -1,
+      entry.distKm <= COVERAGE_NEIGHBOR_RADIUS_KM || entry.distKm === -1,
     );
     const fallback = ranked;
     const chosen = (
-      primary.length >= COVERAGE_NEIGHBOR_LIMIT ? primary : fallback
-    )
+        primary.length >= COVERAGE_NEIGHBOR_LIMIT ? primary : fallback
+      )
       .slice(0, COVERAGE_NEIGHBOR_LIMIT)
       .map((entry) => entry.record.camera.id);
     return new Set(chosen);
@@ -558,9 +588,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
       !record.viewshedColors
     )
       return;
-    const color = isActive
-      ? record.viewshedColors.fillActive
-      : record.viewshedColors.fill;
+    const color = isActive ?
+      record.viewshedColors.fillActive :
+      record.viewshedColors.fill;
     const primitive = createFrustumVolumePrimitive(
       record.frustumPositions,
       color,
@@ -628,7 +658,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
         camera.lat,
         mountAlt,
       );
-      const { dir } = frustumFrameEcef(camera, mountPos);
+      const {
+        dir
+      } = frustumFrameEcef(camera, mountPos);
       // Exclude everything the layer itself draws so the probe can only hit the
       // world (3D tiles), not our own billboards/polylines/planes.
       const exclude = [layerState._billboards, ...layerState._coverageEntities];
@@ -669,7 +701,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
    */
 
   function buildCoverageEntities(record) {
-    const { camera } = record;
+    const {
+      camera
+    } = record;
     // Prefer the record's already-refined geometry. Lazy creation commonly
     // happens after the staggered ground pass; recomputing from the catalog
     // prior here would regress the camera to its pre-sampled datum.
@@ -690,7 +724,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
     const addPolyline = (role, linePositions) =>
       layerState._viewer.entities.add({
         id: `cctv-${camera.id}-${role}`,
-        properties: { cctvCameraId: camera.id },
+        properties: {
+          cctvCameraId: camera.id
+        },
         polyline: {
           positions: linePositions,
           width: 1.2,
@@ -742,9 +778,9 @@ export function createGeometry({ state: layerState, services, parts, source }) {
       if (!record || record.coverageEntities?.length || !isEligible(record))
         continue;
       const entities = buildEntities(record);
-      record.coverageEntities = Array.isArray(entities)
-        ? entities.filter(Boolean)
-        : [];
+      record.coverageEntities = Array.isArray(entities) ?
+        entities.filter(Boolean) :
+        [];
       created.push(...record.coverageEntities);
     }
     return created;
