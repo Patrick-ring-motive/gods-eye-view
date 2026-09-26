@@ -4,8 +4,13 @@ import {
   formatAwarenessDistance,
   AWARENESS_RADIUS_M,
 } from '../../data/militaryAwarenessEngine.js';
-import { bearingBetweenCoordinates } from '../../cockpitMath.js';
-import { AWARENESS_PAGE_SIZE, CONTEXT_RIM_HEIGHT_M } from './policy.js';
+import {
+  bearingBetweenCoordinates
+} from '../../cockpitMath.js';
+import {
+  AWARENESS_PAGE_SIZE,
+  CONTEXT_RIM_HEIGHT_M
+} from './policy.js';
 
 export function createRendering({
   state: layerState,
@@ -13,8 +18,13 @@ export function createRendering({
   parts,
   source,
 }) {
-  const { getKeyholeGeometry, celestialScreenAngle } = services.geometry;
-  const { governorRequestRender } = services.render;
+  const {
+    getKeyholeGeometry,
+    celestialScreenAngle
+  } = services.geometry;
+  const {
+    governorRequestRender
+  } = services.render;
 
   function ensureDirectionOverlay() {
     if (layerState.directionRoot || !layerState.viewer)
@@ -44,7 +54,9 @@ export function createRendering({
     heading.className = 'military-awareness-compass-heading';
     root.append(compass, heading);
 
-    layerState.directionMarkers = Array.from({ length: 3 }, () => {
+    layerState.directionMarkers = Array.from({
+      length: 3
+    }, () => {
       const marker = document.createElement('div');
       marker.className = 'military-awareness-direction-marker';
       const arrow = document.createElement('span');
@@ -73,7 +85,7 @@ export function createRendering({
     if (
       !force &&
       now - layerState.lastDirectionUpdateMs <
-        parts.model.awarenessRefreshIntervalMs(layerState.cameraMoving)
+      parts.model.awarenessRefreshIntervalMs(layerState.cameraMoving)
     )
       return;
     layerState.directionFrame = window.requestAnimationFrame(() => {
@@ -196,20 +208,20 @@ export function createRendering({
         layerState.TARGET_CARTOGRAPHIC_SCRATCH[index],
       );
       const bearing =
-        subjectCartographic && targetCartographic
-          ? bearingBetweenCoordinates(
-              Cesium.Math.toDegrees(subjectCartographic.latitude),
-              Cesium.Math.toDegrees(subjectCartographic.longitude),
-              Cesium.Math.toDegrees(targetCartographic.latitude),
-              Cesium.Math.toDegrees(targetCartographic.longitude),
-            )
-          : null;
-      const bearingText = Number.isFinite(bearing)
-        ? `BRG ${String(Math.round(bearing)).padStart(3, '0')}°`
-        : 'BRG —';
-      const courseText = Number.isFinite(item.track)
-        ? ` · CRS ${String(Math.round(item.track)).padStart(3, '0')}°`
-        : '';
+        subjectCartographic && targetCartographic ?
+        bearingBetweenCoordinates(
+          Cesium.Math.toDegrees(subjectCartographic.latitude),
+          Cesium.Math.toDegrees(subjectCartographic.longitude),
+          Cesium.Math.toDegrees(targetCartographic.latitude),
+          Cesium.Math.toDegrees(targetCartographic.longitude),
+        ) :
+        null;
+      const bearingText = Number.isFinite(bearing) ?
+        `BRG ${String(Math.round(bearing)).padStart(3, '0')}°` :
+        'BRG —';
+      const courseText = Number.isFinite(item.track) ?
+        ` · CRS ${String(Math.round(item.track)).padStart(3, '0')}°` :
+        '';
       marker._label.textContent = `${label} · ${formatAwarenessDistance(item.distanceM)}\n${bearingText}${courseText}`;
       marker.hidden = false;
     }
@@ -263,8 +275,7 @@ export function createRendering({
           semiMinorAxis: AWARENESS_RADIUS_M,
           fill: false,
           outline: true,
-          outlineColor:
-            Cesium.Color.fromCssColorString('#62b5ff').withAlpha(0.72),
+          outlineColor: Cesium.Color.fromCssColorString('#62b5ff').withAlpha(0.72),
           height: CONTEXT_RIM_HEIGHT_M,
         },
       }),
