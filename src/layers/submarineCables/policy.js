@@ -103,7 +103,7 @@ export const MARKER_COLLECTION_EXPECTATIONS = Object.freeze([
 
 export function defaultSweepClock() {
   return typeof performance === 'object' &&
-    typeof performance.now === 'function'
-    ? performance.now()
-    : Date.now();
+    typeof performance.now === 'function' ?
+    performance.now() :
+    Date.now();
 }
