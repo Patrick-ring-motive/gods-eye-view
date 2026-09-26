@@ -1,7 +1,14 @@
 import * as Cesium from 'cesium';
-import { normalizeRadioCountryInput } from '../../data/radioCountry.js';
+import {
+  normalizeRadioCountryInput
+} from '../../data/radioCountry.js';
 
-export function createQueries({ state: layerState, services, parts, source }) {
+export function createQueries({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function radioAngularDistance(station, anchor) {
     const lat1 = Cesium.Math.toRadians(Number(anchor?.lat));
     const lon1 = Cesium.Math.toRadians(Number(anchor?.lon));
@@ -21,33 +28,39 @@ export function createQueries({ state: layerState, services, parts, source }) {
 
   function rankRadioStationsForViewport(
     stations,
-    anchor,
-    { preferEnglish = false } = {},
+    anchor, {
+      preferEnglish = false
+    } = {},
   ) {
     return (Array.isArray(stations) ? stations : [])
       .map((station, index) => ({
         station,
         index,
         distance: radioAngularDistance(station, anchor),
-        languageTier:
-          preferEnglish && !parts.categories.isEnglishRadioStation(station)
-            ? 1
-            : 0,
+        languageTier: preferEnglish && !parts.categories.isEnglishRadioStation(station) ?
+          1 :
+          0,
       }))
       .sort(
         (a, b) =>
-          a.languageTier - b.languageTier ||
-          a.distance - b.distance ||
-          a.index - b.index,
+        a.languageTier - b.languageTier ||
+        a.distance - b.distance ||
+        a.index - b.index,
       )
-      .map(({ station }) => station);
+      .map(({
+        station
+      }) => station);
   }
 
   /** Rank stations for an explicit voice/player request without moving the camera. */
 
   function rankRadioStationsForRequest(
-    stations,
-    { categoryId = 'all', anchor = null, country = '', stationQuery = '' } = {},
+    stations, {
+      categoryId = 'all',
+      anchor = null,
+      country = '',
+      stationQuery = ''
+    } = {},
   ) {
     const countryFilter = normalizeRadioCountryInput(country);
     if (!countryFilter.valid) return [];
@@ -68,28 +81,26 @@ export function createQueries({ state: layerState, services, parts, source }) {
       });
     }
     if (query) {
-      matches = matches.filter((station) =>
-        [
-          station?.id,
-          station?.name,
-          station?.state,
-          station?.country,
-          station?.countryCode,
-          ...(Array.isArray(station?.tags) ? station.tags : []),
-        ].some((value) =>
-          parts.categories.normalizeRadioTag(value).includes(query),
-        ),
-      );
+      matches = matches.filter((station) => [
+        station?.id,
+        station?.name,
+        station?.state,
+        station?.country,
+        station?.countryCode,
+        ...(Array.isArray(station?.tags) ? station.tags : []),
+      ].some((value) =>
+        parts.categories.normalizeRadioTag(value).includes(query),
+      ), );
     }
-    return anchor
-      ? rankRadioStationsForViewport(matches, anchor)
-      : matches.slice();
+    return anchor ?
+      rankRadioStationsForViewport(matches, anchor) :
+      matches.slice();
   }
 
   function selectedStation() {
-    return layerState._selectedId
-      ? layerState._stationById.get(layerState._selectedId) || null
-      : null;
+    return layerState._selectedId ?
+      layerState._stationById.get(layerState._selectedId) || null :
+      null;
   }
 
   function selectedPresentationStation() {
