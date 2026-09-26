@@ -1,8 +1,14 @@
 import * as Cesium from 'cesium';
 
-export function createState({ services }) {
-  const { setOverlayEntries, setOverlaySourceVisible, clearOverlaySource } =
-    services.overlays;
+export function createState({
+  services
+}) {
+  const {
+    setOverlayEntries,
+    setOverlaySourceVisible,
+    clearOverlaySource
+  } =
+  services.overlays;
   const state = {};
 
   state.DEFAULT_OVERLAY_HOST = Object.freeze({
