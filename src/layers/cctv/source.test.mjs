@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCctvSource, createCctvLayer } from './index.js';
+import {
+  createCctvSource,
+  createCctvLayer
+} from './index.js';
 
 const camera = {
   id: 'pack/camera ?x',
@@ -17,22 +20,36 @@ test('camera catalog and health use fixed source routes and caller cancellation'
   const calls = [];
   const source = createCctvSource({
     fetchImpl: async (path, options) => {
-      calls.push({ path, options });
+      calls.push({
+        path,
+        options
+      });
       return new Response(
         JSON.stringify(
-          path.endsWith('/sources') ? { sources: [] } : { cameras: [] },
+          path.endsWith('/sources') ? {
+            sources: []
+          } : {
+            cameras: []
+          },
         ),
       );
     },
   });
   const controller = new AbortController();
-  await source.getCatalog({ signal: controller.signal });
-  await source.getHealth({ signal: controller.signal });
+  await source.getCatalog({
+    signal: controller.signal
+  });
+  await source.getHealth({
+    signal: controller.signal
+  });
   assert.deepEqual(
     calls.map((call) => call.path),
     ['/api/cctv/sources', '/api/cctv/health'],
   );
-  for (const { options } of calls) {
+  for (const {
+      options
+    }
+    of calls) {
     assert.equal(options.signal, controller.signal);
     assert.equal(options.cache, 'no-store');
   }
@@ -45,7 +62,9 @@ test('camera sources reject malformed snapshots and failures', async () => {
     });
     await assert.rejects(malformed[method](), /Malformed camera/);
     const denied = createCctvSource({
-      fetchImpl: async () => new Response('', { status: 403 }),
+      fetchImpl: async () => new Response('', {
+        status: 403
+      }),
     });
     await assert.rejects(denied[method](), /HTTP 403/);
   }
@@ -58,11 +77,15 @@ test('cancellation while reading a camera response body prevents publication', a
       ok: true,
       json: async () => {
         controller.abort();
-        return { sources: [] };
+        return {
+          sources: []
+        };
       },
     }),
   });
-  await assert.rejects(source.getCatalog({ signal: controller.signal }), {
+  await assert.rejects(source.getCatalog({
+    signal: controller.signal
+  }), {
     name: 'AbortError',
   });
 });
@@ -110,15 +133,21 @@ test('camera construction is inert and destruction cancels a pending catalog and
       setOverlayEntries: noop,
       setOverlaySourceVisible: noop,
     },
-    sprites: { registerSpriteCollection: noop },
+    sprites: {
+      registerSpriteCollection: noop
+    },
     activation: {},
     locations: {},
-    picking: { unregisterPickOwner: noop },
+    picking: {
+      unregisterPickOwner: noop
+    },
     terrain: {},
     ground: {},
     mesh: {},
     focus: {},
-    render: { releaseContinuousRender: noop },
+    render: {
+      releaseContinuousRender: noop
+    },
   };
   let resolveCatalog;
   let signal;
@@ -131,11 +160,22 @@ test('camera construction is inert and destruction cancels a pending catalog and
       });
     },
   };
-  const a = createCctvLayer({ services, source });
-  const b = createCctvLayer({ services, source });
+  const a = createCctvLayer({
+    services,
+    source
+  });
+  const b = createCctvLayer({
+    services,
+    source
+  });
   assert.equal(listeners.size, 0);
   const viewer = {
-    scene: { primitives: { add: (value) => value, remove: () => true } },
+    scene: {
+      primitives: {
+        add: (value) => value,
+        remove: () => true
+      }
+    },
   };
   const initializing = a.init(viewer);
   assert.equal(listeners.size, 1);
@@ -143,8 +183,12 @@ test('camera construction is inert and destruction cancels a pending catalog and
   a.destroy(viewer);
   assert.equal(listeners.size, 0);
   assert.equal(signal.aborted, true);
-  resolveCatalog({ sources: [] });
-  await assert.rejects(initializing, { name: 'AbortError' });
+  resolveCatalog({
+    sources: []
+  });
+  await assert.rejects(initializing, {
+    name: 'AbortError'
+  });
   assert.equal(a.getStats().count, 0);
   assert.equal(b.getStats().count, 0);
 });
