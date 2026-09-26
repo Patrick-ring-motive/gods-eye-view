@@ -1,15 +1,20 @@
-import { createFlowTileSource } from './flowSource.js';
+import {
+  createFlowTileSource
+} from './flowSource.js';
+
 function buildOverpassQuery(
   south,
   west,
   north,
-  east,
-  { majorOnly = false, timeoutSec = 25 } = {},
+  east, {
+    majorOnly = false,
+    timeoutSec = 25
+  } = {},
 ) {
   // Regex matches the OSM `highway` tag value against allowed road types
-  const regex = majorOnly
-    ? '^(motorway|trunk|primary|secondary)$'
-    : '^(motorway|trunk|primary|secondary|tertiary|residential|unclassified)$';
+  const regex = majorOnly ?
+    '^(motorway|trunk|primary|secondary)$' :
+    '^(motorway|trunk|primary|secondary|tertiary|residential|unclassified)$';
   return `[out:json][timeout:${timeoutSec}];(way["highway"~"${regex}"](${south},${west},${north},${east}););out geom qt;`;
 }
 
@@ -17,13 +22,21 @@ function buildOverpassQuery(
 export function createTrafficSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
 } = {}) {
-  const flow = createFlowTileSource({ fetchImpl });
+  const flow = createFlowTileSource({
+    fetchImpl
+  });
   return {
     ...flow,
-    async requestRoads(
-      { south, west, north, east },
-      { majorOnly = false, timeoutSec = 25, signal } = {},
-    ) {
+    async requestRoads({
+      south,
+      west,
+      north,
+      east
+    }, {
+      majorOnly = false,
+      timeoutSec = 25,
+      signal
+    } = {}, ) {
       if (
         ![south, west, north, east].every(Number.isFinite) ||
         south < -90 ||
@@ -46,7 +59,9 @@ export function createTrafficSource({
       });
       const response = await fetchImpl('/api/overpass', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
         body: 'data=' + encodeURIComponent(query),
         signal,
       });
@@ -62,9 +77,13 @@ export function createTrafficSource({
         },
       };
     },
-    async getStatus({ signal } = {}) {
+    async getStatus({
+      signal
+    } = {}) {
       signal?.throwIfAborted();
-      const response = await fetchImpl('/api/tomtom/status', { signal });
+      const response = await fetchImpl('/api/tomtom/status', {
+        signal
+      });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const status = await response.json();
       signal?.throwIfAborted();
