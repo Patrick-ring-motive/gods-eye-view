@@ -2,7 +2,9 @@
 // Focused tests for the AIS feed-status derivation helper (Batch 10, finding H3/AIS)
 // and the vessel vertical-datum seam (2026-07-27 datum pass — see
 // docs/superpowers/specs/2026-07-27-vessel-datum-design.md).
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
 import {
@@ -29,27 +31,54 @@ import {
   mapAnalystRecord,
 } from './aisLiveVessels.js';
 import aisLiveVesselsLayer from './aisLiveVessels.js';
-import { registerEntityContext, selectEntityContext } from './contextStore.js';
-import { WORLD_FOCUS_REQUEST_EVENT } from '../worldFocus.js';
-import { ensureGeoidReady, geoidHeight } from './geoid.js';
-import { registerPickOwner, unregisterPickOwner } from './pickRegistry.js';
-import { applyVesselOverlayPolicy } from './vesselLabels.js';
-import { layerFeedState } from './manager.js';
+import {
+  registerEntityContext,
+  selectEntityContext
+} from './contextStore.js';
+import {
+  WORLD_FOCUS_REQUEST_EVENT
+} from '../worldFocus.js';
+import {
+  ensureGeoidReady,
+  geoidHeight
+} from './geoid.js';
+import {
+  registerPickOwner,
+  unregisterPickOwner
+} from './pickRegistry.js';
+import {
+  applyVesselOverlayPolicy
+} from './vesselLabels.js';
+import {
+  layerFeedState
+} from './manager.js';
 
 test('open feed with vessels is healthy (null)', () => {
-  assert.equal(deriveAisFeedError({ status: 'open', lastMessageAt: 1, error: null }, 42), null);
+  assert.equal(deriveAisFeedError({
+    status: 'open',
+    lastMessageAt: 1,
+    error: null
+  }, 42), null);
 });
 
 test('open feed without a received message is not a fresh healthy update', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'open', lastMessageAt: null, error: null }, 0),
+    deriveAisFeedError({
+      status: 'open',
+      lastMessageAt: null,
+      error: null
+    }, 0),
     'awaiting first AIS message…',
   );
 });
 
 test('open feed with a message but zero accepted positions stays non-fresh', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'open', lastMessageAt: 123, error: null }, 0),
+    deriveAisFeedError({
+      status: 'open',
+      lastMessageAt: 123,
+      error: null
+    }, 0),
     'awaiting usable AIS positions…',
   );
 });
@@ -58,10 +87,21 @@ test('snapshot classification distinguishes raw rows from accepted vessel positi
   const payload = {
     status: 'open',
     lastMessageAt: 123,
-    rows: [
-      { mmsi: 'bad-lat', lat: 'not-a-number', lon: 4 },
-      { mmsi: 'bad-lon', lat: 4, lon: undefined },
-      { mmsi: 'valid', lat: 29.7, lon: -95.1 },
+    rows: [{
+        mmsi: 'bad-lat',
+        lat: 'not-a-number',
+        lon: 4
+      },
+      {
+        mmsi: 'bad-lon',
+        lat: 4,
+        lon: undefined
+      },
+      {
+        mmsi: 'valid',
+        lat: 29.7,
+        lon: -95.1
+      },
     ],
   };
   const snapshot = classifyAisFeedSnapshot(payload);
@@ -77,7 +117,11 @@ test('raw rows that all fail normalization do not satisfy AIS product health', (
   const snapshot = classifyAisFeedSnapshot({
     status: 'open',
     lastMessageAt: 123,
-    rows: [{ mmsi: 'invalid', lat: 'bad', lon: -95.1 }],
+    rows: [{
+      mmsi: 'invalid',
+      lat: 'bad',
+      lon: -95.1
+    }],
   });
   assert.equal(snapshot.rawRowCount, 1);
   assert.equal(snapshot.acceptedRowCount, 0);
@@ -88,7 +132,11 @@ test('accepted cached rows remain usable while transport reconnects', () => {
   const snapshot = classifyAisFeedSnapshot({
     status: 'connecting',
     refreshing: true,
-    rows: [{ mmsi: 'cached', lat: 29.7, lon: -95.1 }],
+    rows: [{
+      mmsi: 'cached',
+      lat: 29.7,
+      lon: -95.1
+    }],
   });
   assert.equal(snapshot.acceptedRowCount, 1);
   assert.equal(snapshot.error, null);
@@ -96,33 +144,50 @@ test('accepted cached rows remain usable while transport reconnects', () => {
 
 test('missing key with no rows surfaces a clean reason', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'missing-key', error: 'AISSTREAM_API_KEY is not set' }, 0),
+    deriveAisFeedError({
+      status: 'missing-key',
+      error: 'AISSTREAM_API_KEY is not set'
+    }, 0),
     'AISSTREAM_API_KEY not set',
   );
 });
 
 test('socket error with no rows surfaces "feed down"', () => {
-  assert.equal(deriveAisFeedError({ status: 'error', error: 'AISStream websocket error' }, 0), 'feed down');
+  assert.equal(deriveAisFeedError({
+    status: 'error',
+    error: 'AISStream websocket error'
+  }, 0), 'feed down');
 });
 
 test('closed feed with no rows surfaces "feed disconnected"', () => {
-  assert.equal(deriveAisFeedError({ status: 'closed', error: null }, 0), 'feed disconnected');
+  assert.equal(deriveAisFeedError({
+    status: 'closed',
+    error: null
+  }, 0), 'feed disconnected');
 });
 
 test('non-open status but rows still flowing is treated as stale, not down (null)', () => {
   // e.g. reconnecting/refreshing while a cached buffer still serves rows.
-  assert.equal(deriveAisFeedError({ status: 'connecting', error: null }, 30), null);
+  assert.equal(deriveAisFeedError({
+    status: 'connecting',
+    error: null
+  }, 30), null);
 });
 
 test('unknown status falls back to a generic reason and appends server detail', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'weird-state', error: 'something specific' }, 0),
+    deriveAisFeedError({
+      status: 'weird-state',
+      error: 'something specific'
+    }, 0),
     'feed unavailable (something specific)',
   );
 });
 
 test('missing status treated as healthy (older/other payload shapes) (null)', () => {
-  assert.equal(deriveAisFeedError({ error: 'ignored' }, 0), null);
+  assert.equal(deriveAisFeedError({
+    error: 'ignored'
+  }, 0), null);
   assert.equal(deriveAisFeedError(null, 0), null);
 });
 
@@ -131,49 +196,79 @@ test('missing status treated as healthy (older/other payload shapes) (null)', ()
 // degraded feed must stay visible even while cached vessels are still drawn.
 
 test("'live' is the healthy status and reads exactly like the older 'open'", () => {
-  assert.equal(deriveAisFeedError({ status: 'live', lastMessageAt: 1, error: null }, 42), null);
+  assert.equal(deriveAisFeedError({
+    status: 'live',
+    lastMessageAt: 1,
+    error: null
+  }, 42), null);
   assert.equal(
-    deriveAisFeedError({ status: 'live', lastMessageAt: null, error: null }, 0),
+    deriveAisFeedError({
+      status: 'live',
+      lastMessageAt: null,
+      error: null
+    }, 0),
     'awaiting first AIS message…',
   );
   assert.equal(
-    deriveAisFeedError({ status: 'live', lastMessageAt: 123, error: null }, 0),
+    deriveAisFeedError({
+      status: 'live',
+      lastMessageAt: 123,
+      error: null
+    }, 0),
     'awaiting usable AIS positions…',
   );
 });
 
 test('a stale feed is surfaced even though cached vessels are still on screen', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'stale', silentForMs: 184_000, lastMessageAt: 5 }, 4_812),
+    deriveAisFeedError({
+      status: 'stale',
+      silentForMs: 184_000,
+      lastMessageAt: 5
+    }, 4_812),
     'feed silent 184s — no AIS data',
   );
 });
 
 test('a stale feed without a silence figure still says the feed is silent', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'stale', lastMessageAt: 5 }, 0),
+    deriveAisFeedError({
+      status: 'stale',
+      lastMessageAt: 5
+    }, 0),
     'feed silent — no AIS data',
   );
 });
 
 test('reconnecting reports which attempt is in flight, rows or no rows', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'reconnecting', reconnectAttempt: 2 }, 900),
+    deriveAisFeedError({
+      status: 'reconnecting',
+      reconnectAttempt: 2
+    }, 900),
     'reconnecting to feed… (attempt 2)',
   );
-  assert.equal(deriveAisFeedError({ status: 'reconnecting' }, 0), 'reconnecting to feed…');
+  assert.equal(deriveAisFeedError({
+    status: 'reconnecting'
+  }, 0), 'reconnecting to feed…');
 });
 
 test('DOWN is a visible terminal state, not a silent retry', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'down', reconnectAttempt: 5 }, 1_200),
+    deriveAisFeedError({
+      status: 'down',
+      reconnectAttempt: 5
+    }, 1_200),
     'feed down — retrying slowly (attempt 5)',
   );
 });
 
 test('a rejected API key reads as actionable, not as a countdown', () => {
   assert.equal(
-    deriveAisFeedError({ status: 'auth-failed', reconnectAttempt: 3 }, 4_000),
+    deriveAisFeedError({
+      status: 'auth-failed',
+      reconnectAttempt: 3
+    }, 4_000),
     'API key rejected — check AISSTREAM_API_KEY',
   );
 
@@ -210,7 +305,11 @@ test('a degraded feed reports its retry countdown to the chip', () => {
     assert.equal(aisLiveVesselsLayer.getStats().retryInSec, 60);
 
     // A feed with nothing scheduled must not invent a countdown.
-    _applyAisFeedSnapshotForTest({}, { status: 'live', lastMessageAt: 5, rows: [] });
+    _applyAisFeedSnapshotForTest({}, {
+      status: 'live',
+      lastMessageAt: 5,
+      rows: []
+    });
     assert.equal(aisLiveVesselsLayer.getStats().retryInSec, 0);
   } finally {
     _setAisRuntimeForTest(null);
@@ -222,7 +321,11 @@ test('a degraded feed keeps its reason through snapshot classification', () => {
     status: 'down',
     reconnectAttempt: 5,
     refreshing: true,
-    rows: [{ mmsi: 'cached', lat: 29.7, lon: -95.1 }],
+    rows: [{
+      mmsi: 'cached',
+      lat: 29.7,
+      lon: -95.1
+    }],
   });
   assert.equal(snapshot.acceptedRowCount, 1, 'the cached vessel is still drawable');
   assert.equal(snapshot.error, 'feed down — retrying slowly (attempt 5)');
@@ -252,7 +355,9 @@ function makeFakeAisRuntime(startMs = 1000) {
   return {
     runtime,
     scheduled,
-    get nowMs() { return nowMs; },
+    get nowMs() {
+      return nowMs;
+    },
     advance(deltaMs) {
       nowMs += deltaMs;
       let fired;
@@ -294,7 +399,11 @@ test('zero accepted rows preserve warm vessel selection, trail, and freshness ti
     const result = _applyAisFeedSnapshotForTest({}, {
       status: 'open',
       lastMessageAt: 789,
-      rows: [{ mmsi: 'invalid', lat: 'bad', lon: 4 }],
+      rows: [{
+        mmsi: 'invalid',
+        lat: 'bad',
+        lon: 4
+      }],
     });
     assert.equal(result.reconciled, false);
     assert.deepEqual(_getVesselFeedStateForTest(), {
@@ -320,14 +429,19 @@ test('zero accepted rows preserve warm vessel selection, trail, and freshness ti
     });
     assert.equal(trail.clearCalls, 0);
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
   }
 });
 
 test('open first load stays LOADING for one bounded first-connect grace period', () => {
   const clock = makeFakeAisRuntime();
   _setAisRuntimeForTest(clock.runtime);
-  _setVesselStateForTest({ viewer: {}, records: [] });
+  _setVesselStateForTest({
+    viewer: {},
+    records: []
+  });
   try {
     _beginAisSessionForTest();
     const result = _applyAisFeedSnapshotForTest({}, {
@@ -364,7 +478,9 @@ test('open first load stays LOADING for one bounded first-connect grace period',
     assert.equal(expired.firstConnectPhase, 'unavailable');
     assert.equal(layerFeedState(aisLiveVesselsLayer.getStats()), 'unavailable');
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setAisRuntimeForTest();
   }
 });
@@ -372,13 +488,23 @@ test('open first load stays LOADING for one bounded first-connect grace period',
 test('open and connecting polls do not restart the first-connect deadline', () => {
   const clock = makeFakeAisRuntime(5000);
   _setAisRuntimeForTest(clock.runtime);
-  _setVesselStateForTest({ viewer: {}, records: [] });
+  _setVesselStateForTest({
+    viewer: {},
+    records: []
+  });
   try {
     _beginAisSessionForTest();
     const initial = _getVesselFeedStateForTest();
     clock.advance(12000);
-    _applyAisFeedSnapshotForTest({}, { status: 'connecting', rows: [] });
-    _applyAisFeedSnapshotForTest({}, { status: 'open', lastMessageAt: 9, rows: [] });
+    _applyAisFeedSnapshotForTest({}, {
+      status: 'connecting',
+      rows: []
+    });
+    _applyAisFeedSnapshotForTest({}, {
+      status: 'open',
+      lastMessageAt: 9,
+      rows: []
+    });
     const afterPolls = _getVesselFeedStateForTest();
     assert.equal(afterPolls.firstConnectStartedAt, initial.firstConnectStartedAt);
     assert.equal(afterPolls.firstConnectDeadline, initial.firstConnectDeadline);
@@ -386,7 +512,9 @@ test('open and connecting polls do not restart the first-connect deadline', () =
     assert.equal(afterPolls.loading, true);
     assert.equal(afterPolls.error, null);
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setAisRuntimeForTest();
   }
 });
@@ -394,7 +522,10 @@ test('open and connecting polls do not restart the first-connect deadline', () =
 test('definitive AIS transport failures end grace immediately', () => {
   const clock = makeFakeAisRuntime();
   _setAisRuntimeForTest(clock.runtime);
-  _setVesselStateForTest({ viewer: {}, records: [] });
+  _setVesselStateForTest({
+    viewer: {},
+    records: []
+  });
   try {
     _beginAisSessionForTest();
     _applyAisFeedSnapshotForTest({}, {
@@ -409,7 +540,9 @@ test('definitive AIS transport failures end grace immediately', () => {
     assert.equal(feed.firstConnectPhase, 'unavailable');
     assert.equal(clock.activeCount(), 0);
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setAisRuntimeForTest();
   }
 });
@@ -423,7 +556,10 @@ test('first accepted position ends grace and warm data survives later open silen
     setVisible() {},
     clearSource() {},
   });
-  _setVesselStateForTest({ viewer: {}, records: [record] });
+  _setVesselStateForTest({
+    viewer: {},
+    records: [record]
+  });
   try {
     _beginAisSessionForTest();
     const accepted = _applyAisFeedSnapshotForTest({}, {
@@ -459,7 +595,9 @@ test('first accepted position ends grace and warm data survives later open silen
     assert.equal(feed.stale, true);
     assert.equal(feed.error, 'awaiting usable AIS positions…');
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setVesselOverlayHostForTest();
     _setAisRuntimeForTest();
   }
@@ -468,13 +606,19 @@ test('first accepted position ends grace and warm data survives later open silen
 test('superseded first-connect timer cannot expire its replacement session', () => {
   const clock = makeFakeAisRuntime(11000);
   _setAisRuntimeForTest(clock.runtime);
-  _setVesselStateForTest({ viewer: {}, records: [] });
+  _setVesselStateForTest({
+    viewer: {},
+    records: []
+  });
   try {
     _beginAisSessionForTest();
     const oldTimer = clock.scheduled[0];
     const oldSessionId = _getVesselFeedStateForTest().sessionId;
 
-    _setVesselStateForTest({ viewer: {}, records: [] });
+    _setVesselStateForTest({
+      viewer: {},
+      records: []
+    });
     _beginAisSessionForTest();
     const replacement = _getVesselFeedStateForTest();
     assert.notEqual(replacement.sessionId, oldSessionId);
@@ -487,19 +631,30 @@ test('superseded first-connect timer cannot expire its replacement session', () 
     assert.equal(afterStaleTimer.firstConnectDeadline, replacement.firstConnectDeadline);
     assert.equal(afterStaleTimer.error, null);
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setAisRuntimeForTest();
   }
 });
 
 function deferredFetchResponse() {
   let resolve;
-  const promise = new Promise((next) => { resolve = next; });
-  return { promise, resolve };
+  const promise = new Promise((next) => {
+    resolve = next;
+  });
+  return {
+    promise,
+    resolve
+  };
 }
 
 function jsonResponse(payload) {
-  return { ok: true, status: 200, json: async () => payload };
+  return {
+    ok: true,
+    status: 200,
+    json: async () => payload
+  };
 }
 
 test('HTTP rejection ends first-connect grace without waiting for its deadline', async () => {
@@ -508,7 +663,11 @@ test('HTTP rejection ends first-connect grace without waiting for its deadline',
   const priorFetch = globalThis.fetch;
   const priorWarn = console.warn;
   const clock = makeFakeAisRuntime();
-  globalThis.window = { location: { origin: 'http://localhost:4173' } };
+  globalThis.window = {
+    location: {
+      origin: 'http://localhost:4173'
+    }
+  };
   globalThis.fetch = async () => ({
     ok: false,
     status: 503,
@@ -519,7 +678,10 @@ test('HTTP rejection ends first-connect grace without waiting for its deadline',
   });
   console.warn = () => {};
   _setAisRuntimeForTest(clock.runtime);
-  _setVesselStateForTest({ viewer: {}, records: [] });
+  _setVesselStateForTest({
+    viewer: {},
+    records: []
+  });
   try {
     _beginAisSessionForTest();
     await _loadLivePositionsForTest({});
@@ -534,7 +696,9 @@ test('HTTP rejection ends first-connect grace without waiting for its deadline',
     console.warn = priorWarn;
     if (hadWindow) globalThis.window = priorWindow;
     else delete globalThis.window;
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setAisRuntimeForTest();
   }
 });
@@ -546,13 +710,26 @@ test('superseded AIS response cannot mutate or finalize a replacement request', 
   const first = deferredFetchResponse();
   const second = deferredFetchResponse();
   const queue = [first, second];
-  globalThis.window = { location: { origin: 'http://localhost:4173' } };
+  globalThis.window = {
+    location: {
+      origin: 'http://localhost:4173'
+    }
+  };
   globalThis.fetch = () => queue.shift().promise;
-  const oldRecord = makeRecord({ name: 'OLD' });
-  const replacement = makeRecord({ name: 'REPLACEMENT' });
+  const oldRecord = makeRecord({
+    name: 'OLD'
+  });
+  const replacement = makeRecord({
+    name: 'REPLACEMENT'
+  });
   const replacementTrail = makeTrailSpy();
   try {
-    _setVesselStateForTest({ viewer: {}, records: [oldRecord], loaded: true, lastUpdate: 100 });
+    _setVesselStateForTest({
+      viewer: {},
+      records: [oldRecord],
+      loaded: true,
+      lastUpdate: 100
+    });
     const oldLoad = _loadLivePositionsForTest({});
 
     // Simulate destroy/re-init replacement. The old fetch intentionally ignores abort.
@@ -571,7 +748,12 @@ test('superseded AIS response cannot mutate or finalize a replacement request', 
     first.resolve(jsonResponse({
       status: 'open',
       lastMessageAt: 1000,
-      rows: [{ mmsi: oldRecord.mmsi, name: 'STALE RESPONSE', lat: 1, lon: 2 }],
+      rows: [{
+        mmsi: oldRecord.mmsi,
+        name: 'STALE RESPONSE',
+        lat: 1,
+        lon: 2
+      }],
     }));
     await oldLoad;
     let feed = _getVesselFeedStateForTest();
@@ -579,7 +761,11 @@ test('superseded AIS response cannot mutate or finalize a replacement request', 
     assert.equal(feed.lastUpdate, 200, 'old response must not advance replacement freshness');
     assert.equal(feed.selectedMmsi, replacement.mmsi);
 
-    second.resolve(jsonResponse({ status: 'open', lastMessageAt: null, rows: [] }));
+    second.resolve(jsonResponse({
+      status: 'open',
+      lastMessageAt: null,
+      rows: []
+    }));
     await replacementLoad;
     feed = _getVesselFeedStateForTest();
     assert.equal(feed.loading, false);
@@ -593,7 +779,9 @@ test('superseded AIS response cannot mutate or finalize a replacement request', 
     globalThis.fetch = priorFetch;
     if (hadWindow) globalThis.window = priorWindow;
     else delete globalThis.window;
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
   }
 });
 
@@ -604,20 +792,33 @@ test('disable and destroy make abort-ignoring AIS responses inert', async () => 
   const priorDocument = globalThis.document;
   const priorFetch = globalThis.fetch;
   const windowTarget = new EventTarget();
-  windowTarget.location = { origin: 'http://localhost:4173' };
+  windowTarget.location = {
+    origin: 'http://localhost:4173'
+  };
   globalThis.window = windowTarget;
-  globalThis.document = { getElementById: () => null };
+  globalThis.document = {
+    getElementById: () => null
+  };
   try {
     const disableResponse = deferredFetchResponse();
     globalThis.fetch = () => disableResponse.promise;
     const record = makeRecord();
-    _setVesselStateForTest({ viewer: {}, records: [record], loaded: true, lastUpdate: 300 });
+    _setVesselStateForTest({
+      viewer: {},
+      records: [record],
+      loaded: true,
+      lastUpdate: 300
+    });
     const disabledLoad = _loadLivePositionsForTest({});
     aisLiveVesselsLayer.disable();
     disableResponse.resolve(jsonResponse({
       status: 'open',
       lastMessageAt: 1000,
-      rows: [{ mmsi: record.mmsi, lat: 1, lon: 2 }],
+      rows: [{
+        mmsi: record.mmsi,
+        lat: 1,
+        lon: 2
+      }],
     }));
     await disabledLoad;
     let feed = _getVesselFeedStateForTest();
@@ -626,14 +827,29 @@ test('disable and destroy make abort-ignoring AIS responses inert', async () => 
 
     const destroyResponse = deferredFetchResponse();
     globalThis.fetch = () => destroyResponse.promise;
-    const viewer = { scene: { primitives: { remove() {} } } };
-    _setVesselStateForTest({ viewer, records: [record], loaded: true, lastUpdate: 400 });
+    const viewer = {
+      scene: {
+        primitives: {
+          remove() {}
+        }
+      }
+    };
+    _setVesselStateForTest({
+      viewer,
+      records: [record],
+      loaded: true,
+      lastUpdate: 400
+    });
     const destroyedLoad = _loadLivePositionsForTest(viewer);
     aisLiveVesselsLayer.destroy(viewer);
     destroyResponse.resolve(jsonResponse({
       status: 'open',
       lastMessageAt: 2000,
-      rows: [{ mmsi: record.mmsi, lat: 3, lon: 4 }],
+      rows: [{
+        mmsi: record.mmsi,
+        lat: 3,
+        lon: 4
+      }],
     }));
     await destroyedLoad;
     feed = _getVesselFeedStateForTest();
@@ -647,23 +863,45 @@ test('disable and destroy make abort-ignoring AIS responses inert', async () => 
     else delete globalThis.window;
     if (hadDocument) globalThis.document = priorDocument;
     else delete globalThis.document;
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
   }
 });
 
 test('vessel focus wire animates alpha with deadband and restores after tracking ends', () => {
   let writes = 0;
-  const makeColor = (alpha) => ({ alpha, withAlpha: (next) => makeColor(next) });
+  const makeColor = (alpha) => ({
+    alpha,
+    withAlpha: (next) => makeColor(next)
+  });
   let color = makeColor(1);
   const billboard = {
-    position: { x: 1, y: 2, z: 3 },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    },
     show: true,
-    get color() { return color; },
-    set color(next) { writes += 1; color = next; },
+    get color() {
+      return color;
+    },
+    set color(next) {
+      writes += 1;
+      color = next;
+    },
   };
-  const records = [{ position: billboard.position, billboard }];
+  const records = [{
+    position: billboard.position,
+    billboard
+  }];
   const target = {
-    screenRect: { left: 40, top: 40, right: 60, bottom: 60 },
+    screenRect: {
+      left: 40,
+      top: 40,
+      right: 60,
+      bottom: 60
+    },
     paddingPx: 0,
     cameraDistance: 1000,
   };
@@ -684,7 +922,10 @@ test('vessel focus wire animates alpha with deadband and restores after tracking
       target: focusTarget,
       previousActiveCount: activeCount,
       nowMs,
-      screenPositionFor: () => ({ x: 50, y: 50 }),
+      screenPositionFor: () => ({
+        x: 50,
+        y: 50
+      }),
       cameraDistanceFor: () => 1200,
       params,
     });
@@ -710,16 +951,32 @@ test('vessel focus wire animates alpha with deadband and restores after tracking
 test('vessel focus wire performs no alpha writes when nothing has been tracked', () => {
   let writes = 0;
   const billboard = {
-    position: { x: 0, y: 0, z: 0 },
+    position: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
     show: true,
-    get color() { return { alpha: 1 }; },
-    set color(_next) { writes += 1; },
+    get color() {
+      return {
+        alpha: 1
+      };
+    },
+    set color(_next) {
+      writes += 1;
+    },
   };
   const result = applyVesselFocusDeemphasis({
-    records: [{ position: billboard.position, billboard }],
+    records: [{
+      position: billboard.position,
+      billboard
+    }],
     target: null,
     nowMs: 100,
-    screenPositionFor: () => ({ x: 50, y: 50 }),
+    screenPositionFor: () => ({
+      x: 50,
+      y: 50
+    }),
     cameraDistanceFor: () => 1200,
   });
   assert.deepEqual(result, {
@@ -732,15 +989,29 @@ test('vessel focus wire performs no alpha writes when nothing has been tracked',
 });
 
 test('vessel focus wire restores a hidden sprite before releasing the active pass', () => {
-  const makeColor = (alpha) => ({ alpha, withAlpha: (next) => makeColor(next) });
+  const makeColor = (alpha) => ({
+    alpha,
+    withAlpha: (next) => makeColor(next)
+  });
   const billboard = {
-    position: { x: 1, y: 2, z: 3 },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    },
     show: true,
     color: makeColor(1),
   };
-  const records = [{ billboard }];
+  const records = [{
+    billboard
+  }];
   const target = {
-    screenRect: { left: 40, top: 40, right: 60, bottom: 60 },
+    screenRect: {
+      left: 40,
+      top: 40,
+      right: 60,
+      bottom: 60
+    },
     paddingPx: 0,
     cameraDistance: 1000,
   };
@@ -757,7 +1028,10 @@ test('vessel focus wire restores a hidden sprite before releasing the active pas
     target: focusTarget,
     previousActiveCount,
     nowMs,
-    screenPositionFor: () => ({ x: 50, y: 50 }),
+    screenPositionFor: () => ({
+      x: 50,
+      y: 50
+    }),
     cameraDistanceFor: () => 1200,
     params,
   });
@@ -780,26 +1054,42 @@ test('vessel focus wire restores a hidden sprite before releasing the active pas
 
 test('vessel selection: empty-space click requests deselection', () => {
   assert.deepEqual(
-    reduceVesselSelection({ selectedMmsi: '353136000', gesture: 'click' }),
-    { action: 'deselect' },
+    reduceVesselSelection({
+      selectedMmsi: '353136000',
+      gesture: 'click'
+    }), {
+      action: 'deselect'
+    },
   );
 });
 
 test('vessel selection: no selection plus empty-space click is a no-op', () => {
   assert.deepEqual(
-    reduceVesselSelection({ selectedMmsi: null, pickedMmsi: null, gesture: 'click' }),
-    { action: 'none' },
+    reduceVesselSelection({
+      selectedMmsi: null,
+      pickedMmsi: null,
+      gesture: 'click'
+    }), {
+      action: 'none'
+    },
   );
 });
 
 test('vessel selection: Escape deselects only when this layer owns a selection', () => {
   assert.deepEqual(
-    reduceVesselSelection({ selectedMmsi: 353136000, gesture: 'escape' }),
-    { action: 'deselect' },
+    reduceVesselSelection({
+      selectedMmsi: 353136000,
+      gesture: 'escape'
+    }), {
+      action: 'deselect'
+    },
   );
   assert.deepEqual(
-    reduceVesselSelection({ gesture: 'escape' }),
-    { action: 'none' },
+    reduceVesselSelection({
+      gesture: 'escape'
+    }), {
+      action: 'none'
+    },
   );
 });
 
@@ -809,16 +1099,18 @@ test('vessel selection: another vessel replaces selection; same vessel is a no-o
       selectedMmsi: '353136000',
       pickedMmsi: '367123450',
       gesture: 'click',
-    }),
-    { action: 'select' },
+    }), {
+      action: 'select'
+    },
   );
   assert.deepEqual(
     reduceVesselSelection({
       selectedMmsi: '353136000',
       pickedMmsi: '353136000',
       gesture: 'click',
-    }),
-    { action: 'none' },
+    }), {
+      action: 'none'
+    },
   );
 });
 
@@ -850,7 +1142,9 @@ function makeRecord(overrides = {}) {
 function makeTrailSpy() {
   return {
     clearCalls: 0,
-    clear() { this.clearCalls += 1; },
+    clear() {
+      this.clearCalls += 1;
+    },
     setPositions() {},
     destroy() {},
   };
@@ -859,9 +1153,15 @@ function makeTrailSpy() {
 function makeClassList(...initial) {
   const classes = new Set(initial);
   return {
-    add(value) { classes.add(value); },
-    remove(value) { classes.delete(value); },
-    contains(value) { return classes.has(value); },
+    add(value) {
+      classes.add(value);
+    },
+    remove(value) {
+      classes.delete(value);
+    },
+    contains(value) {
+      return classes.has(value);
+    },
   };
 }
 
@@ -869,7 +1169,9 @@ function makeInteractionHandler() {
   return {
     click: null,
     destroyCalls: 0,
-    setInputAction(callback) { this.click = callback; },
+    setInputAction(callback) {
+      this.click = callback;
+    },
     destroy() {
       this.destroyCalls += 1;
       this.click = null;
@@ -892,7 +1194,9 @@ function makeCesiumEvent() {
     raise() {
       for (const callback of [...listeners]) callback();
     },
-    get listenerCount() { return listeners.size; },
+    get listenerCount() {
+      return listeners.size;
+    },
   };
 }
 
@@ -902,22 +1206,32 @@ function installWireHarness(picked, stateOverrides = {}) {
   const priorWindow = globalThis.window;
   const priorDocument = globalThis.document;
   const windowTarget = new EventTarget();
-  windowTarget.location = { origin: 'http://localhost:4173' };
+  windowTarget.location = {
+    origin: 'http://localhost:4173'
+  };
   const keyTarget = {
     keydown: null,
     added: [],
     removed: [],
     addEventListener(type, callback) {
       if (type !== 'keydown') return;
-      this.added.push({ type, callback });
+      this.added.push({
+        type,
+        callback
+      });
       this.keydown = callback;
     },
     removeEventListener(type, callback) {
       if (type !== 'keydown') return;
-      this.removed.push({ type, callback });
+      this.removed.push({
+        type,
+        callback
+      });
       if (this.keydown === callback) this.keydown = null;
     },
-    dispatch(event) { this.keydown?.(event); },
+    dispatch(event) {
+      this.keydown?.(event);
+    },
   };
   const handler = makeInteractionHandler();
   const reinstalledHandlers = [];
@@ -928,7 +1242,9 @@ function installWireHarness(picked, stateOverrides = {}) {
   };
   const trackedEntityChanged = makeCesiumEvent();
   const viewer = {
-    scene: { pick: () => picked },
+    scene: {
+      pick: () => picked
+    },
     trackedEntity: undefined,
     trackedEntityChanged,
   };
@@ -976,9 +1292,16 @@ function installWireHarness(picked, stateOverrides = {}) {
 }
 
 test('vessel interaction wire: trail pick does not deselect', () => {
-  const harness = installWireHarness({ id: 'gev-trail:71' });
+  const harness = installWireHarness({
+    id: 'gev-trail:71'
+  });
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(harness.trail.clearCalls, 0);
     assert.equal(_getVesselStateForTest().trailMmsi, harness.record.mmsi);
@@ -988,9 +1311,16 @@ test('vessel interaction wire: trail pick does not deselect', () => {
 });
 
 test('vessel interaction wire: only the gev-trail: namespace receives the trail no-op', () => {
-  const harness = installWireHarness({ id: 'gev-trailing-contact' });
+  const harness = installWireHarness({
+    id: 'gev-trailing-contact'
+  });
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
     assert.equal(harness.trail.clearCalls, 1);
   } finally {
@@ -1000,9 +1330,16 @@ test('vessel interaction wire: only the gev-trail: namespace receives the trail 
 
 test('vessel interaction wire: flights-owned pick preserves vessel selection', () => {
   registerPickOwner('flights', (pickedId) => pickedId === 'a1b2c3');
-  const harness = installWireHarness({ id: 'a1b2c3' });
+  const harness = installWireHarness({
+    id: 'a1b2c3'
+  });
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(harness.trail.clearCalls, 0);
   } finally {
@@ -1013,9 +1350,16 @@ test('vessel interaction wire: flights-owned pick preserves vessel selection', (
 
 test('vessel interaction wire: CCTV-owned pick preserves vessel selection', () => {
   registerPickOwner('cctv', (pickedId) => pickedId === 'atx-cam-3');
-  const harness = installWireHarness({ id: 'atx-cam-3' });
+  const harness = installWireHarness({
+    id: 'atx-cam-3'
+  });
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(harness.trail.clearCalls, 0);
   } finally {
@@ -1025,9 +1369,18 @@ test('vessel interaction wire: CCTV-owned pick preserves vessel selection', () =
 });
 
 test('vessel interaction wire: own-layer unkeyed record pick does not deselect', () => {
-  const harness = installWireHarness({ id: makeRecord({ mmsi: undefined }) });
+  const harness = installWireHarness({
+    id: makeRecord({
+      mmsi: undefined
+    })
+  });
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(harness.trail.clearCalls, 0);
   } finally {
@@ -1036,9 +1389,18 @@ test('vessel interaction wire: own-layer unkeyed record pick does not deselect',
 });
 
 test('vessel interaction wire: own-shaped evicted record pick does not deselect', () => {
-  const harness = installWireHarness({ id: makeRecord({ mmsi: '999999999' }) });
+  const harness = installWireHarness({
+    id: makeRecord({
+      mmsi: '999999999'
+    })
+  });
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(harness.trail.clearCalls, 0);
   } finally {
@@ -1047,7 +1409,11 @@ test('vessel interaction wire: own-shaped evicted record pick does not deselect'
 });
 
 test('vessel interaction wire: id-less 3D Tiles pick deselects and resets the HUD', () => {
-  const harness = installWireHarness({ primitive: {}, content: {}, featureId: 0 });
+  const harness = installWireHarness({
+    primitive: {},
+    content: {},
+    featureId: 0
+  });
   const cleared = [];
   try {
     registerEntityContext(harness.record, {
@@ -1060,7 +1426,12 @@ test('vessel interaction wire: id-less 3D Tiles pick deselects and resets the HU
       cleared.push(event.detail);
     });
 
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
 
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
     assert.equal(harness.hud.textContent, 'AIS: --');
@@ -1068,7 +1439,10 @@ test('vessel interaction wire: id-less 3D Tiles pick deselects and resets the HU
     // Clicking away is a deliberate deselect, not the vessel aging out of the
     // feed. Consumers that keep a readout on screen (the Cockpit Contact
     // panel) tear down on 'deliberate' and hold last-known on 'evicted'.
-    assert.deepEqual(cleared, [{ layerId: 'ais-live-vessels', reason: 'deliberate' }]);
+    assert.deepEqual(cleared, [{
+      layerId: 'ais-live-vessels',
+      reason: 'deliberate'
+    }]);
   } finally {
     harness.cleanup();
   }
@@ -1088,13 +1462,21 @@ test('vessel interaction wire: empty pick deselects and emits gev:entity-selecti
       cleared.push(event.detail);
     });
 
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
 
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
     assert.equal(harness.hud.textContent, 'AIS: --');
     assert.equal(harness.hud.classList.contains('active'), false);
     // Empty pick is a deliberate deselect — see the note above.
-    assert.deepEqual(cleared, [{ layerId: 'ais-live-vessels', reason: 'deliberate' }]);
+    assert.deepEqual(cleared, [{
+      layerId: 'ais-live-vessels',
+      reason: 'deliberate'
+    }]);
   } finally {
     harness.cleanup();
   }
@@ -1103,7 +1485,9 @@ test('vessel interaction wire: empty pick deselects and emits gev:entity-selecti
 test('vessel interaction wire: Escape deselects the selected vessel', () => {
   const harness = installWireHarness(undefined);
   try {
-    harness.keyTarget.dispatch({ key: 'Escape' });
+    harness.keyTarget.dispatch({
+      key: 'Escape'
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
     assert.equal(harness.hud.textContent, 'AIS: --');
     assert.equal(harness.hud.classList.contains('active'), false);
@@ -1119,7 +1503,9 @@ test('vessel interaction wire: trackedEntityChanged clears only with tracking an
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(harness.trail.clearCalls, 0);
 
-    harness.viewer.trackedEntity = { id: 'tracked-flight' };
+    harness.viewer.trackedEntity = {
+      id: 'tracked-flight'
+    };
     harness.viewer.trackedEntityChanged.raise();
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
     assert.equal(harness.trail.clearCalls, 1);
@@ -1175,13 +1561,23 @@ test('vessel interaction lifecycle: disable detaches input and enable reinstalls
       interactionHandlerFactory: harness.interactionHandlerFactory,
       interactionKeyTarget: harness.keyTarget,
     });
-    disabledClick({ position: { x: 10, y: 20 } });
-    disabledKeydown({ key: 'Escape' });
+    disabledClick({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
+    disabledKeydown({
+      key: 'Escape'
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
 
     globalThis.fetch = async () => ({
       ok: true,
-      json: async () => ({ status: 'open', rows: [] }),
+      json: async () => ({
+        status: 'open',
+        rows: []
+      }),
     });
     await aisLiveVesselsLayer.enable(harness.viewer);
 
@@ -1190,11 +1586,18 @@ test('vessel interaction lifecycle: disable detaches input and enable reinstalls
     assert.equal(harness.viewer.trackedEntityChanged.addCalls, 2);
     assert.equal(harness.viewer.trackedEntityChanged.listenerCount, 1);
     const reinstalled = harness.reinstalledHandlers[0];
-    reinstalled.click({ position: { x: 10, y: 20 } });
+    reinstalled.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
 
     assert.equal(aisLiveVesselsLayer.selectById(harness.record.mmsi), true);
-    harness.keyTarget.dispatch({ key: 'Escape' });
+    harness.keyTarget.dispatch({
+      key: 'Escape'
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
   } finally {
     globalThis.fetch = priorFetch;
@@ -1203,11 +1606,16 @@ test('vessel interaction lifecycle: disable detaches input and enable reinstalls
 });
 
 test('enable owns one grace timer and disable/re-enable starts a new session', async () => {
-  const harness = installWireHarness(undefined, { enabled: false });
+  const harness = installWireHarness(undefined, {
+    enabled: false
+  });
   const priorFetch = globalThis.fetch;
   const clock = makeFakeAisRuntime(20000);
   _setAisRuntimeForTest(clock.runtime);
-  globalThis.fetch = async () => jsonResponse({ status: 'open', rows: [] });
+  globalThis.fetch = async () => jsonResponse({
+    status: 'open',
+    rows: []
+  });
   try {
     await aisLiveVesselsLayer.enable(harness.viewer);
     const first = _getVesselFeedStateForTest();
@@ -1271,7 +1679,9 @@ test('vessel trail lifecycle: reconciliation eviction clears an orphaned trail',
       vesselCount: 0,
     });
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
   }
 });
 
@@ -1288,42 +1698,82 @@ test('buildVesselCard: name title + type/speed/heading detail line', () => {
 });
 
 test('buildVesselCard: heading falls back to course; missing parts are omitted', () => {
-  const card = buildVesselCard(makeRecord({ heading: null, type: '', speed: null }));
+  const card = buildVesselCard(makeRecord({
+    heading: null,
+    type: '',
+    speed: null
+  }));
   assert.deepEqual(card.details, ['231°']);
-  const bare = buildVesselCard(makeRecord({ heading: null, course: null, type: '', speed: null }));
+  const bare = buildVesselCard(makeRecord({
+    heading: null,
+    course: null,
+    type: '',
+    speed: null
+  }));
   assert.deepEqual(bare.details, []);
 });
 
 test('buildVesselCard: unnamed vessels title as MMSI; long names truncate', () => {
-  const unnamed = buildVesselCard(makeRecord({ name: 'VESSEL' }));
+  const unnamed = buildVesselCard(makeRecord({
+    name: 'VESSEL'
+  }));
   assert.equal(unnamed.title, 'MMSI 353136000');
-  const long = buildVesselCard(makeRecord({ name: 'A'.repeat(40) }));
+  const long = buildVesselCard(makeRecord({
+    name: 'A'.repeat(40)
+  }));
   assert.ok(long.title.length <= 26, `title too long: ${long.title.length}`);
 });
 
 test('buildVesselCard: anchors to the billboard position when present', () => {
-  const rendered = { x: 9, y: 9, z: 9 };
-  const card = buildVesselCard(makeRecord({ billboard: { position: rendered } }));
+  const rendered = {
+    x: 9,
+    y: 9,
+    z: 9
+  };
+  const card = buildVesselCard(makeRecord({
+    billboard: {
+      position: rendered
+    }
+  }));
   assert.equal(card.position, rendered);
 });
 
 test('buildVesselCard: tanker types carry the amber accent', () => {
-  const card = buildVesselCard(makeRecord({ type: 'Crude Oil Tanker' }));
+  const card = buildVesselCard(makeRecord({
+    type: 'Crude Oil Tanker'
+  }));
   assert.equal(card.accent, '255, 179, 71');
 });
 
 test('buildVesselCard: numeric AIS type codes read as family names, not digits', () => {
-  const card = buildVesselCard(makeRecord({ type: '84' }));
+  const card = buildVesselCard(makeRecord({
+    type: '84'
+  }));
   assert.deepEqual(card.details, ['TANKER · 14.5KT · 231°']);
   assert.equal(card.accent, '255, 179, 71');
 });
 
 test('cardScreenSeparated: rejects candidates inside the min separation radius', () => {
-  const accepted = [{ x: 400, y: 300 }];
-  assert.equal(cardScreenSeparated(accepted, { x: 400 + 149, y: 300 }, 150), false);
-  assert.equal(cardScreenSeparated(accepted, { x: 400 + 151, y: 300 }, 150), true);
-  assert.equal(cardScreenSeparated(accepted, { x: 400, y: 300 + 100 }, 150), false);
-  assert.equal(cardScreenSeparated([], { x: 0, y: 0 }, 150), true);
+  const accepted = [{
+    x: 400,
+    y: 300
+  }];
+  assert.equal(cardScreenSeparated(accepted, {
+    x: 400 + 149,
+    y: 300
+  }, 150), false);
+  assert.equal(cardScreenSeparated(accepted, {
+    x: 400 + 151,
+    y: 300
+  }, 150), true);
+  assert.equal(cardScreenSeparated(accepted, {
+    x: 400,
+    y: 300 + 100
+  }, 150), false);
+  assert.equal(cardScreenSeparated([], {
+    x: 0,
+    y: 0
+  }, 150), true);
 });
 
 test('buildSelectedVesselCard: full detail card with MMSI + position time', () => {
@@ -1347,26 +1797,49 @@ test('vessel host publication preserves the shipped grid winner and separation s
     mmsi,
     name,
     speed,
-    position: { x: 1, y: 2, z: 3, screen: { x, y } },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3,
+      screen: {
+        x,
+        y
+      }
+    },
   });
   const low = makeCandidate('100', 'VESSEL', 20, 20, 1);
   const winner = makeCandidate('200', 'NAMED WINNER', 40, 30, 16);
   const separated = makeCandidate('300', 'SEPARATED', 400, 300, 3);
   Cesium.SceneTransforms.worldToWindowCoordinates = (_scene, position) => position.screen;
   _setVesselOverlayHostForTest({
-    setEntries(sourceId, entries, options) { publications.push({ sourceId, entries, options }); },
+    setEntries(sourceId, entries, options) {
+      publications.push({
+        sourceId,
+        entries,
+        options
+      });
+    },
     setVisible() {},
     clearSource() {},
   });
   _setVesselStateForTest({
-    viewer: { scene: { canvas: { clientWidth: 1600, clientHeight: 900 } } },
+    viewer: {
+      scene: {
+        canvas: {
+          clientWidth: 1600,
+          clientHeight: 900
+        }
+      }
+    },
     records: [low, winner, separated],
   });
   try {
     _updateVesselCardsForTest([low, winner, separated]);
     assert.equal(publications.length, 1);
     assert.deepEqual(
-      publications[0].entries.map(({ id }) => id).sort(),
+      publications[0].entries.map(({
+        id
+      }) => id).sort(),
       ['vessel:200', 'vessel:300'],
       'one higher-priority winner survives the shared cell and the separated card remains',
     );
@@ -1374,7 +1847,9 @@ test('vessel host publication preserves the shipped grid winner and separation s
     assert.equal(publications[0].options.collisionCapacity, 112);
   } finally {
     Cesium.SceneTransforms.worldToWindowCoordinates = originalProjection;
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setVesselOverlayHostForTest();
   }
 });
@@ -1382,30 +1857,62 @@ test('vessel host publication preserves the shipped grid winner and separation s
 test('vessel real layer lifecycle publishes protected selection and leaves no stale host cards', () => {
   const calls = [];
   const host = {
-    setEntries(sourceId, entries, options) { calls.push({ op: 'set', sourceId, entries, options }); },
-    setVisible(sourceId, visible) { calls.push({ op: 'visible', sourceId, visible }); },
-    clearSource(sourceId) { calls.push({ op: 'clear', sourceId }); },
+    setEntries(sourceId, entries, options) {
+      calls.push({
+        op: 'set',
+        sourceId,
+        entries,
+        options
+      });
+    },
+    setVisible(sourceId, visible) {
+      calls.push({
+        op: 'visible',
+        sourceId,
+        visible
+      });
+    },
+    clearSource(sourceId) {
+      calls.push({
+        op: 'clear',
+        sourceId
+      });
+    },
   };
   const hadWindow = Object.hasOwn(globalThis, 'window');
   const priorWindow = globalThis.window;
   const priorDocument = globalThis.document;
   const record = makeRecord();
   globalThis.window = new EventTarget();
-  globalThis.document = { getElementById: () => null };
+  globalThis.document = {
+    getElementById: () => null
+  };
   const focusRequests = [];
   globalThis.window.addEventListener('gev:world-request-focus', (event) => {
     focusRequests.push(event.detail);
   });
   _setVesselOverlayHostForTest(host);
   _setVesselStateForTest({
-    viewer: { scene: { canvas: { clientWidth: 1600, clientHeight: 900 } } },
+    viewer: {
+      scene: {
+        canvas: {
+          clientWidth: 1600,
+          clientHeight: 900
+        }
+      }
+    },
     records: [record],
     selectedRecord: record,
-    billboardCollection: { show: true, remove() {} },
+    billboardCollection: {
+      show: true,
+      remove() {}
+    },
   });
   try {
     _updateVesselCardsForTest([]);
-    const publication = calls.find(({ op }) => op === 'set');
+    const publication = calls.find(({
+      op
+    }) => op === 'set');
     assert.ok(publication, 'production selector published to the host');
     assert.equal(publication.sourceId, 'ais-live-vessels');
     assert.equal(publication.options.cohortLimit, 112);
@@ -1430,7 +1937,9 @@ test('vessel real layer lifecycle publishes protected selection and leaves no st
       'destroy clears again so teardown cannot retain late entries',
     );
   } finally {
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     _setVesselOverlayHostForTest();
     if (hadWindow) globalThis.window = priorWindow;
     else delete globalThis.window;
@@ -1484,14 +1993,23 @@ test('EGM96 N pins the field finding: Rotterdam sea sits ~45 m ABOVE the ellipso
 // camera, whether the camera was free or tracking something else. The layer
 // only announces the click — the UI owns the flight (src/worldFocus.js).
 test('vessel interaction wire: selecting a vessel by click requests a camera transfer', () => {
-  const harness = installWireHarness({ id: makeRecord() }, { selectedRecord: null });
+  const harness = installWireHarness({
+    id: makeRecord()
+  }, {
+    selectedRecord: null
+  });
   const requests = [];
   harness.windowTarget.addEventListener(
     WORLD_FOCUS_REQUEST_EVENT,
     (event) => requests.push(event.detail),
   );
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(requests.length, 1);
     assert.equal(requests[0].kind, 'vessel');
@@ -1512,7 +2030,10 @@ function hostWithCardHit(entryId) {
     setEntries() {},
     setVisible() {},
     clearSource() {},
-    hitTest: () => (entryId ? { sourceId: 'ais-live-vessels', entryId } : null),
+    hitTest: () => (entryId ? {
+      sourceId: 'ais-live-vessels',
+      entryId
+    } : null),
   };
 }
 
@@ -1520,7 +2041,13 @@ function hostWithCardHit(entryId) {
 // on one picks the TERRAIN behind it — which read as empty space and cleared
 // the selection. A card hit must behave exactly like a sprite hit.
 test('vessel interaction wire: clicking a card selects and transfers, like the sprite', () => {
-  const harness = installWireHarness({ primitive: {}, content: {}, featureId: 0 }, { selectedRecord: null });
+  const harness = installWireHarness({
+    primitive: {},
+    content: {},
+    featureId: 0
+  }, {
+    selectedRecord: null
+  });
   const requests = [];
   harness.windowTarget.addEventListener(
     WORLD_FOCUS_REQUEST_EVENT,
@@ -1528,7 +2055,12 @@ test('vessel interaction wire: clicking a card selects and transfers, like the s
   );
   _setVesselOverlayHostForTest(hostWithCardHit(`vessel:${harness.record.mmsi}`));
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(requests.length, 1);
     assert.equal(requests[0].kind, 'vessel');
@@ -1540,7 +2072,11 @@ test('vessel interaction wire: clicking a card selects and transfers, like the s
 });
 
 test('vessel interaction wire: clicking the selected vessel card refocuses exactly once', () => {
-  const harness = installWireHarness({ primitive: {}, content: {}, featureId: 0 });
+  const harness = installWireHarness({
+    primitive: {},
+    content: {},
+    featureId: 0
+  });
   const requests = [];
   harness.windowTarget.addEventListener(
     WORLD_FOCUS_REQUEST_EVENT,
@@ -1548,7 +2084,12 @@ test('vessel interaction wire: clicking the selected vessel card refocuses exact
   );
   _setVesselOverlayHostForTest(hostWithCardHit(`vessel:${harness.record.mmsi}`));
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(requests.length, 1);
     assert.equal(requests[0].id, harness.record.mmsi);
@@ -1560,7 +2101,11 @@ test('vessel interaction wire: clicking the selected vessel card refocuses exact
 });
 
 test('vessel interaction wire: an unknown card id preserves selection and never flies', () => {
-  const harness = installWireHarness({ primitive: {}, content: {}, featureId: 0 });
+  const harness = installWireHarness({
+    primitive: {},
+    content: {},
+    featureId: 0
+  });
   const requests = [];
   harness.windowTarget.addEventListener(
     WORLD_FOCUS_REQUEST_EVENT,
@@ -1569,7 +2114,12 @@ test('vessel interaction wire: an unknown card id preserves selection and never 
   // An evicted vessel's card id resolves to no live record.
   _setVesselOverlayHostForTest(hostWithCardHit('vessel:999999999'));
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(requests.length, 0);
   } finally {
@@ -1582,7 +2132,9 @@ test('vessel interaction wire: a sibling-owned pick wins without selection mutat
   // Another layer is already acting on this click; two camera commands is the
   // worse failure, so the card is not consulted.
   registerPickOwner('flights', (pickedId) => pickedId === 'a1b2c3');
-  const harness = installWireHarness({ id: 'a1b2c3' });
+  const harness = installWireHarness({
+    id: 'a1b2c3'
+  });
   const requests = [];
   harness.windowTarget.addEventListener(
     WORLD_FOCUS_REQUEST_EVENT,
@@ -1590,7 +2142,12 @@ test('vessel interaction wire: a sibling-owned pick wins without selection mutat
   );
   _setVesselOverlayHostForTest(hostWithCardHit(`vessel:${harness.record.mmsi}`));
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo()?.mmsi, harness.record.mmsi);
     assert.equal(requests.length, 0);
   } finally {
@@ -1603,22 +2160,33 @@ test('vessel interaction wire: a sibling-owned pick wins without selection mutat
 test('vessel card policy: only MMSI-keyed cards publish a hit rect', () => {
   const keyed = applyVesselOverlayPolicy(buildVesselCard(makeRecord()));
   assert.equal(keyed.interactive, true);
-  const unkeyed = applyVesselOverlayPolicy(buildVesselCard(makeRecord({ mmsi: '' })));
+  const unkeyed = applyVesselOverlayPolicy(buildVesselCard(makeRecord({
+    mmsi: ''
+  })));
   assert.equal(unkeyed.interactive, false, 'an unkeyed card has no record to select');
 });
 
 test('vessel interaction wire: deselecting never moves the camera', () => {
-  const harness = installWireHarness({ id: 'gev-empty-space' });
+  const harness = installWireHarness({
+    id: 'gev-empty-space'
+  });
   const requests = [];
   harness.windowTarget.addEventListener(
     WORLD_FOCUS_REQUEST_EVENT,
     (event) => requests.push(event.detail),
   );
   try {
-    harness.handler.click({ position: { x: 10, y: 20 } });
+    harness.handler.click({
+      position: {
+        x: 10,
+        y: 20
+      }
+    });
     assert.equal(aisLiveVesselsLayer.getSelectedInfo(), null);
     assert.equal(requests.length, 0);
-    harness.keyTarget.dispatch({ key: 'Escape' });
+    harness.keyTarget.dispatch({
+      key: 'Escape'
+    });
     assert.equal(requests.length, 0);
   } finally {
     harness.cleanup();
@@ -1630,28 +2198,55 @@ test('a vessel analyst record carries the MMSI the tracker keys on', () => {
   // selection keys on MMSI. The compact voice payload must carry both, or the
   // analyst → track_entity handoff hands over a name and nothing resolvable.
   const named = mapAnalystRecord({
-    mmsi: '366999123', name: 'EVER GIVEN', lat: 37.8, lon: -122.4, speed: 12, type: 'Cargo',
+    mmsi: '366999123',
+    name: 'EVER GIVEN',
+    lat: 37.8,
+    lon: -122.4,
+    speed: 12,
+    type: 'Cargo',
   });
   assert.equal(named.id, 'EVER GIVEN');
   assert.equal(named.mmsi, '366999123', 'the key rides along with the label');
 
   // A nameless vessel falls back to its MMSI for display; the key is still
   // present in its own field, so the payload never depends on that collapse.
-  const nameless = mapAnalystRecord({ mmsi: '366999124', name: null, lat: 37.9, lon: -122.5 });
+  const nameless = mapAnalystRecord({
+    mmsi: '366999124',
+    name: null,
+    lat: 37.9,
+    lon: -122.5
+  });
   assert.equal(nameless.id, '366999124');
   assert.equal(nameless.mmsi, '366999124');
 });
 
 test('vessel selection passes the opaque source reference to optional history', async () => {
-  const { createAisStreamSource } = await import('../sources/live/standalone.js');
-  _setVesselStateForTest({ enabled: false });
+  const {
+    createAisStreamSource
+  } = await import('../sources/live/standalone.js');
+  _setVesselStateForTest({
+    enabled: false
+  });
   const requests = [];
   aisLiveVesselsLayer.setSource({
     label: 'Test vessel source',
-    getSnapshot: async () => ({ records: [] }),
-    getTrack: async (reference, options) => { requests.push({ reference, options }); return { records: [] }; },
+    getSnapshot: async () => ({
+      records: []
+    }),
+    getTrack: async (reference, options) => {
+      requests.push({
+        reference,
+        options
+      });
+      return {
+        records: []
+      };
+    },
   });
-  const harness = installWireHarness(undefined, { selectedRecord: null, trailMmsi: null });
+  const harness = installWireHarness(undefined, {
+    selectedRecord: null,
+    trailMmsi: null
+  });
   try {
     harness.record.reference = 'opaque:test-reference';
     assert.equal(aisLiveVesselsLayer.selectById(harness.record.mmsi), true);
@@ -1662,7 +2257,9 @@ test('vessel selection passes the opaque source reference to optional history', 
     assert.equal(aisLiveVesselsLayer.source, 'Test vessel source');
   } finally {
     harness.cleanup();
-    _setVesselStateForTest({ enabled: false });
+    _setVesselStateForTest({
+      enabled: false
+    });
     aisLiveVesselsLayer.setSource(createAisStreamSource());
   }
 });
