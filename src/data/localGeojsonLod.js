@@ -55,14 +55,20 @@ export const INFRA_LOD_REGIONAL_HEIGHT_M = 200_000;
  * @returns {{activeLimit:number}}
  */
 export function infraLodBudget(cameraHeightM) {
-  const height = Number.isFinite(cameraHeightM)
-    ? Math.max(0, cameraHeightM)
-    : INFRA_LOD_GLOBAL_HEIGHT_M;
+  const height = Number.isFinite(cameraHeightM) ?
+    Math.max(0, cameraHeightM) :
+    INFRA_LOD_GLOBAL_HEIGHT_M;
   if (height >= INFRA_LOD_GLOBAL_HEIGHT_M)
-    return { activeLimit: INFRA_LOD_ACTIVE_MIN };
+    return {
+      activeLimit: INFRA_LOD_ACTIVE_MIN
+    };
   if (height >= INFRA_LOD_REGIONAL_HEIGHT_M)
-    return { activeLimit: INFRA_LOD_ACTIVE_MID };
-  return { activeLimit: INFRA_LOD_ACTIVE_MAX };
+    return {
+      activeLimit: INFRA_LOD_ACTIVE_MID
+    };
+  return {
+    activeLimit: INFRA_LOD_ACTIVE_MAX
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -109,8 +115,7 @@ export const INFRA_LOD_MAX_DISTANCE_PENALTY = 200;
 export function infraRankScore(
   priority,
   distanceM,
-  isIncumbent,
-  {
+  isIncumbent, {
     incumbentBonus = INFRA_LOD_INCUMBENT_BONUS,
     farM = INFRA_LOD_FAR_M,
     maxDistancePenalty = INFRA_LOD_MAX_DISTANCE_PENALTY,
@@ -120,9 +125,9 @@ export function infraRankScore(
   const far = Number.isFinite(farM) && farM > 0 ? farM : INFRA_LOD_FAR_M;
   const d = Number.isFinite(distanceM) && distanceM >= 0 ? distanceM : far;
   const penaltyCap =
-    Number.isFinite(maxDistancePenalty) && maxDistancePenalty >= 0
-      ? maxDistancePenalty
-      : INFRA_LOD_MAX_DISTANCE_PENALTY;
+    Number.isFinite(maxDistancePenalty) && maxDistancePenalty >= 0 ?
+    maxDistancePenalty :
+    INFRA_LOD_MAX_DISTANCE_PENALTY;
   const bonus =
     isIncumbent && Number.isFinite(incumbentBonus) ? incumbentBonus : 0;
   return p + bonus - penaltyCap * Math.min(1, d / far);
@@ -130,9 +135,9 @@ export function infraRankScore(
 
 /** Infinity-safe distance for a total sort order. */
 function sortableDistance(distanceM) {
-  return Number.isFinite(distanceM) && distanceM >= 0
-    ? distanceM
-    : Number.MAX_VALUE;
+  return Number.isFinite(distanceM) && distanceM >= 0 ?
+    distanceM :
+    Number.MAX_VALUE;
 }
 
 /**
@@ -154,8 +159,10 @@ function sortableDistance(distanceM) {
  * @returns {{activeIds:string[], budget:{activeLimit:number}}}
  */
 export function selectInfraLod(
-  candidates,
-  { cameraHeightM, incumbentIds } = {},
+  candidates, {
+    cameraHeightM,
+    incumbentIds
+  } = {},
 ) {
   const budget = infraLodBudget(cameraHeightM);
   const incumbents =
@@ -167,9 +174,9 @@ export function selectInfraLod(
       continue;
     if (candidate.inView !== true) continue;
     const distanceM =
-      Number.isFinite(candidate.distanceM) && candidate.distanceM >= 0
-        ? candidate.distanceM
-        : Number.POSITIVE_INFINITY;
+      Number.isFinite(candidate.distanceM) && candidate.distanceM >= 0 ?
+      candidate.distanceM :
+      Number.POSITIVE_INFINITY;
     const normalized = {
       id: candidate.id,
       distanceM,
@@ -192,9 +199,9 @@ export function selectInfraLod(
 
   const ranked = [...byId.values()].sort(
     (a, b) =>
-      b.score - a.score ||
-      sortableDistance(a.distanceM) - sortableDistance(b.distanceM) ||
-      a.id.localeCompare(b.id),
+    b.score - a.score ||
+    sortableDistance(a.distanceM) - sortableDistance(b.distanceM) ||
+    a.id.localeCompare(b.id),
   );
 
   return {
@@ -262,7 +269,11 @@ export function applyInfraEvictionGrace({
     if (misses > gracePasses || nowMs - since >= graceMs) {
       evictIds.push(id);
     } else {
-      graced.push({ id, misses, since });
+      graced.push({
+        id,
+        misses,
+        since
+      });
     }
   }
 
@@ -270,11 +281,11 @@ export function applyInfraEvictionGrace({
   // (longest chance to return), then more misses, then id for determinism.
   graced.sort(
     (a, b) =>
-      a.since - b.since || b.misses - a.misses || a.id.localeCompare(b.id),
+    a.since - b.since || b.misses - a.misses || a.id.localeCompare(b.id),
   );
-  const cap = Number.isFinite(activeLimit)
-    ? Math.max(0, Math.floor(activeLimit))
-    : INFRA_LOD_ACTIVE_MAX;
+  const cap = Number.isFinite(activeLimit) ?
+    Math.max(0, Math.floor(activeLimit)) :
+    INFRA_LOD_ACTIVE_MAX;
   const capacity = Math.max(0, cap - keepIds.length);
   const overflow = Math.max(0, graced.length - capacity);
   for (let i = 0; i < graced.length; i++) {
@@ -289,7 +300,11 @@ export function applyInfraEvictionGrace({
     });
   }
 
-  return { keepIds, evictIds, graceState: nextGrace };
+  return {
+    keepIds,
+    evictIds,
+    graceState: nextGrace
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -343,8 +358,7 @@ export const INFRA_LOD_MOTION_EPSILON_MIN_M = 250;
  * @returns {number}
  */
 export function infraLodMotionEpsilonM(
-  cameraHeightM,
-  {
+  cameraHeightM, {
     ratio = INFRA_LOD_MOTION_EPSILON_RATIO,
     minM = INFRA_LOD_MOTION_EPSILON_MIN_M,
   } = {},
@@ -352,9 +366,9 @@ export function infraLodMotionEpsilonM(
   const floor =
     Number.isFinite(minM) && minM >= 0 ? minM : INFRA_LOD_MOTION_EPSILON_MIN_M;
   const scale =
-    Number.isFinite(ratio) && ratio >= 0
-      ? ratio
-      : INFRA_LOD_MOTION_EPSILON_RATIO;
+    Number.isFinite(ratio) && ratio >= 0 ?
+    ratio :
+    INFRA_LOD_MOTION_EPSILON_RATIO;
   const height =
     Number.isFinite(cameraHeightM) && cameraHeightM > 0 ? cameraHeightM : 0;
   return Math.max(floor, height * scale);
@@ -398,19 +412,25 @@ export function shouldRecomputeInfraLod({
   motionEpsilonM,
 } = {}) {
   const now = Number.isFinite(nowMs) ? nowMs : 0;
-  const last = Number.isFinite(lastProbeMs)
-    ? lastProbeMs
-    : Number.NEGATIVE_INFINITY;
+  const last = Number.isFinite(lastProbeMs) ?
+    lastProbeMs :
+    Number.NEGATIVE_INFINITY;
   const interval =
-    Number.isFinite(probeIntervalMs) && probeIntervalMs >= 0
-      ? probeIntervalMs
-      : INFRA_LOD_MOTION_PROBE_INTERVAL_MS;
-  if (now - last < interval) return { recompute: false, lastProbeMs: last };
+    Number.isFinite(probeIntervalMs) && probeIntervalMs >= 0 ?
+    probeIntervalMs :
+    INFRA_LOD_MOTION_PROBE_INTERVAL_MS;
+  if (now - last < interval) return {
+    recompute: false,
+    lastProbeMs: last
+  };
 
   const movedSq = Number.isFinite(movedSqM) && movedSqM > 0 ? movedSqM : 0;
   const epsilon =
-    Number.isFinite(motionEpsilonM) && motionEpsilonM >= 0
-      ? motionEpsilonM
-      : infraLodMotionEpsilonM(cameraHeightM);
-  return { recompute: movedSq > epsilon * epsilon, lastProbeMs: now };
+    Number.isFinite(motionEpsilonM) && motionEpsilonM >= 0 ?
+    motionEpsilonM :
+    infraLodMotionEpsilonM(cameraHeightM);
+  return {
+    recompute: movedSq > epsilon * epsilon,
+    lastProbeMs: now
+  };
 }
