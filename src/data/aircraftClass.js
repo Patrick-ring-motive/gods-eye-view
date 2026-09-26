@@ -74,23 +74,32 @@ const FASTJET = new Set([
 
 /** OpenSky extended-states integer category → class. */
 const OPENSKY_CATEGORY = {
-  2: 'light',      // Light (< 15 500 lbs)
-  3: 'airliner',   // Small
-  4: 'airliner',   // Large
-  5: 'airliner',   // High-vortex large (B757)
-  6: 'widebody',   // Heavy
-  7: 'fastjet',    // High performance (>5g, >400 kt)
+  2: 'light', // Light (< 15 500 lbs)
+  3: 'airliner', // Small
+  4: 'airliner', // Large
+  5: 'airliner', // High-vortex large (B757)
+  6: 'widebody', // Heavy
+  7: 'fastjet', // High performance (>5g, >400 kt)
   8: 'helicopter', // Rotorcraft
   9: 'glider',
 };
 
 /** ADS-B emitter-category string → class. */
 const EMITTER_CATEGORY = {
-  A1: 'light', A2: 'light', A3: 'airliner', A4: 'airliner',
-  A5: 'widebody', A6: 'fastjet', A7: 'helicopter', B1: 'glider',
+  A1: 'light',
+  A2: 'light',
+  A3: 'airliner',
+  A4: 'airliner',
+  A5: 'widebody',
+  A6: 'fastjet',
+  A7: 'helicopter',
+  B1: 'glider',
 };
 
-export function classifyAircraft({ typeCode, category } = {}) {
+export function classifyAircraft({
+  typeCode,
+  category
+} = {}) {
   const code = String(typeCode || '').trim().toUpperCase();
   if (code) {
     if (FASTJET.has(code)) return 'fastjet';
@@ -112,29 +121,48 @@ export function classifyAircraft({ typeCode, category } = {}) {
 
 /** Billboard scale multipliers (skylight GLYPH_SCALE, + fastjet). */
 export const CLASS_SCALE_2D = {
-  light: 0.62, glider: 0.58, turboprop: 0.86, airliner: 1.0,
-  widebody: 1.3, quadjet: 1.45, helicopter: 0.82, fastjet: 0.8,
-  bizjet: 0.72, uav: 0.75,
+  light: 0.62,
+  glider: 0.58,
+  turboprop: 0.86,
+  airliner: 1.0,
+  widebody: 1.3,
+  quadjet: 1.45,
+  helicopter: 0.82,
+  fastjet: 0.8,
+  bizjet: 0.72,
+  uav: 0.75,
 };
 
 /** 3D model scale multipliers — clamped [0.75, 1.45] while every class shares
  *  the single airplane.glb (a jet mesh at C172 scale reads wrong). Widen when
  *  real per-class models land in CLASS_MODEL_URL. */
 export const CLASS_SCALE_3D = {
-  light: 0.75, glider: 0.75, turboprop: 0.85, airliner: 1.0,
-  widebody: 1.3, quadjet: 1.45, helicopter: 0.8, fastjet: 0.8,
-  bizjet: 0.8, uav: 0.8,
+  light: 0.75,
+  glider: 0.75,
+  turboprop: 0.85,
+  airliner: 1.0,
+  widebody: 1.3,
+  quadjet: 1.45,
+  helicopter: 0.8,
+  fastjet: 0.8,
+  bizjet: 0.8,
+  uav: 0.8,
 };
 
 /** Per-class glTF — all the shared airplane today; drop real assets in here.
  *  NOTE for future models: each asset may need its own heading offset (the
  *  shared GLB uses MODEL_HEADING_OFFSET_DEG = 180 in both layers). */
 export const CLASS_MODEL_URL = {
-  light: '/models/airplane.glb', glider: '/models/airplane.glb',
-  turboprop: '/models/airplane.glb', airliner: '/models/airplane.glb',
-  widebody: '/models/airplane.glb', quadjet: '/models/airplane.glb',
-  helicopter: '/models/airplane.glb', fastjet: '/models/airplane.glb',
-  bizjet: '/models/airplane.glb', uav: '/models/airplane.glb',
+  light: '/models/airplane.glb',
+  glider: '/models/airplane.glb',
+  turboprop: '/models/airplane.glb',
+  airliner: '/models/airplane.glb',
+  widebody: '/models/airplane.glb',
+  quadjet: '/models/airplane.glb',
+  helicopter: '/models/airplane.glb',
+  fastjet: '/models/airplane.glb',
+  bizjet: '/models/airplane.glb',
+  uav: '/models/airplane.glb',
 };
 
 /** Real per-class GLBs (2026-08-15 Hangar fleet, owner picks; CC-BY 4.0 —
@@ -148,10 +176,34 @@ export const CLASS_MODEL_URL = {
  *  pinned by modelScale.test.mjs. Classes NOT listed (airliner, quadjet,
  *  glider, fastjet) still render the shared airplane.glb via CLASS_MODEL_URL. */
 export const CLASS_MODEL_REAL = {
-  helicopter: { url: '/models/bell206.glb',   bellyM: 1.66, radiusM: 8.24 },
-  light:      { url: '/models/c172.glb',      bellyM: 1.36, radiusM: 7.0 },
-  bizjet:     { url: '/models/citation2.glb', bellyM: 2.86, radiusM: 11.24 },
-  uav:        { url: '/models/mq9.glb',       bellyM: 2.02, radiusM: 12.0 },
-  widebody:   { url: '/models/b789.glb',      bellyM: 7.81, radiusM: 44.08 },
-  turboprop:  { url: '/models/atr72.glb',     bellyM: 3.81, radiusM: 19.49 },
+  helicopter: {
+    url: '/models/bell206.glb',
+    bellyM: 1.66,
+    radiusM: 8.24
+  },
+  light: {
+    url: '/models/c172.glb',
+    bellyM: 1.36,
+    radiusM: 7.0
+  },
+  bizjet: {
+    url: '/models/citation2.glb',
+    bellyM: 2.86,
+    radiusM: 11.24
+  },
+  uav: {
+    url: '/models/mq9.glb',
+    bellyM: 2.02,
+    radiusM: 12.0
+  },
+  widebody: {
+    url: '/models/b789.glb',
+    bellyM: 7.81,
+    radiusM: 44.08
+  },
+  turboprop: {
+    url: '/models/atr72.glb',
+    bellyM: 3.81,
+    radiusM: 19.49
+  },
 };
