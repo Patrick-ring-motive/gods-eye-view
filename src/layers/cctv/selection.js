@@ -10,8 +10,12 @@ export function createSelection({
   parts,
   source,
 }) {
-  const { CCTV_ACTIVATION_RESULT } = services.activation;
-  const { resolvePickId } = services.picking;
+  const {
+    CCTV_ACTIVATION_RESULT
+  } = services.activation;
+  const {
+    resolvePickId
+  } = services.picking;
 
   /**
    * Returns the camera record for the currently active camera. A stale ID falls
@@ -158,9 +162,9 @@ export function createSelection({
    */
 
   function deactivateActiveCamera() {
-    const record = layerState._activeCameraId
-      ? layerState._recordById.get(layerState._activeCameraId)
-      : null;
+    const record = layerState._activeCameraId ?
+      layerState._recordById.get(layerState._activeCameraId) :
+      null;
     if (!record) return false;
     layerState._activeCameraId = null;
     layerState._autoHopSuspended = true;
@@ -191,8 +195,10 @@ export function createSelection({
    */
 
   function cctvEmptyClickDeselects(
-    picked,
-    { activeCameraId = null, calibrationMode = false } = {},
+    picked, {
+      activeCameraId = null,
+      calibrationMode = false
+    } = {},
   ) {
     if (!activeCameraId || calibrationMode) return false;
     return resolvePickId(picked) === null;
@@ -208,17 +214,17 @@ export function createSelection({
   function extractPickedCameraId(picked) {
     if (!picked) return null;
 
-    const entity = picked.id?.properties
-      ? picked.id
-      : picked.primitive?.id?.properties
-        ? picked.primitive.id
-        : null;
+    const entity = picked.id?.properties ?
+      picked.id :
+      picked.primitive?.id?.properties ?
+      picked.primitive.id :
+      null;
     const maybeProp = entity?.properties?.cctvCameraId;
     if (maybeProp) {
       const value =
-        typeof maybeProp.getValue === 'function'
-          ? maybeProp.getValue(Cesium.JulianDate.now())
-          : maybeProp;
+        typeof maybeProp.getValue === 'function' ?
+        maybeProp.getValue(Cesium.JulianDate.now()) :
+        maybeProp;
       const record =
         typeof value === 'string' ? layerState._recordById.get(value) : null;
       const ownsCoverageEntity = Boolean(
@@ -228,7 +234,7 @@ export function createSelection({
         record?.projection?.planeEntity === entity ||
         layerState._projectionEntities.some(
           (runtime) =>
-            runtime?.cameraId === value && runtime.planeEntity === entity,
+          runtime?.cameraId === value && runtime.planeEntity === entity,
         );
       if (record && (ownsCoverageEntity || ownsProjectionEntity)) return value;
     }
@@ -238,18 +244,18 @@ export function createSelection({
     // ownership proof: require this layer's billboard collection or the exact
     // billboard stored on the record.
     const directId =
-      typeof picked.id === 'string'
-        ? picked.id
-        : typeof picked.primitive?.id === 'string'
-          ? picked.primitive.id
-          : null;
+      typeof picked.id === 'string' ?
+      picked.id :
+      typeof picked.primitive?.id === 'string' ?
+      picked.primitive.id :
+      null;
     const record =
       directId === null ? null : layerState._recordById.get(directId);
     if (!record) return null;
     return picked.primitive === layerState._billboards ||
-      picked.primitive === record.billboard
-      ? directId
-      : null;
+      picked.primitive === record.billboard ?
+      directId :
+      null;
   }
   return {
     getActiveRecord,
