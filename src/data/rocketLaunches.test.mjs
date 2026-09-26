@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { gstime } from 'satellite.js';
+import {
+  gstime
+} from 'satellite.js';
 import rocketLaunchesLayer, {
   _setRocketMissionOverlayHostForTest,
   _setSelectedRocketMissionForTest,
@@ -111,11 +113,26 @@ test('transitions selected mission zoom from globe nadir to an oblique site view
 });
 
 test('pulls replay camera from close ascent tracking into a globe-scale orbit view', () => {
-  const ascent = replayCameraView({ ascending: true, phaseProgress: 0.9 }, 120000);
-  const contextualAscent = replayCameraView({ ascending: true, phaseProgress: 0.9 }, 420000);
-  const orbitStart = replayCameraView({ ascending: false, phaseProgress: 0 }, 550000);
-  const orbitMidPullback = replayCameraView({ ascending: false, phaseProgress: 0.1 }, 550000);
-  const orbitGlobe = replayCameraView({ ascending: false, phaseProgress: 0.2 }, 550000);
+  const ascent = replayCameraView({
+    ascending: true,
+    phaseProgress: 0.9
+  }, 120000);
+  const contextualAscent = replayCameraView({
+    ascending: true,
+    phaseProgress: 0.9
+  }, 420000);
+  const orbitStart = replayCameraView({
+    ascending: false,
+    phaseProgress: 0
+  }, 550000);
+  const orbitMidPullback = replayCameraView({
+    ascending: false,
+    phaseProgress: 0.1
+  }, 550000);
+  const orbitGlobe = replayCameraView({
+    ascending: false,
+    phaseProgress: 0.2
+  }, 550000);
 
   assert.ok(ascent.pitch < Cesium.Math.toRadians(-20));
   assert.ok(ascent.pitch > Cesium.Math.toRadians(-34));
@@ -220,7 +237,10 @@ test('frames the complete high-apogee orbit together with Earth', () => {
 });
 
 test('holds the completed replay on its final orbit frame instead of wrapping to launch', () => {
-  const launch = { launchTime: '2026-07-01T00:00:00Z', timeline: [] };
+  const launch = {
+    launchTime: '2026-07-01T00:00:00Z',
+    timeline: []
+  };
   const completed = replayState(
     launch,
     0,
@@ -237,11 +257,25 @@ test('holds the completed replay on its final orbit frame instead of wrapping to
 });
 
 test('smooths small replay marker reprojection jitter but snaps camera jumps', () => {
-  const smoothed = smoothReplayWindowPosition({ x: 100, y: 100 }, { x: 104, y: 103 });
+  const smoothed = smoothReplayWindowPosition({
+    x: 100,
+    y: 100
+  }, {
+    x: 104,
+    y: 103
+  });
   assert.ok(smoothed.x > 100 && smoothed.x < 104);
   assert.deepEqual(
-    smoothReplayWindowPosition({ x: 100, y: 100 }, { x: 140, y: 100 }),
-    { x: 140, y: 100 },
+    smoothReplayWindowPosition({
+      x: 100,
+      y: 100
+    }, {
+      x: 140,
+      y: 100
+    }), {
+      x: 140,
+      y: 100
+    },
   );
 });
 
@@ -279,14 +313,32 @@ test('shows the screen-space rocket only while replay is active', () => {
 });
 
 test('aligns the replay rocket nose to the projected path tangent', () => {
-  assert.equal(replayVehicleScreenRotation({ x: 10, y: 10 }, { x: 10, y: 0 }), 0);
+  assert.equal(replayVehicleScreenRotation({
+    x: 10,
+    y: 10
+  }, {
+    x: 10,
+    y: 0
+  }), 0);
   assert.ok(Math.abs(
-    replayVehicleScreenRotation({ x: 10, y: 10 }, { x: 20, y: 10 })
-      - Math.PI / 2,
+    replayVehicleScreenRotation({
+      x: 10,
+      y: 10
+    }, {
+      x: 20,
+      y: 10
+    }) -
+    Math.PI / 2,
   ) < 1e-10);
   assert.ok(Math.abs(
-    replayVehicleScreenRotation({ x: 10, y: 10 }, { x: 0, y: 10 })
-      + Math.PI / 2,
+    replayVehicleScreenRotation({
+      x: 10,
+      y: 10
+    }, {
+      x: 0,
+      y: 10
+    }) +
+    Math.PI / 2,
   ) < 1e-10);
 });
 
@@ -336,7 +388,9 @@ test('suppresses every orbital representation for failed launches', () => {
 test('keeps failed-launch mission details truthful without inventing paths', () => {
   assert.deepEqual(missionPathPresentation({
     status: 'Launch Failure',
-    orbit: { name: 'Geostationary Transfer Orbit' },
+    orbit: {
+      name: 'Geostationary Transfer Orbit'
+    },
     trajectory: [],
   }, false), {
     orbit: 'PLANNED · Geostationary Transfer Orbit',
@@ -345,10 +399,17 @@ test('keeps failed-launch mission details truthful without inventing paths', () 
   });
   assert.deepEqual(missionPathPresentation({
     status: 'Partial Failure',
-    orbit: { name: 'Low Earth Orbit' },
-    trajectory: [
-      { latitude: 28.5, longitude: -80.5 },
-      { latitude: 29, longitude: -79.5 },
+    orbit: {
+      name: 'Low Earth Orbit'
+    },
+    trajectory: [{
+        latitude: 28.5,
+        longitude: -80.5
+      },
+      {
+        latitude: 29,
+        longitude: -79.5
+      },
     ],
   }, false), {
     orbit: 'PLANNED · Low Earth Orbit',
@@ -360,7 +421,9 @@ test('keeps failed-launch mission details truthful without inventing paths', () 
 test('describes only renderable successful mission paths', () => {
   assert.deepEqual(missionPathPresentation({
     status: 'Launch Successful',
-    orbit: { name: 'Low Earth Orbit' },
+    orbit: {
+      name: 'Low Earth Orbit'
+    },
     trajectory: [],
   }, true), {
     orbit: 'Low Earth Orbit',
@@ -370,7 +433,10 @@ test('describes only renderable successful mission paths', () => {
   assert.deepEqual(missionPathPresentation({
     status: 'Launch Successful',
     orbit: null,
-    trajectory: [{ latitude: 28.5, longitude: -80.5 }],
+    trajectory: [{
+      latitude: 28.5,
+      longitude: -80.5
+    }],
   }, false), {
     orbit: null,
     ascent: 'UNAVAILABLE',
@@ -386,19 +452,43 @@ test('bounds the post-TLE refresh to one resolved-catalog rebuild', () => {
     renderedTleText: null,
   };
   assert.equal(shouldRetryAfterActiveTle(base), true);
-  assert.equal(shouldRetryAfterActiveTle({ ...base, retryCount: 1 }), false);
-  assert.equal(shouldRetryAfterActiveTle({ ...base, activeTleText: null }), false);
-  assert.equal(shouldRetryAfterActiveTle({ ...base, renderedTleText: 'ACTIVE TLE' }), false);
-  assert.equal(shouldRetryAfterActiveTle({ ...base, enabled: false }), false);
+  assert.equal(shouldRetryAfterActiveTle({
+    ...base,
+    retryCount: 1
+  }), false);
+  assert.equal(shouldRetryAfterActiveTle({
+    ...base,
+    activeTleText: null
+  }), false);
+  assert.equal(shouldRetryAfterActiveTle({
+    ...base,
+    renderedTleText: 'ACTIVE TLE'
+  }), false);
+  assert.equal(shouldRetryAfterActiveTle({
+    ...base,
+    enabled: false
+  }), false);
 });
 
 test('replay releases aircraft tracking through both owning layer APIs', () => {
   const calls = [];
   const dataManager = {
     layers: new Map([
-      ['flights', { module: { stopTracking: () => calls.push('flights') } }],
-      ['military', { module: { stopTracking: () => calls.push('military') } }],
-      ['satellites', { module: { stopTracking: () => calls.push('satellites') } }],
+      ['flights', {
+        module: {
+          stopTracking: () => calls.push('flights')
+        }
+      }],
+      ['military', {
+        module: {
+          stopTracking: () => calls.push('military')
+        }
+      }],
+      ['satellites', {
+        module: {
+          stopTracking: () => calls.push('satellites')
+        }
+      }],
     ]),
   };
   assert.equal(releaseAircraftTracking(dataManager), 2);
@@ -430,7 +520,10 @@ test('treats an already-active Satellite catalog mode as idempotent', () => {
 });
 
 test('holds replay at the pad for a real-time countdown independent of replay speed', () => {
-  const launch = { launchTime: '2026-07-20T10:00:00Z', timeline: [] };
+  const launch = {
+    launchTime: '2026-07-20T10:00:00Z',
+    timeline: []
+  };
   const tilePreparation = replayState(launch, 115000, 12, 28, 5400, 4, 100000, 5);
   assert.equal(tilePreparation.preCountdownActive, true);
   assert.equal(tilePreparation.countdownActive, false);
@@ -448,7 +541,10 @@ test('holds replay at the pad for a real-time countdown independent of replay sp
 });
 
 test('hands replay directly from ascent into orbit', () => {
-  const launch = { launchTime: '2026-07-20T10:00:00Z', timeline: [] };
+  const launch = {
+    launchTime: '2026-07-20T10:00:00Z',
+    timeline: []
+  };
   const orbit = replayState(launch, 0, 12, 28, 5400, 1, 16_000);
   assert.equal(orbit.ascending, false);
   assert.equal(orbit.phaseProgress, 4 / 28);
@@ -464,26 +560,62 @@ test('shows launch-pad zone only for the selected close-range mission', () => {
     cameraDistanceM: 14000,
   };
   assert.equal(launchPadZoneVisible(closeSelected), true);
-  assert.equal(launchPadZoneVisible({ ...closeSelected, layerActive: false }), false);
-  assert.equal(launchPadZoneVisible({ ...closeSelected, selectedLaunchId: 'mission-b' }), false);
-  assert.equal(launchPadZoneVisible({ ...closeSelected, cameraHeightM: 120001 }), false);
-  assert.equal(launchPadZoneVisible({ ...closeSelected, cameraDistanceM: 180001 }), false);
+  assert.equal(launchPadZoneVisible({
+    ...closeSelected,
+    layerActive: false
+  }), false);
+  assert.equal(launchPadZoneVisible({
+    ...closeSelected,
+    selectedLaunchId: 'mission-b'
+  }), false);
+  assert.equal(launchPadZoneVisible({
+    ...closeSelected,
+    cameraHeightM: 120001
+  }), false);
+  assert.equal(launchPadZoneVisible({
+    ...closeSelected,
+    cameraDistanceM: 180001
+  }), false);
 });
 
 test('orders mission roster newest-first without losing navigation indices', () => {
-  const entries = missionRosterEntries([
-    { id: 'oldest', launchTime: '2026-07-01T00:00:00Z' },
-    { id: 'newest', launchTime: '2026-07-20T00:00:00Z' },
-    { id: 'middle', launchTime: '2026-07-10T00:00:00Z' },
+  const entries = missionRosterEntries([{
+      id: 'oldest',
+      launchTime: '2026-07-01T00:00:00Z'
+    },
+    {
+      id: 'newest',
+      launchTime: '2026-07-20T00:00:00Z'
+    },
+    {
+      id: 'middle',
+      launchTime: '2026-07-10T00:00:00Z'
+    },
   ]);
   assert.deepEqual(entries.map((entry) => entry.launch.id), ['newest', 'middle', 'oldest']);
   assert.deepEqual(entries.map((entry) => entry.index), [1, 2, 0]);
 });
 
 test('prioritizes data-rich missions before newer sparse records', () => {
-  const entries = missionRosterEntries([
-    { id: 'rich', launchTime: '2026-07-01T00:00:00Z', provider: 'Agency', mission: 'Detailed mission', orbit: { name: 'LEO' }, payloads: [{ name: 'Payload' }], timeline: [{ name: 'Liftoff' }] },
-    { id: 'sparse-new', launchTime: '2026-07-20T00:00:00Z' },
+  const entries = missionRosterEntries([{
+      id: 'rich',
+      launchTime: '2026-07-01T00:00:00Z',
+      provider: 'Agency',
+      mission: 'Detailed mission',
+      orbit: {
+        name: 'LEO'
+      },
+      payloads: [{
+        name: 'Payload'
+      }],
+      timeline: [{
+        name: 'Liftoff'
+      }]
+    },
+    {
+      id: 'sparse-new',
+      launchTime: '2026-07-20T00:00:00Z'
+    },
   ]);
   assert.ok(missionDataCompleteness(entries[0].launch) > missionDataCompleteness(entries[1].launch));
   assert.equal(entries[0].launch.id, 'rich');
@@ -522,10 +654,14 @@ test('rendered mission row focus and blur drive the preview ownership controller
     },
   };
   const nextButton = {
-    dataset: { missionRosterIndex: '4' },
+    dataset: {
+      missionRosterIndex: '4'
+    },
     closest: () => nextButton,
   };
-  const roster = { contains: (candidate) => candidate === nextButton };
+  const roster = {
+    contains: (candidate) => candidate === nextButton
+  };
   const ownership = {
     pointerEnter: (index) => calls.push(['pointer-enter', index]),
     pointerLeave: () => calls.push(['pointer-leave']),
@@ -537,8 +673,12 @@ test('rendered mission row focus and blur drive the preview ownership controller
   listeners.get('mouseenter')();
   listeners.get('mouseleave')();
   listeners.get('focus')();
-  listeners.get('blur')({ relatedTarget: nextButton });
-  listeners.get('blur')({ relatedTarget: null });
+  listeners.get('blur')({
+    relatedTarget: nextButton
+  });
+  listeners.get('blur')({
+    relatedTarget: null
+  });
 
   assert.deepEqual(calls, [
     ['pointer-enter', 2],
@@ -569,41 +709,68 @@ test('leaving a hovered row for an internal roster gap restores keyboard preview
 
 test('mission roster refresh restores keyboard focus by stable mission identity after reorder', () => {
   const focused = {
-    dataset: { missionRosterId: 'mission-b' },
+    dataset: {
+      missionRosterId: 'mission-b'
+    },
     closest: () => focused,
   };
   let restored = false;
   const replacement = {
-    dataset: { missionRosterId: 'mission-b' },
-    focus: ({ preventScroll }) => { restored = preventScroll; },
+    dataset: {
+      missionRosterId: 'mission-b'
+    },
+    focus: ({
+      preventScroll
+    }) => {
+      restored = preventScroll;
+    },
   };
   const list = {
     contains: (candidate) => candidate === focused,
-    querySelectorAll: () => [
-      { dataset: { missionRosterId: 'mission-c' } },
+    querySelectorAll: () => [{
+        dataset: {
+          missionRosterId: 'mission-c'
+        }
+      },
       replacement,
-      { dataset: { missionRosterId: 'mission-a' } },
+      {
+        dataset: {
+          missionRosterId: 'mission-a'
+        }
+      },
     ],
   };
 
   const snapshot = captureMissionRosterFocus(list, focused);
-  assert.deepEqual(snapshot, { launchId: 'mission-b' });
+  assert.deepEqual(snapshot, {
+    launchId: 'mission-b'
+  });
   assert.equal(restoreMissionRosterFocus(list, snapshot, null), 'restored');
   assert.equal(restored, true);
 });
 
 test('mission roster refresh continues after the list when the focused mission departed', () => {
   const focused = {
-    dataset: { missionRosterId: 'departed' },
+    dataset: {
+      missionRosterId: 'departed'
+    },
     closest: () => focused,
   };
   let continuationFocused = false;
   const list = {
     contains: (candidate) => candidate === focused,
-    querySelectorAll: () => [{ dataset: { missionRosterId: 'remaining' } }],
+    querySelectorAll: () => [{
+      dataset: {
+        missionRosterId: 'remaining'
+      }
+    }],
   };
   const continuation = {
-    focus: ({ preventScroll }) => { continuationFocused = preventScroll; },
+    focus: ({
+      preventScroll
+    }) => {
+      continuationFocused = preventScroll;
+    },
   };
 
   const snapshot = captureMissionRosterFocus(list, focused);
@@ -612,8 +779,14 @@ test('mission roster refresh continues after the list when the focused mission d
 });
 
 test('pending mission preview resolves the current refreshed record by identity', () => {
-  const stale = { id: 'mission-a', name: 'Stale' };
-  const current = { id: 'mission-a', name: 'Current' };
+  const stale = {
+    id: 'mission-a',
+    name: 'Stale'
+  };
+  const current = {
+    id: 'mission-a',
+    name: 'Current'
+  };
 
   assert.equal(resolveMissionRosterPreviewLaunch([current], stale.id), current);
   assert.equal(resolveMissionRosterPreviewLaunch([], stale.id), null);
@@ -640,22 +813,55 @@ test('latest roster input owns preview and restores the remaining owner on leave
 });
 
 test('assigns distinct stable colors to mission operators', () => {
-  assert.equal(missionMarkerColor({ provider: 'NASA', name: 'Science Flight' }).toCssColorString(), 'rgb(255,159,67)');
-  assert.equal(missionMarkerColor({ provider: 'SpaceX', name: 'Starlink Group' }).toCssColorString(), 'rgb(76,201,240)');
-  assert.equal(missionMarkerColor({ provider: 'Private Launch Co.', name: 'Test Flight' }).toCssColorString(), 'rgb(192,132,252)');
+  assert.equal(missionMarkerColor({
+    provider: 'NASA',
+    name: 'Science Flight'
+  }).toCssColorString(), 'rgb(255,159,67)');
+  assert.equal(missionMarkerColor({
+    provider: 'SpaceX',
+    name: 'Starlink Group'
+  }).toCssColorString(), 'rgb(76,201,240)');
+  assert.equal(missionMarkerColor({
+    provider: 'Private Launch Co.',
+    name: 'Test Flight'
+  }).toCssColorString(), 'rgb(192,132,252)');
 });
 
 test('normalizes recent launches and preserves supplied trajectory/orbit data', () => {
-  const launches = normalizeRocketLaunches({ results: [{
-    id: 'recent-1',
-    name: 'Test Flight',
-    net: '2026-07-20T10:00:00Z',
-    status: { name: 'Launch Successful' },
-    pad: { name: 'Pad A', location: { name: 'Test Range', coordinates: '12.5,45.5' } },
-    trajectory: [{ latitude: 45.5, longitude: 12.5, altitude: 0 }],
-    timeline: [{ type: { abbrev: 'SECO-1' }, relative_time: 'PT8M40S' }],
-    mission: { description: 'Payload test', orbit: { name: 'LEO' } },
-  }] }, NOW);
+  const launches = normalizeRocketLaunches({
+    results: [{
+      id: 'recent-1',
+      name: 'Test Flight',
+      net: '2026-07-20T10:00:00Z',
+      status: {
+        name: 'Launch Successful'
+      },
+      pad: {
+        name: 'Pad A',
+        location: {
+          name: 'Test Range',
+          coordinates: '12.5,45.5'
+        }
+      },
+      trajectory: [{
+        latitude: 45.5,
+        longitude: 12.5,
+        altitude: 0
+      }],
+      timeline: [{
+        type: {
+          abbrev: 'SECO-1'
+        },
+        relative_time: 'PT8M40S'
+      }],
+      mission: {
+        description: 'Payload test',
+        orbit: {
+          name: 'LEO'
+        }
+      },
+    }]
+  }, NOW);
 
   assert.equal(launches.length, 1);
   assert.equal(launches[0].lat, 45.5);
@@ -666,57 +872,85 @@ test('normalizes recent launches and preserves supplied trajectory/orbit data', 
 });
 
 test('uses Launch Library 2 pad latitude/longitude fields', () => {
-  const launches = normalizeRocketLaunches({ results: [{
-    id: 'pad-fields',
-    net: '2026-07-20T10:00:00Z',
-    pad: { latitude: '34.632', longitude: '-120.611', location: { name: 'Vandenberg' } },
-  }] }, NOW);
+  const launches = normalizeRocketLaunches({
+    results: [{
+      id: 'pad-fields',
+      net: '2026-07-20T10:00:00Z',
+      pad: {
+        latitude: '34.632',
+        longitude: '-120.611',
+        location: {
+          name: 'Vandenberg'
+        }
+      },
+    }]
+  }, NOW);
   assert.equal(launches.length, 1);
   assert.equal(launches[0].lat, 34.632);
   assert.equal(launches[0].lon, -120.611);
 });
 
 test('normalizes detailed payload and stage recovery records', () => {
-  const launches = normalizeRocketLaunches({ results: [{
-    id: 'recovery-details',
-    name: 'Falcon 9 | Test Payload',
-    net: '2026-07-20T10:00:00Z',
-    pad: { latitude: '28.608', longitude: '-80.604', name: 'LC-39A' },
-    rocket: {
-      payloads: [{
-        id: 501,
-        destination: 'Low Earth Orbit',
-        amount: 2,
-        payload: {
-          id: 91,
-          name: 'TestSat',
-          type: { name: 'Earth Observation Satellite' },
-          manufacturer: { name: 'Example Space' },
-          operator: { name: 'Example Operator' },
-          mass: 420,
-        },
-      }],
-      launcher_stage: [{
-        id: 77,
-        type: 'Core',
-        reused: true,
-        launcher_flight_number: 8,
-        launcher: { serial_number: 'B1099' },
-        landing: {
-          attempt: true,
-          success: true,
-          downrange_distance: 610,
-          type: { name: 'Autonomous Spaceport Drone Ship' },
-          landing_location: {
-            name: 'A Shortfall of Gravitas',
-            latitude: '30.1',
-            longitude: '-76.2',
+  const launches = normalizeRocketLaunches({
+    results: [{
+      id: 'recovery-details',
+      name: 'Falcon 9 | Test Payload',
+      net: '2026-07-20T10:00:00Z',
+      pad: {
+        latitude: '28.608',
+        longitude: '-80.604',
+        name: 'LC-39A'
+      },
+      rocket: {
+        payloads: [{
+          id: 501,
+          destination: 'Low Earth Orbit',
+          amount: 2,
+          payload: {
+            id: 91,
+            name: 'TestSat',
+            type: {
+              name: 'Earth Observation Satellite'
+            },
+            manufacturer: {
+              name: 'Example Space'
+            },
+            operator: {
+              name: 'Example Operator'
+            },
+            mass: 420,
           },
-        },
-      }],
-    },
-    mission: { orbit: { name: 'Low Earth Orbit' } },
-  }] }, NOW);
+        }],
+        launcher_stage: [{
+          id: 77,
+          type: 'Core',
+          reused: true,
+          launcher_flight_number: 8,
+          launcher: {
+            serial_number: 'B1099'
+          },
+          landing: {
+            attempt: true,
+            success: true,
+            downrange_distance: 610,
+            type: {
+              name: 'Autonomous Spaceport Drone Ship'
+            },
+            landing_location: {
+              name: 'A Shortfall of Gravitas',
+              latitude: '30.1',
+              longitude: '-76.2',
+            },
+          },
+        }],
+      },
+      mission: {
+        orbit: {
+          name: 'Low Earth Orbit'
+        }
+      },
+    }]
+  }, NOW);
 
   assert.equal(launches[0].payloads[0].name, 'TestSat');
   assert.equal(launches[0].payloads[0].amount, 2);
@@ -729,36 +963,72 @@ test('normalizes detailed payload and stage recovery records', () => {
 });
 
 test('keeps payload and recovery collections empty when LL2 does not disclose them', () => {
-  const launches = normalizeRocketLaunches({ results: [{
-    id: 'undisclosed',
-    net: '2026-07-20T10:00:00Z',
-    pad: { latitude: '28.608', longitude: '-80.604' },
-    rocket: {},
-  }] }, NOW);
+  const launches = normalizeRocketLaunches({
+    results: [{
+      id: 'undisclosed',
+      net: '2026-07-20T10:00:00Z',
+      pad: {
+        latitude: '28.608',
+        longitude: '-80.604'
+      },
+      rocket: {},
+    }]
+  }, NOW);
   assert.deepEqual(launches[0].payloads, []);
   assert.deepEqual(launches[0].recoveryStages, []);
 });
 
 test('excludes launches outside the rolling 30-day window and missing coordinates', () => {
-  const launches = normalizeRocketLaunches({ results: [
-    { id: 'old', net: '2026-06-26T00:00:00Z', pad: { location: { coordinates: '1,1' } } },
-    { id: 'no-coordinates', net: '2026-07-20T00:00:00Z', pad: { location: {} } },
-    { id: 'future', net: '2026-07-28T00:00:00Z', pad: { location: { coordinates: '1,1' } } },
-  ] }, NOW);
+  const launches = normalizeRocketLaunches({
+    results: [{
+        id: 'old',
+        net: '2026-06-26T00:00:00Z',
+        pad: {
+          location: {
+            coordinates: '1,1'
+          }
+        }
+      },
+      {
+        id: 'no-coordinates',
+        net: '2026-07-20T00:00:00Z',
+        pad: {
+          location: {}
+        }
+      },
+      {
+        id: 'future',
+        net: '2026-07-28T00:00:00Z',
+        pad: {
+          location: {
+            coordinates: '1,1'
+          }
+        }
+      },
+    ]
+  }, NOW);
 
   assert.deepEqual(launches, []);
 });
 
 test('accepts an array payload for proxy and fixture flexibility', () => {
-  const launches = normalizeRocketLaunches([
-    { id: 'array-1', net: '2026-07-01T00:00:00Z', pad: { location: { coordinates: '2,3' } } },
-  ], NOW);
+  const launches = normalizeRocketLaunches([{
+    id: 'array-1',
+    net: '2026-07-01T00:00:00Z',
+    pad: {
+      location: {
+        coordinates: '2,3'
+      }
+    }
+  }, ], NOW);
   assert.equal(launches[0].id, 'array-1');
 });
 
 test('builds a surface-safe ascent that meets the orbit without a phase jump', () => {
   const launch = Cesium.Cartesian3.fromDegrees(-120.61, 34.63, 0);
-  const orbit = Array.from({ length: 37 }, (_, index) => {
+  const orbit = Array.from({
+    length: 37
+  }, (_, index) => {
     const longitude = -180 + index * 10;
     const latitude = Math.sin(Cesium.Math.toRadians(longitude)) * 35;
     return Cesium.Cartesian3.fromDegrees(longitude, latitude, 550000);
@@ -807,7 +1077,9 @@ test('keeps a tangent-blended inclined ascent outside the globe', () => {
   const launch = Cesium.Cartesian3.fromDegrees(80, -60, 0);
   const radius = Cesium.Ellipsoid.WGS84.maximumRadius + 200000;
   const inclination = Cesium.Math.toRadians(30);
-  const orbit = Array.from({ length: 97 }, (_, index) => {
+  const orbit = Array.from({
+    length: 97
+  }, (_, index) => {
     const angle = (index / 96) * Cesium.Math.TWO_PI;
     return new Cesium.Cartesian3(
       radius * Math.cos(angle),
@@ -829,7 +1101,9 @@ test('uses a propagated insertion reference instead of the radial nearest orbit 
   const orbit = approximateOrbitPath({
     lat: 28.5,
     lon: -80.6,
-    orbit: { name: 'Low Earth Orbit' },
+    orbit: {
+      name: 'Low Earth Orbit'
+    },
   });
   const targetIndex = 42;
   const paths = buildMissionPaths(launch, [], orbit, orbit[targetIndex]);
@@ -850,7 +1124,9 @@ test('estimated mission orbit is a smooth planar ring', () => {
   const orbit = approximateOrbitPath({
     lat: 34.63,
     lon: -120.61,
-    orbit: { name: 'Polar Orbit' },
+    orbit: {
+      name: 'Polar Orbit'
+    },
   });
   const normal = Cesium.Cartesian3.normalize(
     Cesium.Cartesian3.cross(orbit[0], orbit[24], new Cesium.Cartesian3()),
@@ -870,7 +1146,9 @@ test('projects a west-coast ascent forward into orbit without reversing course',
   const launchInfo = {
     lat: 34.63,
     lon: -120.61,
-    orbit: { name: 'Low Earth Orbit' },
+    orbit: {
+      name: 'Low Earth Orbit'
+    },
   };
   const launch = Cesium.Cartesian3.fromDegrees(launchInfo.lon, launchInfo.lat, 0);
   const orbit = approximateOrbitPath(launchInfo);
@@ -952,7 +1230,12 @@ test('mission overlay factories preserve all four source-formatted label roles a
     ['orbit', 'PROJECTED ORBIT', '#c084fc', ['PROJECTED ORBIT', []]],
   ];
   for (const [id, text, accent, [title, details]] of roles) {
-    const entry = createRocketMissionElementOverlayEntry({ id, position, text, accent });
+    const entry = createRocketMissionElementOverlayEntry({
+      id,
+      position,
+      text,
+      accent
+    });
     assert.equal(entry.title, title);
     assert.deepEqual(entry.details, details);
     assert.equal(entry.accent, accent);
@@ -961,9 +1244,13 @@ test('mission overlay factories preserve all four source-formatted label roles a
     assert.equal(entry.edgeFade, 'keyhole');
   }
 
-  const surplus = Array.from(
-    { length: ROCKET_MISSION_AMBIENT_OVERLAY_COHORT_LIMIT + 12 },
-    (_, index) => ({ id: `mission-${String(index).padStart(3, '0')}`, priority: index }),
+  const surplus = Array.from({
+      length: ROCKET_MISSION_AMBIENT_OVERLAY_COHORT_LIMIT + 12
+    },
+    (_, index) => ({
+      id: `mission-${String(index).padStart(3, '0')}`,
+      priority: index
+    }),
   );
   const cohort = selectRocketMissionMarkerOverlayCohort(surplus);
   assert.equal(cohort.length, ROCKET_MISSION_AMBIENT_OVERLAY_COHORT_LIMIT);
@@ -984,10 +1271,16 @@ test('derives replay ascent duration from mission timing instead of a fixed cons
     Cesium.Cartesian3.fromDegrees(-116, 34, 200000),
   ];
   const fast = replayAscentDurationSeconds({
-    timeline: [{ name: 'SECO-1', offsetSeconds: 360 }],
+    timeline: [{
+      name: 'SECO-1',
+      offsetSeconds: 360
+    }],
   }, path);
   const slow = replayAscentDurationSeconds({
-    timeline: [{ name: 'Orbit insertion', offsetSeconds: 1200 }],
+    timeline: [{
+      name: 'Orbit insertion',
+      offsetSeconds: 1200
+    }],
   }, path);
   assert.ok(slow > fast);
   assert.ok(fast >= 8 && slow <= 36);
@@ -1038,8 +1331,14 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
       this.tagName = tagName.toUpperCase();
       this.children = [];
       this.parentElement = null;
-      this.style = { setProperty() {} };
-      this.classList = { add() {}, remove() {}, toggle() {} };
+      this.style = {
+        setProperty() {}
+      };
+      this.classList = {
+        add() {},
+        remove() {},
+        toggle() {}
+      };
       this.dataset = {};
       this.hidden = false;
       this.clientWidth = 1600;
@@ -1049,9 +1348,17 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
       this.disableRootEvents = false;
     }
 
-    addEventListener(type, handler) { listeners.set(`${this.tagName}:${type}`, handler); }
-    removeEventListener(type) { listeners.delete(`${this.tagName}:${type}`); }
-    appendChild(child) { child.parentElement = this; this.children.push(child); return child; }
+    addEventListener(type, handler) {
+      listeners.set(`${this.tagName}:${type}`, handler);
+    }
+    removeEventListener(type) {
+      listeners.delete(`${this.tagName}:${type}`);
+    }
+    appendChild(child) {
+      child.parentElement = this;
+      this.children.push(child);
+      return child;
+    }
     remove() {
       if (this.parentElement) {
         this.parentElement.children = this.parentElement.children.filter((child) => child !== this);
@@ -1059,8 +1366,17 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
       this.parentElement = null;
     }
     setAttribute() {}
-    getBoundingClientRect() { return { left: 0, top: 0, width: 1600, height: 900 }; }
-    getContext() { return this.tagName === 'CANVAS' ? context : null; }
+    getBoundingClientRect() {
+      return {
+        left: 0,
+        top: 0,
+        width: 1600,
+        height: 900
+      };
+    }
+    getContext() {
+      return this.tagName === 'CANVAS' ? context : null;
+    }
   }
   const body = new FakeElement('body');
   const document = {
@@ -1068,8 +1384,12 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
     onmousewheel: undefined,
     createElement: (tagName) => new FakeElement(tagName),
     getElementById: () => null,
-    addEventListener(type, handler) { listeners.set(`document:${type}`, handler); },
-    removeEventListener(type) { listeners.delete(`document:${type}`); },
+    addEventListener(type, handler) {
+      listeners.set(`document:${type}`, handler);
+    },
+    removeEventListener(type) {
+      listeners.delete(`document:${type}`);
+    },
   };
   const canvas = new FakeElement('canvas');
   const dataSources = [];
@@ -1082,18 +1402,26 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
   const scene = {
     canvas,
     camera,
-    frameState: { frameNumber: 1 },
+    frameState: {
+      frameNumber: 1
+    },
     postRender: new Cesium.Event(),
     preRender: new Cesium.Event(),
     preUpdate: new Cesium.Event(),
-    primitives: { add: (primitive) => primitive, remove: () => true },
+    primitives: {
+      add: (primitive) => primitive,
+      remove: () => true
+    },
     drillPick: () => [],
   };
   const viewer = {
     camera,
     scene,
     dataSources: {
-      add(dataSource) { dataSources.push(dataSource); return dataSource; },
+      add(dataSource) {
+        dataSources.push(dataSource);
+        return dataSource;
+      },
       remove(dataSource) {
         const index = dataSources.indexOf(dataSource);
         if (index >= 0) dataSources.splice(index, 1);
@@ -1110,33 +1438,42 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
   };
   const launchTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   let launchName = 'Falcon 9 | Gauntlet Payload';
-  const launchPayload = () => ({ results: [{
-    id: 'mission-runtime',
-    name: launchName,
-    net: launchTime,
-    status: { name: 'Launch Successful' },
-    pad: {
-      latitude: '28.608',
-      longitude: '-80.604',
-      name: 'Space Launch Complex 39A',
-    },
-    rocket: {
-      launcher_stage: [{
-        id: 'booster-1',
-        type: 'Core',
-        landing: {
-          attempt: true,
-          success: true,
-          downrange_distance: 600,
-          landing_location: { latitude: '30.1', longitude: '-76.2' },
+  const launchPayload = () => ({
+    results: [{
+      id: 'mission-runtime',
+      name: launchName,
+      net: launchTime,
+      status: {
+        name: 'Launch Successful'
+      },
+      pad: {
+        latitude: '28.608',
+        longitude: '-80.604',
+        name: 'Space Launch Complex 39A',
+      },
+      rocket: {
+        launcher_stage: [{
+          id: 'booster-1',
+          type: 'Core',
+          landing: {
+            attempt: true,
+            success: true,
+            downrange_distance: 600,
+            landing_location: {
+              latitude: '30.1',
+              longitude: '-76.2'
+            },
+          },
+        }],
+      },
+      mission: {
+        name: 'Gauntlet Payload',
+        orbit: {
+          name: 'Low Earth Orbit'
         },
-      }],
-    },
-    mission: {
-      name: 'Gauntlet Payload',
-      orbit: { name: 'Low Earth Orbit' },
-    },
-  }] });
+      },
+    }]
+  });
   globalThis.document = document;
   globalThis.HTMLCanvasElement = FakeElement;
   globalThis.HTMLImageElement = class {};
@@ -1144,10 +1481,16 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
   globalThis.OffscreenCanvas = class {};
   globalThis.fetch = async (url) => {
     if (url === '/api/celestrak/active') {
-      return { ok: true, text: async () => '' };
+      return {
+        ok: true,
+        text: async () => ''
+      };
     }
     assert.equal(url, '/api/launches');
-    return { ok: true, json: async () => launchPayload() };
+    return {
+      ok: true,
+      json: async () => launchPayload()
+    };
   };
   _setRocketMissionOverlayHostForTest(host);
   let initialized = false;
@@ -1201,7 +1544,9 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
     ));
     assert.ok(selectedPublication);
     assert.deepEqual(selectedPublication[3], ROCKET_MISSION_SELECTED_OVERLAY_SOURCE_OPTIONS);
-    assert.deepEqual(selectedPublication[2].map(({ title }) => title), [
+    assert.deepEqual(selectedPublication[2].map(({
+      title
+    }) => title), [
       'FALCON 9',
       'STAGE RE-ENTRY',
       'EST. ORBIT POSITION',
@@ -1211,10 +1556,10 @@ test('real mission build, select, refresh, deselect, disable, and destroy paths 
     assert.match(selectedPublication[2][2].details[0], /^\d{4}-\d{2}-\d{2}$/);
     assert.match(selectedPublication[2][2].details[1], /^\d{2}:\d{2}:\d{2} UTC$/);
     assert.ok(selectedPublication[2].every((entry) => (
-      entry.selected === true
-      && entry.protected === true
-      && entry.paintLane === 'selected'
-      && entry.edgeFade === 'keyhole'
+      entry.selected === true &&
+      entry.protected === true &&
+      entry.paintLane === 'selected' &&
+      entry.edgeFade === 'keyhole'
     )));
     const satelliteEntity = dataSources[0].entities.getById('rocket-satellite:mission-runtime');
     const satellitePosition = satelliteEntity.position.getValue(Cesium.JulianDate.now());
@@ -1403,15 +1748,39 @@ test('disable reports a semantic failure while restoring the satellites dependen
   );
 });
 
-
 test('missing payload details stay unknown without inventing mass or classification', () => {
-  for (const [mass, expected] of [[null, null], [undefined, null], ['', null], ['  ', null],
-    [false, null], [-1, null], ['invalid', null], [0, 0], ['125', 125]]) {
-    const [launch] = normalizeRocketLaunches([{ id: 'mass', pad: { latitude: 1, longitude: 2 }, net: '2026-07-20T10:00:00Z',
-      payloads: [{ mass }] }], NOW);
+  for (const [mass, expected] of [
+      [null, null],
+      [undefined, null],
+      ['', null],
+      ['  ', null],
+      [false, null],
+      [-1, null],
+      ['invalid', null],
+      [0, 0],
+      ['125', 125]
+    ]) {
+    const [launch] = normalizeRocketLaunches([{
+      id: 'mass',
+      pad: {
+        latitude: 1,
+        longitude: 2
+      },
+      net: '2026-07-20T10:00:00Z',
+      payloads: [{
+        mass
+      }]
+    }], NOW);
     assert.equal(launch.payloads[0].massKg, expected);
     assert.equal(launch.payloads[0].name, 'Unnamed payload');
   }
-  const [launch] = normalizeRocketLaunches([{ id: 'missing', pad: { latitude: 1, longitude: 2 }, net: '2026-07-20T10:00:00Z' }], NOW);
+  const [launch] = normalizeRocketLaunches([{
+    id: 'missing',
+    pad: {
+      latitude: 1,
+      longitude: 2
+    },
+    net: '2026-07-20T10:00:00Z'
+  }], NOW);
   assert.deepEqual(launch.payloads, []);
 });
