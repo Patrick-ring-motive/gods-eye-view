@@ -32,8 +32,13 @@ function install(register) {
         this.body = JSON.parse(body);
       },
     };
-    await routes.get(route)(
-      { url, method, socket: { remoteAddress: peer } },
+    await routes.get(route)({
+        url,
+        method,
+        socket: {
+          remoteAddress: peer
+        }
+      },
       res,
     );
     return res;
@@ -42,21 +47,29 @@ function install(register) {
 
 test('nearby labels rank landmarks, deduplicate names/addresses and bound the projection', () => {
   const place = (name, types, longitude = 0) => ({
-    displayName: { text: name },
+    displayName: {
+      text: name
+    },
     types,
-    location: { latitude: 0, longitude },
+    location: {
+      latitude: 0,
+      longitude
+    },
     formattedAddress: 'Street',
   });
-  const result = projectNearbyPlaces(
-    {
+  const result = projectNearbyPlaces({
       places: [
         place('Bathroom', ['public_bathroom']),
         place('Monument', ['monument'], 0.1),
         place('MONUMENT', ['monument']),
-        ...Array.from({ length: 25 }, (_, i) =>
+        ...Array.from({
+            length: 25
+          }, (_, i) =>
           place(`POI ${i}`, ['point_of_interest'], i / 100),
         ),
-        { id: 'unnamed' },
+        {
+          id: 'unnamed'
+        },
       ],
     },
     0,
@@ -75,18 +88,31 @@ test('nearby labels rank landmarks, deduplicate names/addresses and bound the pr
 
 test('text search preserves bounds, rejects malformed bounds and tolerates absent locations', () => {
   const viewport = {
-    low: { latitude: 1, longitude: 2 },
-    high: { latitude: 3, longitude: 4 },
+    low: {
+      latitude: 1,
+      longitude: 2
+    },
+    high: {
+      latitude: 3,
+      longitude: 4
+    },
   };
-  const result = projectTextSearchPlaces(
-    {
-      places: [
-        {
-          displayName: { text: 'Museum' },
+  const result = projectTextSearchPlaces({
+      places: [{
+          displayName: {
+            text: 'Museum'
+          },
           viewport,
           types: Array(12).fill('museum'),
         },
-        { displayName: { text: 'Park' }, viewport: { low: viewport.low } },
+        {
+          displayName: {
+            text: 'Park'
+          },
+          viewport: {
+            low: viewport.low
+          }
+        },
       ],
     },
     0,
@@ -102,7 +128,9 @@ test('text search preserves bounds, rejects malformed bounds and tolerates absen
 for (const preview of [false, true]) {
   test(`Google middleware resolves credentials per request and preserves search responses (${preview ? 'preview' : 'dev'})`, async (t) => {
     let key = '';
-    const plugin = googlePlacesContextProxy({ resolveApiKey: () => key });
+    const plugin = googlePlacesContextProxy({
+      resolveApiKey: () => key
+    });
     const request = install((middlewares) =>
       plugin[preview ? 'configurePreviewServer' : 'configureServer']({
         middlewares,
@@ -110,15 +138,21 @@ for (const preview of [false, true]) {
     );
     const calls = [];
     t.mock.method(globalThis, 'fetch', async (url, options) => {
-      calls.push({ url, options });
+      calls.push({
+        url,
+        options
+      });
       assert.equal(options.headers['X-Goog-Api-Key'], key);
       return Response.json({
-        places: [
-          {
-            displayName: { text: 'Museum' },
-            location: { latitude: 30, longitude: -97 },
+        places: [{
+          displayName: {
+            text: 'Museum'
           },
-        ],
+          location: {
+            latitude: 30,
+            longitude: -97
+          },
+        }, ],
       });
     });
     const nearby = '/api/google/nearby-places';
@@ -150,8 +184,13 @@ for (const preview of [false, true]) {
     assert.equal((await request(nearby, '?lat=bad&lon=-97')).statusCode, 400);
     assert.equal((await request(nearby, '', 'POST')).statusCode, 405);
     t.mock.method(globalThis, 'fetch', async () =>
-      Response.json({ error: { message: 'Denied' } }, { status: 403 }),
-    );
+      Response.json({
+        error: {
+          message: 'Denied'
+        }
+      }, {
+        status: 403
+      }), );
     assert.deepEqual((await request(search, '?q=museum&lat=30&lon=-97')).body, {
       places: [],
       error: 'Denied',
@@ -169,18 +208,16 @@ test('OSRM routing preserves aliases, cache, span guards and upstream failure be
     assert.match(url, /routed-car\/route\/v1\/driving\//);
     return Response.json({
       code: 'Ok',
-      routes: [
-        {
-          distance: 123.6,
-          duration: 80.2,
-          geometry: {
-            coordinates: [
-              [-97, 30],
-              [-97.01, 30.01],
-            ],
-          },
+      routes: [{
+        distance: 123.6,
+        duration: 80.2,
+        geometry: {
+          coordinates: [
+            [-97, 30],
+            [-97.01, 30.01],
+          ],
         },
-      ],
+      }, ],
     });
   });
   const route = '/api/route';
@@ -202,18 +239,20 @@ test('OSRM routing preserves aliases, cache, span guards and upstream failure be
   );
   assert.equal(calls, 1);
   for (const [url, error] of [
-    ['?profile=plane&coords=0,0;1,1', 'invalid profile'],
-    ['?coords=0,91;1,1', 'invalid coordinate'],
-    ['?coords=0,0;100,0', 'route leg too long'],
-    ['?coords=0,0', 'need 2-12 coordinates'],
-  ])
+      ['?profile=plane&coords=0,0;1,1', 'invalid profile'],
+      ['?coords=0,91;1,1', 'invalid coordinate'],
+      ['?coords=0,0;100,0', 'route leg too long'],
+      ['?coords=0,0', 'need 2-12 coordinates'],
+    ])
     assert.equal((await request(route, url)).body.error, error);
   assert.equal(calls, 1);
   now += 600001;
   t.mock.method(
     globalThis,
     'fetch',
-    async () => new Response('offline', { status: 503 }),
+    async () => new Response('offline', {
+      status: 503
+    }),
   );
   assert.deepEqual((await request(route, query)).body, {
     ok: false,
@@ -222,7 +261,11 @@ test('OSRM routing preserves aliases, cache, span guards and upstream failure be
   t.mock.method(
     globalThis,
     'fetch',
-    async () => new Response('x', { headers: { 'content-type': 'text/html' } }),
+    async () => new Response('x', {
+      headers: {
+        'content-type': 'text/html'
+      }
+    }),
   );
   assert.equal((await request(route, query)).body.error, 'no route found');
 });
