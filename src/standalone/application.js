@@ -1,9 +1,21 @@
-import { createStandalonePlaceSearch } from './placeSearch.js';
-import { createApplication } from '../app/application.js';
-import { createStandaloneScene } from './scene.js';
-import { createStandaloneControls } from './controls.js';
-import { createStandaloneData } from './data.js';
-import { createStandaloneTools } from './tools.js';
+import {
+  createStandalonePlaceSearch
+} from './placeSearch.js';
+import {
+  createApplication
+} from '../app/application.js';
+import {
+  createStandaloneScene
+} from './scene.js';
+import {
+  createStandaloneControls
+} from './controls.js';
+import {
+  createStandaloneData
+} from './data.js';
+import {
+  createStandaloneTools
+} from './tools.js';
 
 // The existing controls and layer catalog contain page-scoped state.
 let constructed = false;
@@ -37,10 +49,22 @@ export function createStandaloneApplication({
       });
     },
     createControls: (context) =>
-      createStandaloneControls({ ...context, loaderStatus, placeSearch }),
+      createStandaloneControls({
+        ...context,
+        loaderStatus,
+        placeSearch
+      }),
     createData: (context) =>
-      createStandaloneData({ ...context, allowQaRegistration }),
+      createStandaloneData({
+        ...context,
+        allowQaRegistration
+      }),
     createTools: (context) =>
-      createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
+      createStandaloneTools({
+        ...context,
+        loadingScreen,
+        placeSearch,
+        voice
+      }),
   });
 }
