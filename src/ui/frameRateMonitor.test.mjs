@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createFrameRateMonitor } from './frameRateMonitor.js';
+import {
+  createFrameRateMonitor
+} from './frameRateMonitor.js';
 
 function fixture(t) {
   const keys = new Set();
@@ -31,7 +33,10 @@ function fixture(t) {
       },
     },
   };
-  const monitor = createFrameRateMonitor({ viewer, documentRef });
+  const monitor = createFrameRateMonitor({
+    viewer,
+    documentRef
+  });
   t.after(() => monitor.destroy());
   return {
     monitor,
@@ -54,7 +59,9 @@ function fixture(t) {
 }
 
 test('FPS measures rendered frames only while shown and releases its resources', (t) => {
-  t.mock.timers.enable({ apis: ['setInterval'] });
+  t.mock.timers.enable({
+    apis: ['setInterval']
+  });
   let now = 0;
   t.mock.method(performance, 'now', () => now);
   const f = fixture(t);
@@ -90,18 +97,41 @@ test('FPS measures rendered frames only while shown and releases its resources',
 
 test('typing, modified keys, composition and repeated presses do not toggle FPS', (t) => {
   const f = fixture(t);
-  for (const options of [
-    { target: { closest: () => ({}) } },
-    { target: { isContentEditable: true } },
-    { ctrlKey: true },
-    { altKey: true },
-    { metaKey: true },
-    { shiftKey: true },
-    { repeat: true },
-    { isComposing: true },
-    { defaultPrevented: true },
-    { key: 'a' },
-  ]) {
+  for (const options of [{
+        target: {
+          closest: () => ({})
+        }
+      },
+      {
+        target: {
+          isContentEditable: true
+        }
+      },
+      {
+        ctrlKey: true
+      },
+      {
+        altKey: true
+      },
+      {
+        metaKey: true
+      },
+      {
+        shiftKey: true
+      },
+      {
+        repeat: true
+      },
+      {
+        isComposing: true
+      },
+      {
+        defaultPrevented: true
+      },
+      {
+        key: 'a'
+      },
+    ]) {
     f.press(options);
     assert.equal(f.readout().hidden, true);
     assert.equal(f.frames.size, 0);
