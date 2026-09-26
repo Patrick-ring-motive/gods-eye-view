@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
 import {
   GROUND_SAMPLE_MAX_ARMED_RETRIES,
@@ -13,8 +15,13 @@ import {
   localInfrastructureOverlayCopy,
   selectLocalInfrastructureOverlayCohort,
 } from './localGeojson.js';
-import { layerFeedState } from './manager.js';
-import { INFRA_LOD_ACTIVE_MIN, INFRA_LOD_ACTIVE_MAX } from './localGeojsonLod.js';
+import {
+  layerFeedState
+} from './manager.js';
+import {
+  INFRA_LOD_ACTIVE_MIN,
+  INFRA_LOD_ACTIVE_MAX
+} from './localGeojsonLod.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -53,7 +60,9 @@ class MockLayerEvent {
  */
 async function createRealLocalLayerHarness({
   sampleHeightSupported = false,
-  sampleHeight = () => { throw new Error('tiles not sampleable yet'); },
+  sampleHeight = () => {
+    throw new Error('tiles not sampleable yet');
+  },
 } = {}) {
   const originalFetch = globalThis.fetch;
   const originalWindow = globalThis.window;
@@ -67,21 +76,32 @@ async function createRealLocalLayerHarness({
     text: async () => JSON.stringify({
       type: 'Feature',
       id: 'real-dam',
-      properties: { name: 'Runtime Dam', tags: { associated_river: 'Test River' } },
+      properties: {
+        name: 'Runtime Dam',
+        tags: {
+          associated_river: 'Test River'
+        }
+      },
       geometry: {
         type: 'Polygon',
-        coordinates: [[
-          [-97.70, 30.20],
-          [-97.69, 30.20],
-          [-97.69, 30.21],
-          [-97.70, 30.20],
-        ]],
+        coordinates: [
+          [
+            [-97.70, 30.20],
+            [-97.69, 30.20],
+            [-97.69, 30.21],
+            [-97.70, 30.20],
+          ]
+        ],
       },
     }),
   });
-  globalThis.window = { dispatchEvent() {} };
+  globalThis.window = {
+    dispatchEvent() {}
+  };
   let sampleHeightImpl = sampleHeight;
-  const sampleCalls = { count: 0 };
+  const sampleCalls = {
+    count: 0
+  };
   const overlayHost = {
     setVisible: (...args) => hostCalls.push(['visible', ...args]),
     setEntries: (...args) => hostCalls.push(['entries', ...args]),
@@ -90,7 +110,10 @@ async function createRealLocalLayerHarness({
   const viewer = {
     selectedEntity: undefined,
     dataSources: {
-      add(dataSource) { dataSources.push(dataSource); return dataSource; },
+      add(dataSource) {
+        dataSources.push(dataSource);
+        return dataSource;
+      },
       remove(dataSource) {
         const index = dataSources.indexOf(dataSource);
         if (index >= 0) dataSources.splice(index, 1);
@@ -99,20 +122,29 @@ async function createRealLocalLayerHarness({
     },
     camera: {
       positionWC: Cesium.Cartesian3.fromDegrees(-97.695, 30.205, 100_000),
-      frustum: { fov: Math.PI / 3 },
+      frustum: {
+        fov: Math.PI / 3
+      },
       moveEnd,
       flyTo() {},
     },
     scene: {
-      canvas: { clientWidth: 800, clientHeight: 600 },
+      canvas: {
+        clientWidth: 800,
+        clientHeight: 600
+      },
       preRender,
       sampleHeightSupported,
       sampleHeight: (...args) => {
         sampleCalls.count += 1;
         return sampleHeightImpl(...args);
       },
-      screenSpaceCameraController: { enableInputs: true },
-      pick() { return null; },
+      screenSpaceCameraController: {
+        enableInputs: true
+      },
+      pick() {
+        return null;
+      },
       requestRender() {},
     },
   };
@@ -122,7 +154,10 @@ async function createRealLocalLayerHarness({
     name: 'Runtime Dams',
     color: '#0088ff',
     overlayHost,
-    projectToWindow: () => ({ x: 400, y: 300 }),
+    projectToWindow: () => ({
+      x: 400,
+      y: 300
+    }),
     screenSpaceEventHandlerFactory: () => ({
       setInputAction() {},
       destroy() {},
@@ -142,7 +177,9 @@ async function createRealLocalLayerHarness({
     moveEnd,
     sampleCalls,
     /** Swap scene.sampleHeight mid-test (e.g. tiles finally arrive). */
-    setSampleHeight(next) { sampleHeightImpl = next; },
+    setSampleHeight(next) {
+      sampleHeightImpl = next;
+    },
     cleanup() {
       if (originalWindow === undefined) delete globalThis.window;
       else globalThis.window = originalWindow;
@@ -164,14 +201,19 @@ test('local infrastructure card copy uses the owner-approved source fields', () 
 
   assert.deepEqual(localInfrastructureOverlayCopy({
     name: 'Barrage Bin el Ouidane',
-    tags: { associated_river: 'El Abid' },
+    tags: {
+      associated_river: 'El Abid'
+    },
   }, 'local-dams'), {
     title: 'Barrage Bin el Ouidane',
     details: ['El Abid'],
   });
 
   assert.deepEqual(localInfrastructureOverlayCopy({
-    tags: { name: 'Amazon Web Services', operator: 'Amazon Web Services' },
+    tags: {
+      name: 'Amazon Web Services',
+      operator: 'Amazon Web Services'
+    },
   }, 'local-datacenters'), {
     title: 'Amazon Web Services',
     details: [],
@@ -184,7 +226,12 @@ test('local infrastructure entries satisfy the shared presentation contract', ()
     id: 'dc-42',
     layerId: 'local-datacenters',
     position,
-    properties: { tags: { name: 'AUS-1', operator: 'Example Cloud' } },
+    properties: {
+      tags: {
+        name: 'AUS-1',
+        operator: 'Example Cloud'
+      }
+    },
     priority: 1180,
     accent: '#00ffff',
   });
@@ -215,8 +262,13 @@ test('shipped local cohorts keep one grid winner plus bounded surplus contenders
   const makeRecord = (id, priority, x, y = 20) => ({
     id,
     priority,
-    screen: { x, y },
-    entry: { id },
+    screen: {
+      x,
+      y
+    },
+    entry: {
+      id
+    },
   });
   const sameCell = [
     makeRecord('low', 1, 20),
@@ -232,9 +284,13 @@ test('shipped local cohorts keep one grid winner plus bounded surplus contenders
     height: 900,
     project: (record) => record.screen,
   });
-  assert.deepEqual(selected.map(({ id }) => id), ['high', 'mid']);
+  assert.deepEqual(selected.map(({
+    id
+  }) => id), ['high', 'mid']);
 
-  const field = Array.from({ length: 220 }, (_, index) => makeRecord(
+  const field = Array.from({
+    length: 220
+  }, (_, index) => makeRecord(
     `record-${index}`,
     1000 - index,
     index * 140,
@@ -258,7 +314,9 @@ test('shipped local cohorts keep one grid winner plus bounded surplus contenders
   assert.equal(datacenters.length, LOCAL_OVERLAY_COHORT_LIMIT);
   assert.equal(dams.length, LOCAL_OVERLAY_COHORT_LIMIT);
 
-  const pairedCells = Array.from({ length: 120 }, (_, index) => [
+  const pairedCells = Array.from({
+    length: 120
+  }, (_, index) => [
     makeRecord(`primary-${index}`, 1000, index * 140),
     makeRecord(`surplus-${index}`, 900, index * 140 + 1),
   ]).flat();
@@ -271,8 +329,12 @@ test('shipped local cohorts keep one grid winner plus bounded surplus contenders
     project: (record) => record.screen,
   });
   assert.equal(hostBound.length, LOCAL_OVERLAY_COHORT_LIMIT);
-  assert.equal(hostBound.filter(({ id }) => id.startsWith('primary-')).length, 120);
-  assert.equal(hostBound.filter(({ id }) => id.startsWith('surplus-')).length, 40);
+  assert.equal(hostBound.filter(({
+    id
+  }) => id.startsWith('primary-')).length, 120);
+  assert.equal(hostBound.filter(({
+    id
+  }) => id.startsWith('surplus-')).length, 40);
 });
 
 test('local overlay publisher owns add/remove/visibility lifecycle and becomes inert on destroy', () => {
@@ -286,22 +348,32 @@ test('local overlay publisher owns add/remove/visibility lifecycle and becomes i
     },
   });
 
-  publisher.publish([{ id: 'ignored-before-show' }]);
+  publisher.publish([{
+    id: 'ignored-before-show'
+  }]);
   publisher.show();
   publisher.show();
-  publisher.publish([{ id: 'dc-1' }]);
+  publisher.publish([{
+    id: 'dc-1'
+  }]);
   publisher.publish([]);
   publisher.hide();
   publisher.show();
-  publisher.publish([{ id: 'dc-2' }]);
+  publisher.publish([{
+    id: 'dc-2'
+  }]);
   publisher.destroy();
   const countAtDestroy = calls.length;
   publisher.show();
-  publisher.publish([{ id: 'zombie' }]);
+  publisher.publish([{
+    id: 'zombie'
+  }]);
 
   assert.equal(calls.length, countAtDestroy, 'destroyed publishers reject late source work');
   assert.deepEqual(calls[0], ['visible', 'local-datacenters', true]);
-  assert.deepEqual(calls[1].slice(0, 3), ['entries', 'local-datacenters', [{ id: 'dc-1' }]]);
+  assert.deepEqual(calls[1].slice(0, 3), ['entries', 'local-datacenters', [{
+    id: 'dc-1'
+  }]]);
   assert.deepEqual(calls[1][3], {
     cohortLimit: LOCAL_OVERLAY_COHORT_LIMIT,
     collisionCapacity: 96,
@@ -317,7 +389,10 @@ test('local overlay publisher owns add/remove/visibility lifecycle and becomes i
 test('slow parked frames do not keep republishing the same local overlay cohort', async (t) => {
   const env = await createRealLocalLayerHarness();
   const clock = installFakeClock(t);
-  t.after(() => { env.layer.destroy(env.viewer); env.cleanup(); });
+  t.after(() => {
+    env.layer.destroy(env.viewer);
+    env.cleanup();
+  });
   const publications = () => env.hostCalls.filter(([type]) => type === 'entries');
   env.preRender.raise();
   assert.equal(publications().length, 1);
@@ -473,10 +548,16 @@ test('a real enabled local layer has no native label graphics at runtime', async
   env.cleanup();
 });
 
-for (const [heightM, minStemM, maxStemM] of [[500, 45, 90], [10000, 1100, 1400]]) {
+for (const [heightM, minStemM, maxStemM] of [
+    [500, 45, 90],
+    [10000, 1100, 1400]
+  ]) {
   test(`local infrastructure keeps stems proportional at ${heightM} m`, async (t) => {
     const env = await createRealLocalLayerHarness();
-    t.after(() => { env.layer.destroy(env.viewer); env.cleanup(); });
+    t.after(() => {
+      env.layer.destroy(env.viewer);
+      env.cleanup();
+    });
     const entity = env.dataSources[0].entities.values[0];
     const carto = entity.__localBaseCarto;
     env.viewer.camera.positionWC = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, heightM);
@@ -508,22 +589,48 @@ test('local infrastructure creates no native labels or per-frame geometry callba
 // empty one both reported {count: 0} and the manager painted a green ON chip.
 
 /** Build the failing layer alone — the harness above owns the happy path. */
-async function enableLayerWithFetch(fetchImpl, { dataSources, windowStub } = {}) {
+async function enableLayerWithFetch(fetchImpl, {
+  dataSources,
+  windowStub
+} = {}) {
   const originalFetch = globalThis.fetch;
   const originalWindow = globalThis.window;
-  globalThis.window = windowStub || { dispatchEvent() {} };
+  globalThis.window = windowStub || {
+    dispatchEvent() {}
+  };
   const viewer = {
-    dataSources: dataSources || { add() {}, remove() { return true; } },
-    camera: { positionWC: Cesium.Cartesian3.fromDegrees(0, 0, 1000), moveEnd: new MockLayerEvent() },
-    scene: { canvas: {}, preRender: new MockLayerEvent(), pick() { return null; } },
+    dataSources: dataSources || {
+      add() {},
+      remove() {
+        return true;
+      }
+    },
+    camera: {
+      positionWC: Cesium.Cartesian3.fromDegrees(0, 0, 1000),
+      moveEnd: new MockLayerEvent()
+    },
+    scene: {
+      canvas: {},
+      preRender: new MockLayerEvent(),
+      pick() {
+        return null;
+      }
+    },
   };
   const layer = createLocalGeoJsonLayer({
     id: 'local-dams',
     url: '/missing.geojsonl',
     name: 'Dams',
     color: '#0088ff',
-    overlayHost: { setVisible() {}, setEntries() {}, clearSource() {} },
-    screenSpaceEventHandlerFactory: () => ({ setInputAction() {}, destroy() {} }),
+    overlayHost: {
+      setVisible() {},
+      setEntries() {},
+      clearSource() {}
+    },
+    screenSpaceEventHandlerFactory: () => ({
+      setInputAction() {},
+      destroy() {}
+    }),
   });
   const enable = async () => {
     globalThis.fetch = fetchImpl;
@@ -539,7 +646,12 @@ async function enableLayerWithFetch(fetchImpl, { dataSources, windowStub } = {})
     if (originalWindow === undefined) delete globalThis.window;
     else globalThis.window = originalWindow;
   };
-  return { layer, viewer, cleanup, enable };
+  return {
+    layer,
+    viewer,
+    cleanup,
+    enable
+  };
 }
 
 test('a bundled-dataset failure reduces to a short, honest reason', () => {
@@ -553,7 +665,10 @@ test('a bundled-dataset failure reduces to a short, honest reason', () => {
 });
 
 test('a missing dataset reports UNAVAILABLE instead of a silent empty layer', async () => {
-  const { layer, cleanup } = await enableLayerWithFetch(async () => ({
+  const {
+    layer,
+    cleanup
+  } = await enableLayerWithFetch(async () => ({
     ok: false,
     status: 404,
     text: async () => '<!DOCTYPE html>',
@@ -567,7 +682,10 @@ test('a missing dataset reports UNAVAILABLE instead of a silent empty layer', as
 });
 
 test('a corrupt dataset line reports malformed rather than parsing into nothing', async () => {
-  const { layer, cleanup } = await enableLayerWithFetch(async () => ({
+  const {
+    layer,
+    cleanup
+  } = await enableLayerWithFetch(async () => ({
     ok: true,
     status: 200,
     text: async () => '{"type":"Feature"\n',
@@ -583,10 +701,19 @@ test('a corrupt dataset line reports malformed rather than parsing into nothing'
 const ONE_POLYGON_FEATURE = JSON.stringify({
   type: 'Feature',
   id: 'dam-1',
-  properties: { name: 'Test Dam' },
+  properties: {
+    name: 'Test Dam'
+  },
   geometry: {
     type: 'Polygon',
-    coordinates: [[[-97.70, 30.20], [-97.69, 30.20], [-97.69, 30.21], [-97.70, 30.20]]],
+    coordinates: [
+      [
+        [-97.70, 30.20],
+        [-97.69, 30.20],
+        [-97.69, 30.21],
+        [-97.70, 30.20]
+      ]
+    ],
   },
 });
 
@@ -602,7 +729,9 @@ const serveOnePolygon = async () => ({
  * the collection when add() returns. A synchronous mock hides exactly the bug
  * this models.
  */
-function asyncDataSources({ rejectAdd = false } = {}) {
+function asyncDataSources({
+  rejectAdd = false
+} = {}) {
   const added = [];
   return {
     added,
@@ -634,7 +763,9 @@ function windowThatFailsOnce() {
       }
       return store;
     },
-    set __gevContextStore(value) { store = value; },
+    set __gevContextStore(value) {
+      store = value;
+    },
   };
 }
 
@@ -644,7 +775,11 @@ test('a post-processing failure after the scene accepts the source rolls it back
   // loader; rolling back before the add settled left Cesium to insert the
   // "removed" source afterwards, which the retry would then double up on.
   const scene = asyncDataSources();
-  const { layer, cleanup, enable } = await enableLayerWithFetch(serveOnePolygon, {
+  const {
+    layer,
+    cleanup,
+    enable
+  } = await enableLayerWithFetch(serveOnePolygon, {
     dataSources: scene,
     windowStub: windowThatFailsOnce(),
   });
@@ -667,8 +802,13 @@ test('a post-processing failure after the scene accepts the source rolls it back
 });
 
 test('a rejected scene add surfaces as an error instead of healthy stats', async () => {
-  const scene = asyncDataSources({ rejectAdd: true });
-  const { layer, cleanup } = await enableLayerWithFetch(serveOnePolygon, {
+  const scene = asyncDataSources({
+    rejectAdd: true
+  });
+  const {
+    layer,
+    cleanup
+  } = await enableLayerWithFetch(serveOnePolygon, {
     dataSources: scene,
   });
   const stats = layer.getStats();
@@ -712,11 +852,19 @@ function governorReasons() {
 
 test('ground sampling waits for visible globe tiles before caching a height', async (t) => {
   const env = await createRealLocalLayerHarness({
-    sampleHeightSupported: true, sampleHeight: () => 117,
+    sampleHeightSupported: true,
+    sampleHeight: () => 117,
   });
   const clock = installFakeClock(t);
-  t.after(() => { env.layer.destroy(env.viewer); env.cleanup(); });
-  env.viewer.scene.globe = { show: true, tilesLoaded: false, getHeight: () => 117 };
+  t.after(() => {
+    env.layer.destroy(env.viewer);
+    env.cleanup();
+  });
+  env.viewer.scene.globe = {
+    show: true,
+    tilesLoaded: false,
+    getHeight: () => 117
+  };
   setCameraAltitude(env, 20_000);
   env.preRender.raise();
   assert.equal(env.sampleCalls.count, 0, 'streaming terrain must not become a permanent coarse sample');
@@ -730,12 +878,20 @@ test('ground sampling waits for visible globe tiles before caching a height', as
 
 test('settled terrain refinement lifts an already sampled stem without another GPU sample', async (t) => {
   const env = await createRealLocalLayerHarness({
-    sampleHeightSupported: true, sampleHeight: () => 117,
+    sampleHeightSupported: true,
+    sampleHeight: () => 117,
   });
   const clock = installFakeClock(t);
-  t.after(() => { env.layer.destroy(env.viewer); env.cleanup(); });
+  t.after(() => {
+    env.layer.destroy(env.viewer);
+    env.cleanup();
+  });
   let terrain = 117;
-  const globe = { show: true, tilesLoaded: true, getHeight: () => terrain };
+  const globe = {
+    show: true,
+    tilesLoaded: true,
+    getHeight: () => terrain
+  };
   env.viewer.scene.globe = globe;
   setCameraAltitude(env, 20_000);
   env.preRender.raise();
@@ -764,18 +920,25 @@ test('settled terrain refinement lifts an already sampled stem without another G
 });
 
 for (const [terrainHeight, sampledHeight, expectedHeight, globeShown] of [
-  [117, -2238, 117, true],
-  [-400, -410, -400, true],
-  [117, 180, 180, true],
-  [117, -20, -20, false],
-]) {
+    [117, -2238, 117, true],
+    [-400, -410, -400, true],
+    [117, 180, 180, true],
+    [117, -20, -20, false],
+  ]) {
   test(`ground sampling respects terrain ${terrainHeight} and geometry ${sampledHeight} with globe ${globeShown}`, async (t) => {
     const env = await createRealLocalLayerHarness({
-      sampleHeightSupported: true, sampleHeight: () => sampledHeight,
+      sampleHeightSupported: true,
+      sampleHeight: () => sampledHeight,
     });
     installFakeClock(t);
-    t.after(() => { env.layer.destroy(env.viewer); env.cleanup(); });
-    env.viewer.scene.globe = { show: globeShown, getHeight: () => terrainHeight };
+    t.after(() => {
+      env.layer.destroy(env.viewer);
+      env.cleanup();
+    });
+    env.viewer.scene.globe = {
+      show: globeShown,
+      getHeight: () => terrainHeight
+    };
     setCameraAltitude(env, 20_000);
     env.preRender.raise();
     assert.ok(Math.abs(baseHeightM(env) - expectedHeight) < 0.01,
@@ -784,10 +947,18 @@ for (const [terrainHeight, sampledHeight, expectedHeight, globeShown] of [
 }
 
 test('a failed ground sample schedules the retry frame the idle governor would never produce', async (t) => {
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  installRenderGovernor({ scene: { requestRender() {} } });
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  installRenderGovernor({
+    scene: {
+      requestRender() {}
+    }
+  });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   t.after(() => {
     env.layer.destroy(env.viewer);
     env.cleanup();
@@ -812,10 +983,18 @@ test('a failed ground sample schedules the retry frame the idle governor would n
 });
 
 test('a far camera arms no retry render — the governor stays fully idle', async (t) => {
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  installRenderGovernor({ scene: { requestRender() {} } });
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  installRenderGovernor({
+    scene: {
+      requestRender() {}
+    }
+  });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   t.after(() => {
     env.layer.destroy(env.viewer);
     env.cleanup();
@@ -835,10 +1014,18 @@ test('a far camera arms no retry render — the governor stays fully idle', asyn
 });
 
 test('disable cancels a pending ground-retry render', async (t) => {
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  installRenderGovernor({ scene: { requestRender() {} } });
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  installRenderGovernor({
+    scene: {
+      requestRender() {}
+    }
+  });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   t.after(() => {
     env.layer.destroy(env.viewer);
     env.cleanup();
@@ -870,8 +1057,14 @@ function installFakeClock(t, startMs = 1_000_000) {
   const original = performance.now;
   let nowMs = startMs;
   performance.now = () => nowMs;
-  t.after(() => { performance.now = original; });
-  return { advance(ms) { nowMs += ms; } };
+  t.after(() => {
+    performance.now = original;
+  });
+  return {
+    advance(ms) {
+      nowMs += ms;
+    }
+  };
 }
 
 /**
@@ -899,12 +1092,16 @@ function baseHeightM(env) {
  */
 function countDistanceCalls(t) {
   const original = Cesium.Cartesian3.distance;
-  const calls = { count: 0 };
+  const calls = {
+    count: 0
+  };
   Cesium.Cartesian3.distance = (...args) => {
     calls.count += 1;
     return original(...args);
   };
-  t.after(() => { Cesium.Cartesian3.distance = original; });
+  t.after(() => {
+    Cesium.Cartesian3.distance = original;
+  });
   return calls;
 }
 
@@ -912,12 +1109,23 @@ test('a scene that cannot sample heights never arms a retry — not even once', 
   // Keyless/no-sampleable-surface scene: sampleHeightSupported === false, so a
   // retry can NEVER succeed. Arming here re-armed forever (one 2 s timer per
   // requested frame) and quietly defeated the idle governor.
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: false });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: false
+  });
   _resetRenderGovernorForTest();
-  const governorScene = { renders: 0, requestRender() { this.renders += 1; } };
-  installRenderGovernor({ scene: governorScene });
+  const governorScene = {
+    renders: 0,
+    requestRender() {
+      this.renders += 1;
+    }
+  };
+  installRenderGovernor({
+    scene: governorScene
+  });
   governorScene.renders = 0; // discard the governor's own install settling frame
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -950,10 +1158,18 @@ test('a scene that cannot sample heights never arms a retry — not even once', 
 test('a sampleable scene still measures the retry distance it needs', async (t) => {
   // The mirror of the guard above: the capability check must gate the work, not
   // remove it — a scene that CAN sample still pays one distance per walk.
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  installRenderGovernor({ scene: { requestRender() {} } });
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  installRenderGovernor({
+    scene: {
+      requestRender() {}
+    }
+  });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -975,12 +1191,23 @@ test('capability arriving late re-opens a spent budget without camera motion', a
   // WebGL context restore / a tileset that only becomes sampleable later. A
   // parked camera has no moveEnd to re-open the budget, so the false→true edge
   // must do it — otherwise the layer stays permanently given-up.
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  const governorScene = { renders: 0, requestRender() { this.renders += 1; } };
-  installRenderGovernor({ scene: governorScene });
+  const governorScene = {
+    renders: 0,
+    requestRender() {
+      this.renders += 1;
+    }
+  };
+  installRenderGovernor({
+    scene: governorScene
+  });
   governorScene.renders = 0;
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1008,12 +1235,23 @@ test('capability arriving late re-opens a spent budget without camera motion', a
 
 test('a sampleable scene that keeps failing gives up after a bounded run of arms', async (t) => {
   // Supported, but nothing under the feature is sampleable: every retry fails.
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  const governorScene = { renders: 0, requestRender() { this.renders += 1; } };
-  installRenderGovernor({ scene: governorScene });
+  const governorScene = {
+    renders: 0,
+    requestRender() {
+      this.renders += 1;
+    }
+  };
+  installRenderGovernor({
+    scene: governorScene
+  });
   governorScene.renders = 0; // discard the governor's own install settling frame
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1040,12 +1278,23 @@ test('a sampleable scene that keeps failing gives up after a bounded run of arms
 });
 
 test('after the cap a camera-motion frame still samples, and re-opens the budget', async (t) => {
-  const env = await createRealLocalLayerHarness({ sampleHeightSupported: true });
+  const env = await createRealLocalLayerHarness({
+    sampleHeightSupported: true
+  });
   _resetRenderGovernorForTest();
-  const governorScene = { renders: 0, requestRender() { this.renders += 1; } };
-  installRenderGovernor({ scene: governorScene });
+  const governorScene = {
+    renders: 0,
+    requestRender() {
+      this.renders += 1;
+    }
+  };
+  installRenderGovernor({
+    scene: governorScene
+  });
   governorScene.renders = 0; // discard the governor's own install settling frame
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1093,7 +1342,10 @@ test('after the cap a camera-motion frame still samples, and re-opens the budget
  * Harness with N in-view point features and a controllable camera height.
  * Even-indexed features are named (high label priority), odd ones anonymous.
  */
-async function createMultiFeatureLodHarness({ featureCount = 150, cameraHeightM = 9_000_000 } = {}) {
+async function createMultiFeatureLodHarness({
+  featureCount = 150,
+  cameraHeightM = 9_000_000
+} = {}) {
   const originalFetch = globalThis.fetch;
   const originalWindow = globalThis.window;
   const preRender = new MockLayerEvent();
@@ -1104,28 +1356,46 @@ async function createMultiFeatureLodHarness({ featureCount = 150, cameraHeightM 
   // Polygons, not Points: Cesium's GeoJsonDataSource builds a PinBuilder
   // billboard for a Point, which needs a DOM canvas the node test env lacks.
   // The layer takes the polygon's bounding-sphere centre as the stem anchor.
-  const lines = Array.from({ length: featureCount }, (_, i) => {
+  const lines = Array.from({
+    length: featureCount
+  }, (_, i) => {
     const lon = centerLon + (i % 12) * 0.02;
     const lat = centerLat + Math.floor(i / 12) * 0.02;
     return JSON.stringify({
       type: 'Feature',
       id: `dc-${i}`,
-      properties: i % 2 === 0
-        ? { name: `Datacenter ${i}`, tags: { name: `Datacenter ${i}`, operator: 'Example Cloud' } }
-        : { tags: {} },
+      properties: i % 2 === 0 ?
+        {
+          name: `Datacenter ${i}`,
+          tags: {
+            name: `Datacenter ${i}`,
+            operator: 'Example Cloud'
+          }
+        } :
+        {
+          tags: {}
+        },
       geometry: {
         type: 'Polygon',
-        coordinates: [[
-          [lon, lat],
-          [lon + 0.004, lat],
-          [lon + 0.004, lat + 0.004],
-          [lon, lat],
-        ]],
+        coordinates: [
+          [
+            [lon, lat],
+            [lon + 0.004, lat],
+            [lon + 0.004, lat + 0.004],
+            [lon, lat],
+          ]
+        ],
       },
     });
   });
-  globalThis.fetch = async () => ({ ok: true, status: 200, text: async () => lines.join('\n') });
-  globalThis.window = { dispatchEvent() {} };
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => lines.join('\n')
+  });
+  globalThis.window = {
+    dispatchEvent() {}
+  };
 
   const setPos = (m) => {
     const p = Cesium.Cartesian3.fromDegrees(centerLon, centerLat, m);
@@ -1135,7 +1405,10 @@ async function createMultiFeatureLodHarness({ featureCount = 150, cameraHeightM 
   const viewer = {
     selectedEntity: undefined,
     dataSources: {
-      add(ds) { dataSources.push(ds); return ds; },
+      add(ds) {
+        dataSources.push(ds);
+        return ds;
+      },
       remove(ds) {
         const i = dataSources.indexOf(ds);
         if (i >= 0) dataSources.splice(i, 1);
@@ -1145,16 +1418,25 @@ async function createMultiFeatureLodHarness({ featureCount = 150, cameraHeightM 
     camera: {
       positionWC: null,
       positionCartographic: null,
-      frustum: { fov: Math.PI / 3 },
+      frustum: {
+        fov: Math.PI / 3
+      },
       moveEnd,
       flyTo() {},
     },
     scene: {
-      canvas: { clientWidth: 1440, clientHeight: 900 },
+      canvas: {
+        clientWidth: 1440,
+        clientHeight: 900
+      },
       preRender,
       sampleHeightSupported: false,
-      screenSpaceCameraController: { enableInputs: true },
-      pick() { return null; },
+      screenSpaceCameraController: {
+        enableInputs: true
+      },
+      pick() {
+        return null;
+      },
       requestRender() {},
     },
   };
@@ -1164,9 +1446,19 @@ async function createMultiFeatureLodHarness({ featureCount = 150, cameraHeightM 
     url: '/lod-fixture.geojsonl',
     name: 'LOD Datacenters',
     color: '#00ffff',
-    overlayHost: { setVisible() {}, setEntries() {}, clearSource() {} },
-    projectToWindow: () => ({ x: 700, y: 450 }),
-    screenSpaceEventHandlerFactory: () => ({ setInputAction() {}, destroy() {} }),
+    overlayHost: {
+      setVisible() {},
+      setEntries() {},
+      clearSource() {}
+    },
+    projectToWindow: () => ({
+      x: 700,
+      y: 450
+    }),
+    screenSpaceEventHandlerFactory: () => ({
+      setInputAction() {},
+      destroy() {}
+    }),
   });
   try {
     await layer.enable(viewer);
@@ -1191,7 +1483,10 @@ async function createMultiFeatureLodHarness({ featureCount = 150, cameraHeightM 
 }
 
 test('globe-LOD caps live stems at the camera-height budget and widens as you zoom in', async (t) => {
-  const env = await createMultiFeatureLodHarness({ featureCount: 150, cameraHeightM: 9_000_000 });
+  const env = await createMultiFeatureLodHarness({
+    featureCount: 150,
+    cameraHeightM: 9_000_000
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1209,7 +1504,9 @@ test('globe-LOD caps live stems at the camera-height budget and widens as you zo
   const shownIds = new Set(
     env.dataSources[0].entities.values.filter((entity) => entity.show === true).map((entity) => entity.id),
   );
-  const namedIds = Array.from({ length: 150 }, (_, i) => i).filter((i) => i % 2 === 0).map((i) => `dc-${i}`);
+  const namedIds = Array.from({
+    length: 150
+  }, (_, i) => i).filter((i) => i % 2 === 0).map((i) => `dc-${i}`);
   assert.ok(namedIds.every((id) => shownIds.has(id)), 'every named feature wins a stem before any unnamed one');
 
   // Zoom to continental framing: the budget opens to MID (200), so all 150
@@ -1222,7 +1519,10 @@ test('globe-LOD caps live stems at the camera-height budget and widens as you zo
 });
 
 test('globe-LOD selection is stable between camera moves (no per-frame churn)', async (t) => {
-  const env = await createMultiFeatureLodHarness({ featureCount: 150, cameraHeightM: 9_000_000 });
+  const env = await createMultiFeatureLodHarness({
+    featureCount: 150,
+    cameraHeightM: 9_000_000
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1247,7 +1547,10 @@ test('globe-LOD selection is stable between camera moves (no per-frame churn)', 
 });
 
 test('getLodDiagnostics reports the active/total split and the band budget', async (t) => {
-  const env = await createMultiFeatureLodHarness({ featureCount: 150, cameraHeightM: 9_000_000 });
+  const env = await createMultiFeatureLodHarness({
+    featureCount: 150,
+    cameraHeightM: 9_000_000
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1255,7 +1558,10 @@ test('getLodDiagnostics reports the active/total split and the band budget', asy
   });
 
   assert.deepEqual(env.layer.getLodDiagnostics(), {
-    total: 150, active: 0, budgetLimit: 0, computed: false,
+    total: 150,
+    active: 0,
+    budgetLimit: 0,
+    computed: false,
   }, 'before the first walk: materialized but not yet selected');
 
   env.preRender.raise();
@@ -1276,7 +1582,10 @@ test('getLodDiagnostics reports the active/total split and the band budget', asy
 });
 
 test('globe-LOD releases every stem when the layer is disabled', async (t) => {
-  const env = await createMultiFeatureLodHarness({ featureCount: 40, cameraHeightM: 9_000_000 });
+  const env = await createMultiFeatureLodHarness({
+    featureCount: 40,
+    cameraHeightM: 9_000_000
+  });
   t.after(() => {
     env.layer.destroy(env.viewer);
     env.cleanup();
@@ -1300,7 +1609,10 @@ test('globe-LOD re-selects during continuous motion, without ever seeing a moveE
   // the walk hid those records as they passed behind the globe while admitting
   // nothing newly visible — the layer bled down to sparse-or-empty until the
   // motion stopped.
-  const env = await createMultiFeatureLodHarness({ featureCount: 150, cameraHeightM: 9_000_000 });
+  const env = await createMultiFeatureLodHarness({
+    featureCount: 150,
+    cameraHeightM: 9_000_000
+  });
   const clock = installFakeClock(t);
   t.after(() => {
     env.layer.destroy(env.viewer);
@@ -1337,10 +1649,10 @@ test('globe-LOD re-selects during continuous motion, without ever seeing a moveE
   assert.deepEqual(env.layer.getLodDiagnostics(), parked, 'a parked camera never re-selects');
 });
 
-
 test('standalone publisher retains its default host for an undefined override', () => {
   const publisher = createLocalInfrastructureOverlayPublisher({
-    sourceId: 'local-default-host-test', host: undefined,
+    sourceId: 'local-default-host-test',
+    host: undefined,
   });
   assert.doesNotThrow(() => {
     publisher.show();
