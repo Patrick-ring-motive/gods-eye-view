@@ -7,15 +7,28 @@ import {
 } from './cockpitUtilityLayout.js';
 
 // 1512x790, the height the strip used to collide with the briefing card at.
-const desktop = { viewportHeight: 790, stripHeight: 107, collapsedHeight: 50 };
+const desktop = {
+  viewportHeight: 790,
+  stripHeight: 107,
+  collapsedHeight: 50
+};
 
 test('the strip hangs 12px under the REC readout when the briefing card leaves room', () => {
-  const { top } = resolveCockpitUtilityAnchor({ ...desktop, recBottom: 148.1, signalTop: 420 });
+  const {
+    top
+  } = resolveCockpitUtilityAnchor({
+    ...desktop,
+    recBottom: 148.1,
+    signalTop: 420
+  });
   assert.equal(Number(top.toFixed(1)), 160.1);
 });
 
 test('a tall briefing card pulls the strip up instead of being overlapped', () => {
-  const { top, maxHeight } = resolveCockpitUtilityAnchor({
+  const {
+    top,
+    maxHeight
+  } = resolveCockpitUtilityAnchor({
     ...desktop,
     recBottom: 148.1,
     signalTop: 265.4,
@@ -26,7 +39,9 @@ test('a tall briefing card pulls the strip up instead of being overlapped', () =
 });
 
 test('the strip never climbs into the topline, whatever the briefing card does', () => {
-  const { top } = resolveCockpitUtilityAnchor({
+  const {
+    top
+  } = resolveCockpitUtilityAnchor({
     ...desktop,
     viewportHeight: 1400,
     recBottom: 200,
@@ -37,7 +52,10 @@ test('the strip never climbs into the topline, whatever the briefing card does',
 });
 
 test('the corridor is measured from the resolved top and floors on a launcher, not 120', () => {
-  const { top, maxHeight } = resolveCockpitUtilityAnchor({
+  const {
+    top,
+    maxHeight
+  } = resolveCockpitUtilityAnchor({
     ...desktop,
     viewportHeight: 700,
     recBottom: 148.1,
@@ -50,7 +68,13 @@ test('the corridor is measured from the resolved top and floors on a launcher, n
 });
 
 test('a missing REC readout leaves the strip on the viewport ceiling', () => {
-  const { top } = resolveCockpitUtilityAnchor({ ...desktop, recBottom: 0, signalTop: 600 });
+  const {
+    top
+  } = resolveCockpitUtilityAnchor({
+    ...desktop,
+    recBottom: 0,
+    signalTop: 600
+  });
   assert.equal(top, 96);
 });
 
@@ -94,4 +118,3 @@ test('clamps malformed or short corridors to the minimum expanded height', () =>
     expandedMaxHeight: 120,
   });
 });
-
