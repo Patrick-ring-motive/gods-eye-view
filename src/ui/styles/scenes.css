@@ -11,10 +11,10 @@
   max-height: calc(100vh - 24px);
 }
 
-#left-panel-stack > #data-panel,
-#left-panel-stack > #cctv-panel,
-#left-panel-stack > #global-context-panel,
-#left-panel-stack > #scene-panel {
+#left-panel-stack>#data-panel,
+#left-panel-stack>#cctv-panel,
+#left-panel-stack>#global-context-panel,
+#left-panel-stack>#scene-panel {
   position: relative;
   top: auto;
   right: auto;
@@ -27,15 +27,15 @@
   pointer-events: auto;
 }
 
-#left-panel-stack > #data-panel {
+#left-panel-stack>#data-panel {
   order: 1;
 }
 
-#left-panel-stack > #cctv-panel {
+#left-panel-stack>#cctv-panel {
   order: 2;
 }
 
-#left-panel-stack > #scene-panel {
+#left-panel-stack>#scene-panel {
   order: 4;
 }
 
@@ -44,13 +44,13 @@
  * panel's measured natural height plus sibling labels cannot fit inside the
  * live HUD/attribution-safe corridor.
  */
-#left-panel-stack.layout-focus > [data-panel-id].collapsed {
+#left-panel-stack.layout-focus>[data-panel-id].collapsed {
   display: none;
 }
 
-#left-panel-stack > #data-panel:not(.collapsed),
-#left-panel-stack > #cctv-panel:not(.collapsed),
-#left-panel-stack > #scene-panel:not(.collapsed) {
+#left-panel-stack>#data-panel:not(.collapsed),
+#left-panel-stack>#cctv-panel:not(.collapsed),
+#left-panel-stack>#scene-panel:not(.collapsed) {
   box-sizing: border-box;
   flex: 0 1 var(--left-panel-allocated-height, auto);
   height: var(--left-panel-allocated-height, auto);
@@ -61,66 +61,59 @@
  * When an expanded panel and its collapsed siblings fit together, preserve
  * the canonical control order and center their combined stack at 50vh.
  */
-#left-panel-stack.layout-tail
-  > :is(#data-panel, #cctv-panel, #scene-panel):not(.collapsed) {
+#left-panel-stack.layout-tail> :is(#data-panel, #cctv-panel, #scene-panel):not(.collapsed) {
   box-sizing: border-box;
   flex: 0 0 var(--left-panel-allocated-height);
   height: var(--left-panel-allocated-height);
   max-height: var(--left-panel-allocated-height);
 }
 
-#left-panel-stack > #data-panel:not(.collapsed) .data-panel-inner,
-#left-panel-stack > #cctv-panel:not(.collapsed) .cctv-panel-inner,
-#left-panel-stack > #scene-panel:not(.collapsed) .scene-panel-inner {
+#left-panel-stack>#data-panel:not(.collapsed) .data-panel-inner,
+#left-panel-stack>#cctv-panel:not(.collapsed) .cctv-panel-inner,
+#left-panel-stack>#scene-panel:not(.collapsed) .scene-panel-inner {
   height: 100%;
   max-height: 100%;
 }
 
-#left-panel-stack > #data-panel:not(.collapsed) .data-panel-inner {
+#left-panel-stack>#data-panel:not(.collapsed) .data-panel-inner {
   overflow: hidden;
 }
 
-#left-panel-stack > #cctv-panel:not(.collapsed) .cctv-panel-inner,
-#left-panel-stack > #scene-panel:not(.collapsed) .scene-panel-inner {
+#left-panel-stack>#cctv-panel:not(.collapsed) .cctv-panel-inner,
+#left-panel-stack>#scene-panel:not(.collapsed) .scene-panel-inner {
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
 
-#left-panel-stack > [data-panel-id]:not(.collapsed) .panel-header {
+#left-panel-stack>[data-panel-id]:not(.collapsed) .panel-header {
   position: sticky;
   top: 0;
   z-index: 2;
   background: transparent;
 }
 
-#left-panel-stack > [data-panel-id]:not(.collapsed) .panel-divider {
-  background: linear-gradient(
-    90deg,
-    rgb(0 212 255 / 28%),
-    rgba(0, 212, 255, 0.18) 58%,
-    transparent
-  );
+#left-panel-stack>[data-panel-id]:not(.collapsed) .panel-divider {
+  background: linear-gradient(90deg,
+      rgb(0 212 255 / 28%),
+      rgba(0, 212, 255, 0.18) 58%,
+      transparent);
   box-shadow: 0 0 7px rgba(0, 212, 255, 0.22);
 }
 
 #right-context-rail [data-panel-id]:not(.collapsed) .panel-divider {
-  background: linear-gradient(
-    90deg,
-    rgb(0 212 255 / 28%),
-    rgba(0, 212, 255, 0.18) 58%,
-    transparent
-  );
+  background: linear-gradient(90deg,
+      rgb(0 212 255 / 28%),
+      rgba(0, 212, 255, 0.18) 58%,
+      transparent);
   box-shadow: 0 0 7px rgba(0, 212, 255, 0.22);
 }
 
 #scene-panel .panel-glow {
   position: absolute;
   inset: -18px;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 212, 255, 0.16) 0%,
-    transparent 65%
-  );
+  background: radial-gradient(ellipse at center,
+      rgba(0, 212, 255, 0.16) 0%,
+      transparent 65%);
   filter: blur(16px);
   opacity: 0.25;
   pointer-events: none;
@@ -319,11 +312,9 @@
 #scene-progress-fill {
   width: 0%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 212, 255, 0.2),
-    rgba(0, 212, 255, 0.75)
-  );
+  background: linear-gradient(90deg,
+      rgba(0, 212, 255, 0.2),
+      rgba(0, 212, 255, 0.75));
   color: #d5f7ff;
   font-family: var(--font-mono);
   font-size: 8px;
@@ -379,10 +370,8 @@
 #global-context-panel.collapsed .global-context-actions,
 #global-context-panel.collapsed .global-context-modes,
 #global-context-panel.collapsed .context-mode-view,
-#global-context-panel.collapsed
-  > .global-context-panel-inner
-  > .context-mode-standby,
-#radio-panel.collapsed .radio-panel-inner > :not(.panel-header),
+#global-context-panel.collapsed>.global-context-panel-inner>.context-mode-standby,
+#radio-panel.collapsed .radio-panel-inner> :not(.panel-header),
 #cctv-panel.collapsed .cctv-controls,
 #cctv-panel.collapsed .cctv-calibration-block,
 #cctv-panel.collapsed .cctv-frame-wrap,
