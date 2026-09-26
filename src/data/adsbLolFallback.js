@@ -89,13 +89,16 @@ export function normalizeAdsbLolAircraftState(aircraft, nowSeconds) {
 export function normalizeAdsbLolPointResponse(payload) {
   const responseNow = finiteNumber(payload?.now);
   const nowSeconds =
-    responseNow === null
-      ? Math.floor(Date.now() / 1000)
-      : Math.floor(
-          responseNow > 10_000_000_000 ? responseNow / 1000 : responseNow,
-        );
+    responseNow === null ?
+    Math.floor(Date.now() / 1000) :
+    Math.floor(
+      responseNow > 10_000_000_000 ? responseNow / 1000 : responseNow,
+    );
   const states = (Array.isArray(payload?.ac) ? payload.ac : [])
     .map((aircraft) => normalizeAdsbLolAircraftState(aircraft, nowSeconds))
     .filter(Boolean);
-  return { time: nowSeconds, states };
+  return {
+    time: nowSeconds,
+    states
+  };
 }
