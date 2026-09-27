@@ -1,4 +1,7 @@
-import { MUSIC_GENRES, CATEGORY_MATCHERS } from './policy.js';
+import {
+  MUSIC_GENRES,
+  CATEGORY_MATCHERS
+} from './policy.js';
 
 export function createCategories({
   state: layerState,
@@ -68,24 +71,53 @@ export function createCategories({
 
   function buildRadioCategories(stations) {
     const rows = Array.isArray(stations) ? stations : [];
-    const categories = [
-      { id: 'all', label: 'All' },
-      { id: 'news', label: 'News' },
-      { id: 'talk', label: 'Talk' },
-      { id: 'weather', label: 'Weather / Emergency' },
-      { id: 'public-safety', label: 'Public Safety' },
-      { id: 'aviation-marine', label: 'Aviation / Marine' },
-      { id: 'traffic-transit', label: 'Traffic / Transit' },
-      { id: 'music', label: 'Music' },
+    const categories = [{
+        id: 'all',
+        label: 'All'
+      },
+      {
+        id: 'news',
+        label: 'News'
+      },
+      {
+        id: 'talk',
+        label: 'Talk'
+      },
+      {
+        id: 'weather',
+        label: 'Weather / Emergency'
+      },
+      {
+        id: 'public-safety',
+        label: 'Public Safety'
+      },
+      {
+        id: 'aviation-marine',
+        label: 'Aviation / Marine'
+      },
+      {
+        id: 'traffic-transit',
+        label: 'Traffic / Transit'
+      },
+      {
+        id: 'music',
+        label: 'Music'
+      },
     ];
 
     for (const [genre, label] of MUSIC_GENRES) {
       const id = `genre:${genre}`;
       if (rows.some((station) => stationMatchesRadioCategory(station, id))) {
-        categories.push({ id, label });
+        categories.push({
+          id,
+          label
+        });
       }
     }
-    categories.push({ id: 'other', label: 'Other' });
+    categories.push({
+      id: 'other',
+      label: 'Other'
+    });
     return categories.map((category) => ({
       ...category,
       color: parts.model.radioCategoryColor(category.id),
@@ -106,9 +138,9 @@ export function createCategories({
   /** Return whether Radio Browser metadata identifies a station as English-language. */
 
   function isEnglishRadioStation(station) {
-    const languages = Array.isArray(station?.languages)
-      ? station.languages
-      : [];
+    const languages = Array.isArray(station?.languages) ?
+      station.languages :
+      [];
     return languages.some((language) => {
       const normalized = normalizeRadioTag(language);
       return (
