@@ -1,4 +1,6 @@
-import { expandApplicationHtml } from '../build/application-html.js';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
 // src/reasonableDefaults.test.mjs
 //
 // What the console looks like the FIRST time it opens — before any share link,
@@ -32,19 +34,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-import { KEYHOLE_OUTER_RADIUS, KEYHOLE_OUTSIDE_OPACITY_DEFAULT, KEYHOLE_LABEL_FEATHER_RATIO } from './celestialRing.js';
-import { AIRCRAFT_BRACKET_FLOOR_ANCHOR } from './data/detectionPolicy.js';
+import {
+  KEYHOLE_OUTER_RADIUS,
+  KEYHOLE_OUTSIDE_OPACITY_DEFAULT,
+  KEYHOLE_LABEL_FEATHER_RATIO
+} from './celestialRing.js';
+import {
+  AIRCRAFT_BRACKET_FLOOR_ANCHOR
+} from './data/detectionPolicy.js';
 import {
   SCOPE_FEATHER_RATIO_DEFAULT,
   getScopeMaskFeather,
   scopeMaskGeometry,
   setScopeMaskFeather,
 } from './scopeMask.js';
-import { ShareLinkManager } from './sharelink.js';
+import {
+  ShareLinkManager
+} from './sharelink.js';
 
 // Follow the UI wiring and its extracted preset definitions.
-const uiSource = fs.readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8')
-  + '\n' + fs.readFileSync(new URL('./ui/visualPresets.js', import.meta.url), 'utf8');
+const uiSource = fs.readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8') +
+  '\n' + fs.readFileSync(new URL('./ui/visualPresets.js', import.meta.url), 'utf8');
 const indexHtml = expandApplicationHtml(fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8'));
 const shareSource = fs.readFileSync(new URL('./sharelink.js', import.meta.url), 'utf8');
 
@@ -59,12 +69,27 @@ function uiBlock(start, end) {
 
 /** A ShareLinkManager over a synthetic hash — enough surface for parseInitialHash. */
 function managerForHash(hash) {
-  globalThis.window = { location: { hash, href: `http://localhost/${hash}` } };
-  globalThis.history = { replaceState(_s, _t, next) { window.location.hash = next; } };
+  globalThis.window = {
+    location: {
+      hash,
+      href: `http://localhost/${hash}`
+    }
+  };
+  globalThis.history = {
+    replaceState(_s, _t, next) {
+      window.location.hash = next;
+    }
+  };
   const viewer = {
     camera: {
-      changed: { addEventListener() {} },
-      positionCartographic: { latitude: 0, longitude: 0, height: 1000 },
+      changed: {
+        addEventListener() {}
+      },
+      positionCartographic: {
+        latitude: 0,
+        longitude: 0,
+        height: 1000
+      },
       heading: 0,
       pitch: -Math.PI / 2,
       roll: 0,
@@ -227,8 +252,8 @@ test('first run opens with detection on, in every style, using the one tactical 
   // preset is declared first. Getting this backwards is a startup TDZ crash,
   // which no other test in the suite would reach.
   assert.ok(
-    uiSource.indexOf('const MILITARY_DETECTION_PRESET =')
-      < uiSource.indexOf('const GLOBAL_POST_DEFAULTS ='),
+    uiSource.indexOf('const MILITARY_DETECTION_PRESET =') <
+    uiSource.indexOf('const GLOBAL_POST_DEFAULTS ='),
     'MILITARY_DETECTION_PRESET must be declared before the baseline that reads it',
   );
 });
