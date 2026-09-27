@@ -1,4 +1,6 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 // Regression test for the giant-military-jet bug: MODEL_SCALE must put every
 // rendered aircraft at REAL-WORLD size, whatever the GLB's native scale is.
 //
@@ -17,13 +19,21 @@ import { readLayerSource } from '../testSupport/readLayerSource.mjs';
 // (both legacy GLBs are now transform-applied, but the hierarchy-aware reader
 // guards future asset updates). For jet.glb this yields 29.83 — Cesium's
 // Model.boundingSphere.radius / scale measured in-app (2026-07-02).
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import * as Cesium from 'cesium';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { CLASS_SCALE_3D, CLASS_MODEL_URL, CLASS_MODEL_REAL } from './aircraftClass.js';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  CLASS_SCALE_3D,
+  CLASS_MODEL_URL,
+  CLASS_MODEL_REAL
+} from './aircraftClass.js';
 import {
   MODEL_TRAIL_ANCHOR_NATIVE,
   MODEL_VISUAL_CENTER_NATIVE,
@@ -49,9 +59,17 @@ test('model-space anchors honor Cesium minimum-pixel computed scale', () => {
     0, 0, 1, 0,
     100, 200, 300, 1,
   ];
-  const result = { x: 0, y: 0, z: 0 };
+  const result = {
+    x: 0,
+    y: 0,
+    z: 0
+  };
   modelVisualAnchor(matrix, [2, 3, -4], 7, result);
-  assert.deepEqual(result, { x: 79, y: 214, z: 272 });
+  assert.deepEqual(result, {
+    x: 79,
+    y: 214,
+    z: 272
+  });
 });
 
 // --- minimal GLB bounds reader ---------------------------------------------
@@ -65,6 +83,7 @@ function glbJson(file) {
 
 // Column-major 4×4 helpers (glTF matrix layout).
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
 function mul(a, b) {
   const o = new Array(16).fill(0);
   for (let c = 0; c < 4; c++)
@@ -72,6 +91,7 @@ function mul(a, b) {
       for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k];
   return o;
 }
+
 function nodeMatrix(node) {
   if (node.matrix) return node.matrix;
   const t = node.translation || [0, 0, 0];
@@ -88,6 +108,7 @@ function nodeMatrix(node) {
     mul(rot, [s[0], 0, 0, 0, 0, s[1], 0, 0, 0, 0, s[2], 0, 0, 0, 0, 1]),
   );
 }
+
 function transformPoint(m, p) {
   return [
     m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
@@ -125,7 +146,10 @@ function nativeBounds(file) {
   };
   for (const n of gltf.scenes[gltf.scene ?? 0].nodes) visit(n, IDENTITY);
   assert.ok(Number.isFinite(min[0]), `${file}: no POSITION bounds found`);
-  return { min, max };
+  return {
+    min,
+    max
+  };
 }
 
 // --- real mesh reader (vertices + triangles, not just accessor bounds) ------
@@ -142,8 +166,20 @@ const GLB_COMPONENT_READERS = {
   5125: (buf, o) => buf.readUInt32LE(o),
   5126: (buf, o) => buf.readFloatLE(o),
 };
-const GLB_COMPONENT_BYTES = { 5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4 };
-const GLB_TYPE_COMPONENTS = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
+const GLB_COMPONENT_BYTES = {
+  5120: 1,
+  5121: 1,
+  5122: 2,
+  5123: 2,
+  5125: 4,
+  5126: 4
+};
+const GLB_TYPE_COMPONENTS = {
+  SCALAR: 1,
+  VEC2: 2,
+  VEC3: 3,
+  VEC4: 4
+};
 
 /** JSON chunk plus the binary chunk of a GLB. */
 function glbChunks(file) {
@@ -154,11 +190,17 @@ function glbChunks(file) {
   let bin = null;
   for (let off = 20 + jsonLen; off + 8 <= buf.length;) {
     const len = buf.readUInt32LE(off);
-    if (buf.readUInt32LE(off + 4) === 0x004e4942) { bin = buf.subarray(off + 8, off + 8 + len); break; }
+    if (buf.readUInt32LE(off + 4) === 0x004e4942) {
+      bin = buf.subarray(off + 8, off + 8 + len);
+      break;
+    }
     off += 8 + len;
   }
   assert.ok(bin, `${file}: no BIN chunk`);
-  return { gltf, bin };
+  return {
+    gltf,
+    bin
+  };
 }
 
 /** One accessor's elements, honouring bufferView byteStride. */
@@ -186,7 +228,10 @@ function glbAccessor(gltf, bin, index) {
  * Same glTF Y-up → Cesium Z-up mapping the anchors are expressed in.
  */
 function nativeMesh(file) {
-  const { gltf, bin } = glbChunks(file);
+  const {
+    gltf,
+    bin
+  } = glbChunks(file);
   assert.ok(
     !(gltf.extensionsRequired || []).some((e) => e.toLowerCase().includes('draco')),
     `${file}: Draco-compressed assets would need a decoder here`,
@@ -222,7 +267,10 @@ function nativeMesh(file) {
   };
   for (const n of gltf.scenes[gltf.scene ?? 0].nodes) visit(n, IDENTITY);
   assert.ok(verts.length && tris.length, `${file}: no triangles found`);
-  return { verts, tris };
+  return {
+    verts,
+    tris
+  };
 }
 
 /** AABB over real vertices (Cesium model-local). */
@@ -235,7 +283,10 @@ function vertexBounds(verts) {
       if (v[a] > max[a]) max[a] = v[a];
     }
   }
-  return { min, max };
+  return {
+    min,
+    max
+  };
 }
 
 const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
@@ -244,11 +295,15 @@ const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 function closestOnTriangle(p, a, b, c) {
   const sub = (u, v) => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
   const dot = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
-  const ab = sub(b, a); const ac = sub(c, a); const ap = sub(p, a);
-  const d1 = dot(ab, ap); const d2 = dot(ac, ap);
+  const ab = sub(b, a);
+  const ac = sub(c, a);
+  const ap = sub(p, a);
+  const d1 = dot(ab, ap);
+  const d2 = dot(ac, ap);
   if (d1 <= 0 && d2 <= 0) return a;
   const bp = sub(p, b);
-  const d3 = dot(ab, bp); const d4 = dot(ac, bp);
+  const d3 = dot(ab, bp);
+  const d4 = dot(ac, bp);
   if (d3 >= 0 && d4 <= d3) return b;
   const vc = d1 * d4 - d3 * d2;
   if (vc <= 0 && d1 >= 0 && d3 <= 0) {
@@ -256,7 +311,8 @@ function closestOnTriangle(p, a, b, c) {
     return [a[0] + ab[0] * v, a[1] + ab[1] * v, a[2] + ab[2] * v];
   }
   const cp = sub(p, c);
-  const d5 = dot(ab, cp); const d6 = dot(ac, cp);
+  const d5 = dot(ab, cp);
+  const d6 = dot(ac, cp);
   if (d6 >= 0 && d5 <= d6) return c;
   const vb = d5 * d2 - d1 * d6;
   if (vb <= 0 && d2 >= 0 && d6 <= 0) {
@@ -269,7 +325,8 @@ function closestOnTriangle(p, a, b, c) {
     return [b[0] + (c[0] - b[0]) * w, b[1] + (c[1] - b[1]) * w, b[2] + (c[2] - b[2]) * w];
   }
   const den = 1 / (va + vb + vc);
-  const v = vb * den; const w = vc * den;
+  const v = vb * den;
+  const w = vc * den;
   return [a[0] + ab[0] * v + ac[0] * w, a[1] + ab[1] * v + ac[1] * w, a[2] + ab[2] * v + ac[2] * w];
 }
 
@@ -289,7 +346,8 @@ function centrelineProfile(verts, tris) {
   for (const [i, j, k] of tris) {
     const t = [verts[i], verts[j], verts[k]];
     for (let e = 0; e < 3; e++) {
-      const a = t[e]; const b = t[(e + 1) % 3];
+      const a = t[e];
+      const b = t[(e + 1) % 3];
       if (a[2] === 0) pts.push(a);
       if ((a[2] < 0 && b[2] > 0) || (a[2] > 0 && b[2] < 0)) {
         const s = a[2] / (a[2] - b[2]);
@@ -309,7 +367,8 @@ function closestProfilePoint(target, profile, tris, verts) {
     const t = [verts[i], verts[j], verts[k]];
     const pts = [];
     for (let e = 0; e < 3; e++) {
-      const a = t[e]; const b = t[(e + 1) % 3];
+      const a = t[e];
+      const b = t[(e + 1) % 3];
       if (a[2] === 0) pts.push(a);
       if ((a[2] < 0 && b[2] > 0) || (a[2] > 0 && b[2] < 0)) {
         const s = a[2] / (a[2] - b[2]);
@@ -318,7 +377,8 @@ function closestProfilePoint(target, profile, tris, verts) {
     }
     if (pts.length >= 2) segs.push([pts[0], pts[1]]);
   }
-  let best = null; let bestD = Infinity;
+  let best = null;
+  let bestD = Infinity;
   for (const [a, b] of segs) {
     const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
     const den = ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2];
@@ -329,7 +389,10 @@ function closestProfilePoint(target, profile, tris, verts) {
       q = [a[0] + ab[0] * s, a[1] + ab[1] * s, a[2] + ab[2] * s];
     }
     const d = dist3(target, q);
-    if (d < bestD) { bestD = d; best = q; }
+    if (d < bestD) {
+      bestD = d;
+      best = q;
+    }
   }
   assert.ok(best, 'the centreline slice produced no segments');
   assert.ok(profile.length > 0, 'the centreline profile is empty');
@@ -338,7 +401,10 @@ function closestProfilePoint(target, profile, tris, verts) {
 
 /** Native bounding radius: half-diagonal of the scene-space AABB. */
 function nativeBoundingRadius(file) {
-  const { min, max } = nativeBounds(file);
+  const {
+    min,
+    max
+  } = nativeBounds(file);
   return Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2;
 }
 
@@ -351,7 +417,10 @@ function nativeOriginAboveLowestVertex(file) {
 
 /** Scene-AABB centre converted from glTF Y-up to Cesium model-local Z-up. */
 function nativeVisualCenter(file) {
-  const { min, max } = nativeBounds(file);
+  const {
+    min,
+    max
+  } = nativeBounds(file);
   const gltfCenter = min.map((value, axis) => (value + max[axis]) / 2);
   return [gltfCenter[0], -gltfCenter[2], gltfCenter[1]];
 }
@@ -364,7 +433,10 @@ function layerConstants(sourceFile) {
   assert.ok(scale, `${sourceFile}: MODEL_SCALE not found`);
   const belly = src.match(/\bconst MODEL_BELLY_OFFSET_NATIVE = ([\d.]+);/);
   assert.ok(belly, `${sourceFile}: MODEL_BELLY_OFFSET_NATIVE not found`);
-  return { modelScale: Number(scale[1]), bellyOffsetNative: Number(belly[1]) };
+  return {
+    modelScale: Number(scale[1]),
+    bellyOffsetNative: Number(belly[1])
+  };
 }
 
 function normalBillboardScaleByDistance(sourceFile) {
@@ -376,8 +448,7 @@ function normalBillboardScaleByDistance(sourceFile) {
   return scalar.slice(1).map(Number);
 }
 
-const LAYERS = [
-  {
+const LAYERS = [{
     name: 'flights',
     source: 'src/data/flights.js',
     // All classes share one GLB today (see CLASS_MODEL_URL) — assert that, so
@@ -401,11 +472,17 @@ const LAYERS = [
 ];
 
 const measured = LAYERS.map((layer) => {
-  const { modelScale, bellyOffsetNative } = layerConstants(layer.source);
+  const {
+    modelScale,
+    bellyOffsetNative
+  } = layerConstants(layer.source);
   const assetPath = path.join(ROOT, 'public', layer.asset);
   const nativeRadius = nativeBoundingRadius(assetPath);
   return {
-    ...layer, modelScale, bellyOffsetNative, nativeRadius,
+    ...layer,
+    modelScale,
+    bellyOffsetNative,
+    nativeRadius,
     baseWorldRadius: nativeRadius * modelScale,
     originAboveBelly: nativeOriginAboveLowestVertex(assetPath),
   };
@@ -543,8 +620,14 @@ test('every approved aircraft model has a trail anchor on its real aft-belly hul
 
   for (const url of urls) {
     const file = path.join(ROOT, 'public', url);
-    const { verts, tris } = nativeMesh(file);
-    const { min, max } = vertexBounds(verts);
+    const {
+      verts,
+      tris
+    } = nativeMesh(file);
+    const {
+      min,
+      max
+    } = vertexBounds(verts);
     const centre = min.map((value, axis) => (value + max[axis]) / 2);
     const actual = MODEL_TRAIL_ANCHOR_NATIVE[url];
 
@@ -628,18 +711,30 @@ const TRAIL_RIG_URLS = new Set([
   ...Object.keys(MODEL_VISUAL_CENTER_NATIVE),
   ...Object.values(CLASS_MODEL_REAL).map((spec) => spec.url),
 ]);
-const trailRigAt = (d) => ({ x: d, y: 0, z: 0 });
+const trailRigAt = (d) => ({
+  x: d,
+  y: 0,
+  z: 0
+});
 const trailRigCentre = trailRigAt(0);
 /** The rig's world anchor: the model's own measured attachment point, laid out
  *  aft (+x) and below (y) exactly as far as it really sits from the centre. */
 function trailRigAnchor(url) {
   const native = trailAnchorForModel(url);
-  return { x: native[0] || 0, y: native[1] || 0, z: 0 };
+  return {
+    x: native[0] || 0,
+    y: native[1] || 0,
+    z: 0
+  };
 }
 /** Visible length of the head segment the guard would have drawn, in metres.
  *  Zero means nothing is drawn — which is the answer the whole guard exists for. */
 function drawnHeadLength(start, anchor, centre, envelope) {
-  const from = trailHeadStart(start, anchor, centre, envelope, { x: 0, y: 0, z: 0 });
+  const from = trailHeadStart(start, anchor, centre, envelope, {
+    x: 0,
+    y: 0,
+    z: 0
+  });
   if (!from) return 0;
   return Math.hypot(from.x - anchor.x, from.y - anchor.y, from.z - anchor.z);
 }
@@ -651,7 +746,11 @@ test('a stationary contact draws no trail head, and a moving one draws all of it
     // Parked: the last body point is where the aircraft is. Nothing at all —
     // not a short segment, not a degenerate one. Nothing.
     assert.equal(
-      trailHeadStart(trailRigCentre, anchor, trailRigCentre, envelope, { x: 0, y: 0, z: 0 }), null,
+      trailHeadStart(trailRigCentre, anchor, trailRigCentre, envelope, {
+        x: 0,
+        y: 0,
+        z: 0
+      }), null,
       `${url}: a parked contact's head segment is the anchor offset, not motion, ` +
       `and must not be drawn (envelope ${envelope.toFixed(2)} m)`,
     );
@@ -666,7 +765,11 @@ test('a stationary contact draws no trail head, and a moving one draws all of it
     // the caller's own start point, so a contact that has cleared its own size
     // is bit-for-bit what the containment rule drew.
     const clear = trailRigAt(envelope * 1.01);
-    assert.equal(trailHeadStart(clear, anchor, trailRigCentre, envelope, { x: 0, y: 0, z: 0 }), clear,
+    assert.equal(trailHeadStart(clear, anchor, trailRigCentre, envelope, {
+        x: 0,
+        y: 0,
+        z: 0
+      }), clear,
       `${url}: once the contact clears its own envelope the whole head must draw`);
   }
 
@@ -676,18 +779,26 @@ test('a stationary contact draws no trail head, and a moving one draws all of it
   const airliner = nativeBoundingRadius(path.join(ROOT, 'public', '/models/airplane.glb'));
   const anchor = trailRigAnchor('/models/airplane.glb');
   for (const [d, why] of [
-    [58, 'a fix 58 m aft is well outside the envelope and its segment must be drawn'],
-    [7500, 'a jet covers ~7.5 km between fixes — that trail must never be shortened'],
-    [300, 'even a slow 10 m/s taxi between 30 s fixes still draws its whole trail'],
-  ]) {
+      [58, 'a fix 58 m aft is well outside the envelope and its segment must be drawn'],
+      [7500, 'a jet covers ~7.5 km between fixes — that trail must never be shortened'],
+      [300, 'even a slow 10 m/s taxi between 30 s fixes still draws its whole trail'],
+    ]) {
     const start = trailRigAt(d);
     assert.equal(
-      trailHeadStart(start, anchor, trailRigCentre, airliner, { x: 0, y: 0, z: 0 }), start, why,
+      trailHeadStart(start, anchor, trailRigCentre, airliner, {
+        x: 0,
+        y: 0,
+        z: 0
+      }), start, why,
     );
   }
   // No model drawing (billboard owns the visual): nothing to cut through.
   const loose = trailRigAt(5);
-  assert.equal(trailHeadStart(loose, anchor, null, 0, { x: 0, y: 0, z: 0 }), loose,
+  assert.equal(trailHeadStart(loose, anchor, null, 0, {
+      x: 0,
+      y: 0,
+      z: 0
+    }), loose,
     'with no model envelope the whole segment always draws');
 });
 
@@ -779,7 +890,10 @@ test('the trail head grows continuously across the envelope, never in one step',
 // (identity would leave them at the raw table values, which is the answer a
 // dropped link also gives) while leaving lateral zero, which is the regression.
 const TRAIL_ROOT_SCALE = 2;
-const TRAIL_ROOT_OFFSET = Object.freeze({ lengthwise: 5, vertical: -1 });
+const TRAIL_ROOT_OFFSET = Object.freeze({
+  lengthwise: 5,
+  vertical: -1
+});
 test('the trail anchor rides the rendered longitudinal axis at every heading', () => {
   const position = Cesium.Cartesian3.fromDegrees(-97.7, 30.2, 3000);
   const sub = (a, b) => Cesium.Cartesian3.subtract(a, b, new Cesium.Cartesian3());
@@ -800,7 +914,11 @@ test('the trail anchor rides the rendered longitudinal axis at every heading', (
       const model = {
         modelMatrix,
         computedScale: 1,
-        sceneGraph: { components: { transform: rootTransform } },
+        sceneGraph: {
+          components: {
+            transform: rootTransform
+          }
+        },
       };
       const origin = Cesium.Matrix4.getTranslation(modelMatrix, new Cesium.Cartesian3());
       const world = modelAnchorWorld(model, anchor, new Cesium.Cartesian3());
@@ -816,7 +934,9 @@ test('the trail anchor rides the rendered longitudinal axis at every heading', (
         const c = Cesium.Matrix4.getColumn(enu, i, new Cesium.Cartesian4());
         return Cesium.Cartesian3.normalize(new Cesium.Cartesian3(c.x, c.y, c.z), new Cesium.Cartesian3());
       };
-      const east = axis(0); const north = axis(1); const vertical = axis(2);
+      const east = axis(0);
+      const north = axis(1);
+      const vertical = axis(2);
       const rad = Cesium.Math.toRadians(headingDeg);
       const lengthwise = Cesium.Cartesian3.normalize(Cesium.Cartesian3.add(
         Cesium.Cartesian3.multiplyByScalar(north, Math.cos(rad), new Cesium.Cartesian3()),
@@ -896,7 +1016,10 @@ test('legacy aircraft GLBs keep scale and orientation baked with no node transfo
       assert.equal(node.rotation, undefined, `${url}: ${node.name || 'node'} has unapplied rotation`);
       assert.equal(node.scale, undefined, `${url}: ${node.name || 'node'} has unapplied scale`);
     }
-    const { min, max } = nativeBounds(file);
+    const {
+      min,
+      max
+    } = nativeBounds(file);
     const extents = max.map((value, axis) => value - min[axis]);
     assert.ok(
       extents[1] < extents[0] && extents[1] < extents[2],
