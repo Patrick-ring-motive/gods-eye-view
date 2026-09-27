@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { GBFS_CITY_REGISTRY } from './registry.js';
+import {
+  GBFS_CITY_REGISTRY
+} from './registry.js';
 import {
   ACTIVATION_EXIT_ALTITUDE_M,
   ACTIVATION_ENTER_ALTITUDE_M,
@@ -7,8 +9,15 @@ import {
   CAMERA_DEBOUNCE_MS,
 } from './policy.js';
 
-export function createViewport({ state: layerState, services, parts, source }) {
-  const { governorRequestRender } = services.render;
+export function createViewport({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    governorRequestRender
+  } = services.render;
 
   /**
    * Get the camera's current altitude in meters above the ellipsoid.
