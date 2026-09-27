@@ -737,8 +737,7 @@ export function createLocalGeoJsonLayer({
                       properties,
                       priority,
                       accent: color,
-                    }) :
-                    null,
+                    }) : null,
                 });
               }
               // Setup finished — publish it.
