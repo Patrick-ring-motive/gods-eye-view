@@ -1,7 +1,16 @@
-import { keylessHudSummaryResponse } from '../../../src/hudSummaryResponse.js';
-import { enforceOptInRateLimit, openAiRateLimiter } from './rate-limit.js';
-import { readRequestBody } from '../common/request.js';
-import { OPENAI_HUD_SUMMARY_MODEL_DEFAULT } from './constants.js';
+import {
+  keylessHudSummaryResponse
+} from '../../../src/hudSummaryResponse.js';
+import {
+  enforceOptInRateLimit,
+  openAiRateLimiter
+} from './rate-limit.js';
+import {
+  readRequestBody
+} from '../common/request.js';
+import {
+  OPENAI_HUD_SUMMARY_MODEL_DEFAULT
+} from './constants.js';
 
 function extractOpenAiResponseText(data) {
   if (typeof data?.output_text === 'string' && data.output_text.trim()) {
@@ -29,7 +38,9 @@ async function handleHudSummary(req, res) {
   if (req.method !== 'POST') {
     res.statusCode = 405;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'Method not allowed' }));
+    res.end(JSON.stringify({
+      error: 'Method not allowed'
+    }));
     return;
   }
 
@@ -58,8 +69,7 @@ async function handleHudSummary(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model:
-          process.env.OPENAI_HUD_SUMMARY_MODEL ||
+        model: process.env.OPENAI_HUD_SUMMARY_MODEL ||
           OPENAI_HUD_SUMMARY_MODEL_DEFAULT,
         instructions: [
           "Write one concise intelligence-HUD summary for God's Eye View.",
@@ -69,7 +79,9 @@ async function handleHudSummary(req, res) {
           'Output exactly five words with no title, punctuation, markdown, or introductory phrase.',
         ].join(' '),
         input: JSON.stringify(context),
-        reasoning: { effort: 'minimal' },
+        reasoning: {
+          effort: 'minimal'
+        },
         max_output_tokens: 100,
       }),
     });
@@ -81,9 +93,9 @@ async function handleHudSummary(req, res) {
     res.end(
       JSON.stringify({
         summary: summary || null,
-        error: response.ok
-          ? null
-          : data.error?.message || 'OpenAI HUD summary request failed',
+        error: response.ok ?
+          null :
+          data.error?.message || 'OpenAI HUD summary request failed',
       }),
     );
   } catch (error) {
@@ -97,4 +109,6 @@ async function handleHudSummary(req, res) {
   }
 }
 
-export { handleHudSummary };
+export {
+  handleHudSummary
+};
