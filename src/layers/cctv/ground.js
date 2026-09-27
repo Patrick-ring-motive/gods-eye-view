@@ -7,9 +7,18 @@ import {
 /** Cooldown before a provisional (geoid-fallback / partial) footprint is retried. */
 const FOOTPRINT_RETRY_MS = 60_000;
 
-export function createGround({ state: layerState, services, parts, source }) {
-  const { resolveGroundFloorCells } = services.ground;
-  const { resolveEllipsoidalGround } = services.terrain;
+export function createGround({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    resolveGroundFloorCells
+  } = services.ground;
+  const {
+    resolveEllipsoidalGround
+  } = services.terrain;
 
   /**
    * Task 5 (height-datum fix): maps the scene's `globe.show` flag to the surface
@@ -60,9 +69,9 @@ export function createGround({ state: layerState, services, parts, source }) {
 
   function groundPriorAltFor(record) {
     const prior = record?.groundPrior?.ellipsoid;
-    return Number.isFinite(prior)
-      ? prior
-      : Number(record?.camera?.groundElevationM) || 0;
+    return Number.isFinite(prior) ?
+      prior :
+      Number(record?.camera?.groundElevationM) || 0;
   }
 
   /**
@@ -130,7 +139,10 @@ export function createGround({ state: layerState, services, parts, source }) {
       (record.calibrationGroundResolveCount || 0) + 1;
     const revision = (record.calibrationGroundRevision || 0) + 1;
     record.calibrationGroundRevision = revision;
-    const point = { lat: record.camera.lat, lon: record.camera.lon };
+    const point = {
+      lat: record.camera.lat,
+      lon: record.camera.lon
+    };
 
     rearmGroundResolution(record);
     parts.geometry.updateRecordGeometry(record);
@@ -167,7 +179,9 @@ export function createGround({ state: layerState, services, parts, source }) {
         return {
           lat: camera.lat,
           lon: camera.lon,
-          ...(Number.isFinite(ortho) ? { sourceOrthometricM: ortho } : {}),
+          ...(Number.isFinite(ortho) ? {
+            sourceOrthometricM: ortho
+          } : {}),
         };
       });
       return await resolveEllipsoidalGround(coords);
@@ -215,7 +229,9 @@ export function createGround({ state: layerState, services, parts, source }) {
       const regime = currentSurfaceRegime();
       if (regime === 'terrain-globe') {
         // Prior IS the resolution — re-latch onto the fresh value.
-        parts.geometry.updateRecordGeometry(record, { sampleGround: false });
+        parts.geometry.updateRecordGeometry(record, {
+          sampleGround: false
+        });
         applied += 1;
       } else if (!Number.isFinite(record.groundSamples['google-3d'])) {
         // Still awaiting the shared floor: snap interim geometry onto the exact
@@ -260,8 +276,7 @@ export function createGround({ state: layerState, services, parts, source }) {
       // entering google-3d before any sample: prior → prior is a no-op) —
       // unless the record has a footprint source, whose eligibility depends
       // on the regime (shipped mesh samples apply in google-3d only).
-      const hasFootprintSource =
-        !!record.camera?.groundHeights || !!record.footprintGround;
+      const hasFootprintSource = !!record.camera?.groundHeights || !!record.footprintGround;
       if (
         !hasFootprintSource &&
         record.frustumGeometry &&
@@ -311,7 +326,9 @@ export function createGround({ state: layerState, services, parts, source }) {
     if (parts.geometry.hasShippedFootprint(record)) return;
     const revision = (record.footprintRevision || 0) + 1;
     record.footprintRevision = revision;
-    const { supports } = planeSupportPoints(pose);
+    const {
+      supports
+    } = planeSupportPoints(pose);
     const coords = SUPPORT_KEYS.map((key) => ({
       lat: supports[key].lat,
       lon: supports[key].lon,
