@@ -1,5 +1,9 @@
-import { directionToHeading } from '../../../src/data/directionText.js';
-import { haversineKm } from '../common/geo.js';
+import {
+  directionToHeading
+} from '../../../src/data/directionText.js';
+import {
+  haversineKm
+} from '../common/geo.js';
 /**
  * FNV-1a 32-bit hash of a string, used to derive deterministic pseudo-random
  * values (e.g. hue for synthetic SVG billboards, fallback heading angles).
@@ -98,7 +102,10 @@ export function parsePointString(value) {
   const match = String(value || '').match(
     /POINT\s*\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)/i,
   );
-  if (!match) return { lat: NaN, lon: NaN };
+  if (!match) return {
+    lat: NaN,
+    lon: NaN
+  };
   return {
     lon: toFiniteNumber(match[1]),
     lat: toFiniteNumber(match[2]),
@@ -115,14 +122,20 @@ export function parsePointString(value) {
  * @returns {{lat:number, lon:number}}
  */
 export function coerceLatLon(value) {
-  if (!value) return { lat: NaN, lon: NaN };
+  if (!value) return {
+    lat: NaN,
+    lon: NaN
+  };
 
   if (typeof value === 'string') {
     return parsePointString(value);
   }
 
   if (typeof value !== 'object') {
-    return { lat: NaN, lon: NaN };
+    return {
+      lat: NaN,
+      lon: NaN
+    };
   }
 
   const lat = toFiniteNumber(
@@ -131,14 +144,17 @@ export function coerceLatLon(value) {
   );
   const lon = toFiniteNumber(
     value.longitude ??
-      value.lon ??
-      value.lng ??
-      value.x ??
-      value.Longitude ??
-      value.Lon,
+    value.lon ??
+    value.lng ??
+    value.x ??
+    value.Longitude ??
+    value.Lon,
     NaN,
   );
-  return { lat, lon };
+  return {
+    lat,
+    lon
+  };
 }
 
 /**
@@ -167,20 +183,23 @@ export function extractAustinCoords(record) {
 
   const lat = toFiniteNumber(
     record.latitude ??
-      record.lat ??
-      record.camera_latitude ??
-      record.location_latitude,
+    record.lat ??
+    record.camera_latitude ??
+    record.location_latitude,
     NaN,
   );
   const lon = toFiniteNumber(
     record.longitude ??
-      record.lon ??
-      record.lng ??
-      record.camera_longitude ??
-      record.location_longitude,
+    record.lon ??
+    record.lng ??
+    record.camera_longitude ??
+    record.location_longitude,
     NaN,
   );
-  return { lat, lon };
+  return {
+    lat,
+    lon
+  };
 }
 
 /**
@@ -278,14 +297,14 @@ export function extractAustinHeading(record) {
   // "WB") count — a bare "West" here is a street name ("5TH ST / WEST AVE"), not
   // a facing, and must not promote the camera to a false high-confidence heading.
   const nameProbe = [
-    record.camera_name,
-    record.location_name,
-    record.intersection_name,
-    record.location,
-    record.cross_street,
-    record.description,
-    record.name,
-  ]
+      record.camera_name,
+      record.location_name,
+      record.intersection_name,
+      record.location,
+      record.cross_street,
+      record.description,
+      record.name,
+    ]
     .filter(Boolean)
     .join(' ');
   const inferred = directionToHeading(nameProbe);
@@ -403,8 +422,8 @@ export function isLikelyFinlandCoordinate(lat, lon) {
 export function fintrafficCameraName(stationName, stationId, presetId) {
   const base =
     String(stationName || '')
-      .replace(/_/g, ' ')
-      .trim() || `Fintraffic ${stationId}`;
+    .replace(/_/g, ' ')
+    .trim() || `Fintraffic ${stationId}`;
   const view = String(presetId || '').slice(String(stationId || '').length);
   return view ? `${base} (view ${view})` : base;
 }
@@ -462,20 +481,24 @@ export function prioritizeSources(cameras, maxCount, anchors) {
   // "nearest to an anchor first" has to hold whether or not the pack was
   // trimmed here.
   const cap =
-    Number.isFinite(maxCount) && maxCount > 0
-      ? Math.min(maxCount, list.length)
-      : list.length;
+    Number.isFinite(maxCount) && maxCount > 0 ?
+    Math.min(maxCount, list.length) :
+    list.length;
 
   const scored = list.map((camera, idx) => {
     const lat = Number(camera?.lat);
     const lon = Number(camera?.lon);
     const distKm =
-      Number.isFinite(lat) && Number.isFinite(lon)
-        ? Math.min(
-            ...anchorList.map((a) => haversineKm(lat, lon, a.lat, a.lon)),
-          )
-        : Number.POSITIVE_INFINITY;
-    return { camera, idx, distKm };
+      Number.isFinite(lat) && Number.isFinite(lon) ?
+      Math.min(
+        ...anchorList.map((a) => haversineKm(lat, lon, a.lat, a.lon)),
+      ) :
+      Number.POSITIVE_INFINITY;
+    return {
+      camera,
+      idx,
+      distKm
+    };
   });
 
   scored.sort((a, b) => {
