@@ -23,7 +23,10 @@ import {
   placementVariants,
   roundedRectPath,
 } from './worldOverlayDraw.js';
-import { createCctvThumbnailOverlayEntry, createFrameSlot } from '../data/cctvCards.js';
+import {
+  createCctvThumbnailOverlayEntry,
+  createFrameSlot
+} from '../data/cctvCards.js';
 import {
   CARD_PLATE_ALPHA,
   DETECTION_PLATE_BAND,
@@ -46,28 +49,66 @@ function mockContext() {
     calls,
     font: '',
     globalAlpha: 1,
-    get strokeStyle() { return strokeStyle; },
-    set strokeStyle(value) { strokeStyle = value; calls.push(['strokeStyle', value]); },
-    get lineWidth() { return lineWidth; },
-    set lineWidth(value) { lineWidth = value; calls.push(['lineWidth', value]); },
+    get strokeStyle() {
+      return strokeStyle;
+    },
+    set strokeStyle(value) {
+      strokeStyle = value;
+      calls.push(['strokeStyle', value]);
+    },
+    get lineWidth() {
+      return lineWidth;
+    },
+    set lineWidth(value) {
+      lineWidth = value;
+      calls.push(['lineWidth', value]);
+    },
     measureCount: 0,
     measureText(text) {
       this.measureCount++;
-      return { width: String(text).length * 6 };
+      return {
+        width: String(text).length * 6
+      };
     },
-    save() { calls.push(['save']); },
-    restore() { calls.push(['restore']); },
-    beginPath() { calls.push(['beginPath']); },
-    roundRect(...args) { calls.push(['roundRect', ...args]); },
-    moveTo(...args) { calls.push(['moveTo', ...args]); },
-    lineTo(...args) { calls.push(['lineTo', ...args]); },
-    arcTo(...args) { calls.push(['arcTo', ...args]); },
-    closePath() { calls.push(['closePath']); },
-    fill() { calls.push(['fill']); },
-    stroke() { calls.push(['stroke']); },
-    fillRect(...args) { calls.push(['fillRect', ...args]); },
-    fillText(...args) { calls.push(['fillText', ...args]); },
-    drawImage(...args) { calls.push(['drawImage', ...args]); },
+    save() {
+      calls.push(['save']);
+    },
+    restore() {
+      calls.push(['restore']);
+    },
+    beginPath() {
+      calls.push(['beginPath']);
+    },
+    roundRect(...args) {
+      calls.push(['roundRect', ...args]);
+    },
+    moveTo(...args) {
+      calls.push(['moveTo', ...args]);
+    },
+    lineTo(...args) {
+      calls.push(['lineTo', ...args]);
+    },
+    arcTo(...args) {
+      calls.push(['arcTo', ...args]);
+    },
+    closePath() {
+      calls.push(['closePath']);
+    },
+    fill() {
+      calls.push(['fill']);
+    },
+    stroke() {
+      calls.push(['stroke']);
+    },
+    fillRect(...args) {
+      calls.push(['fillRect', ...args]);
+    },
+    fillText(...args) {
+      calls.push(['fillText', ...args]);
+    },
+    drawImage(...args) {
+      calls.push(['drawImage', ...args]);
+    },
   };
 }
 
@@ -83,8 +124,8 @@ test('every detection theme carries a callout plate inside the ambient band', ()
     const plate = alphaOf(theme.calloutPlate);
     const space = alphaOf(theme.calloutPlateSpace);
     assert.ok(
-      plate >= DETECTION_PLATE_BAND.min * CARD_PLATE_ALPHA
-        && plate <= DETECTION_PLATE_BAND.max * CARD_PLATE_ALPHA,
+      plate >= DETECTION_PLATE_BAND.min * CARD_PLATE_ALPHA &&
+      plate <= DETECTION_PLATE_BAND.max * CARD_PLATE_ALPHA,
       `${name} callout plate ${plate} outside the ambient band`,
     );
     // The owner's spec: satellites read over the lit Earth disc, so the space
@@ -99,9 +140,17 @@ test('every detection theme carries a callout plate inside the ambient band', ()
 test('an ambient detection callout paints its backing plate under its text', () => {
   const ctx = mockContext();
   paintDetectionCallout(ctx, {
-    x: 20, y: 30, w: 80, h: 18,
-    primaryX: 27, microX: 70, baseline: 42,
-    leadFromX: 60, leadFromY: 60, leadToX: 60, leadToY: 48,
+    x: 20,
+    y: 30,
+    w: 80,
+    h: 18,
+    primaryX: 27,
+    microX: 70,
+    baseline: 42,
+    leadFromX: 60,
+    leadFromY: 60,
+    leadToX: 60,
+    leadToY: 48,
     plate: 'rgba(2, 18, 26, 0.52)',
     accent: '#22e0ff',
     label: 'rgba(200, 250, 255, 0.97)',
@@ -128,9 +177,17 @@ test('an ambient detection callout paints its backing plate under its text', () 
 test('a callout with no micro-field paints one text run and still gets a plate', () => {
   const ctx = mockContext();
   paintDetectionCallout(ctx, {
-    x: 0, y: 0, w: 40, h: 18,
-    primaryX: 7, microX: 30, baseline: 12,
-    leadFromX: 20, leadFromY: 30, leadToX: 20, leadToY: 18,
+    x: 0,
+    y: 0,
+    w: 40,
+    h: 18,
+    primaryX: 7,
+    microX: 30,
+    baseline: 12,
+    leadFromX: 20,
+    leadFromY: 30,
+    leadToX: 20,
+    leadToY: 18,
     plate: 'rgba(2, 18, 26, 0.52)',
     accent: '#22e0ff',
     label: '#fff',
@@ -145,18 +202,43 @@ test('a callout with no micro-field paints one text run and still gets a plate',
 });
 
 test('distance and altitude fades preserve exact boundary/ramp math', () => {
-  assert.equal(distanceFade(0, { maxDistance: 1000 }), 1);
-  assert.equal(distanceFade(700, { maxDistance: 1000 }), 1);
-  assert.equal(distanceFade(850, { maxDistance: 1000 }), 0.5);
-  assert.equal(distanceFade(1000, { maxDistance: 1000 }), 0);
-  assert.equal(distanceFade(50, { minDistance: 100, maxDistance: 1000 }), 0);
-  assert.equal(altitudeFade(6000, { fadeStart: 7500, fadeEnd: 9500 }), 1);
-  assert.equal(altitudeFade(8500, { fadeStart: 7500, fadeEnd: 9500 }), 0.5);
-  assert.equal(altitudeFade(9500, { fadeStart: 7500, fadeEnd: 9500 }), 0);
+  assert.equal(distanceFade(0, {
+    maxDistance: 1000
+  }), 1);
+  assert.equal(distanceFade(700, {
+    maxDistance: 1000
+  }), 1);
+  assert.equal(distanceFade(850, {
+    maxDistance: 1000
+  }), 0.5);
+  assert.equal(distanceFade(1000, {
+    maxDistance: 1000
+  }), 0);
+  assert.equal(distanceFade(50, {
+    minDistance: 100,
+    maxDistance: 1000
+  }), 0);
+  assert.equal(altitudeFade(6000, {
+    fadeStart: 7500,
+    fadeEnd: 9500
+  }), 1);
+  assert.equal(altitudeFade(8500, {
+    fadeStart: 7500,
+    fadeEnd: 9500
+  }), 0.5);
+  assert.equal(altitudeFade(9500, {
+    fadeStart: 7500,
+    fadeEnd: 9500
+  }), 0);
 });
 
 test('distance scale matches the legacy infrastructure NearFarScalar curve', () => {
-  const curve = { near: 250_000, nearValue: 1, far: 9_000_000, farValue: 0.62 };
+  const curve = {
+    near: 250_000,
+    nearValue: 1,
+    far: 9_000_000,
+    farValue: 0.62
+  };
   assert.equal(distanceScale(0, curve), 1);
   assert.equal(distanceScale(250_000, curve), 1);
   assert.equal(distanceScale(9_000_000, curve), 0.62);
@@ -190,7 +272,10 @@ test('the five-channel alpha chain is multiplicative and clamps inputs', () => {
     altitudeFade: 0.5,
     keyholeEdgeFade: 0.25,
   }), 0.025);
-  assert.equal(combinedOverlayAlpha({ sourceAlpha: 2, temporalFade: -1 }), 0);
+  assert.equal(combinedOverlayAlpha({
+    sourceAlpha: 2,
+    temporalFade: -1
+  }), 0);
 });
 
 test('placement variants flip below near the top and stay viewport-clamped', () => {
@@ -234,7 +319,9 @@ test('tactical cards retain vertical-only placement and sprite-edge leaders', ()
     leaderOffset: 14,
     verticalOnly: true,
   });
-  assert.deepEqual(placements.map(({ corner }) => corner), ['above', 'below']);
+  assert.deepEqual(placements.map(({
+    corner
+  }) => corner), ['above', 'below']);
   assert.equal(placements[0].leadFromY, 80);
   assert.equal(placements[0].leaderOffset, -14);
   assert.equal(placements[0].leadToY, placements[0].rect.y + placements[0].rect.h);
@@ -349,14 +436,21 @@ test('variant measurement and all six painters remain renderer-local', () => {
     title: 'CAMERA 12',
     details: ['LIVE', '1.2 KM'],
     accent: '#6be8ff',
-    image: { width: 192, height: 108 },
+    image: {
+      width: 192,
+      height: 108
+    },
     thumbnailWidth: 96,
     thumbnailHeight: 54,
   };
   const variants = ['label', 'track', 'card', 'thumbnail', 'selected', 'tracked'];
   const painters = [paintLabel, paintTrack, paintCard, paintThumbnail, paintSelected, paintTracked];
   for (let i = 0; i < variants.length; i++) {
-    const variantEntry = { ...entry, variant: variants[i], selected: variants[i] === 'selected' };
+    const variantEntry = {
+      ...entry,
+      variant: variants[i],
+      selected: variants[i] === 'selected'
+    };
     const layout = measureOverlayEntry(ctx, variantEntry, {});
     variantEntry._overlayLayout = layout;
     const placement = placementVariants({
@@ -371,26 +465,39 @@ test('variant measurement and all six painters remain renderer-local', () => {
   }
   assert.ok(ctx.calls.some(([name]) => name === 'drawImage'));
   assert.ok(ctx.calls.filter(([name]) => name === 'fillText').length >= variants.length);
-  const trackLayout = measureOverlayEntry(ctx, { ...entry, variant: 'track' }, {});
+  const trackLayout = measureOverlayEntry(ctx, {
+    ...entry,
+    variant: 'track'
+  }, {});
   assert.ok(trackLayout.w >= 'CAMERA 12 · LIVE'.length * 6);
 });
 
 test('thumbnail painter preserves the shipped CCTV 104x77 geometry and drawing coordinates', () => {
   const ctx = mockContext();
   const frameSlot = createFrameSlot();
-  frameSlot.frame = { width: 192, height: 108 };
+  frameSlot.frame = {
+    width: 192,
+    height: 108
+  };
   frameSlot.stamp = 123;
   const entry = createCctvThumbnailOverlayEntry({
     id: 'cam-a',
-    position: { x: 1, y: 2, z: 3 },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    },
     title: 'Main & Fifth Avenue',
     frameSlot,
   });
   entry._overlayLayout = measureOverlayEntry(ctx, entry, {});
-  assert.deepEqual(
-    { w: entry._overlayLayout.w, h: entry._overlayLayout.h },
-    { w: 104, h: 77 },
-  );
+  assert.deepEqual({
+    w: entry._overlayLayout.w,
+    h: entry._overlayLayout.h
+  }, {
+    w: 104,
+    h: 77
+  }, );
   const placement = placementVariants({
     anchorX: 200,
     anchorY: 200,
@@ -402,7 +509,12 @@ test('thumbnail painter preserves the shipped CCTV 104x77 geometry and drawing c
     leaderOffset: entry.leaderOffsetPx,
     verticalOnly: true,
   })[0];
-  assert.deepEqual(placement.rect, { x: 148, y: 101, w: 104, h: 77 });
+  assert.deepEqual(placement.rect, {
+    x: 148,
+    y: 101,
+    w: 104,
+    h: 77
+  });
   paintThumbnail(ctx, entry, placement, 0.75);
   assert.deepEqual(
     ctx.calls.find(([name]) => name === 'strokeStyle'),
@@ -459,15 +571,17 @@ test('shared tactical painter preserves FIRMS card metrics and top-rule treatmen
     accent: '224, 82, 82',
   };
   entry._overlayLayout = measureOverlayEntry(ctx, entry, {});
-  assert.deepEqual(
-    {
-      padX: entry._overlayLayout.padX,
-      padY: entry._overlayLayout.padY,
-      titleH: entry._overlayLayout.titleH,
-      lineH: entry._overlayLayout.lineH,
-    },
-    { padX: 12, padY: 8, titleH: 14, lineH: 15 },
-  );
+  assert.deepEqual({
+    padX: entry._overlayLayout.padX,
+    padY: entry._overlayLayout.padY,
+    titleH: entry._overlayLayout.titleH,
+    lineH: entry._overlayLayout.lineH,
+  }, {
+    padX: 12,
+    padY: 8,
+    titleH: 14,
+    lineH: 15
+  }, );
   const placement = placementVariants({
     anchorX: 200,
     anchorY: 160,
@@ -488,7 +602,11 @@ test('shared tactical painter preserves FIRMS card metrics and top-rule treatmen
 
 test('track display text is cached across measure and paint and invalidates on content change', () => {
   const ctx = mockContext();
-  const entry = { variant: 'track', title: 'UAL123', details: ['450 KT'] };
+  const entry = {
+    variant: 'track',
+    title: 'UAL123',
+    details: ['450 KT']
+  };
   const originalFilter = Array.prototype.filter;
   let filterCalls = 0;
   Array.prototype.filter = function countTrackDisplayFilters(...args) {
@@ -526,18 +644,46 @@ test('track display text is cached across measure and paint and invalidates on c
 /** Records the globalAlpha in force at each paint op, which the shared mock does not. */
 function alphaProbe() {
   const ctx = mockContext();
-  const alphas = { fill: [], text: [], stroke: [] };
-  const inner = { fill: ctx.fill, fillText: ctx.fillText, stroke: ctx.stroke };
-  ctx.fill = function fill(...args) { alphas.fill.push(this.globalAlpha); return inner.fill.apply(this, args); };
-  ctx.fillText = function fillText(...args) { alphas.text.push(this.globalAlpha); return inner.fillText.apply(this, args); };
-  ctx.stroke = function stroke(...args) { alphas.stroke.push(this.globalAlpha); return inner.stroke.apply(this, args); };
-  return { ctx, alphas };
+  const alphas = {
+    fill: [],
+    text: [],
+    stroke: []
+  };
+  const inner = {
+    fill: ctx.fill,
+    fillText: ctx.fillText,
+    stroke: ctx.stroke
+  };
+  ctx.fill = function fill(...args) {
+    alphas.fill.push(this.globalAlpha);
+    return inner.fill.apply(this, args);
+  };
+  ctx.fillText = function fillText(...args) {
+    alphas.text.push(this.globalAlpha);
+    return inner.fillText.apply(this, args);
+  };
+  ctx.stroke = function stroke(...args) {
+    alphas.stroke.push(this.globalAlpha);
+    return inner.stroke.apply(this, args);
+  };
+  return {
+    ctx,
+    alphas
+  };
 }
 
 const CALLOUT_FIXTURE = Object.freeze({
-  x: 20, y: 30, w: 80, h: 18,
-  primaryX: 27, microX: 70, baseline: 42,
-  leadFromX: 60, leadFromY: 60, leadToX: 60, leadToY: 48,
+  x: 20,
+  y: 30,
+  w: 80,
+  h: 18,
+  primaryX: 27,
+  microX: 70,
+  baseline: 42,
+  leadFromX: 60,
+  leadFromY: 60,
+  leadToX: 60,
+  leadToY: 48,
   plate: 'rgba(2, 18, 26, 0.52)',
   accent: '#22e0ff',
   label: 'rgba(200, 250, 255, 0.97)',
@@ -553,9 +699,15 @@ test('a sky-backed callout feathers its PLATE and nothing else', () => {
   // the backing only — the callsign, the tier bar and the leader are the
   // callout's identity and keep the composed fades.
   const ground = alphaProbe();
-  paintDetectionCallout(ground.ctx, { ...CALLOUT_FIXTURE, plateScale: 1 }, 0.8);
+  paintDetectionCallout(ground.ctx, {
+    ...CALLOUT_FIXTURE,
+    plateScale: 1
+  }, 0.8);
   const sky = alphaProbe();
-  paintDetectionCallout(sky.ctx, { ...CALLOUT_FIXTURE, plateScale: SKY_PLATE_SCALE }, 0.8);
+  paintDetectionCallout(sky.ctx, {
+    ...CALLOUT_FIXTURE,
+    plateScale: SKY_PLATE_SCALE
+  }, 0.8);
 
   // The plate is the FIRST fill; the tier accent bar is the second.
   assert.ok(Math.abs(ground.alphas.fill[0] - 0.8) < 1e-12, 'ground keeps the full plate');
@@ -580,7 +732,10 @@ test('a callout with no backdrop information paints at full plate', () => {
   // Every caller before the backdrop pass omitted plateScale. Defaulting to a
   // feather would silently strip plates off the tilted-down case the plate was
   // introduced for, so the default must be the full plate.
-  const { ctx, alphas } = alphaProbe();
+  const {
+    ctx,
+    alphas
+  } = alphaProbe();
   paintDetectionCallout(ctx, CALLOUT_FIXTURE, 0.5);
   assert.ok(Math.abs(alphas.fill[0] - 0.5) < 1e-12);
 });
