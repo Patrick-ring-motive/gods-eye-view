@@ -40,7 +40,10 @@ export function resolveCockpitUtilityAnchor({
   const top = Math.max(minTop, Math.min(anchoredTop, clearedTop));
   const floor = Math.max(0, Number(collapsedHeight) || 0) || 50;
 
-  return { top, maxHeight: Math.max(floor, lowerBound - top - signalGap) };
+  return {
+    top,
+    maxHeight: Math.max(floor, lowerBound - top - signalGap)
+  };
 }
 
 /**
