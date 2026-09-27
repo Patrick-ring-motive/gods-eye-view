@@ -1,9 +1,13 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { loadWarendorfSourcesFromCatalog } from '../../server/providers/cctv/sources.js';
+import {
+  loadWarendorfSourcesFromCatalog
+} from '../../server/providers/cctv/sources.js';
 
 test('Warendorf catalog registers the Marktplatz webcam on official hosts only', (t) => {
   t.mock.method(console, 'log', () => {});
@@ -29,7 +33,9 @@ test('Warendorf catalog registers the Marktplatz webcam on official hosts only',
 test('Warendorf loader tolerates a missing catalog file', (t) => {
   t.mock.method(console, 'warn', () => {});
   assert.deepEqual(
-    loadWarendorfSourcesFromCatalog({ sourceRoot: '/nonexistent' }),
+    loadWarendorfSourcesFromCatalog({
+      sourceRoot: '/nonexistent'
+    }),
     [],
   );
 });
@@ -40,9 +46,10 @@ test('Warendorf loader skips malformed rows without throwing', (t) => {
   fs.mkdirSync(path.join(dir, 'config'));
   fs.writeFileSync(
     path.join(dir, 'config', 'cctv_sources.warendorf.json'),
-    JSON.stringify([
-      {
-        id: { toString: null },
+    JSON.stringify([{
+        id: {
+          toString: null
+        },
         url: 'https://www.kreis-warendorf.de/a.jpg',
         lat: 51.9,
         lon: 7.9,
@@ -73,7 +80,9 @@ test('Warendorf loader skips malformed rows without throwing', (t) => {
       },
     ]),
   );
-  const cameras = loadWarendorfSourcesFromCatalog({ sourceRoot: dir });
+  const cameras = loadWarendorfSourcesFromCatalog({
+    sourceRoot: dir
+  });
   assert.deepEqual(
     cameras.map((camera) => camera.id),
     ['ok'],
