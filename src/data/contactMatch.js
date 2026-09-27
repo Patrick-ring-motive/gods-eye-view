@@ -57,7 +57,12 @@ export function canonicalizeContactId(value) {
  * @param {string} [params.registration] Contact's registration, if any.
  * @returns {number} A {@link CONTACT_MATCH_TIER} value; `NONE` when no match.
  */
-export function rankContactMatch({ query, hex = '', callsign = '', registration = '' }) {
+export function rankContactMatch({
+  query,
+  hex = '',
+  callsign = '',
+  registration = ''
+}) {
   const rawQuery = String(query ?? '').trim().toLowerCase();
   if (!rawQuery) return CONTACT_MATCH_TIER.NONE;
 
