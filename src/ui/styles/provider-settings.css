@@ -17,11 +17,9 @@
   font-family: var(--font-mono);
   font-size: 0.6rem;
   letter-spacing: 0.09rem;
-  background: linear-gradient(
-    145deg,
-    rgba(10, 27, 37, 0.92),
-    rgba(7, 13, 22, 0.9)
-  );
+  background: linear-gradient(145deg,
+      rgba(10, 27, 37, 0.92),
+      rgba(7, 13, 22, 0.9));
   border: 1px solid rgba(54, 220, 255, 0.38);
   border-radius: 0.42rem;
   box-shadow:
@@ -38,11 +36,9 @@
 
 #key-setup-chip:hover,
 #key-setup-chip:focus-visible {
-  background: linear-gradient(
-    145deg,
-    rgba(14, 38, 51, 0.95),
-    rgba(9, 18, 28, 0.93)
-  );
+  background: linear-gradient(145deg,
+      rgba(14, 38, 51, 0.95),
+      rgba(9, 18, 28, 0.93));
   border-color: rgba(54, 220, 255, 0.7);
   outline: none;
   transform: translateY(-1px);
@@ -59,7 +55,8 @@
 
 #key-setup {
   position: fixed;
-  z-index: 190; /* above the first-run launcher (175), below attribution (200) */
+  z-index: 190;
+  /* above the first-run launcher (175), below attribution (200) */
   top: 50%;
   left: 50%;
   width: min(36rem, calc(100vw - 2rem));
@@ -104,12 +101,10 @@
   position: absolute;
   inset: 0 0 auto;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(54, 220, 255, 0.8),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(54, 220, 255, 0.8),
+      transparent);
   box-shadow: 0 0 1rem rgba(54, 220, 255, 0.45);
   pointer-events: none;
 }
@@ -194,6 +189,7 @@
 .key-setup-rows::-webkit-scrollbar {
   width: 6px;
 }
+
 .key-setup-rows::-webkit-scrollbar-thumb {
   background: rgba(54, 220, 255, 0.45);
   border-radius: 3px;
@@ -353,6 +349,7 @@ body.scene-playback-mode #key-setup {
 }
 
 @media (max-width: 620px) {
+
   /* Clear the dock. Desktop-first app; this is a courtesy, not a layout. */
   #key-setup-chip {
     bottom: 5.8rem;
