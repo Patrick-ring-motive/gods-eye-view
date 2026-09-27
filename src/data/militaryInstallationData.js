@@ -54,7 +54,10 @@ function finiteLongitude(value) {
 function pointFrom(element) {
   const lat = Number(element?.lat ?? element?.center?.lat);
   const longitude = Number(element?.lon ?? element?.center?.lon);
-  if (finiteLatitude(lat) && finiteLongitude(longitude)) return { latitude: lat, longitude };
+  if (finiteLatitude(lat) && finiteLongitude(longitude)) return {
+    latitude: lat,
+    longitude
+  };
 
   // Bounds midpoint fallback (field test 2026-08-28, Warendorf: nothing drawn).
   // The proxy asks for `out center tags geom`, but Overpass takes the LAST
@@ -79,11 +82,14 @@ function pointFrom(element) {
   // A single installation footprint is never wider than the request bbox cap
   // (10°): an ascending box that spans the antimeridian (minlon -179, maxlon
   // 179) passes the ordering check yet midpoints to longitude 0.
-  if (finiteLatitude(south) && finiteLatitude(north)
-      && finiteLongitude(west) && finiteLongitude(east)
-      && south <= north && west <= east
-      && north - south <= 10 && east - west <= 10) {
-    return { latitude: (south + north) / 2, longitude: (west + east) / 2 };
+  if (finiteLatitude(south) && finiteLatitude(north) &&
+    finiteLongitude(west) && finiteLongitude(east) &&
+    south <= north && west <= east &&
+    north - south <= 10 && east - west <= 10) {
+    return {
+      latitude: (south + north) / 2,
+      longitude: (west + east) / 2
+    };
   }
   return null;
 }
@@ -119,8 +125,8 @@ export function normalizeMilitaryInstallations(payload, retrievedAt = new Date()
     }
     const id = `osm:${type}:${osmId}`;
     const tags = element?.tags || {};
-    const klass = CLASS_BY_MILITARY_TAG[String(tags.military || '').toLowerCase()]
-      || (tags.landuse === 'military' ? 'military_land' : null);
+    const klass = CLASS_BY_MILITARY_TAG[String(tags.military || '').toLowerCase()] ||
+      (tags.landuse === 'military' ? 'military_land' : null);
     const point = pointFrom(element);
     if (!klass || !point || ids.has(id)) {
       droppedCount += 1;
@@ -137,12 +143,19 @@ export function normalizeMilitaryInstallations(payload, retrievedAt = new Date()
       name: String(tags.name || tags['name:en'] || '').trim() || humanizeInstallationClass(klass),
       ...point,
       footprint: footprintFrom(element),
-      sources: [{ name: 'OpenStreetMap', id: `${type}/${osmId}`, retrievedAt }],
+      sources: [{
+        name: 'OpenStreetMap',
+        id: `${type}/${osmId}`,
+        retrievedAt
+      }],
       validation: 'unreviewed',
       retrievedAt,
     });
   }
-  return { records, droppedCount };
+  return {
+    records,
+    droppedCount
+  };
 }
 
 /** @param {unknown} value @returns {boolean} */
@@ -152,6 +165,6 @@ export function isValidInstallationBoundingBox(value) {
   const west = Number(box.west);
   const north = Number(box.north);
   const east = Number(box.east);
-  return finiteLatitude(south) && finiteLatitude(north) && finiteLongitude(west) && finiteLongitude(east)
-    && south < north && west < east && north - south <= 10 && east - west <= 10;
+  return finiteLatitude(south) && finiteLatitude(north) && finiteLongitude(west) && finiteLongitude(east) &&
+    south < north && west < east && north - south <= 10 && east - west <= 10;
 }
