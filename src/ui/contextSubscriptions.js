@@ -69,13 +69,12 @@ export function connectContextManager(manager) {
         });
         if (reason) return reason;
         if (
-          change.enabled &&
-          ['military-awareness', 'rocket-launches'].includes(change.layerId) &&
+          change.enabled && ['military-awareness', 'rocket-launches'].includes(change.layerId) &&
           shouldCaptureContextSession(change) &&
           (!this._contextModeChanging ||
             (change.layerId === 'rocket-launches' &&
               this._contextModeDeferredEntryIntent?.intentEpoch ===
-                change.intentEpoch))
+              change.intentEpoch))
         ) {
           const entryMode =
             change.layerId === 'rocket-launches' ? 'space-missions' : null;
@@ -84,9 +83,9 @@ export function connectContextManager(manager) {
             change.intentEpoch;
           // A deferred entry owns the state after Clear settles. Restoring
           // Clear's transient busy flag here would leave Context stuck.
-          const priorChanging = deferredClearEntry
-            ? false
-            : this._contextModeChanging;
+          const priorChanging = deferredClearEntry ?
+            false :
+            this._contextModeChanging;
           const notificationToken =
             change.notificationToken || Symbol('direct-context-shell-entry');
           const ownsNotificationToken = !change.notificationToken;
@@ -139,11 +138,15 @@ export function connectContextManager(manager) {
   }
   if (typeof this._dataManager?.subscribeBeforeDestroy === 'function') {
     this._dataManagerBeforeDestroyUnsubscribe =
-      this._dataManager.subscribeBeforeDestroy(async ({ layerId } = {}) => {
+      this._dataManager.subscribeBeforeDestroy(async ({
+        layerId
+      } = {}) => {
         if (this.destroyed || !this._contextSessionSnapshot) return;
         await runWithContextModeChanging(this, async () => {
           this._contextMode = null;
-          this.cockpitView?.exit({ restoreTracking: false });
+          this.cockpitView?.exit({
+            restoreTracking: false
+          });
           this._syncContextModeButtons();
           await this._restoreContextSession({
             excludeLayerIds: layerId ? [layerId] : [],
