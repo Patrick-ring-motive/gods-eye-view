@@ -9,7 +9,9 @@
 //     precision guard) and behind-origin hits;
 //   - ringAngle/signedAngleDelta give quadrant-correct, wrap-safe angles for
 //     the heading/pitch ring drags.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
 import {
