@@ -1,19 +1,31 @@
 // src/data/neighborhoodPolygons.test.mjs — pins the bundled DataSF "Analysis
 // Neighborhoods" dataset (PDDL 1.0, see local_data/neighborhoods/SOURCE.md) and
 // its resolution contract through the source-agnostic loader.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { lookupNeighborhoodRing } from './neighborhoodPolygons.js';
+import {
+  readFileSync
+} from 'node:fs';
+import {
+  lookupNeighborhoodRing
+} from './neighborhoodPolygons.js';
 
 const FILE = new URL('./local_data/neighborhoods/san-francisco.json', import.meta.url);
 
 // SF proper + Treasure Island; generous but excludes everything non-SF.
-const SF_BOUNDS = { west: -122.55, south: 37.70, east: -122.35, north: 37.84 };
+const SF_BOUNDS = {
+  west: -122.55,
+  south: 37.70,
+  east: -122.35,
+  north: 37.84
+};
 
 function eachRing(geometry, fn) {
   const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
-  for (const poly of polys) for (const ring of poly) fn(ring);
+  for (const poly of polys)
+    for (const ring of poly) fn(ring);
 }
 
 test('SF neighborhoods file parses with the expected DataSF shape', () => {
@@ -33,8 +45,8 @@ test('SF neighborhoods file parses with the expected DataSF shape', () => {
       const [f0, l0] = [ring[0], ring[ring.length - 1]];
       assert.ok(f0[0] === l0[0] && f0[1] === l0[1], `${name}: ring is closed`);
       for (const [lon, lat] of ring) {
-        assert.ok(lon >= SF_BOUNDS.west && lon <= SF_BOUNDS.east
-          && lat >= SF_BOUNDS.south && lat <= SF_BOUNDS.north,
+        assert.ok(lon >= SF_BOUNDS.west && lon <= SF_BOUNDS.east &&
+          lat >= SF_BOUNDS.south && lat <= SF_BOUNDS.north,
           `${name}: coordinate [${lon}, ${lat}] inside SF bounds`);
       }
     });
@@ -57,8 +69,8 @@ test('the five demo neighborhoods resolve to real polygons through the loader', 
     assert.ok(Array.isArray(hit.ring) && hit.ring.length >= 4,
       `${query}: real ring, not a synthesized disc (got ${hit.ring && hit.ring.length} pts)`);
     for (const [rlon, rlat] of hit.ring) {
-      assert.ok(rlon >= SF_BOUNDS.west && rlon <= SF_BOUNDS.east
-        && rlat >= SF_BOUNDS.south && rlat <= SF_BOUNDS.north,
+      assert.ok(rlon >= SF_BOUNDS.west && rlon <= SF_BOUNDS.east &&
+        rlat >= SF_BOUNDS.south && rlat <= SF_BOUNDS.north,
         `${query}: ring stays inside SF bounds`);
     }
   }
