@@ -48,7 +48,9 @@ export function update() {
     !this.viewer.entities.contains(this.trackedEntity)
   ) {
     if (nowMs < this.contextNavigationDeadlineMs) return;
-    this.exit({ restoreTracking: false });
+    this.exit({
+      restoreTracking: false
+    });
     return;
   }
   if (
@@ -90,9 +92,9 @@ export function update() {
   // sample-boundary corrections to the camera.
   const headingRad = Cesium.Math.toRadians(this.heading ?? 0);
   const pitchRad = Cesium.Math.toRadians(COCKPIT_VIEW_PITCH_DEG);
-  const speedMps = Number.isFinite(info.velocityMps)
-    ? Math.max(0, info.velocityMps)
-    : 0;
+  const speedMps = Number.isFinite(info.velocityMps) ?
+    Math.max(0, info.velocityMps) :
+    0;
 
   if (info.stale) {
     // A feed backoff has no authoritative velocity epoch to advance from.
@@ -171,7 +173,10 @@ export function update() {
     info.longitude,
   );
   if (info.onGround === true) {
-    const groundPoint = [{ lat: info.latitude, lon: info.longitude }];
+    const groundPoint = [{
+      lat: info.latitude,
+      lon: info.longitude
+    }];
     this.services.warmGroundFloor(groundPoint);
     const meshFloorM = this.services.cachedMeshFloor(
       info.latitude,
@@ -351,7 +356,10 @@ export function update() {
 
   this.viewer.camera.setView({
     destination: this.scratchCamera,
-    orientation: { direction: this.scratchForward, up: this.scratchUp },
+    orientation: {
+      direction: this.scratchForward,
+      up: this.scratchUp
+    },
   });
   if (cockpitUiUpdateDue(nowMs, this.lastHudUpdateMs, COCKPIT_HUD_UPDATE_MS)) {
     this.lastHudUpdateMs = nowMs;
