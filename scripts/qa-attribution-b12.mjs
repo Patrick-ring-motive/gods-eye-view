@@ -17,12 +17,21 @@
  * Run:  node scripts/qa-attribution-b12.mjs --url http://localhost:4300
  */
 import puppeteer from 'puppeteer';
-import { existsSync, mkdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import {
+  existsSync,
+  mkdirSync
+} from 'node:fs';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  dirname,
+  resolve
+} from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
+
 function getOpt(flag, def) {
   const i = argv.indexOf(flag);
   return i >= 0 && argv[i + 1] ? argv[i + 1] : def;
@@ -30,7 +39,9 @@ function getOpt(flag, def) {
 const APP_URL = getOpt('--url', 'http://localhost:4300');
 const APP_ORIGIN = new URL(APP_URL).origin;
 const SHOT_DIR = resolve(__dirname, '..', 'qa-shots', 'b12');
-mkdirSync(SHOT_DIR, { recursive: true });
+mkdirSync(SHOT_DIR, {
+  recursive: true
+});
 
 const CHROME_EXECUTABLE_CANDIDATES = [
   process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -42,12 +53,17 @@ const CHROME_EXECUTABLE_CANDIDATES = [
 
 function findChromeExecutable() {
   return CHROME_EXECUTABLE_CANDIDATES.find((candidate) => {
-    try { return existsSync(candidate); } catch { return false; }
+    try {
+      return existsSync(candidate);
+    } catch {
+      return false;
+    }
   }) || null;
 }
 
 let passed = 0;
 let failed = 0;
+
 function check(name, ok, detail) {
   const tag = ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  [${tag}] ${name}${detail ? `  — ${detail}` : ''}`);
@@ -58,26 +74,32 @@ function check(name, ok, detail) {
 // Substrings that MUST be present across the registered per-layer credits.
 const REQUIRED_CREDIT_SUBSTRINGS = [
   'OpenStreetMap contributors', // ODbL — datacenters/dams/roads
-  'adsb.lol',                    // ODbL — military traces
-  'TeleGeography',               // CC BY-NC-SA — cables
-  'NASA FIRMS',                  // fires
-  'CelesTrak',                   // satellites
-  'U.S. Geological Survey',      // earthquakes
-  'OpenSky Network',             // flights
-  'AISStream',                   // vessels
-  'City of Austin',              // CCTV
-  'Radio Browser',               // internet-radio directory
+  'adsb.lol', // ODbL — military traces
+  'TeleGeography', // CC BY-NC-SA — cables
+  'NASA FIRMS', // fires
+  'CelesTrak', // satellites
+  'U.S. Geological Survey', // earthquakes
+  'OpenSky Network', // flights
+  'AISStream', // vessels
+  'City of Austin', // CCTV
+  'Radio Browser', // internet-radio directory
 ];
 
 async function main() {
   const chromeExecutable = findChromeExecutable();
   const browser = await puppeteer.launch({
     headless: 'new',
-    ...(chromeExecutable ? { executablePath: chromeExecutable } : {}),
+    ...(chromeExecutable ? {
+      executablePath: chromeExecutable
+    } : {}),
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1
+  });
   await page.setRequestInterception(true);
   page.on('request', (request) => {
     const url = new URL(request.url());
@@ -85,7 +107,9 @@ async function main() {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ summary: 'QA globe ready' }),
+        body: JSON.stringify({
+          summary: 'QA globe ready'
+        }),
       });
       return;
     }
@@ -93,7 +117,9 @@ async function main() {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ places: [] }),
+        body: JSON.stringify({
+          places: []
+        }),
       });
       return;
     }
@@ -115,12 +141,16 @@ async function main() {
   });
 
   console.log(`\n  qa-attribution-b12 → ${APP_URL}\n`);
-  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(APP_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000
+  });
 
   // Wait for the app + viewer.creditDisplay to be live.
   await page.waitForFunction(
-    () => window.__godsEyeView && window.__godsEyeView.viewer && window.__godsEyeView.viewer.creditDisplay,
-    { timeout: 60000 },
+    () => window.__godsEyeView && window.__godsEyeView.viewer && window.__godsEyeView.viewer.creditDisplay, {
+      timeout: 60000
+    },
   );
   // Give Cesium a few frames to render the on-screen credit line (logo + link).
   await new Promise((r) => setTimeout(r, 2500));
@@ -200,15 +230,15 @@ async function main() {
       closeVisible: Boolean(close?.getBoundingClientRect().height),
       overlayZIndex: Number(getComputedStyle(overlay).zIndex),
       worldOverlayZIndex: Number(getComputedStyle(worldOverlay).zIndex),
-      stackProbeIntersectsModal: Boolean(boxRect
-        && stackProbeRect.left < boxRect.left
-        && stackProbeRect.right > boxRect.left
-        && stackProbeRect.top < boxRect.bottom
-        && stackProbeRect.bottom > boxRect.top),
+      stackProbeIntersectsModal: Boolean(boxRect &&
+        stackProbeRect.left < boxRect.left &&
+        stackProbeRect.right > boxRect.left &&
+        stackProbeRect.top < boxRect.bottom &&
+        stackProbeRect.bottom > boxRect.top),
       stackProbeExtendsOutsideModal: Boolean(boxRect && stackProbeRect.left < boxRect.left),
-      lastItemReachable: Boolean(lastRect && listRect
-        && lastRect.bottom <= listRect.bottom + 1
-        && lastRect.top >= listRect.top - 1),
+      lastItemReachable: Boolean(lastRect && listRect &&
+        lastRect.bottom <= listRect.bottom + 1 &&
+        lastRect.top >= listRect.top - 1),
     };
   });
   const lightboxHtml = lightboxState.html;
@@ -220,46 +250,54 @@ async function main() {
   );
   check(
     'desktop lightbox stays compact with a fixed title and close control',
-    lightboxState.boxHeight > 0
-      && lightboxState.boxHeight <= lightboxState.viewportHeight * 0.71
-      && lightboxState.titleVisible
-      && lightboxState.closeVisible,
+    lightboxState.boxHeight > 0 &&
+    lightboxState.boxHeight <= lightboxState.viewportHeight * 0.71 &&
+    lightboxState.titleVisible &&
+    lightboxState.closeVisible,
     `box=${Math.round(lightboxState.boxHeight)}px viewport=${lightboxState.viewportHeight}px`,
   );
   check(
     'complete credit list scrolls vertically without horizontal overflow',
-    lightboxState.itemCount >= registeredHtml.length
-      && lightboxState.linkCount > 0
-      && lightboxState.everyLinkHasDestination
-      && lightboxState.listScrollHeight > lightboxState.listClientHeight
-      && /auto|scroll/.test(lightboxState.listOverflowY)
-      && lightboxState.listScrollWidth <= lightboxState.listClientWidth + 1
-      && lightboxState.lastItemReachable,
+    lightboxState.itemCount >= registeredHtml.length &&
+    lightboxState.linkCount > 0 &&
+    lightboxState.everyLinkHasDestination &&
+    lightboxState.listScrollHeight > lightboxState.listClientHeight &&
+    /auto|scroll/.test(lightboxState.listOverflowY) &&
+    lightboxState.listScrollWidth <= lightboxState.listClientWidth + 1 &&
+    lightboxState.lastItemReachable,
     `${lightboxState.itemCount} items, ${lightboxState.linkCount} links, list=${lightboxState.listClientHeight}/${lightboxState.listScrollHeight}px`,
   );
   check(
     'attribution modal stacks above shared world labels',
-    Number.isFinite(lightboxState.overlayZIndex)
-      && Number.isFinite(lightboxState.worldOverlayZIndex)
-      && lightboxState.overlayZIndex > lightboxState.worldOverlayZIndex
-      && lightboxState.stackProbeIntersectsModal
-      && lightboxState.stackProbeExtendsOutsideModal,
+    Number.isFinite(lightboxState.overlayZIndex) &&
+    Number.isFinite(lightboxState.worldOverlayZIndex) &&
+    lightboxState.overlayZIndex > lightboxState.worldOverlayZIndex &&
+    lightboxState.stackProbeIntersectsModal &&
+    lightboxState.stackProbeExtendsOutsideModal,
     `modal z=${lightboxState.overlayZIndex}, world labels z=${lightboxState.worldOverlayZIndex}, overlap=${lightboxState.stackProbeIntersectsModal}`,
   );
   await page.evaluate(() => window.__godsEyeView.viewer.creditDisplay.hideLightbox());
-  await page.screenshot({ path: resolve(SHOT_DIR, 'attribution-stacking-before-desktop.png') });
+  await page.screenshot({
+    path: resolve(SHOT_DIR, 'attribution-stacking-before-desktop.png')
+  });
   await page.evaluate(() => {
     window.__godsEyeView.viewer.creditDisplay.showLightbox();
     const list = document.querySelector('.cesium-credit-lightbox > ul');
     if (list) list.scrollTop = 0;
   });
-  await page.screenshot({ path: resolve(SHOT_DIR, 'attribution-lightbox-desktop.png') });
+  await page.screenshot({
+    path: resolve(SHOT_DIR, 'attribution-lightbox-desktop.png')
+  });
   await page.evaluate(() => {
     window.__godsEyeView.viewer.creditDisplay.hideLightbox();
     document.querySelector('[data-qa-attribution-stack-probe]')?.remove();
   });
 
-  await page.setViewport({ width: 560, height: 760, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 560,
+    height: 760,
+    deviceScaleFactor: 1
+  });
   await page.evaluate(async () => {
     const viewer = window.__godsEyeView.viewer;
     viewer.resize();
@@ -282,22 +320,28 @@ async function main() {
       bottom: rect?.bottom || 0,
       viewportWidth: innerWidth,
       viewportHeight: innerHeight,
-      lastItemReachable: Boolean(lastRect && listRect
-        && lastRect.bottom <= listRect.bottom + 1),
+      lastItemReachable: Boolean(lastRect && listRect &&
+        lastRect.bottom <= listRect.bottom + 1),
     };
   });
   check(
     'mobile lightbox remains full-screen edge-to-edge and reaches the final credit',
-    Math.abs(mobileLightbox.left) <= 1
-      && Math.abs(mobileLightbox.right - mobileLightbox.viewportWidth) <= 1
-      && Math.abs(mobileLightbox.top) <= 1
-      && Math.abs(mobileLightbox.bottom - mobileLightbox.viewportHeight) <= 1
-      && mobileLightbox.lastItemReachable,
+    Math.abs(mobileLightbox.left) <= 1 &&
+    Math.abs(mobileLightbox.right - mobileLightbox.viewportWidth) <= 1 &&
+    Math.abs(mobileLightbox.top) <= 1 &&
+    Math.abs(mobileLightbox.bottom - mobileLightbox.viewportHeight) <= 1 &&
+    mobileLightbox.lastItemReachable,
     `box=${Math.round(mobileLightbox.left)},${Math.round(mobileLightbox.top)}–${Math.round(mobileLightbox.right)},${Math.round(mobileLightbox.bottom)}`,
   );
-  await page.screenshot({ path: resolve(SHOT_DIR, 'attribution-lightbox-mobile.png') });
+  await page.screenshot({
+    path: resolve(SHOT_DIR, 'attribution-lightbox-mobile.png')
+  });
   await page.evaluate(() => window.__godsEyeView.viewer.creditDisplay.hideLightbox());
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1
+  });
 
   // ── (ii) enable datacenters + cables; credits still present ────────
   console.log('\nH11 — enabling datacenters + submarine cables');
@@ -330,7 +374,9 @@ async function main() {
   const creditVisibility = async () =>
     page.evaluate(() => {
       const el = document.getElementById('cesium-credits');
-      if (!el) return { present: false };
+      if (!el) return {
+        present: false
+      };
       const cs = getComputedStyle(el);
       const rect = el.getBoundingClientRect();
       return {
@@ -350,7 +396,9 @@ async function main() {
   await page.evaluate(() => document.body.classList.add('ui-clean-view'));
   await new Promise((r) => setTimeout(r, 400));
   const cleanVis = await creditVisibility();
-  await page.screenshot({ path: resolve(SHOT_DIR, 'clean-view.png') });
+  await page.screenshot({
+    path: resolve(SHOT_DIR, 'clean-view.png')
+  });
   check(
     'clean-view: #cesium-credits not display:none',
     cleanVis.present && cleanVis.display !== 'none' && cleanVis.visibility !== 'hidden',
@@ -368,7 +416,9 @@ async function main() {
   await page.evaluate(() => document.body.classList.add('recording-mode'));
   await new Promise((r) => setTimeout(r, 400));
   const recVis = await creditVisibility();
-  await page.screenshot({ path: resolve(SHOT_DIR, 'recording-mode.png') });
+  await page.screenshot({
+    path: resolve(SHOT_DIR, 'recording-mode.png')
+  });
   check(
     'recording-mode: #cesium-credits not display:none',
     recVis.present && recVis.display !== 'none' && recVis.visibility !== 'hidden',
@@ -378,7 +428,9 @@ async function main() {
 
   // baseline (normal) screenshot for comparison
   await new Promise((r) => setTimeout(r, 300));
-  await page.screenshot({ path: resolve(SHOT_DIR, 'normal.png') });
+  await page.screenshot({
+    path: resolve(SHOT_DIR, 'normal.png')
+  });
 
   check(
     'no console errors during QA',
