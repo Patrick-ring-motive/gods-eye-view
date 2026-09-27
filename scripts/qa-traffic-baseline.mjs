@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-traffic-baseline.mjs — Traffic Phase 0 causal-chain capture.
  *
@@ -63,7 +64,10 @@ const CHROME_EXECUTABLE_CANDIDATES = [
 
 function findChromeExecutable() {
   for (const candidate of CHROME_EXECUTABLE_CANDIDATES) {
-    try { if (fs.existsSync(candidate)) return candidate; } catch { /* ignore */ }
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      /* ignore */ }
   }
   return null;
 }
@@ -72,17 +76,33 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const VIEWS = {
   austin: {
-    lon: -97.7431, lat: 30.2672, height: 1500, heading: 8, pitch: -78,
+    lon: -97.7431,
+    lat: 30.2672,
+    height: 1500,
+    heading: 8,
+    pitch: -78,
   },
   adjacent: {
     // 0.0105° longitude at Austin's latitude is ~1.0 km.
-    lon: -97.7326, lat: 30.2672, height: 1500, heading: 8, pitch: -78,
+    lon: -97.7326,
+    lat: 30.2672,
+    height: 1500,
+    heading: 8,
+    pitch: -78,
   },
   coldCity: {
-    lon: -122.4194, lat: 37.7749, height: 1500, heading: 18, pitch: -78,
+    lon: -122.4194,
+    lat: 37.7749,
+    height: 1500,
+    heading: 18,
+    pitch: -78,
   },
   degraded: {
-    lon: -98.4936, lat: 29.4241, height: 1500, heading: 12, pitch: -78,
+    lon: -98.4936,
+    lat: 29.4241,
+    height: 1500,
+    heading: 12,
+    pitch: -78,
   },
 };
 
@@ -102,7 +122,10 @@ async function moveCamera(page, view) {
     const boundaryTime = performance.now();
     const ellipsoid = gev.viewer.scene.globe.ellipsoid;
     const radians = Math.PI / 180;
-    try { gev.viewer.camera.cancelFlight(); } catch { /* no active flight */ }
+    try {
+      gev.viewer.camera.cancelFlight();
+    } catch {
+      /* no active flight */ }
     gev.viewer.camera.setView({
       destination: ellipsoid.cartographicToCartesian({
         longitude: v.lon * radians,
@@ -121,7 +144,10 @@ async function moveCamera(page, view) {
     // synthetic moveEnd is emitted only as the same diagnostic used naturally.
     gev.viewer.camera.changed.raiseEvent();
     gev.viewer.camera.moveEnd.raiseEvent();
-    return { beforeLastUpdate, boundaryTime };
+    return {
+      beforeLastUpdate,
+      boundaryTime
+    };
   }, view);
 }
 
@@ -138,8 +164,10 @@ async function waitForTrafficCapture(page, beforeLastUpdate, boundaryTime) {
       const renderCount = entries.filter((entry) => entry.name.startsWith('traffic:dot-construction:')).length;
       const postRenderCount = entries.filter((entry) => entry.name.startsWith('traffic:render-to-post-render:')).length;
       return renderCount > 0 && postRenderCount >= renderCount;
+    }, {
+      timeout: TIMEOUT_MS,
+      polling: 100
     },
-    { timeout: TIMEOUT_MS, polling: 100 },
     beforeLastUpdate,
     boundaryTime,
   );
@@ -162,11 +190,17 @@ function readTrafficMeasures(page, boundaryTime) {
 /** Drive one measured state and return its raw User Timing measures. */
 async function captureState(page, name, view, setDelay) {
   setDelay(name === 'degraded-upstream' ? DEGRADED_DELAY_MS : 0);
-  const { beforeLastUpdate, boundaryTime } = await moveCamera(page, view);
+  const {
+    beforeLastUpdate,
+    boundaryTime
+  } = await moveCamera(page, view);
   await waitForTrafficCapture(page, beforeLastUpdate, boundaryTime);
   const measures = await readTrafficMeasures(page, boundaryTime);
   setDelay(0);
-  return { name, measures };
+  return {
+    name,
+    measures
+  };
 }
 
 /** Format a duration without hiding zero-duration measurements. */
@@ -177,11 +211,11 @@ function ms(value) {
 /** Find one segment for the same trace/pass as a render measure. */
 function matchingMeasure(measures, render, segment) {
   return measures.find((entry) => (
-    entry.detail?.segment === segment
-    && entry.detail?.traceId === render.detail?.traceId
-    && entry.detail?.interactionId === render.detail?.interactionId
-    && entry.detail?.generation === render.detail?.generation
-    && entry.detail?.pass === render.detail?.pass
+    entry.detail?.segment === segment &&
+    entry.detail?.traceId === render.detail?.traceId &&
+    entry.detail?.interactionId === render.detail?.interactionId &&
+    entry.detail?.generation === render.detail?.generation &&
+    entry.detail?.pass === render.detail?.pass
   ));
 }
 
@@ -211,8 +245,8 @@ function rowsForCapture(capture) {
   // by generation/settle predicates that are tautological after the guard.
   assertInteractionIntegrity(capture);
   const renders = capture.measures.filter((entry) => (
-    entry.detail?.segment === 'dot-construction'
-    && entry.detail?.interactionId != null
+    entry.detail?.segment === 'dot-construction' &&
+    entry.detail?.interactionId != null
   ));
   return renders.map((render) => {
     const get = (segment) => matchingMeasure(capture.measures, render, segment);
@@ -223,25 +257,25 @@ function rowsForCapture(capture) {
     const materialize = get('waypoint-materialization');
     const flowRace = get('flow-render-race');
     const postRender = capture.measures.find((entry) => (
-      entry.detail?.segment === 'render-to-post-render'
-      && entry.detail?.traceId === render.detail?.traceId
-      && entry.detail?.interactionId === render.detail?.interactionId
-      && entry.detail?.generation === render.detail?.generation
-      && entry.detail?.renderId === render.detail?.renderId
+      entry.detail?.segment === 'render-to-post-render' &&
+      entry.detail?.traceId === render.detail?.traceId &&
+      entry.detail?.interactionId === render.detail?.interactionId &&
+      entry.detail?.generation === render.detail?.generation &&
+      entry.detail?.renderId === render.detail?.renderId
     ));
     const visible = capture.measures.find((entry) => (
-      entry.detail?.segment === 'last-camera-change-to-first-visible'
-      && entry.detail?.traceId === render.detail?.traceId
-      && entry.detail?.interactionId === render.detail?.interactionId
-      && entry.detail?.generation === render.detail?.generation
-      && entry.detail?.renderId === render.detail?.renderId
+      entry.detail?.segment === 'last-camera-change-to-first-visible' &&
+      entry.detail?.traceId === render.detail?.traceId &&
+      entry.detail?.interactionId === render.detail?.interactionId &&
+      entry.detail?.generation === render.detail?.generation &&
+      entry.detail?.renderId === render.detail?.renderId
     ));
     const heatLines = capture.measures.find((entry) => (
-      entry.detail?.segment === 'rebuild-heat-lines'
-      && entry.detail?.traceId === render.detail?.traceId
-      && entry.detail?.interactionId === render.detail?.interactionId
-      && entry.detail?.generation === render.detail?.generation
-      && entry.detail?.renderId === render.detail?.renderId
+      entry.detail?.segment === 'rebuild-heat-lines' &&
+      entry.detail?.traceId === render.detail?.traceId &&
+      entry.detail?.interactionId === render.detail?.interactionId &&
+      entry.detail?.generation === render.detail?.generation &&
+      entry.detail?.renderId === render.detail?.renderId
     ));
     const metadata = response?.detail || sample?.detail || render.detail || {};
     return {
@@ -275,9 +309,9 @@ function readRenderer(page) {
     const gl = window.__godsEyeView?.viewer?.scene?.context?._gl;
     if (!gl) return 'unknown';
     const extension = gl.getExtension('WEBGL_debug_renderer_info');
-    return extension
-      ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL)
-      : gl.getParameter(gl.RENDERER);
+    return extension ?
+      gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) :
+      gl.getParameter(gl.RENDERER);
   });
 }
 
@@ -299,7 +333,9 @@ async function main() {
   const executablePath = findChromeExecutable();
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(executablePath ? { executablePath } : {}),
+    ...(executablePath ? {
+      executablePath
+    } : {}),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -316,7 +352,10 @@ async function main() {
   const consoleErrors = [];
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1440, height: 900 });
+    await page.setViewport({
+      width: 1440,
+      height: 900
+    });
     await page.evaluateOnNewDocument(() => localStorage.clear());
     page.on('console', (message) => {
       if (message.type() === 'error') consoleErrors.push(message.text());
@@ -331,20 +370,29 @@ async function main() {
         await request.respond({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ hasKey: false }),
+          body: JSON.stringify({
+            hasKey: false
+          }),
         });
         return;
       }
       if (activeProxyDelayMs > 0 && request.url().includes('/api/overpass')) {
         await sleep(activeProxyDelayMs);
       }
-      try { await request.continue(); } catch { /* page closed or already handled */ }
+      try {
+        await request.continue();
+      } catch {
+        /* page closed or already handled */ }
     });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60_000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-      { timeout: 60_000 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+        timeout: 60_000
+      },
     );
 
     // Disable all persisted overlays, park above traffic's activation ceiling,
@@ -360,7 +408,11 @@ async function main() {
           latitude: highView.lat * radians,
           height: 9000,
         }),
-        orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+        orientation: {
+          heading: 0,
+          pitch: -Math.PI / 2,
+          roll: 0
+        },
       });
       await gev.dataManager.setEnabled('traffic', true);
       gev.viewer.camera.changed.raiseEvent();
@@ -396,7 +448,11 @@ async function main() {
           latitude: view.lat * radians,
           height: 9000,
         }),
-        orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+        orientation: {
+          heading: 0,
+          pitch: -Math.PI / 2,
+          roll: 0
+        },
       });
       gev.viewer.camera.changed.raiseEvent();
       gev.viewer.camera.moveEnd.raiseEvent();
@@ -434,8 +490,8 @@ async function main() {
     if (DEGRADED_DELAY_MS > 0) {
       const degraded = captures.find((capture) => capture.name === 'degraded-upstream');
       const delayed = degraded?.measures.some((entry) => (
-        entry.detail?.segment === 'fetch-to-response'
-        && entry.duration >= DEGRADED_DELAY_MS * 0.9
+        entry.detail?.segment === 'fetch-to-response' &&
+        entry.duration >= DEGRADED_DELAY_MS * 0.9
       ));
       if (!delayed) throw new Error('degraded-upstream leg did not observe the synthetic delay');
     }
