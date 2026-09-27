@@ -1,7 +1,9 @@
 // src/data/militaryFlights.test.mjs
 // Focused tests for the pure analyst-record mapper (analyst query engine seam).
 // Pure function — no viewer/DOM needed; imported directly.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
 import militaryFlightsLayer, {
@@ -19,12 +21,17 @@ import {
 } from './trackedReadout.js';
 
 test('share-Follow absence requires an accepted adsb.lol snapshot', async () => {
-  _setMilitaryTrackingRefreshOutcomeForTest({ status: 'source-unavailable' });
+  _setMilitaryTrackingRefreshOutcomeForTest({
+    status: 'source-unavailable'
+  });
   assert.equal(
     (await militaryFlightsLayer.resolveTrackingRestoreTarget('ae1234')).status,
     'source-unavailable',
   );
-  _setMilitaryTrackingRefreshOutcomeForTest({ status: 'accepted', ids: ['different'] });
+  _setMilitaryTrackingRefreshOutcomeForTest({
+    status: 'accepted',
+    ids: ['different']
+  });
   const missing = await militaryFlightsLayer.resolveTrackingRestoreTarget('ae1234');
   assert.equal(missing.status, 'missing');
   assert.equal(missing.reason, 'target-absent-from-snapshot');
@@ -81,8 +88,14 @@ test('military analyst record: military is ALWAYS true, routes/country always nu
 });
 
 test('military analyst record: no callsign falls back to registration, then icao24', () => {
-  assert.equal(mapAnalystRecord('ae01ce', { ...FULL_INFO, callsign: '' }).id, '05-8152');
-  assert.equal(mapAnalystRecord('ae01ce', { callsign: '', registration: ' ' }).id, 'ae01ce');
+  assert.equal(mapAnalystRecord('ae01ce', {
+    ...FULL_INFO,
+    callsign: ''
+  }).id, '05-8152');
+  assert.equal(mapAnalystRecord('ae01ce', {
+    callsign: '',
+    registration: ' '
+  }).id, 'ae01ce');
 });
 
 test('military analyst record: empty info yields nulls, never NaN/undefined', () => {
@@ -107,15 +120,21 @@ test('military first update forwards caller cancellation into the feed request',
     observedSignal = options.signal;
     options.signal?.addEventListener('abort', () => {
       reject(new DOMException('aborted', 'AbortError'));
-    }, { once: true });
+    }, {
+      once: true
+    });
   });
   try {
     const controller = new AbortController();
-    const work = militaryFlightsLayer.update({}, { signal: controller.signal });
+    const work = militaryFlightsLayer.update({}, {
+      signal: controller.signal
+    });
     await Promise.resolve();
     assert.ok(observedSignal);
     controller.abort();
-    await assert.rejects(work, { name: 'AbortError' });
+    await assert.rejects(work, {
+      name: 'AbortError'
+    });
     assert.equal(observedSignal.aborted, true);
   } finally {
     globalThis.fetch = realFetch;
@@ -125,20 +144,48 @@ test('military first update forwards caller cancellation into the feed request',
 test('nonempty adsb.lol payload with zero usable rows cannot prove share target absence', async () => {
   _setTrackedMilitaryRefreshStateForTest({
     icao24: 'ae1234',
-    entity: { gevLabelModel: { title: 'WARM', details: [] } },
-    billboard: { show: false },
-    billboardCollection: { show: true, remove() {} },
-    viewer: { camera: { positionCartographic: null }, scene: {} },
-    meta: { rawLat: 31, rawLon: -97, onGround: false },
+    entity: {
+      gevLabelModel: {
+        title: 'WARM',
+        details: []
+      }
+    },
+    billboard: {
+      show: false
+    },
+    billboardCollection: {
+      show: true,
+      remove() {}
+    },
+    viewer: {
+      camera: {
+        positionCartographic: null
+      },
+      scene: {}
+    },
+    meta: {
+      rawLat: 31,
+      rawLon: -97,
+      onGround: false
+    },
   });
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ ac: [null, {}, { hex: 'ae1234' }] }),
+    json: async () => ({
+      ac: [null, {}, {
+        hex: 'ae1234'
+      }]
+    }),
   });
   try {
-    await militaryFlightsLayer.update({ camera: { positionCartographic: null }, scene: {} });
+    await militaryFlightsLayer.update({
+      camera: {
+        positionCartographic: null
+      },
+      scene: {}
+    });
     const resolution = await militaryFlightsLayer.resolveTrackingRestoreTarget('ae1234');
     assert.equal(resolution.status, 'source-unavailable');
     assert.match(militaryFlightsLayer.getStats().error, /Malformed adsb\.lol aircraft rows/);
@@ -150,14 +197,27 @@ test('nonempty adsb.lol payload with zero usable rows cannot prove share target 
 
 test('military poll refreshes tracked callsign/altitude/kts and marks a missed poll STALE', async () => {
   const icao24 = 'ae01ce';
-  const entity = { gevLabelModel: { title: 'OLD', details: [] } };
+  const entity = {
+    gevLabelModel: {
+      title: 'OLD',
+      details: []
+    }
+  };
   const billboard = {
     position: Cesium.Cartesian3.fromDegrees(-97.0, 31.0, 8_000),
     color: Cesium.Color.WHITE,
     show: false,
   };
-  const billboardCollection = { show: false, remove() {} };
-  const viewer = { camera: { positionCartographic: null }, scene: {} };
+  const billboardCollection = {
+    show: false,
+    remove() {}
+  };
+  const viewer = {
+    camera: {
+      positionCartographic: null
+    },
+    scene: {}
+  };
   _setTrackedMilitaryRefreshStateForTest({
     icao24,
     entity,
@@ -223,29 +283,65 @@ test('cached military snapshots retain their observation time and expose stale f
   let now = 1_800_000_000_000;
   const receivedAt = now;
   const history = [];
-  const viewer = { camera: { positionCartographic: null }, scene: {} };
+  const viewer = {
+    camera: {
+      positionCartographic: null
+    },
+    scene: {}
+  };
   _setTrackedMilitaryRefreshStateForTest({
     icao24: 'ae01ce',
-    entity: { gevLabelModel: { title: 'RCH451', details: [] } },
-    billboard: { position: Cesium.Cartesian3.fromDegrees(-97, 31, 8000), show: false },
-    billboardCollection: { show: false, remove() {} },
+    entity: {
+      gevLabelModel: {
+        title: 'RCH451',
+        details: []
+      }
+    },
+    billboard: {
+      position: Cesium.Cartesian3.fromDegrees(-97, 31, 8000),
+      show: false
+    },
+    billboardCollection: {
+      show: false,
+      remove() {}
+    },
     viewer,
     history,
-    meta: { rawLat: 31, rawLon: -97, onGround: false },
+    meta: {
+      rawLat: 31,
+      rawLon: -97,
+      onGround: false
+    },
   });
   let cache = 'MISS';
   t.mock.method(Date, 'now', () => now);
   t.mock.method(globalThis, 'fetch', async () => Response.json({
-    ac: [{ hex: 'ae01ce', lon: -97, lat: 31, alt_baro: 28000,
-      track: 95, gs: 400, seen: 1, seen_pos: 2, flight: 'RCH451' }],
-  }, { headers: {
-    'X-ADS-B-Cache': cache,
-    ...(cache === 'MISS' ? {} : { 'X-ADS-B-Cache-Age-Ms': String(now - receivedAt) }),
-  } }));
+    ac: [{
+      hex: 'ae01ce',
+      lon: -97,
+      lat: 31,
+      alt_baro: 28000,
+      track: 95,
+      gs: 400,
+      seen: 1,
+      seen_pos: 2,
+      flight: 'RCH451'
+    }],
+  }, {
+    headers: {
+      'X-ADS-B-Cache': cache,
+      ...(cache === 'MISS' ? {} : {
+        'X-ADS-B-Cache-Age-Ms': String(now - receivedAt)
+      }),
+    }
+  }));
   await militaryFlightsLayer.update(viewer);
   assert.equal(history.length, 1);
   assert.equal(history[0].epochMs, receivedAt - 2000);
-  for (const [status, age] of [['HIT', 5000], ['STALE', 45000]]) {
+  for (const [status, age] of [
+      ['HIT', 5000],
+      ['STALE', 45000]
+    ]) {
     cache = status;
     now = receivedAt + age;
     await militaryFlightsLayer.update(viewer);
@@ -274,20 +370,34 @@ test('real military track path creates no native label and publishes every cache
   const viewer = {
     entities,
     trackedEntityChanged,
-    clock: { currentTime: now },
+    clock: {
+      currentTime: now
+    },
     camera: {
-      cancelFlight() { cancelledFlights += 1; },
+      cancelFlight() {
+        cancelledFlights += 1;
+      },
       position: new Cesium.Cartesian3(0, -10_000, 7_000),
       positionWC: new Cesium.Cartesian3(0, -10_000, 7_000),
       direction: Cesium.Cartesian3.UNIT_Y,
       transform: Cesium.Matrix4.IDENTITY,
       viewMatrix: Cesium.Matrix4.IDENTITY,
-      frustum: { projectionMatrix: Cesium.Matrix4.IDENTITY },
-      lookAtTransform() { appliedFrames += 1; },
+      frustum: {
+        projectionMatrix: Cesium.Matrix4.IDENTITY
+      },
+      lookAtTransform() {
+        appliedFrames += 1;
+      },
     },
     scene: {
-      canvas: { clientWidth: 1600, clientHeight: 900 },
-      frameState: { frameNumber: 61, mode: Cesium.SceneMode.SCENE3D },
+      canvas: {
+        clientWidth: 1600,
+        clientHeight: 900
+      },
+      frameState: {
+        frameNumber: 61,
+        mode: Cesium.SceneMode.SCENE3D
+      },
       preUpdate: new Cesium.Event(),
       screenSpaceCameraController: null,
     },
@@ -313,7 +423,11 @@ test('real military track path creates no native label and publishes every cache
   const publications = [];
   const host = {
     setEntries(sourceId, entries, options) {
-      publications.push({ sourceId, entries, options });
+      publications.push({
+        sourceId,
+        entries,
+        options
+      });
     },
     setVisible() {},
     clearSource() {},
@@ -325,7 +439,9 @@ test('real military track path creates no native label and publishes every cache
   globalThis.window.addEventListener('gev:awareness-subject-selected', (event) => {
     selectionEvents.push(event.detail);
   });
-  globalThis.fetch = async () => ({ ok: false });
+  globalThis.fetch = async () => ({
+    ok: false
+  });
   _setTrackedOverlayHostForTest(host);
   try {
     initTrackedReadout(viewer);
@@ -333,7 +449,10 @@ test('real military track path creates no native label and publishes every cache
       icao24,
       entity: null,
       billboard,
-      billboardCollection: { show: true, remove() {} },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer,
       tracked: false,
       history: [{
@@ -352,7 +471,9 @@ test('real military track path creates no native label and publishes every cache
       },
     });
 
-    assert.equal(militaryFlightsLayer.trackById(icao24, { origin: 'programmatic' }), true);
+    assert.equal(militaryFlightsLayer.trackById(icao24, {
+      origin: 'programmatic'
+    }), true);
     const entity = viewer.trackedEntity;
     assert.ok(entity instanceof Cesium.Entity, 'trackById must create the real Cesium entity');
     assert.equal(entity.label, undefined);
@@ -368,12 +489,16 @@ test('real military track path creates no native label and publishes every cache
     viewer.scene.preUpdate.raiseEvent();
     const initialAppliedFrames = appliedFrames;
     const initialCancelledFlights = cancelledFlights;
-    assert.equal(militaryFlightsLayer.trackById(icao24, { origin: 'user' }), true);
+    assert.equal(militaryFlightsLayer.trackById(icao24, {
+      origin: 'user'
+    }), true);
     assert.equal(cancelledFlights, initialCancelledFlights, 'ordinary repeated tracking stays camera-idempotent');
     assert.equal(selectionEvents.at(-1)?.origin, 'user', 'same-target selection upgrades durable authority');
     assert.equal(entity.gevSelectionOrigin, 'user');
     assert.equal(militaryFlightsLayer.refocusTrackedById('different-flight'), false);
-    assert.equal(militaryFlightsLayer.refocusTrackedById(icao24, { origin: 'voice' }), true);
+    assert.equal(militaryFlightsLayer.refocusTrackedById(icao24, {
+      origin: 'voice'
+    }), true);
     assert.equal(selectionEvents.at(-1)?.origin, 'voice', 'same-target refocus forwards explicit authority');
     assert.equal(militaryFlightsLayer.refocusTrackedById(icao24), true);
     viewer.scene.preUpdate.raiseEvent();
@@ -392,45 +517,72 @@ test('real military track path creates no native label and publishes every cache
     assert.ok(display, 'tracked position callback must seed its frame cache');
     assert.equal(entry.position(), display, 'host must reuse the exact cached display Cartesian');
 
-    militaryFlightsLayer.setParams(
-      { selectedMilitaryTrackingId: 'late001' },
-      { origin: 'share-restore' },
-    );
+    militaryFlightsLayer.setParams({
+      selectedMilitaryTrackingId: 'late001'
+    }, {
+      origin: 'share-restore'
+    }, );
     assert.equal(_pendingMilitaryTrackingRestoreForTest(), 'late001');
-    assert.equal(militaryFlightsLayer.trackById(icao24, { origin: 'user' }), true);
+    assert.equal(militaryFlightsLayer.trackById(icao24, {
+      origin: 'user'
+    }), true);
     assert.equal(_pendingMilitaryTrackingRestoreForTest(), null, 'new user selection cancels stale restore');
     _addMilitaryTrackingCandidateForTest({
       icao24: 'late001',
-      billboard: { ...billboard, position: Cesium.Cartesian3.fromDegrees(-96.9, 31.1, 8_000) },
-      meta: { ...FULL_INFO, callsign: 'LATE1', rawLat: 31.1, rawLon: -96.9 },
+      billboard: {
+        ...billboard,
+        position: Cesium.Cartesian3.fromDegrees(-96.9, 31.1, 8_000)
+      },
+      meta: {
+        ...FULL_INFO,
+        callsign: 'LATE1',
+        rawLat: 31.1,
+        rawLon: -96.9
+      },
       history: [],
     });
     _applyPendingMilitaryTrackingRestoreForTest();
     assert.equal(militaryFlightsLayer.getParams().selectedMilitaryTrackingId, icao24);
 
     militaryFlightsLayer.stopTracking();
-    militaryFlightsLayer.setParams(
-      { selectedMilitaryTrackingId: 'late002' },
-      { origin: 'local-restore' },
-    );
+    militaryFlightsLayer.setParams({
+      selectedMilitaryTrackingId: 'late002'
+    }, {
+      origin: 'local-restore'
+    }, );
     assert.equal(_pendingMilitaryTrackingRestoreForTest(), 'late002');
-    militaryFlightsLayer.stopTracking({ origin: 'user' });
+    militaryFlightsLayer.stopTracking({
+      origin: 'user'
+    });
     assert.equal(_pendingMilitaryTrackingRestoreForTest(), null, 'explicit clear cancels stale restore');
     _addMilitaryTrackingCandidateForTest({
       icao24: 'late002',
-      billboard: { ...billboard, position: Cesium.Cartesian3.fromDegrees(-96.8, 31.2, 7_000) },
-      meta: { ...FULL_INFO, callsign: 'LATE2', rawLat: 31.2, rawLon: -96.8 },
+      billboard: {
+        ...billboard,
+        position: Cesium.Cartesian3.fromDegrees(-96.8, 31.2, 7_000)
+      },
+      meta: {
+        ...FULL_INFO,
+        callsign: 'LATE2',
+        rawLat: 31.2,
+        rawLon: -96.8
+      },
       history: [],
     });
     _applyPendingMilitaryTrackingRestoreForTest();
     assert.equal(militaryFlightsLayer.getParams().selectedMilitaryTrackingId, null);
 
-    militaryFlightsLayer.setParams(
-      { selectedMilitaryTrackingId: 'late003' },
-      { origin: 'local-restore' },
-    );
+    militaryFlightsLayer.setParams({
+      selectedMilitaryTrackingId: 'late003'
+    }, {
+      origin: 'local-restore'
+    }, );
     assert.equal(_pendingMilitaryTrackingRestoreForTest(), 'late003');
-    militaryFlightsLayer.setParams({ models3d: false }, { origin: 'voice' });
+    militaryFlightsLayer.setParams({
+      models3d: false
+    }, {
+      origin: 'voice'
+    });
     assert.equal(
       _pendingMilitaryTrackingRestoreForTest(),
       null,
@@ -438,32 +590,52 @@ test('real military track path creates no native label and publishes every cache
     );
     _addMilitaryTrackingCandidateForTest({
       icao24: 'late003',
-      billboard: { ...billboard, position: Cesium.Cartesian3.fromDegrees(-97.3, 30.6, 7_000) },
-      meta: { ...FULL_INFO, callsign: 'LATE3', rawLat: 30.6, rawLon: -97.3 },
+      billboard: {
+        ...billboard,
+        position: Cesium.Cartesian3.fromDegrees(-97.3, 30.6, 7_000)
+      },
+      meta: {
+        ...FULL_INFO,
+        callsign: 'LATE3',
+        rawLat: 30.6,
+        rawLon: -97.3
+      },
       history: [],
     });
     _applyPendingMilitaryTrackingRestoreForTest();
     assert.equal(militaryFlightsLayer.getParams().selectedMilitaryTrackingId, null);
 
-    militaryFlightsLayer.setParams(
-      { selectedMilitaryTrackingId: 'late004' },
-      { origin: 'local-restore' },
-    );
+    militaryFlightsLayer.setParams({
+      selectedMilitaryTrackingId: 'late004'
+    }, {
+      origin: 'local-restore'
+    }, );
     assert.equal(_pendingMilitaryTrackingRestoreForTest(), 'late004');
     _addMilitaryTrackingCandidateForTest({
       icao24: 'late004',
-      billboard: { ...billboard, position: Cesium.Cartesian3.fromDegrees(-97.2, 30.7, 6_000) },
-      meta: { ...FULL_INFO, callsign: 'LATE4', rawLat: 30.7, rawLon: -97.2 },
+      billboard: {
+        ...billboard,
+        position: Cesium.Cartesian3.fromDegrees(-97.2, 30.7, 6_000)
+      },
+      meta: {
+        ...FULL_INFO,
+        callsign: 'LATE4',
+        rawLat: 30.7,
+        rawLon: -97.2
+      },
       history: [],
     });
     assert.equal(_applyPendingMilitaryTrackingRestoreForTest(), true);
     assert.equal(militaryFlightsLayer.getParams().selectedMilitaryTrackingId, 'late004');
 
-    militaryFlightsLayer.setParams(
-      { selectedMilitaryTrackingId: 'late005' },
-      { origin: 'local-restore' },
-    );
-    assert.equal(militaryFlightsLayer.trackById(icao24, { origin: 'programmatic' }), true);
+    militaryFlightsLayer.setParams({
+      selectedMilitaryTrackingId: 'late005'
+    }, {
+      origin: 'local-restore'
+    }, );
+    assert.equal(militaryFlightsLayer.trackById(icao24, {
+      origin: 'programmatic'
+    }), true);
     assert.equal(
       _pendingMilitaryTrackingRestoreForTest(),
       'late005',
@@ -471,8 +643,16 @@ test('real military track path creates no native label and publishes every cache
     );
     _addMilitaryTrackingCandidateForTest({
       icao24: 'late005',
-      billboard: { ...billboard, position: Cesium.Cartesian3.fromDegrees(-96.6, 31.4, 5_000) },
-      meta: { ...FULL_INFO, callsign: 'LATE5', rawLat: 31.4, rawLon: -96.6 },
+      billboard: {
+        ...billboard,
+        position: Cesium.Cartesian3.fromDegrees(-96.6, 31.4, 5_000)
+      },
+      meta: {
+        ...FULL_INFO,
+        callsign: 'LATE5',
+        rawLat: 31.4,
+        rawLon: -96.6
+      },
       history: [],
     });
     assert.equal(_applyPendingMilitaryTrackingRestoreForTest(), true);
@@ -521,7 +701,10 @@ test('a callsign-less contact is findable by the tail number the app displays', 
 
   // The identity analyst_query hands back for this contact.
   const analystId = mapAnalystRecord(icao24, {
-    callsign: null, registration: '6606', rawLat: 40.71, rawLon: -74.01,
+    callsign: null,
+    registration: '6606',
+    rawLat: 40.71,
+    rawLon: -74.01,
   }).id;
   assert.equal(analystId, '6606', 'the analyst names a callsign-less contact by its tail');
 
@@ -533,7 +716,10 @@ test('a callsign-less contact is findable by the tail number the app displays', 
 
 test('the analyst record carries the hex key the tracker keys on', () => {
   const record = mapAnalystRecord('ae7f01', {
-    callsign: null, registration: '6606', rawLat: 40.71, rawLon: -74.01,
+    callsign: null,
+    registration: '6606',
+    rawLat: 40.71,
+    rawLon: -74.01,
   });
   assert.equal(record.icao24, 'ae7f01', 'a resolvable key must ride along with the display label');
 });
@@ -548,18 +734,35 @@ test('a registration never outranks another contact’s exact callsign', () => {
     show: true,
   });
   const base = {
-    type: 'C17', operator: 'USAF', altitudeFt: 25000, speedMps: 180,
-    track: 90, klass: 'widebody', onGround: false,
+    type: 'C17',
+    operator: 'USAF',
+    altitudeFt: 25000,
+    speedMps: 180,
+    track: 90,
+    klass: 'widebody',
+    onGround: false,
   };
   // Registered FIRST, so insertion order favours it.
   _addMilitaryTrackingCandidateForTest({
     icao24: 'ae0aa1',
-    meta: { ...base, callsign: null, registration: 'ZULU777', rawLat: 31.0, rawLon: -97.0 },
+    meta: {
+      ...base,
+      callsign: null,
+      registration: 'ZULU777',
+      rawLat: 31.0,
+      rawLon: -97.0
+    },
     billboard: billboardAt(-97.0, 31.0),
   });
   _addMilitaryTrackingCandidateForTest({
     icao24: 'ae0bb2',
-    meta: { ...base, callsign: 'ZULU777', registration: '05-9999', rawLat: 31.2, rawLon: -97.2 },
+    meta: {
+      ...base,
+      callsign: 'ZULU777',
+      registration: '05-9999',
+      rawLat: 31.2,
+      rawLon: -97.2
+    },
     billboard: billboardAt(-97.2, 31.2),
   });
 
@@ -582,19 +785,36 @@ test('two contacts matching at the same strength resolve deterministically', () 
     show: true,
   });
   const base = {
-    type: 'C130', operator: 'USAF', altitudeFt: 21000, speedMps: 150,
-    track: 45, klass: 'turboprop', onGround: false,
+    type: 'C130',
+    operator: 'USAF',
+    altitudeFt: 21000,
+    speedMps: 150,
+    track: 45,
+    klass: 'turboprop',
+    onGround: false,
   };
   // Both registrations begin with QQ7 — a same-tier prefix tie. Registered
   // highest-hex first so insertion order would pick the wrong one.
   _addMilitaryTrackingCandidateForTest({
     icao24: 'aef002',
-    meta: { ...base, callsign: null, registration: 'QQ7-222', rawLat: 32.0, rawLon: -98.0 },
+    meta: {
+      ...base,
+      callsign: null,
+      registration: 'QQ7-222',
+      rawLat: 32.0,
+      rawLon: -98.0
+    },
     billboard: billboardAt(-98.0, 32.0),
   });
   _addMilitaryTrackingCandidateForTest({
     icao24: 'aef001',
-    meta: { ...base, callsign: null, registration: 'QQ7-111', rawLat: 32.1, rawLon: -98.1 },
+    meta: {
+      ...base,
+      callsign: null,
+      registration: 'QQ7-111',
+      rawLat: 32.1,
+      rawLon: -98.1
+    },
     billboard: billboardAt(-98.1, 32.1),
   });
 
