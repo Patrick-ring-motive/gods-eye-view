@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import {
+  spawnSync
+} from 'node:child_process';
 import {
   commandCompletedSuccessfully,
   parseWindowsUserSid,
@@ -80,8 +82,8 @@ function resolveWindowsNativeTools(environment, fileSystem, architecture) {
         canonicalCandidates.push(executable.replace('\\Sysnative\\', '\\System32\\'));
       }
       if (!canonicalCandidates.some(
-        (candidate) => candidate.toLowerCase() === canonicalExecutable.toLowerCase(),
-      )) return null;
+          (candidate) => candidate.toLowerCase() === canonicalExecutable.toLowerCase(),
+        )) return null;
     }
   } catch {
     return null;
@@ -103,7 +105,9 @@ export function hardenCredentialFile(filepath, {
   if (platform !== 'win32') {
     try {
       if (platform === 'darwin') {
-        const aclRemoval = spawn('chmod', ['-N', filepath], { stdio: 'ignore' });
+        const aclRemoval = spawn('chmod', ['-N', filepath], {
+          stdio: 'ignore'
+        });
         if (!commandCompletedSuccessfully(aclRemoval)) return false;
       }
       fileSystem.chmodSync(filepath, 0o600);
@@ -124,9 +128,9 @@ export function hardenCredentialFile(filepath, {
       encoding: 'utf8',
       windowsHide: true,
     });
-    const sid = commandCompletedSuccessfully(whoami)
-      ? parseWindowsUserSid(whoami.stdout)
-      : null;
+    const sid = commandCompletedSuccessfully(whoami) ?
+      parseWindowsUserSid(whoami.stdout) :
+      null;
     if (!sid) return false;
 
     const applied = spawn(tools.icacls, [
@@ -136,7 +140,10 @@ export function hardenCredentialFile(filepath, {
       `*${sid}:F`,
       '*S-1-5-18:F',
       '*S-1-5-32-544:F',
-    ], { stdio: 'ignore', windowsHide: true });
+    ], {
+      stdio: 'ignore',
+      windowsHide: true
+    });
     if (!commandCompletedSuccessfully(applied)) return false;
 
     // Command success is not proof of the resulting DACL. Query it back and
