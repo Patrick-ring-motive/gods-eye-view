@@ -1,4 +1,6 @@
-import { applicationServices } from './services/application.js';
+import {
+  applicationServices
+} from './services/application.js';
 /**
  * @module hud
  * @description Intelligence HUD Overlay — NRO/NGA Satellite Aesthetic.
@@ -15,19 +17,49 @@ import { applicationServices } from './services/application.js';
  */
 
 import * as Cesium from 'cesium';
-import { forward as toMGRS } from 'mgrs';
-import { CITY_POIS } from './locations.js';
-import { composeLocalityTag } from './hudLocality.js';
-import { ellipsoidalToMslDisplayM, ensureGeoidReady, geoidHeight } from './data/geoid.js';
-import { getBasemapLabelContext } from './voice/gevActions.js';
-import { isHudSummaryUnconfigured } from './hudSummaryResponse.js';
+import {
+  forward as toMGRS
+} from 'mgrs';
+import {
+  CITY_POIS
+} from './locations.js';
+import {
+  composeLocalityTag
+} from './hudLocality.js';
+import {
+  ellipsoidalToMslDisplayM,
+  ensureGeoidReady,
+  geoidHeight
+} from './data/geoid.js';
+import {
+  getBasemapLabelContext
+} from './voice/gevActions.js';
+import {
+  isHudSummaryUnconfigured
+} from './hudSummaryResponse.js';
 
 /** Color palettes keyed by shader mode; applied as CSS custom properties. */
 const HUD_COLORS = {
-  surveillance: { main: 'rgba(51, 255, 51, 0.8)',  glow: 'rgba(51, 255, 51, 0.5)',  border: 'rgba(51, 255, 51, 0.2)' },
-  thermal:      { main: 'rgba(255, 255, 255, 0.7)', glow: 'rgba(255, 255, 255, 0.4)', border: 'rgba(255, 255, 255, 0.15)' },
-  retro:        { main: 'rgba(255, 170, 0, 0.8)',   glow: 'rgba(255, 170, 0, 0.5)',   border: 'rgba(255, 170, 0, 0.2)' },
-  _default:     { main: 'rgba(0, 255, 255, 0.6)',   glow: 'rgba(0, 255, 255, 0.4)',   border: 'rgba(0, 255, 255, 0.15)' },
+  surveillance: {
+    main: 'rgba(51, 255, 51, 0.8)',
+    glow: 'rgba(51, 255, 51, 0.5)',
+    border: 'rgba(51, 255, 51, 0.2)'
+  },
+  thermal: {
+    main: 'rgba(255, 255, 255, 0.7)',
+    glow: 'rgba(255, 255, 255, 0.4)',
+    border: 'rgba(255, 255, 255, 0.15)'
+  },
+  retro: {
+    main: 'rgba(255, 170, 0, 0.8)',
+    glow: 'rgba(255, 170, 0, 0.5)',
+    border: 'rgba(255, 170, 0, 0.2)'
+  },
+  _default: {
+    main: 'rgba(0, 255, 255, 0.6)',
+    glow: 'rgba(0, 255, 255, 0.4)',
+    border: 'rgba(0, 255, 255, 0.15)'
+  },
 };
 
 /** Shader modes that automatically show the HUD overlay. */
@@ -66,7 +98,11 @@ export class IntelHUD {
    * @param {Cesium.Viewer} viewer - The Cesium Viewer instance used for
    *   camera telemetry and coordinate derivation.
    */
-  constructor(viewer, { placeSearch, summaryPolicy = {}, basemapContext = {} } = {}) {
+  constructor(viewer, {
+    placeSearch,
+    summaryPolicy = {},
+    basemapContext = {}
+  } = {}) {
     this.summaryPolicy = summaryPolicy;
     this.basemapContext = basemapContext;
     this.placeSearch = placeSearch;
@@ -268,8 +304,11 @@ export class IntelHUD {
       if (!this._geoidRequested) {
         this._geoidRequested = true;
         ensureGeoidReady()
-          .then(() => { this._geoidReady = true; })
-          .catch(() => { /* readout falls back to the uncorrected height */ });
+          .then(() => {
+            this._geoidReady = true;
+          })
+          .catch(() => {
+            /* readout falls back to the uncorrected height */ });
       }
       return null;
     }
@@ -520,7 +559,10 @@ export class IntelHUD {
     // longitude distance is scaled by cos(lat) to account for meridian convergence.
     const widthKm = Math.max(0, lonSpan * 111 * Math.cos(Cesium.Math.toRadians(latDeg)));
     const heightKm = Math.max(0, latSpan * 111);
-    return { widthKm, heightKm };
+    return {
+      widthKm,
+      heightKm
+    };
   }
 
   /**
@@ -536,8 +578,8 @@ export class IntelHUD {
     const toRad = (deg) => Cesium.Math.toRadians(deg);
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) ** 2
-      + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
@@ -553,7 +595,10 @@ export class IntelHUD {
     for (const point of NEARBY_POINTS) {
       const distKm = this._haversineKm(latDeg, lonDeg, point.lat, point.lon);
       if (!best || distKm < best.distKm) {
-        best = { ...point, distKm };
+        best = {
+          ...point,
+          distKm
+        };
       }
     }
     return best;
@@ -582,12 +627,12 @@ export class IntelHUD {
     // together, so they must never disagree. The view band above deliberately
     // keeps the ellipsoidal height: its thresholds were tuned against it.
     const altDisplayM = Number.isFinite(m.altMslM) ? m.altMslM : m.altM;
-    const altTag = altDisplayM >= 1000
-      ? `${(altDisplayM / 1000).toFixed(1)}KM`
-      : `${Math.round(altDisplayM)}M`;
-    const winTag = window
-      ? `${Math.max(1, Math.round(window.widthKm))}x${Math.max(1, Math.round(window.heightKm))}KM`
-      : 'N/A';
+    const altTag = altDisplayM >= 1000 ?
+      `${(altDisplayM / 1000).toFixed(1)}KM` :
+      `${Math.round(altDisplayM)}M`;
+    const winTag = window ?
+      `${Math.max(1, Math.round(window.widthKm))}x${Math.max(1, Math.round(window.heightKm))}KM` :
+      'N/A';
     // NEAR the nearest catalogued POI at metro range; otherwise the lat/lon sector.
     const localityTag = composeLocalityTag(nearest, m.latDeg, m.lonDeg);
 
@@ -664,7 +709,9 @@ export class IntelHUD {
     this._summaryRequest = controller;
     try {
       this.summaryPolicy.onRequest?.();
-      const response = await applicationServices.summary.summarize(context, { signal: controller.signal });
+      const response = await applicationServices.summary.summarize(context, {
+        signal: controller.signal
+      });
       const data = response.data;
       if (revision !== this._summaryRevision) return;
       if (isHudSummaryUnconfigured(response.status, data)) {
@@ -732,7 +779,11 @@ export class IntelHUD {
     // Update mode label
     const modeEl = document.getElementById('hud-mode');
     if (modeEl) {
-      const modeNames = { surveillance: 'NVG', thermal: 'FLIR', retro: 'CRT' };
+      const modeNames = {
+        surveillance: 'NVG',
+        thermal: 'FLIR',
+        retro: 'CRT'
+      };
       modeEl.textContent = modeNames[styleName] || styleName.toUpperCase();
     }
     // Update color scheme
