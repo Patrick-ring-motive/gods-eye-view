@@ -50,10 +50,9 @@ export function resolveHudRailLayout({
   const availableHeight = Math.max(0, safeBottom - safeTop);
   const renderedHeight = Math.min(Math.max(0, panelHeight), availableHeight);
   return {
-    top:
-      align === 'start'
-        ? safeTop
-        : safeTop + Math.max(0, (availableHeight - renderedHeight) * 0.5),
+    top: align === 'start' ?
+      safeTop :
+      safeTop + Math.max(0, (availableHeight - renderedHeight) * 0.5),
     maxHeight: availableHeight,
     safeTop,
     safeBottom,
