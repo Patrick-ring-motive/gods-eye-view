@@ -6,9 +6,19 @@ import {
   CALIBRATION_RANGE_FLOOR_M,
 } from './policy.js';
 
-export function createControls({ state: layerState, services, parts, source }) {
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
-  const { CCTV_ACTIVATION_RESULT } = services.activation;
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
+  const {
+    CCTV_ACTIVATION_RESULT
+  } = services.activation;
 
   const methods = {
     id: 'cctv',
@@ -82,12 +92,12 @@ export function createControls({ state: layerState, services, parts, source }) {
       if (params.calibration && typeof params.calibration === 'object') {
         const calibrationCfg = params.calibration;
         const targetCameraId =
-          typeof calibrationCfg.cameraId === 'string' && calibrationCfg.cameraId
-            ? calibrationCfg.cameraId
-            : layerState._activeCameraId;
-        const targetRecord = targetCameraId
-          ? layerState._recordById.get(targetCameraId)
-          : null;
+          typeof calibrationCfg.cameraId === 'string' && calibrationCfg.cameraId ?
+          calibrationCfg.cameraId :
+          layerState._activeCameraId;
+        const targetRecord = targetCameraId ?
+          layerState._recordById.get(targetCameraId) :
+          null;
         if (targetRecord) {
           if (calibrationCfg.reset) {
             // RESET: back to the base prior, delete the persisted entry, clear
@@ -134,7 +144,9 @@ export function createControls({ state: layerState, services, parts, source }) {
             } else {
               targetRecord.camera.calSource = 'manual';
               layerState._calibrationById.set(targetCameraId, {
-                values: { ...targetRecord.camera.calibration },
+                values: {
+                  ...targetRecord.camera.calibration
+                },
                 source: 'manual',
                 savedAt: Date.now(),
                 // Authored against the current range floor: never migrated.
@@ -184,16 +196,16 @@ export function createControls({ state: layerState, services, parts, source }) {
         autoHop: layerState._autoHop,
         autoHopSec: layerState._autoHopSec,
         selectedCameraId: active?.camera.id || null,
-        calibration: active?.camera
-          ? {
-              cameraId: active.camera.id,
-              values: {
-                ...parts.calibration.normalizeCalibration(
-                  active.camera.calibration,
-                ),
-              },
-            }
-          : null,
+        calibration: active?.camera ?
+          {
+            cameraId: active.camera.id,
+            values: {
+              ...parts.calibration.normalizeCalibration(
+                active.camera.calibration,
+              ),
+            },
+          } :
+          null,
       };
     },
 
@@ -206,9 +218,9 @@ export function createControls({ state: layerState, services, parts, source }) {
      */
     getDetectableObjects(options = {}) {
       if (!layerState._enabled || layerState._records.length === 0) return [];
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : layerState._records.length;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        layerState._records.length;
       const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
       const stride = Math.max(
         1,
@@ -354,5 +366,7 @@ export function createControls({ state: layerState, services, parts, source }) {
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
