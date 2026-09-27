@@ -130,8 +130,7 @@ export function createQueries({
       acceptedRows,
       rawRowCount: Number.isInteger(payload?.rawRowCount) &&
         payload.rawRowCount >= rawRows.length ?
-        payload.rawRowCount :
-        rawRows.length,
+        payload.rawRowCount : rawRows.length,
       acceptedRowCount,
       error: deriveAisFeedError(payload, acceptedRowCount) ||
         (acceptedRowCount === 0 ? 'awaiting usable AIS positions…' : null),
@@ -485,8 +484,7 @@ export function createQueries({
           type: 'SEA',
           skipLabel: record === selected,
           klass: record.type ?
-            String(record.type).toUpperCase().slice(0, 14) :
-            undefined,
+            String(record.type).toUpperCase().slice(0, 14) : undefined,
           metric: formatKnots(record.speed), // record.speed is knots
         });
         if (result.length >= maxCount) break;
@@ -494,14 +492,12 @@ export function createQueries({
       return result;
     },
 
-    ...(FOCUS_EVIDENCE_DEV ?
-      {
-        __focusEvidence: Object.freeze({
-          setVessels: components.evidence._setFocusEvidenceVessels,
-          snapshot: components.evidence._focusEvidenceVesselSnapshot,
-        }),
-      } :
-      {}),
+    ...(FOCUS_EVIDENCE_DEV ? {
+      __focusEvidence: Object.freeze({
+        setVessels: components.evidence._setFocusEvidenceVessels,
+        snapshot: components.evidence._focusEvidenceVesselSnapshot,
+      }),
+    } : {}),
 
     getStats() {
       const waitingForFirstPosition = state.firstConnectPhase === 'loading';
@@ -510,8 +506,7 @@ export function createQueries({
         lastUpdate: state.lastUpdate,
         loading: state.loading || waitingForFirstPosition,
         loadingLabel: waitingForFirstPosition ?
-          AIS_FIRST_CONNECT_LABEL :
-          state.loadingLabel,
+          AIS_FIRST_CONNECT_LABEL : state.loadingLabel,
         error: state.error,
         stale: state.stale,
         status: state.firstConnectPhase === 'unavailable' ? 'unavailable' : undefined,
