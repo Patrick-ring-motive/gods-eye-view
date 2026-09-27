@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-perf — render-governor regression gate (perf wave 2).
  *
@@ -78,8 +79,12 @@ const argv = process.argv;
 const url = argv.includes('--url') ? argv[argv.indexOf('--url') + 1] : 'http://localhost:4173';
 
 const results = [];
+
 function check(name, pass, detail) {
-  results.push({ name, pass });
+  results.push({
+    name,
+    pass
+  });
   const tag = pass ? 'PASS' : 'FAIL';
   console.log(`  [${tag}] ${name}${detail ? ` — ${JSON.stringify(detail)}` : ''}`);
 }
@@ -101,9 +106,16 @@ const browser = await puppeteer.launch({
 
 try {
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 860 });
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => !!window.__godsEyeView?.viewer, { timeout: 90_000 });
+  await page.setViewport({
+    width: 1440,
+    height: 860
+  });
+  await page.goto(url, {
+    waitUntil: 'domcontentloaded'
+  });
+  await page.waitForFunction(() => !!window.__godsEyeView?.viewer, {
+    timeout: 90_000
+  });
   // Boot flyTo + tile warm + all deferred init.
   await new Promise((r) => setTimeout(r, 15_000));
 
@@ -115,12 +127,25 @@ try {
     const ell = v.scene.globe.ellipsoid;
     v.camera.setView({
       destination: ell.cartographicToCartesian({
-        longitude: -97.74 * Math.PI / 180, latitude: 30.27 * Math.PI / 180, height: 60_000,
+        longitude: -97.74 * Math.PI / 180,
+        latitude: 30.27 * Math.PI / 180,
+        height: 60_000,
       }),
-      orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+      orientation: {
+        heading: 0,
+        pitch: -Math.PI / 2,
+        roll: 0
+      },
     });
     for (const [id, entry] of gev.dataManager.layers) {
-      if (entry.enabled) { try { await gev.dataManager.setEnabled(id, false, { origin: 'user' }); } catch { /* gate reports via counts */ } }
+      if (entry.enabled) {
+        try {
+          await gev.dataManager.setEnabled(id, false, {
+            origin: 'user'
+          });
+        } catch {
+          /* gate reports via counts */ }
+      }
     }
   });
   // Let tiles finish + fades settle + the settling frames drain.
@@ -129,19 +154,28 @@ try {
   /** Count scene postRender fires and rAF ticks over windowMs. */
   const countFrames = (windowMs) => page.evaluate((ms) => new Promise((resolve) => {
     const scene = window.__godsEyeView.viewer.scene;
-    let renders = 0; let rafs = 0;
-    const remove = scene.postRender.addEventListener(() => { renders += 1; });
+    let renders = 0;
+    let rafs = 0;
+    const remove = scene.postRender.addEventListener(() => {
+      renders += 1;
+    });
     const t0 = performance.now();
     const tick = () => {
       rafs += 1;
       if (performance.now() - t0 < ms) requestAnimationFrame(tick);
-      else { remove(); resolve({ renders, rafs }); }
+      else {
+        remove();
+        resolve({
+          renders,
+          rafs
+        });
+      }
     };
     requestAnimationFrame(tick);
   }), windowMs);
 
-  const diag = () => page.evaluate(() => window.__godsEyeView.getRenderGovernorDiagnostics?.()
-    || window.__gevRenderGovernor?.getDiagnostics?.() || null);
+  const diag = () => page.evaluate(() => window.__godsEyeView.getRenderGovernorDiagnostics?.() ||
+    window.__gevRenderGovernor?.getDiagnostics?.() || null);
 
   /**
    * The HUD's semantic summary refreshes on this cadence (`src/hud.js`,
@@ -181,18 +215,37 @@ try {
     let restarts = 0;
     while (Date.now() < deadline) {
       windows += 1;
-      const { renders } = await countFrames(1_000);
+      const {
+        renders
+      } = await countFrames(1_000);
       busiest = Math.max(busiest, renders);
       if (renders === 0) consecutive += 1;
-      else { if (consecutive > 0) restarts += 1; consecutive = 0; }
+      else {
+        if (consecutive > 0) restarts += 1;
+        consecutive = 0;
+      }
       if (consecutive >= requiredConsecutive) {
-        return { quiet: true, windows, busiest, restarts, ranFor: consecutive, needRun: requiredConsecutive };
+        return {
+          quiet: true,
+          windows,
+          busiest,
+          restarts,
+          ranFor: consecutive,
+          needRun: requiredConsecutive
+        };
       }
     }
     // A failure here reads as "never held N empty seconds in a row, best run was
     // M, restarted R times, busiest window was B" — enough to tell a hot loop
     // from a contaminant that has stopped being a one-shot.
-    return { quiet: false, windows, busiest, restarts, ranFor: consecutive, needRun: requiredConsecutive };
+    return {
+      quiet: false,
+      windows,
+      busiest,
+      restarts,
+      ranFor: consecutive,
+      needRun: requiredConsecutive
+    };
   };
 
   // ── 1. idle: near-zero renders ────────────────────────────────────────
@@ -229,21 +282,27 @@ try {
     d1,
   );
   // The control: the same window with detection explicitly OFF.
-  await page.evaluate(() => { window.__godsEyeView.styleManager._setDetectionMode('OFF'); });
+  await page.evaluate(() => {
+    window.__godsEyeView.styleManager._setDetectionMode('OFF');
+  });
   await new Promise((r) => setTimeout(r, 1_500)); // let any fade chain terminate
   const idleDetectOff = await countFrames(5_000);
   check('idle baseline with detection OFF (≤4 fires / 5s)', idleDetectOff.renders <= 4, idleDetectOff);
   // Back to the default. A regression here is the entire point of this gate: the
   // old hold produced a full 60 fps window instead of near-zero.
-  await page.evaluate(() => { window.__godsEyeView.styleManager._setDetectionMode('DENSE'); });
+  await page.evaluate(() => {
+    window.__godsEyeView.styleManager._setDetectionMode('DENSE');
+  });
   await new Promise((r) => setTimeout(r, 1_500));
   const idleDetectOn = await countFrames(5_000);
   const dDetect = await diag();
   check('idle parked scene with detection ON (≤4 fires / 5s)', idleDetectOn.renders <= 4, idleDetectOn);
   check(
     'detection ON costs no more idle frames than detection OFF',
-    idleDetectOn.renders <= idleDetectOff.renders + 2,
-    { on: idleDetectOn.renders, off: idleDetectOff.renders },
+    idleDetectOn.renders <= idleDetectOff.renders + 2, {
+      on: idleDetectOn.renders,
+      off: idleDetectOff.renders
+    },
   );
   check(
     'governor still idle with detection ON',
@@ -260,7 +319,10 @@ try {
       const id = setInterval(() => {
         v.camera.moveForward(50);
         steps += 1;
-        if (steps >= 20) { clearInterval(id); resolve(true); }
+        if (steps >= 20) {
+          clearInterval(id);
+          resolve(true);
+        }
       }, 60);
     })),
   ]).then(([frames]) => frames);
@@ -283,7 +345,10 @@ try {
     let last = gev.styleManager.getDetectionDiagnostics?.();
     const remove = gev.viewer.scene.postRender.addEventListener(() => {
       const now = gev.styleManager.getDetectionDiagnostics?.();
-      if (now && now !== last) { paints += 1; last = now; }
+      if (now && now !== last) {
+        paints += 1;
+        last = now;
+      }
     });
     let steps = 0;
     const id = setInterval(() => {
@@ -293,7 +358,11 @@ try {
         clearInterval(id);
         setTimeout(() => {
           remove();
-          resolve({ paints, before, after: gev.styleManager.getDetectionDiagnostics?.()?.frameCount ?? null });
+          resolve({
+            paints,
+            before,
+            after: gev.styleManager.getDetectionDiagnostics?.()?.frameCount ?? null
+          });
         }, 400);
       }
     }, 60);
@@ -313,16 +382,27 @@ try {
       // _applySharpenIntensity → governorRequestRender. Proves the wiring,
       // not just the facade.
       const slider = document.getElementById('sharpen-intensity-slider');
-      if (!slider) { resolve({ ok: false }); return; }
+      if (!slider) {
+        resolve({
+          ok: false
+        });
+        return;
+      }
       slider.value = String(Math.min(100, Number(slider.value) + 7));
-      slider.dispatchEvent(new Event('input', { bubbles: true }));
-      resolve({ ok: true });
+      slider.dispatchEvent(new Event('input', {
+        bubbles: true
+      }));
+      resolve({
+        ok: true
+      });
     }, 500))),
   ]).then(([frames]) => frames);
   check('real slider mutation while idle renders ≥1 and ≤10 frames', afterMutation.renders >= 1 && afterMutation.renders <= 10, afterMutation);
 
   // ── 2b. animated style cycle: style-anim holds, then releases ─────────
-  await page.evaluate(() => { window.__godsEyeView.styleManager.setStyle('retro'); });
+  await page.evaluate(() => {
+    window.__godsEyeView.styleManager.setStyle('retro');
+  });
   await new Promise((r) => setTimeout(r, 900)); // crossfade + first ticks
   const dAnim = await diag();
   check('animated style takes the style-anim hold (continuous)', dAnim?.mode === 'continuous' && dAnim.holds.includes('style-anim'), dAnim);
@@ -333,7 +413,9 @@ try {
   // nothing, so this asserts the strictly harder thing: the scene returns to
   // idle with detection still ON — where before it could only go idle by also
   // turning detection off.
-  await page.evaluate(() => { window.__godsEyeView.styleManager.setStyle('normal'); });
+  await page.evaluate(() => {
+    window.__godsEyeView.styleManager.setStyle('normal');
+  });
   await new Promise((r) => setTimeout(r, 1_500)); // fade out + loop self-stop
   const dAnimOff = await diag();
   const detectionStillOn = await page.evaluate(
@@ -341,21 +423,27 @@ try {
   );
   check(
     'style-anim hold releases and the scene goes idle with detection still ON',
-    dAnimOff?.mode === 'idle'
-      && !dAnimOff.holds.includes('style-anim')
-      && !dAnimOff.holds.includes('detection')
-      && detectionStillOn !== 'OFF',
-    { diag: dAnimOff, detection: detectionStillOn },
+    dAnimOff?.mode === 'idle' &&
+    !dAnimOff.holds.includes('style-anim') &&
+    !dAnimOff.holds.includes('detection') &&
+    detectionStillOn !== 'OFF', {
+      diag: dAnimOff,
+      detection: detectionStillOn
+    },
   );
 
   // ── 2c. satellites holder enters and leaves diagnostics ───────────────
   await page.evaluate(async () => {
-    await window.__godsEyeView.dataManager.setEnabled('satellites', true, { origin: 'user' });
+    await window.__godsEyeView.dataManager.setEnabled('satellites', true, {
+      origin: 'user'
+    });
   });
   const dSat = await diag();
   check('satellites enable registers its holder', dSat?.holds.includes('satellites'), dSat);
   await page.evaluate(async () => {
-    await window.__godsEyeView.dataManager.setEnabled('satellites', false, { origin: 'user' });
+    await window.__godsEyeView.dataManager.setEnabled('satellites', false, {
+      origin: 'user'
+    });
   });
   await new Promise((r) => setTimeout(r, 2_000));
   const dSatOff = await diag();
@@ -370,7 +458,10 @@ try {
       const id = setInterval(() => {
         v.camera.moveForward(50);
         steps += 1;
-        if (steps >= 20) { clearInterval(id); resolve(true); }
+        if (steps >= 20) {
+          clearInterval(id);
+          resolve(true);
+        }
       }, 60);
     })),
   ]).then(([frames]) => frames);
@@ -379,18 +470,25 @@ try {
 
   // ── 4. flights enabled → continuous ───────────────────────────────────
   await page.evaluate(async () => {
-    await window.__godsEyeView.dataManager.setEnabled('flights', true, { origin: 'user' });
+    await window.__godsEyeView.dataManager.setEnabled('flights', true, {
+      origin: 'user'
+    });
   });
   await new Promise((r) => setTimeout(r, 5_000));
   const active = await countFrames(5_000);
   const d4 = await diag();
   check('governor reports continuous mode with flights on', d4?.mode === 'continuous', d4);
   check('flights-on cadence ≈ rAF cadence (≥70%)', active.renders >= active.rafs * 0.7, active);
-  check('flights-on renders ≥5× idle renders', active.renders >= Math.max(1, idle.renders) * 5, { active: active.renders, idle: idle.renders });
+  check('flights-on renders ≥5× idle renders', active.renders >= Math.max(1, idle.renders) * 5, {
+    active: active.renders,
+    idle: idle.renders
+  });
 
   // ── 5. flights disabled → idle again ──────────────────────────────────
   await page.evaluate(async () => {
-    await window.__godsEyeView.dataManager.setEnabled('flights', false, { origin: 'user' });
+    await window.__godsEyeView.dataManager.setEnabled('flights', false, {
+      origin: 'user'
+    });
   });
   // Deselect flows, fades, and the chrome churn the overlay host re-evaluates
   // its occluders against all have to drain first — and this teardown, like the
