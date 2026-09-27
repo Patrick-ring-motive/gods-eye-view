@@ -1,12 +1,15 @@
-import { indexMapSources } from './registry.js';
+import {
+  indexMapSources
+} from './registry.js';
 import * as Cesium from 'cesium';
-import { createMapCredits } from './credits.js';
+import {
+  createMapCredits
+} from './credits.js';
 
 /** Coordinate source lifetimes and scene changes; the registry owns provider choices. */
 export class MapSourceController {
   constructor(
-    viewer,
-    {
+    viewer, {
       registry,
       initialStack,
       onChange = null,
@@ -18,9 +21,9 @@ export class MapSourceController {
     this.viewer = viewer;
     this._registry = registry;
     this._sources = indexMapSources(registry.sources);
-    this._activeId = this.isStackAvailable(initialStack)
-      ? initialStack
-      : registry.defaultId;
+    this._activeId = this.isStackAvailable(initialStack) ?
+      initialStack :
+      registry.defaultId;
     this._onChange = onChange;
     this._onError = onError;
     this._requestRender = requestRender;
@@ -46,7 +49,9 @@ export class MapSourceController {
     return this._sources.get(id)?.descriptor || null;
   }
   getStacks() {
-    return [...this._sources.values()].map(({ descriptor }) => {
+    return [...this._sources.values()].map(({
+      descriptor
+    }) => {
       const stack = descriptor;
       const available = this.isStackAvailable(stack.id);
       return {
@@ -89,7 +94,9 @@ export class MapSourceController {
     this._onChange?.(this.getState(status));
   }
 
-  async setStack(id, { silent = false } = {}) {
+  async setStack(id, {
+    silent = false
+  } = {}) {
     if (this._destroyed) return this.getState();
     const stack = this.getStack(id) || this.getStack(this._registry.unknownId);
     if (!stack) return null;
@@ -143,9 +150,9 @@ export class MapSourceController {
 
   _activate(stack, gen) {
     const source = this._sources.get(stack.id);
-    return source.imagery
-      ? this._activateGlobeStack(stack, gen)
-      : this._activateTileset(source, gen);
+    return source.imagery ?
+      this._activateGlobeStack(stack, gen) :
+      this._activateTileset(source, gen);
   }
 
   async _activateTileset(source, gen) {
@@ -154,7 +161,9 @@ export class MapSourceController {
       if (!source.createTileset)
         throw new Error(`Missing 3D source: ${source.descriptor.id}`);
       tileset = await this._cached(this._tilesets, source.descriptor.id, () =>
-        source.createTileset({ signal: this._abort.signal }),
+        source.createTileset({
+          signal: this._abort.signal
+        }),
       );
     }
     if (gen !== this._switchGen) return;
@@ -195,7 +204,9 @@ export class MapSourceController {
       const result = await this._cached(
         this._terrainProviders,
         terrain.id,
-        () => terrain.create({ signal: this._abort.signal }),
+        () => terrain.create({
+          signal: this._abort.signal
+        }),
       );
       if (gen !== this._switchGen) return;
       if (result.terrain) this.viewer.scene.setTerrain(result.terrain);
@@ -226,9 +237,15 @@ export class MapSourceController {
     return this._cached(this._imageryProviders, stack.id, async () => {
       const source = this._sources.get(stack.id);
       try {
-        const provider = await source.imagery({ signal: this._abort.signal });
+        const provider = await source.imagery({
+          signal: this._abort.signal
+        });
         if (this._destroyed) this._dispose(provider);
-        return { provider, effectiveStackId: stack.id, fallbackMessage: null };
+        return {
+          provider,
+          effectiveStackId: stack.id,
+          fallbackMessage: null
+        };
       } catch (error) {
         const fallback = source.constructionFallback;
         if (this._destroyed || !fallback || !this.isStackAvailable(fallback.id))
@@ -238,7 +255,10 @@ export class MapSourceController {
           this.getStack(fallback.id),
           next,
         );
-        return { ...resolution, fallbackMessage: fallback.message };
+        return {
+          ...resolution,
+          fallbackMessage: fallback.message
+        };
       }
     });
   }
@@ -259,9 +279,9 @@ export class MapSourceController {
         return;
       const retryCount = Number(error?.timesRetried);
       failures =
-        Number.isInteger(retryCount) && retryCount >= 0
-          ? Math.max(failures + 1, retryCount + 1)
-          : failures + 1;
+        Number.isInteger(retryCount) && retryCount >= 0 ?
+        Math.max(failures + 1, retryCount + 1) :
+        failures + 1;
       if (failures < fallback.threshold || pending) return;
       pending = true;
       this._onError?.(
@@ -269,7 +289,9 @@ export class MapSourceController {
         this.getStack(resolution.effectiveStackId),
       );
       const expectedGen = this._switchGen + 1;
-      void this.setStack(fallback.id, { silent: true })
+      void this.setStack(fallback.id, {
+          silent: true
+        })
         .then((state) => {
           if (
             !this._destroyed &&
