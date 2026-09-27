@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+
 /** Camera-panel browser acceptance with controlled sources, images and terrain. */
 import fs from 'node:fs';
 import puppeteer from 'puppeteer';
 const origin = process.env.QA_BASE_URL || 'http://localhost:4173';
 const selectAllModifier = process.platform === 'darwin' ? 'Meta' : 'Control';
-const sources = [
-  {
+const sources = [{
     id: 'qa-camera-a',
     name: 'QA Camera A',
     lat: 30.2747,
@@ -35,9 +35,9 @@ const browser = await puppeteer.launch({
   headless: true,
   args: [
     '--no-sandbox',
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
   ],
 });
 const page = await browser.newPage();
@@ -53,7 +53,10 @@ const check = (name, ok, detail) => {
 let delayCameraA = false;
 const delayedFrames = new Set();
 try {
-  await page.setViewport({ width: 1440, height: 900 });
+  await page.setViewport({
+    width: 1440,
+    height: 900
+  });
   await page.setRequestInterception(true);
   page.on('request', (request) => {
     const url = new URL(request.url());
@@ -64,7 +67,9 @@ try {
         contentType: 'application/json',
         body: JSON.stringify(body),
       });
-    if (url.pathname === '/api/cctv/sources') return void json({ sources });
+    if (url.pathname === '/api/cctv/sources') return void json({
+      sources
+    });
     if (url.pathname === '/api/cctv/health')
       return void json({
         cameras: sources.map((camera) => ({
@@ -78,13 +83,15 @@ try {
       const cameraA = url.pathname.endsWith('qa-camera-a');
       const respond = () =>
         request
-          .respond({
-            status: 200,
-            contentType: 'image/svg+xml',
-            headers: { 'Cache-Control': 'no-store' },
-            body: `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="${cameraA ? '#16364d' : '#254b32'}"/><path d="M0 260L640 130M240 0L420 360" stroke="#97acb7" stroke-width="26"/><text x="30" y="55" fill="white" font-size="30">QA CAMERA ${cameraA ? 'A' : 'B'}</text></svg>`,
-          })
-          .catch(() => {});
+        .respond({
+          status: 200,
+          contentType: 'image/svg+xml',
+          headers: {
+            'Cache-Control': 'no-store'
+          },
+          body: `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="${cameraA ? '#16364d' : '#254b32'}"/><path d="M0 260L640 130M240 0L420 360" stroke="#97acb7" stroke-width="26"/><text x="30" y="55" fill="white" font-size="30">QA CAMERA ${cameraA ? 'A' : 'B'}</text></svg>`,
+        })
+        .catch(() => {});
       if (cameraA && delayCameraA) delayedFrames.add(respond);
       else void respond();
       return;
@@ -96,21 +103,32 @@ try {
       return void json({
         results: points.map((point) => {
           const [lon, lat] = point.split(',').map(Number);
-          return { lon, lat, elevation: 0, geoid: 0, ellipsoid: 0 };
+          return {
+            lon,
+            lat,
+            elevation: 0,
+            geoid: 0,
+            ellipsoid: 0
+          };
         }),
       });
     }
     if (url.pathname === '/api/openai/hud-summary')
-      return void json({ summary: 'QA camera controls' });
+      return void json({
+        summary: 'QA camera controls'
+      });
     void request.continue();
   });
-  await page.goto(`${origin}/?welcome=0`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${origin}/?welcome=0`, {
+    waitUntil: 'domcontentloaded'
+  });
   await page.waitForFunction(
     () =>
-      window.__godsEyeView?.styleManager?._cctvControls &&
-      window.__godsEyeView?.dataManager?.layers?.has('cctv') &&
-      document.getElementById('loading-screen')?.classList.contains('hidden'),
-    { timeout: 60000 },
+    window.__godsEyeView?.styleManager?._cctvControls &&
+    window.__godsEyeView?.dataManager?.layers?.has('cctv') &&
+    document.getElementById('loading-screen')?.classList.contains('hidden'), {
+      timeout: 60000
+    },
   );
   await page.$eval('[data-collapse-target="cctv-panel"]', (button) =>
     button.click(),
@@ -118,10 +136,11 @@ try {
   await page.click('#cctv-enable-btn');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-        .cameras.length === 2 &&
-      !document.getElementById('cctv-camera-select').disabled,
-    { timeout: 30000 },
+    window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+    .cameras.length === 2 &&
+    !document.getElementById('cctv-camera-select').disabled, {
+      timeout: 30000
+    },
   );
   check(
     'CCTV enable uses the supplied two-camera catalog',
@@ -133,11 +152,11 @@ try {
   await page.select('#cctv-camera-select', 'qa-camera-a');
   await page.waitForFunction(
     () =>
-      document.getElementById('cctv-frame').dataset.cameraId ===
-        'qa-camera-a' &&
-      document
-        .getElementById('cctv-frame-wrap')
-        .classList.contains('has-frame'),
+    document.getElementById('cctv-frame').dataset.cameraId ===
+    'qa-camera-a' &&
+    document
+    .getElementById('cctv-frame-wrap')
+    .classList.contains('has-frame'),
   );
   const state = () =>
     page.evaluate(() =>
@@ -153,8 +172,8 @@ try {
         camera.id === 'qa-camera-a' &&
         document.getElementById('cctv-frame').src.includes('qa-camera-a') &&
         document
-          .getElementById('cctv-meta')
-          .textContent.includes('QA camera fixture')
+        .getElementById('cctv-meta')
+        .textContent.includes('QA camera fixture')
       );
     }),
   );
@@ -179,23 +198,23 @@ try {
   await page.click('#cctv-next-btn');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-        .activeCameraId === 'qa-camera-b',
+    window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+    .activeCameraId === 'qa-camera-b',
   );
   await page.click('#cctv-prev-btn');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-        .activeCameraId === 'qa-camera-a',
+    window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+    .activeCameraId === 'qa-camera-a',
   );
   check(
     'native Next and Previous return to the original camera',
     (await state()).activeCameraId === 'qa-camera-a',
   );
   for (const [selector, key] of [
-    ['#cctv-auto-hop-btn', 'autoHop'],
-    ['#cctv-adjust-btn', 'calibrationMode'],
-  ]) {
+      ['#cctv-auto-hop-btn', 'autoHop'],
+      ['#cctv-adjust-btn', 'calibrationMode'],
+    ]) {
     const before = (await state())[key];
     await page.click(selector);
     const changed = (await state())[key] === !before;
@@ -209,8 +228,8 @@ try {
   await page.select('#cctv-camera-select', 'qa-camera-a');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-        .activeCameraId === 'qa-camera-a',
+    window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+    .activeCameraId === 'qa-camera-a',
   );
   const heading = (await state()).activeCamera.headingDeg;
   const chip = '.cctv-cal-value[data-cal-field="heading"]';
@@ -252,8 +271,8 @@ try {
     'Escape cancels editing without collapsing CCTV',
     (await page.evaluate(
       () =>
-        !document.querySelector('.cctv-cal-input') &&
-        !document.getElementById('cctv-panel').classList.contains('collapsed'),
+      !document.querySelector('.cctv-cal-input') &&
+      !document.getElementById('cctv-panel').classList.contains('collapsed'),
     )) && Math.abs((await state()).activeCamera.headingDeg - heading) < 0.01,
   );
   await page.click(chip);
@@ -268,25 +287,25 @@ try {
   check(
     'an external camera selection cancels the prior calibration editor',
     (await state()).activeCamera.id === 'qa-camera-b' &&
-      Math.abs((await state()).activeCamera.headingDeg - 200) < 0.01 &&
-      (await page.$('.cctv-cal-input')) === null,
+    Math.abs((await state()).activeCamera.headingDeg - 200) < 0.01 &&
+    (await page.$('.cctv-cal-input')) === null,
   );
   await page.waitForFunction(
     () =>
-      document.getElementById('cctv-frame').dataset.cameraId ===
-        'qa-camera-b' &&
-      document
-        .getElementById('cctv-frame-wrap')
-        .classList.contains('has-frame'),
+    document.getElementById('cctv-frame').dataset.cameraId ===
+    'qa-camera-b' &&
+    document
+    .getElementById('cctv-frame-wrap')
+    .classList.contains('has-frame'),
   );
   await page.setCacheEnabled(false);
   delayCameraA = true;
   await page.select('#cctv-camera-select', 'qa-camera-a');
   await page.waitForFunction(
     () =>
-      document.getElementById('cctv-frame').dataset.cameraId ===
-        'qa-camera-a' &&
-      document.getElementById('cctv-frame').dataset.loading === 'true',
+    document.getElementById('cctv-frame').dataset.cameraId ===
+    'qa-camera-a' &&
+    document.getElementById('cctv-frame').dataset.loading === 'true',
   );
   await page.evaluate(() => {
     const image =
@@ -297,8 +316,9 @@ try {
       'load',
       () => {
         window.__qaLateCctvImageLoaded = true;
+      }, {
+        once: true
       },
-      { once: true },
     );
   });
   check(
@@ -311,11 +331,11 @@ try {
   await page.select('#cctv-camera-select', 'qa-camera-b');
   await page.waitForFunction(
     () =>
-      document.getElementById('cctv-frame').dataset.cameraId ===
-        'qa-camera-b' &&
-      document
-        .getElementById('cctv-frame-wrap')
-        .classList.contains('has-frame'),
+    document.getElementById('cctv-frame').dataset.cameraId ===
+    'qa-camera-b' &&
+    document
+    .getElementById('cctv-frame-wrap')
+    .classList.contains('has-frame'),
   );
   delayCameraA = false;
   await Promise.all([...delayedFrames].map((respond) => respond()));
@@ -326,8 +346,8 @@ try {
     await page.$eval(
       '#cctv-frame',
       (image) =>
-        image.dataset.cameraId === 'qa-camera-b' &&
-        image.src.includes('qa-camera-b'),
+      image.dataset.cameraId === 'qa-camera-b' &&
+      image.src.includes('qa-camera-b'),
     ),
   );
   delayCameraA = false;
@@ -342,20 +362,26 @@ try {
   await page.click('#cctv-enable-btn');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.dataManager.isEnabled('cctv') &&
-      document
-        .getElementById('cctv-frame-wrap')
-        .classList.contains('has-frame'),
+    window.__godsEyeView.dataManager.isEnabled('cctv') &&
+    document
+    .getElementById('cctv-frame-wrap')
+    .classList.contains('has-frame'),
   );
   check(
     'disable clears the preview and re-enable reacquires the camera frame',
     disabledCleanly,
   );
   await page.$eval('#cctv-frame', (image) =>
-    image.scrollIntoView({ block: 'nearest' }),
+    image.scrollIntoView({
+      block: 'nearest'
+    }),
   );
-  fs.mkdirSync('qa-shots/camera-controls', { recursive: true });
-  await page.screenshot({ path: 'qa-shots/camera-controls/desktop.png' });
+  fs.mkdirSync('qa-shots/camera-controls', {
+    recursive: true
+  });
+  await page.screenshot({
+    path: 'qa-shots/camera-controls/desktop.png'
+  });
   await page.evaluate(() => {
     const camera = window.__godsEyeView.viewer.camera;
     camera.setView({
@@ -367,10 +393,17 @@ try {
     });
   });
   await new Promise((resolve) => setTimeout(resolve, 700));
-  await page.screenshot({ path: 'qa-shots/camera-controls/angle.png' });
-  await page.setViewport({ width: 390, height: 844 });
+  await page.screenshot({
+    path: 'qa-shots/camera-controls/angle.png'
+  });
+  await page.setViewport({
+    width: 390,
+    height: 844
+  });
   await new Promise((resolve) => setTimeout(resolve, 700));
-  await page.screenshot({ path: 'qa-shots/camera-controls/narrow.png' });
+  await page.screenshot({
+    path: 'qa-shots/camera-controls/narrow.png'
+  });
   check(
     'narrow camera panel remains within the viewport',
     await page.$eval('#cctv-panel', (panel) => {
