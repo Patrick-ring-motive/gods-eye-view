@@ -1,6 +1,10 @@
 import * as Cesium from 'cesium';
-import { GBFS_CITY_REGISTRY } from './registry.js';
-import { BIKESHARE_SELECTED_OVERLAY_SOURCE_ID } from './policy.js';
+import {
+  GBFS_CITY_REGISTRY
+} from './registry.js';
+import {
+  BIKESHARE_SELECTED_OVERLAY_SOURCE_ID
+} from './policy.js';
 
 export function createLifecycle({
   state: layerState,
@@ -8,8 +12,14 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { registerSpriteCollection, restoreSpriteOrder } = services.sprites;
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
+  const {
+    registerSpriteCollection,
+    restoreSpriteOrder
+  } = services.sprites;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
 
   const methods = {
     /**
@@ -167,5 +177,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
