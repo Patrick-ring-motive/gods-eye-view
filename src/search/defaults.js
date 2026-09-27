@@ -1,8 +1,18 @@
-import { createGeospatialServices } from './geospatial.js';
-import { createHttpGeospatialProvider } from './http.js';
-import { createPlaceSearch } from './placeSearch.js';
-import { createGoogleGeocoder } from './google.js';
-import { createPhotonGeocoder } from '../keylessGeocoder.js';
+import {
+  createGeospatialServices
+} from './geospatial.js';
+import {
+  createHttpGeospatialProvider
+} from './http.js';
+import {
+  createPlaceSearch
+} from './placeSearch.js';
+import {
+  createGoogleGeocoder
+} from './google.js';
+import {
+  createPhotonGeocoder
+} from '../keylessGeocoder.js';
 
 /** Google first when configured, then keyless Photon; transport stays local to setup. */
 export function createDefaultPlaceSearch({
@@ -16,20 +26,28 @@ export function createDefaultPlaceSearch({
     signal,
     providers: providers.geocode || [
       createGoogleGeocoder({
-        request(query, { bias, signal }) {
+        request(query, {
+          bias,
+          signal
+        }) {
           const key = resolveApiKey?.();
           if (!key) return null;
           const url = new URL(
             endpoints.geocode ||
-              'https://maps.googleapis.com/maps/api/geocode/json',
+            'https://maps.googleapis.com/maps/api/geocode/json',
           );
           url.searchParams.set('address', query);
           url.searchParams.set('key', key);
           if (bias) url.searchParams.set('bounds', bias);
-          return fetchImpl(url.toString(), { signal });
+          return fetchImpl(url.toString(), {
+            signal
+          });
         },
       }),
-      createPhotonGeocoder({ fetchImpl, endpoint: endpoints.photon }),
+      createPhotonGeocoder({
+        fetchImpl,
+        endpoint: endpoints.photon
+      }),
     ],
   });
   return {
