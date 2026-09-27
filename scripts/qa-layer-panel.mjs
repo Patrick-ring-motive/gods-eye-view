@@ -1,13 +1,14 @@
 #!/usr/bin/env node
+
 /** Browser proof of Layers panel replacement and subscription ownership. */
 import puppeteer from 'puppeteer';
 const browser = await puppeteer.launch({
   headless: true,
   args: [
     '--no-sandbox',
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
   ],
 });
 const page = await browser.newPage();
@@ -20,12 +21,14 @@ const check = (name, passed) => {
 };
 try {
   await page.goto(
-    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`,
-    { waitUntil: 'domcontentloaded' },
+    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`, {
+      waitUntil: 'domcontentloaded'
+    },
   );
   await page.waitForFunction(
-    () => window.__godsEyeView?.dataManager?._layerPanel,
-    { timeout: 60000 },
+    () => window.__godsEyeView?.dataManager?._layerPanel, {
+      timeout: 60000
+    },
   );
   const results = await page.evaluate(async () => {
     const manager = window.__godsEyeView.dataManager;
@@ -46,8 +49,14 @@ try {
       disable() {},
       update() {},
       destroy() {},
-      getStats: () => ({ count: 1250, lastUpdate: Date.now(), stale: true }),
-      getRowControls: () => ({ chips: [] }),
+      getStats: () => ({
+        count: 1250,
+        lastUpdate: Date.now(),
+        stale: true
+      }),
+      getRowControls: () => ({
+        chips: []
+      }),
       setRowControlsListener: (callback) => {
         listener = callback;
       },
@@ -60,7 +69,7 @@ try {
       result.push([
         'descriptor text is literal content',
         row().querySelector('.data-name').textContent ===
-          '<b>Literal layer</b>' && !row().querySelector('b'),
+        '<b>Literal layer</b>' && !row().querySelector('b'),
       ]);
       result.push([
         'row subscription is installed',
@@ -87,13 +96,13 @@ try {
       result.push([
         'native clear activation presents busy state',
         ui._clearSelectedLayersBtn.getAttribute('aria-busy') === 'true' &&
-          !!ui._contextControls._clearSelectedLayersPromise,
+        !!ui._contextControls._clearSelectedLayersPromise,
       ]);
       await ui._contextControls._clearSelectedLayersPromise;
       result.push([
         'clear settles through the existing layer transaction',
         !manager.isEnabled(id) &&
-          ui._clearSelectedLayersBtn.getAttribute('aria-busy') === 'false',
+        ui._clearSelectedLayersBtn.getAttribute('aria-busy') === 'false',
       ]);
       await manager.setEnabled(id, true);
       const final = row().querySelector('.data-toggle-btn');
