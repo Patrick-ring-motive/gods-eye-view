@@ -13,12 +13,22 @@ import {
 /** Controllable clock so cooldown assertions cost no wall time. */
 function fakeClock(start = 0) {
   let t = start;
-  return { now: () => t, advance(ms) { t += ms; } };
+  return {
+    now: () => t,
+    advance(ms) {
+      t += ms;
+    }
+  };
 }
 
 test('a successful load runs once and is shared by later callers', async () => {
   let calls = 0;
-  const load = createRetryableLoader(async () => { calls += 1; return { pack: calls }; });
+  const load = createRetryableLoader(async () => {
+    calls += 1;
+    return {
+      pack: calls
+    };
+  });
   const first = await load();
   const second = await load();
   assert.equal(calls, 1);
@@ -44,7 +54,9 @@ test('a failed load is not cached, but retries wait out a cooldown', async () =>
     calls += 1;
     if (calls === 1) throw new Error('pack unavailable');
     return 'loaded';
-  }, { now: clock.now });
+  }, {
+    now: clock.now
+  });
 
   await assert.rejects(load(), /pack unavailable/);
   assert.equal(calls, 1);
@@ -67,8 +79,12 @@ test('a success after the cooldown is cached permanently', async () => {
   const load = createRetryableLoader(async () => {
     calls += 1;
     if (calls === 1) throw new Error('pack unavailable');
-    return { pack: calls };
-  }, { now: clock.now });
+    return {
+      pack: calls
+    };
+  }, {
+    now: clock.now
+  });
 
   await assert.rejects(load(), /pack unavailable/);
   clock.advance(RETRY_COOLDOWN_MS);
@@ -85,7 +101,11 @@ test('consecutive failures back off, capped at the ceiling', async () => {
   const load = createRetryableLoader(async () => {
     calls += 1;
     throw new Error('pack unavailable');
-  }, { now: clock.now, cooldownMs: 100, maxCooldownMs: 250 });
+  }, {
+    now: clock.now,
+    cooldownMs: 100,
+    maxCooldownMs: 250
+  });
 
   await assert.rejects(load(), /pack unavailable/); // calls 1 → wait 100
   clock.advance(100);
@@ -111,7 +131,9 @@ test('a falsy rejection still counts as a failure and still gets a cooldown', as
       calls += 1;
       if (calls === 1) throw reason;
       return 'loaded';
-    }, { now: clock.now });
+    }, {
+      now: clock.now
+    });
 
     await assert.rejects(() => load(), (thrown) => thrown === reason || thrown === undefined);
     clock.advance(RETRY_COOLDOWN_MS - 1);
@@ -133,7 +155,9 @@ test('a synchronous throw rejects and stays retryable', async () => {
     calls += 1;
     if (calls === 1) throw new Error('bad path');
     return 'loaded';
-  }, { now: clock.now });
+  }, {
+    now: clock.now
+  });
   await assert.rejects(load(), /bad path/);
   clock.advance(RETRY_COOLDOWN_MS);
   assert.equal(await load(), 'loaded');
@@ -147,7 +171,9 @@ test('every concurrent caller of a failing load sees the rejection, then retry s
     await new Promise((resolve) => setTimeout(resolve, 1));
     if (calls === 1) throw new Error('pack unavailable');
     return 'loaded';
-  }, { now: clock.now });
+  }, {
+    now: clock.now
+  });
   const results = await Promise.allSettled([load(), load()]);
   assert.deepEqual(results.map((r) => r.status), ['rejected', 'rejected']);
   assert.equal(calls, 1, 'the failing load is still shared, not duplicated');
