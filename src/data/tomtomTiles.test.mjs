@@ -1,5 +1,7 @@
 // src/data/tomtomTiles.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   isValidTileCoord,
@@ -12,7 +14,10 @@ import {
 } from './tomtomTiles.js';
 
 // Downtown Austin — the verified TomTom fixture tile (z12 x935 y1686).
-const AUSTIN = { lat: 30.2672, lon: -97.7431 };
+const AUSTIN = {
+  lat: 30.2672,
+  lon: -97.7431
+};
 
 // ── Tile coordinate validation ──────────────────────────────
 
@@ -71,15 +76,21 @@ test('tileToBBox <-> lonLatToTile roundtrip at the bbox center', () => {
     lat: (bbox.south + bbox.north) / 2,
   };
   const t = lonLatToTile(center.lon, center.lat, 12);
-  assert.deepEqual({ x: t.x, y: t.y }, { x: 935, y: 1686 });
+  assert.deepEqual({
+    x: t.x,
+    y: t.y
+  }, {
+    x: 935,
+    y: 1686
+  });
 });
 
 test('lonLatToTile clamps poles and antimeridian into valid range', () => {
   for (const [lon, lat] of [
-    [-180, 89.9],
-    [180, -89.9],
-    [179.9999, 0],
-  ]) {
+      [-180, 89.9],
+      [180, -89.9],
+      [179.9999, 0],
+    ]) {
     const t = lonLatToTile(lon, lat, 12);
     assert.equal(
       isValidTileCoord(12, t.x, t.y),
@@ -124,7 +135,12 @@ test('tilesForBounds: bounds straddling a tile edge return both tiles', () => {
 });
 
 test('tilesForBounds: default zoom is 12 and every tile is valid', () => {
-  const bounds = { south: 51.49, north: 51.52, west: -0.14, east: -0.1 }; // London
+  const bounds = {
+    south: 51.49,
+    north: 51.52,
+    west: -0.14,
+    east: -0.1
+  }; // London
   const tiles = tilesForBounds(bounds);
   assert.ok(tiles.length >= 1);
   for (const t of tiles) {
@@ -134,10 +150,15 @@ test('tilesForBounds: default zoom is 12 and every tile is valid', () => {
 });
 
 test('tilesForBounds: runaway bounds are truncated by the safety cap', () => {
-  const tiles = tilesForBounds(
-    { south: -60, north: 60, west: -170, east: 170 },
-    12,
-    { maxTiles: 16 },
+  const tiles = tilesForBounds({
+      south: -60,
+      north: 60,
+      west: -170,
+      east: 170
+    },
+    12, {
+      maxTiles: 16
+    },
   );
   assert.ok(tiles.length <= 16, `got ${tiles.length}`);
 });
@@ -150,16 +171,24 @@ test('utcDayKey formats as YYYY-MM-DD in UTC', () => {
 });
 
 test('normalizeBudget: same-day state passes through untouched', () => {
-  const state = { date: '2026-07-16', count: 123 };
+  const state = {
+    date: '2026-07-16',
+    count: 123
+  };
   assert.equal(normalizeBudget(state, '2026-07-16'), state);
 });
 
 test('normalizeBudget: day rollover resets the counter', () => {
-  const rolled = normalizeBudget(
-    { date: '2026-07-16', count: 39999 },
+  const rolled = normalizeBudget({
+      date: '2026-07-16',
+      count: 39999
+    },
     '2026-07-17',
   );
-  assert.deepEqual(rolled, { date: '2026-07-17', count: 0 });
+  assert.deepEqual(rolled, {
+    date: '2026-07-17',
+    count: 0
+  });
 });
 
 test('normalizeBudget: missing/corrupt state starts fresh', () => {
@@ -168,26 +197,53 @@ test('normalizeBudget: missing/corrupt state starts fresh', () => {
     count: 0,
   });
   assert.deepEqual(
-    normalizeBudget({ date: '2026-07-16', count: NaN }, '2026-07-16'),
-    { date: '2026-07-16', count: 0 },
+    normalizeBudget({
+      date: '2026-07-16',
+      count: NaN
+    }, '2026-07-16'), {
+      date: '2026-07-16',
+      count: 0
+    },
   );
-  assert.deepEqual(normalizeBudget({ count: 5 }, '2026-07-16'), {
+  assert.deepEqual(normalizeBudget({
+    count: 5
+  }, '2026-07-16'), {
     date: '2026-07-16',
     count: 0,
   });
   assert.deepEqual(
-    normalizeBudget({ date: '2026-07-16', count: -3 }, '2026-07-16'),
-    { date: '2026-07-16', count: 0 },
+    normalizeBudget({
+      date: '2026-07-16',
+      count: -3
+    }, '2026-07-16'), {
+      date: '2026-07-16',
+      count: 0
+    },
   );
 });
 
 test('isOverBudget: at or above the limit is over, below is not', () => {
-  assert.equal(isOverBudget({ date: 'x', count: 39999 }, 40000), false);
-  assert.equal(isOverBudget({ date: 'x', count: 40000 }, 40000), true);
-  assert.equal(isOverBudget({ date: 'x', count: 40001 }, 40000), true);
+  assert.equal(isOverBudget({
+    date: 'x',
+    count: 39999
+  }, 40000), false);
+  assert.equal(isOverBudget({
+    date: 'x',
+    count: 40000
+  }, 40000), true);
+  assert.equal(isOverBudget({
+    date: 'x',
+    count: 40001
+  }, 40000), true);
 });
 
 test('isOverBudget: non-positive or invalid limit never blocks', () => {
-  assert.equal(isOverBudget({ date: 'x', count: 1e9 }, 0), false);
-  assert.equal(isOverBudget({ date: 'x', count: 1e9 }, NaN), false);
+  assert.equal(isOverBudget({
+    date: 'x',
+    count: 1e9
+  }, 0), false);
+  assert.equal(isOverBudget({
+    date: 'x',
+    count: 1e9
+  }, NaN), false);
 });
