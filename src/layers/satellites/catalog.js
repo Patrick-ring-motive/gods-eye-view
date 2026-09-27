@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { twoline2satrec } from 'satellite.js';
+import {
+  twoline2satrec
+} from 'satellite.js';
 import {
   DENSE_REFRESH_FRAMES,
   DENSE_GROUP_PATH,
@@ -7,7 +9,12 @@ import {
   DENSE_CREATE_CHUNK,
 } from './policy.js';
 
-export function createCatalog({ state: layerState, services, parts, source }) {
+export function createCatalog({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function _abortActiveUpdates() {
     for (const controller of layerState._activeUpdateControllers)
       controller.abort();
@@ -57,15 +64,20 @@ export function createCatalog({ state: layerState, services, parts, source }) {
    * frame; a token guards against mode flips / catalog rebuilds mid-load.
    */
 
-  async function _loadDenseCatalog({ signal = null } = {}) {
+  async function _loadDenseCatalog({
+    signal = null
+  } = {}) {
     if (!layerState._viewer || !layerState._pointCollection)
-      return { status: 'source-unavailable', reason: 'layer-unavailable' };
+      return {
+        status: 'source-unavailable',
+        reason: 'layer-unavailable'
+      };
     layerState._denseLoadController?.abort();
     const resourceController = new AbortController();
     layerState._denseLoadController = resourceController;
-    const loadSignal = signal
-      ? AbortSignal.any([signal, resourceController.signal])
-      : resourceController.signal;
+    const loadSignal = signal ?
+      AbortSignal.any([signal, resourceController.signal]) :
+      resourceController.signal;
     const token = ++layerState._denseLoadToken;
     layerState._denseStatus = 'loading';
     layerState._denseError = null;
@@ -91,7 +103,10 @@ export function createCatalog({ state: layerState, services, parts, source }) {
         token !== layerState._denseLoadToken ||
         layerState._params.catalog !== 'dense'
       ) {
-        return { status: 'superseded', reason: 'dense-load-superseded' };
+        return {
+          status: 'superseded',
+          reason: 'dense-load-superseded'
+        };
       }
 
       const entries = parts.orbits.parseTLE(text);
@@ -106,7 +121,10 @@ export function createCatalog({ state: layerState, services, parts, source }) {
           layerState._params.catalog !== 'dense' ||
           !layerState._pointCollection
         ) {
-          return { status: 'superseded', reason: 'dense-load-superseded' };
+          return {
+            status: 'superseded',
+            reason: 'dense-load-superseded'
+          };
         }
         const end = Math.min(start + DENSE_CREATE_CHUNK, entries.length);
         for (let i = start; i < end; i++) {
@@ -170,7 +188,10 @@ export function createCatalog({ state: layerState, services, parts, source }) {
       // next natural refresh — up to the 5-minute catalog interval.
       parts.controls._notifyRowControls();
       parts.tracking._applyPendingTrackingRestore();
-      return { status: 'ready', added };
+      return {
+        status: 'ready',
+        added
+      };
     } catch (e) {
       if (loadSignal.aborted || e?.name === 'AbortError') {
         return {
@@ -180,7 +201,10 @@ export function createCatalog({ state: layerState, services, parts, source }) {
       }
       console.warn('[Data:Satellites] Dense catalog load failed:', e);
       _denseLoadFailed(token, 'feed unreachable');
-      return { status: 'source-unavailable', reason: 'feed unreachable' };
+      return {
+        status: 'source-unavailable',
+        reason: 'feed unreachable'
+      };
     } finally {
       if (layerState._denseLoadController === resourceController)
         layerState._denseLoadController = null;
