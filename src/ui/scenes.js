@@ -1,1 +1,4 @@
-export { SceneControls } from './sceneControls.js';
+export {
+  SceneControls
+}
+from './sceneControls.js';
