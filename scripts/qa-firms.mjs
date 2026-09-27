@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-firms.mjs — headless proof for the LIVE NASA FIRMS fires layer.
  *
@@ -32,7 +33,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -63,14 +66,22 @@ const CHROME_EXECUTABLE_CANDIDATES = [
 
 function findChromeExecutable() {
   for (const candidate of CHROME_EXECUTABLE_CANDIDATES) {
-    try { if (fs.existsSync(candidate)) return candidate; } catch { /* ignore */ }
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      /* ignore */ }
   }
   return null;
 }
 
 const results = [];
+
 function record(name, ok, detail) {
-  results.push({ name, ok, detail });
+  results.push({
+    name,
+    ok,
+    detail
+  });
   const tag = ok === null ? '\x1b[33mINCONCLUSIVE\x1b[0m' : ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  [${tag}] ${name}${detail ? `  — ${detail}` : ''}`);
 }
@@ -84,22 +95,35 @@ async function cardCanvasInk(page) {
     const painted = diagnostics?.paintedBySource?.firms || 0;
     const entries = diagnostics?.entriesBySource?.firms || 0;
     if (!canvas) return {
-      present: false, ink: 0, painted, entries,
+      present: false,
+      ink: 0,
+      painted,
+      entries,
       candidates: diagnostics?.candidateCount || 0,
       projected: diagnostics?.projectedCount || 0,
     };
     const ctx = canvas.getContext('2d');
-    const { width, height } = canvas;
+    const {
+      width,
+      height
+    } = canvas;
     if (!width || !height) return {
-      present: true, ink: 0, painted, entries,
+      present: true,
+      ink: 0,
+      painted,
+      entries,
       candidates: diagnostics?.candidateCount || 0,
       projected: diagnostics?.projectedCount || 0,
     };
     const data = ctx.getImageData(0, 0, width, height).data;
     let ink = 0;
-    for (let i = 3; i < data.length; i += 4) if (data[i] > 8) ink++;
+    for (let i = 3; i < data.length; i += 4)
+      if (data[i] > 8) ink++;
     return {
-      present: true, ink, painted, entries,
+      present: true,
+      ink,
+      painted,
+      entries,
       candidates: diagnostics?.candidateCount || 0,
       projected: diagnostics?.projectedCount || 0,
     };
@@ -107,7 +131,9 @@ async function cardCanvasInk(page) {
 }
 
 /** Wait for two consecutive painted frames instead of sampling a render gap. */
-async function waitForCardCanvasInk(page, { timeoutMs = 12000 } = {}) {
+async function waitForCardCanvasInk(page, {
+  timeoutMs = 12000
+} = {}) {
   const deadline = Date.now() + timeoutMs;
   let consecutive = 0;
   let sample = null;
@@ -123,7 +149,12 @@ async function waitForCardCanvasInk(page, { timeoutMs = 12000 } = {}) {
     }
   }
   return sample || {
-    present: false, ink: 0, painted: 0, entries: 0, candidates: 0, projected: 0,
+    present: false,
+    ink: 0,
+    painted: 0,
+    entries: 0,
+    candidates: 0,
+    projected: 0,
   };
 }
 
@@ -142,7 +173,9 @@ async function firmsActionSnapshot(page) {
 }
 
 /** Wait until the accessible mirror reflects the requested FIRMS action count. */
-async function waitForFirmsActionCount(page, expected, { timeoutMs = 12000 } = {}) {
+async function waitForFirmsActionCount(page, expected, {
+  timeoutMs = 12000
+} = {}) {
   const deadline = Date.now() + timeoutMs;
   let snapshot = await firmsActionSnapshot(page);
   while (Date.now() < deadline && snapshot.count !== expected) {
@@ -154,11 +187,17 @@ async function waitForFirmsActionCount(page, expected, { timeoutMs = 12000 } = {
 }
 
 /** Boot the app and enable the fires layer, polling until settled. */
-async function bootAndEnable(page, { timeoutS = 45 } = {}) {
-  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+async function bootAndEnable(page, {
+  timeoutS = 45
+} = {}) {
+  await page.goto(APP_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000
+  });
   await page.waitForFunction(
-    () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-    { timeout: 60000 },
+    () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+      timeout: 60000
+    },
   );
   await sleep(5000);
   await page.keyboard.press('Escape');
@@ -183,10 +222,21 @@ async function setView(page, lon, lat, height) {
     const ell = gev.viewer.scene.globe.ellipsoid;
     const d2r = Math.PI / 180;
     // The app's intro flyTo animation clobbers a setView issued mid-flight.
-    try { gev.viewer.camera.cancelFlight(); } catch { /* no flight active */ }
+    try {
+      gev.viewer.camera.cancelFlight();
+    } catch {
+      /* no flight active */ }
     gev.viewer.camera.setView({
-      destination: ell.cartographicToCartesian({ longitude: lo * d2r, latitude: la * d2r, height: h }),
-      orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+      destination: ell.cartographicToCartesian({
+        longitude: lo * d2r,
+        latitude: la * d2r,
+        height: h
+      }),
+      orientation: {
+        heading: 0,
+        pitch: -Math.PI / 2,
+        roll: 0
+      },
     });
     gev.viewer.scene.requestRender?.();
   }, lon, lat, height);
@@ -199,14 +249,27 @@ function stalePayload() {
   const acqDate = acq.toISOString().slice(0, 10);
   const acqTime = `${String(acq.getUTCHours()).padStart(2, '0')}${String(acq.getUTCMinutes()).padStart(2, '0')}`;
   const mk = (lat, lon, frp, confidence) => ({
-    lat, lon, frp, confidence, brightness: 330, brightnessTi5: 290,
-    daynight: 'N', acqDate, acqTime, satellite: 'N20', instrument: 'VIIRS',
+    lat,
+    lon,
+    frp,
+    confidence,
+    brightness: 330,
+    brightnessTi5: 290,
+    daynight: 'N',
+    acqDate,
+    acqTime,
+    satellite: 'N20',
+    instrument: 'VIIRS',
   });
   return {
     fetchedAt: now - 2 * 3600000,
     stale: true,
     ttlMs: 1800000,
-    sources: [{ source: 'VIIRS_NOAA20_NRT', count: 3, ok: false }],
+    sources: [{
+      source: 'VIIRS_NOAA20_NRT',
+      count: 3,
+      ok: false
+    }],
     count: 3,
     fires: [mk(61.9, -122.9, 900, 'h'), mk(61.95, -122.8, 45, 'n'), mk(61.85, -123.0, 4, 'l')],
   };
@@ -215,13 +278,21 @@ function stalePayload() {
 /** Deterministic high-density source records for refactoring without a server key. */
 function freshFixturePayload() {
   const template = stalePayload();
-  const fires = Array.from({ length: 1600 }, (_, i) => ({
+  const fires = Array.from({
+    length: 1600
+  }, (_, i) => ({
     ...template.fires[i % template.fires.length],
     lat: 30.1 + (i % 40) * 0.008,
     lon: -97.9 + Math.floor(i / 40) * 0.008,
     frp: 5 + (i % 137),
   }));
-  return { ...template, fetchedAt: Date.now(), stale: false, count: fires.length, fires };
+  return {
+    ...template,
+    fetchedAt: Date.now(),
+    stale: false,
+    count: fires.length,
+    fires
+  };
 }
 
 async function main() {
@@ -242,10 +313,14 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  fs.mkdirSync(SHOTS_DIR, {
+    recursive: true
+  });
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(findChromeExecutable() ? { executablePath: findChromeExecutable() } : {}),
+    ...(findChromeExecutable() ? {
+      executablePath: findChromeExecutable()
+    } : {}),
     args: [
       '--no-sandbox', '--disable-setuid-sandbox', '--use-gl=angle', '--use-angle=swiftshader',
       '--disable-dev-shm-usage', '--disable-web-security',
@@ -257,32 +332,61 @@ async function main() {
   let exitCode = 0;
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1440, height: 900 });
+    await page.setViewport({
+      width: 1440,
+      height: 900
+    });
 
     await page.setRequestInterception(true);
     let interceptMode = FIXTURES ? 'fixture' : 'live';
     const stableStalePayload = stalePayload();
     page.on('request', (req) => {
       const url = req.url();
-      if (interceptMode === 'live') { req.continue(); return; }
+      if (interceptMode === 'live') {
+        req.continue();
+        return;
+      }
       if (url.includes('/api/firms/status')) {
         req.respond({
-          status: 200, contentType: 'application/json',
-          body: JSON.stringify(interceptMode === 'keyless'
-            ? { hasKey: false }
-            : { hasKey: true, lastFetch: Date.now() - 7200000, count: 3, stale: true, ttlMs: 1800000, transactions: null }),
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(interceptMode === 'keyless' ?
+            {
+              hasKey: false
+            } :
+            {
+              hasKey: true,
+              lastFetch: Date.now() - 7200000,
+              count: 3,
+              stale: true,
+              ttlMs: 1800000,
+              transactions: null
+            }),
         });
         return;
       }
       if (url.includes('/api/firms')) {
         if (interceptMode === 'keyless') {
-          req.respond({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'no_key' }) });
+          req.respond({
+            status: 503,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              error: 'no_key'
+            })
+          });
         } else {
-          req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(interceptMode === 'fixture' ? freshFixturePayload() : stableStalePayload) });
+          req.respond({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(interceptMode === 'fixture' ? freshFixturePayload() : stableStalePayload)
+          });
         }
         return;
       }
-      try { req.continue(); } catch { /* already handled */ }
+      try {
+        req.continue();
+      } catch {
+        /* already handled */ }
     });
 
     // ── (i) LIVE feed ────────────────────────────────────────────────────────
@@ -313,10 +417,12 @@ async function main() {
         const det = await waitForCardCanvasInk(page);
         record('CARDS: detections-LOD cards drawn (host source + canvas ink)',
           det.present && det.painted > 0 && det.ink > 500,
-          `entries=${det.entries} candidates=${det.candidates} projected=${det.projected} `
-          + `painted=${det.painted} inkPx=${det.ink} @ strongest fire FRP ${strongest.frp}`);
+          `entries=${det.entries} candidates=${det.candidates} projected=${det.projected} ` +
+          `painted=${det.painted} inkPx=${det.ink} @ strongest fire FRP ${strongest.frp}`);
         if (!(det.present && det.painted > 0 && det.ink > 500)) exitCode = 1;
-        await page.screenshot({ path: path.join(SHOTS_DIR, 'firms-cards-detections.png') });
+        await page.screenshot({
+          path: path.join(SHOTS_DIR, 'firms-cards-detections.png')
+        });
 
         // Global LOD band starts at 9,000 km; its labelDistance is 12,000 km
         // (cards fade to zero beyond it, matching the legacy labels) — so the
@@ -328,14 +434,16 @@ async function main() {
         const cells = await waitForCardCanvasInk(page);
         record('CARDS: global-LOD cell cards drawn (host source + canvas ink)',
           cells.present && cells.painted > 0 && cells.ink > 500,
-          `entries=${cells.entries} candidates=${cells.candidates} projected=${cells.projected} `
-          + `painted=${cells.painted} inkPx=${cells.ink}`);
+          `entries=${cells.entries} candidates=${cells.candidates} projected=${cells.projected} ` +
+          `painted=${cells.painted} inkPx=${cells.ink}`);
         if (!(cells.present && cells.painted > 0 && cells.ink > 500)) exitCode = 1;
         record('CARDS: aggregate cells expose no FIRMS action target',
           aggregateActions.count === 0,
           `actionButtons=${aggregateActions.count}`);
         if (aggregateActions.count !== 0) exitCode = 1;
-        await page.screenshot({ path: path.join(SHOTS_DIR, 'firms-global-cells.png') });
+        await page.screenshot({
+          path: path.join(SHOTS_DIR, 'firms-global-cells.png')
+        });
       }
     }
 
@@ -343,27 +451,35 @@ async function main() {
     console.log('\n(iii) KEYLESS — intercepted 503 no_key...');
     interceptMode = 'keyless';
 
-    const keyless = await bootAndEnable(page, { timeoutS: 20 });
+    const keyless = await bootAndEnable(page, {
+      timeoutS: 20
+    });
     {
       const ok = keyless.error === 'KEY REQUIRED' && keyless.count === 0;
       record('KEYLESS: error "KEY REQUIRED", zero fires, no crash', ok,
         `error=${JSON.stringify(keyless.error)} count=${keyless.count} label=${JSON.stringify(keyless.loadingLabel)}`);
       if (!ok) exitCode = 1;
-      await page.screenshot({ path: path.join(SHOTS_DIR, 'firms-keyless.png') });
+      await page.screenshot({
+        path: path.join(SHOTS_DIR, 'firms-keyless.png')
+      });
     }
 
     // ── (iv) STALE (intercepted) ─────────────────────────────────────────────
     console.log('\n(iv) STALE — intercepted stale:true payload...');
     interceptMode = 'stale';
-    const stale = await bootAndEnable(page, { timeoutS: 20 });
+    const stale = await bootAndEnable(page, {
+      timeoutS: 20
+    });
     {
-      const ok = stale.stale === true
-        && String(stale.error || '').startsWith('STALE')
-        && stale.count === 3;
+      const ok = stale.stale === true &&
+        String(stale.error || '').startsWith('STALE') &&
+        stale.count === 3;
       record('STALE: stats.stale, "STALE · cached" error, fires still render', ok,
         `stale=${stale.stale} error=${JSON.stringify(stale.error)} count=${stale.count}`);
       if (!ok) exitCode = 1;
-      await page.screenshot({ path: path.join(SHOTS_DIR, 'firms-stale.png') });
+      await page.screenshot({
+        path: path.join(SHOTS_DIR, 'firms-stale.png')
+      });
     }
 
     // ── (v) ACTION (deterministic intercepted detection) ────────────────────────
@@ -379,7 +495,9 @@ async function main() {
       const prepared = await page.evaluate(() => {
         const gev = window.__godsEyeView;
         const mod = gev.dataManager.layers.get('local-firms').module;
-        const target = mod.getDetectableObjects({ maxCount: 1 })[0];
+        const target = mod.getDetectableObjects({
+          maxCount: 1
+        })[0];
         if (!target?.position) return null;
 
         const sentinel = gev.viewer.entities.add({
@@ -411,7 +529,9 @@ async function main() {
           return originalFly.apply(this, args);
         };
         window.__qaFirmsActionProof = proof;
-        return { generationBefore: proof.generationBefore };
+        return {
+          generationBefore: proof.generationBefore
+        };
       });
 
       if (!prepared) {
@@ -465,41 +585,49 @@ async function main() {
           return result;
         });
 
-        const actionOk = clicked
-          && proof.flightCount === 1
-          && proof.trackedAtFlight == null
-          && proof.trackingReleased
-          && proof.generationAfter === proof.generationBefore + 1
-          && proof.request?.kind === 'fire'
-          && proof.request?.id === proof.selectedEntityId
-          && proof.selectedActionCount === 1;
+        const actionOk = clicked &&
+          proof.flightCount === 1 &&
+          proof.trackedAtFlight == null &&
+          proof.trackingReleased &&
+          proof.generationAfter === proof.generationBefore + 1 &&
+          proof.request?.kind === 'fire' &&
+          proof.request?.id === proof.selectedEntityId &&
+          proof.selectedActionCount === 1;
         record('ACTION (synthetic): stable fire selects once and shared policy owns flight', actionOk,
-          `clicked=${clicked} flights=${proof.flightCount} trackedAtFlight=${JSON.stringify(proof.trackedAtFlight)} `
-          + `generation=${proof.generationBefore}->${proof.generationAfter} `
-          + `request=${JSON.stringify(proof.request)} selected=${JSON.stringify(proof.selectedEntityId)} `
-          + `selectedActions=${proof.selectedActionCount}`);
+          `clicked=${clicked} flights=${proof.flightCount} trackedAtFlight=${JSON.stringify(proof.trackedAtFlight)} ` +
+          `generation=${proof.generationBefore}->${proof.generationAfter} ` +
+          `request=${JSON.stringify(proof.request)} selected=${JSON.stringify(proof.selectedEntityId)} ` +
+          `selectedActions=${proof.selectedActionCount}`);
         if (!actionOk) exitCode = 1;
         const refresh = await page.evaluate(async () => {
           const layer = window.__godsEyeView.dataManager.layers.get('local-firms').module;
           const before = layer.getSelectedInfo();
           let selections = 0;
-          const count = () => { selections += 1; };
+          const count = () => {
+            selections += 1;
+          };
           window.addEventListener('gev:entity-selected', count);
           try {
             await layer.update();
-            return { before, after: layer.getSelectedInfo(), selections,
-              contextId: window.__gevContextStore.selectedEntityId };
+            return {
+              before,
+              after: layer.getSelectedInfo(),
+              selections,
+              contextId: window.__gevContextStore.selectedEntityId
+            };
           } finally {
             window.removeEventListener('gev:entity-selected', count);
           }
         });
-        const refreshOk = Boolean(refresh.before?.id)
-          && refresh.after?.id === refresh.before.id
-          && refresh.contextId === refresh.before.id && refresh.selections === 0;
+        const refreshOk = Boolean(refresh.before?.id) &&
+          refresh.after?.id === refresh.before.id &&
+          refresh.contextId === refresh.before.id && refresh.selections === 0;
         record('REFRESH: selected detection survives without another selection event', refreshOk,
           JSON.stringify(refresh));
         if (!refreshOk) exitCode = 1;
-        await page.screenshot({ path: path.join(SHOTS_DIR, 'firms-synthetic-fire-action.png') });
+        await page.screenshot({
+          path: path.join(SHOTS_DIR, 'firms-synthetic-fire-action.png')
+        });
       }
     }
   } catch (e) {
@@ -518,4 +646,7 @@ async function main() {
   process.exit(exitCode || (fail > 0 ? 1 : 0));
 }
 
-main().catch((e) => { console.error(e); process.exit(3); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(3);
+});
