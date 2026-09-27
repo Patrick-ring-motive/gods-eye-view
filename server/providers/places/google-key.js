@@ -1,4 +1,6 @@
-import { resolveGoogleServerKey } from '../../../scripts/google-server-key.mjs';
+import {
+  resolveGoogleServerKey
+} from '../../../scripts/google-server-key.mjs';
 
 /**
  * Optional Google place context is an empty capability when no key is present,
@@ -9,7 +11,11 @@ export function keylessGooglePlacesResponse(apiKey) {
   if (String(apiKey ?? '').trim()) return null;
   return {
     statusCode: 200,
-    payload: { configured: false, error: null, places: [] },
+    payload: {
+      configured: false,
+      error: null,
+      places: []
+    },
   };
 }
 
