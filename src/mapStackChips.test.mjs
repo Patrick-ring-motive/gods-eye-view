@@ -1,5 +1,9 @@
-import { expandApplicationHtml } from '../build/application-html.js';
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
 // MAP STACK chip row — the dropdown's replacement control surface.
 //
 // The owner's complaint was two clicks (open panel → open dropdown) to change
@@ -8,9 +12,13 @@ import { readStylesheet } from './testSupport/readStylesheet.mjs';
 // stack data, a click dispatches the same selection the `change` handler used
 // to, and the lit chip tracks controller state rather than the click. Run with:
 // npm test
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import {
   MAP_STACK_CHIP_CLASS,
   PRESENTED_MAP_STACK_IDS,
@@ -75,15 +83,16 @@ function makeElement(tagName = 'div') {
   return element;
 }
 
-const doc = { createElement: (tagName) => makeElement(tagName) };
+const doc = {
+  createElement: (tagName) => makeElement(tagName)
+};
 
 /** Text a chip renders, label + optional requirement badge. */
 const chipText = (chip) =>
   chip.children.map((child) => child.textContent).join(' ');
 
 // Shaped exactly like MapStackController.getStacks() output.
-const CONTROLLER_STACKS = [
-  {
+const CONTROLLER_STACKS = [{
     id: 'photoreal',
     label: 'Google 3D',
     requiresIon: false,
@@ -163,9 +172,16 @@ test('internal and future stacks stay outside the approved presentation set', ()
   // until the owner-approved presentation allowlist explicitly includes it.
   const withHybrid = [
     ...CONTROLLER_STACKS,
-    { id: 'hybrid', label: 'Hybrid', available: true },
+    {
+      id: 'hybrid',
+      label: 'Hybrid',
+      available: true
+    },
   ];
-  renderMapStackChips(container, withHybrid, { activeId: 'photoreal', doc });
+  renderMapStackChips(container, withHybrid, {
+    activeId: 'photoreal',
+    doc
+  });
 
   assert.equal(container.children.length, 5);
   assert.doesNotMatch(container.children.map(chipText).join(' '), /Hybrid/);
@@ -177,7 +193,10 @@ test('re-rendering replaces the previous chips instead of stacking a second row'
     activeId: 'photoreal',
     doc,
   });
-  renderMapStackChips(container, CONTROLLER_STACKS, { activeId: 'osm', doc });
+  renderMapStackChips(container, CONTROLLER_STACKS, {
+    activeId: 'osm',
+    doc
+  });
 
   assert.equal(container.children.length, PRESENTED_MAP_STACK_IDS.length);
 });
@@ -214,8 +233,8 @@ test('the active chip is the pressed chip, and exactly one is pressed', () => {
   assert.ok(pressed[0].classList.contains('active'));
   assert.ok(
     container.children
-      .filter((chip) => chip.dataset.stackId !== 'bing-labels')
-      .every((chip) => !chip.classList.contains('active')),
+    .filter((chip) => chip.dataset.stackId !== 'bing-labels')
+    .every((chip) => !chip.classList.contains('active')),
   );
 });
 
@@ -242,14 +261,13 @@ test('the lit chip tracks controller state, not the click', () => {
 test('keyless ion stacks stay focusable, aria-disabled, and say why', () => {
   const container = makeElement();
   const keyless = CONTROLLER_STACKS.map((stack) =>
-    stack.requiresIon
-      ? {
-          ...stack,
-          available: false,
-          unavailableReason:
-            'Needs CESIUM_ION_TOKEN — add it in Provider Settings',
-        }
-      : stack,
+    stack.requiresIon ?
+    {
+      ...stack,
+      available: false,
+      unavailableReason: 'Needs CESIUM_ION_TOKEN — add it in Provider Settings',
+    } :
+    stack,
   );
   const selected = [];
   renderMapStackChips(container, keyless, {
@@ -295,16 +313,18 @@ test('a non-ion stack that fails never claims an ion token is required', () => {
   // photoreal is unavailable for a reason that has nothing to do with ion.
   const container = makeElement();
   const tilesFailed = CONTROLLER_STACKS.map((stack) =>
-    stack.id === 'photoreal'
-      ? {
-          ...stack,
-          available: false,
-          unavailableReason:
-            'Needs GOOGLE_MAPS_API_KEY — add it in Provider Settings',
-        }
-      : stack,
+    stack.id === 'photoreal' ?
+    {
+      ...stack,
+      available: false,
+      unavailableReason: 'Needs GOOGLE_MAPS_API_KEY — add it in Provider Settings',
+    } :
+    stack,
   );
-  renderMapStackChips(container, tilesFailed, { activeId: 'osm', doc });
+  renderMapStackChips(container, tilesFailed, {
+    activeId: 'osm',
+    doc
+  });
 
   const google = container.children[0];
   assert.equal(google.getAttribute('aria-disabled'), 'true');
@@ -329,24 +349,24 @@ test('a non-ion stack that fails never claims an ion token is required', () => {
 });
 
 test("models carry the stack's own reason and never invent an active chip", () => {
-  assert.deepEqual(mapStackChipModels([{ id: 'osm', label: 'OSM' }], null), [
-    {
-      id: 'osm',
-      label: 'OSM',
-      available: true,
-      active: false,
-      requiresIon: false,
-      requirement: '',
-      unavailableHint: '',
-      title: 'OSM',
-    },
-  ]);
+  assert.deepEqual(mapStackChipModels([{
+    id: 'osm',
+    label: 'OSM'
+  }], null), [{
+    id: 'osm',
+    label: 'OSM',
+    available: true,
+    active: false,
+    requiresIon: false,
+    requirement: '',
+    unavailableHint: '',
+    title: 'OSM',
+  }, ]);
 
   // A stack list without a controller-supplied reason still explains itself.
   assert.deepEqual(
     [
-      mapStackChipModel(
-        {
+      mapStackChipModel({
           id: 'bing-aerial',
           label: 'Bing Aerial',
           requiresIon: true,
@@ -354,17 +374,23 @@ test("models carry the stack's own reason and never invent an active chip", () =
         },
         null,
       ),
-      mapStackChipModel(
-        { id: 'hybrid', label: 'Hybrid', available: false },
+      mapStackChipModel({
+          id: 'hybrid',
+          label: 'Hybrid',
+          available: false
+        },
         null,
       ),
-    ].map(({ requirement, unavailableHint, title }) => ({
+    ].map(({
+      requirement,
+      unavailableHint,
+      title
+    }) => ({
       requirement,
       unavailableHint,
       title,
     })),
-    [
-      {
+    [{
         requirement: 'ION',
         unavailableHint: 'Needs CESIUM_ION_TOKEN — add it in Provider Settings',
         title: 'Needs CESIUM_ION_TOKEN — add it in Provider Settings',
@@ -381,9 +407,13 @@ test("models carry the stack's own reason and never invent an active chip", () =
 });
 
 test('a missing row or document is inert rather than throwing during boot', () => {
-  assert.deepEqual(renderMapStackChips(null, CONTROLLER_STACKS, { doc }), []);
+  assert.deepEqual(renderMapStackChips(null, CONTROLLER_STACKS, {
+    doc
+  }), []);
   assert.deepEqual(
-    renderMapStackChips(makeElement(), CONTROLLER_STACKS, { doc: {} }),
+    renderMapStackChips(makeElement(), CONTROLLER_STACKS, {
+      doc: {}
+    }),
     [],
   );
   assert.doesNotThrow(() => syncMapStackChips(null, 'osm'));
@@ -428,10 +458,13 @@ test('the keyboard focus ring survives on the ACTIVE chip', () => {
   assert.ok(chipRules.length >= 5, 'expected the chip state rules to be found');
 
   const ringIndex = chipRules.findIndex(
-    ({ selector, body }) =>
-      selector.includes(':focus-visible') &&
-      /outline:\s*(?!none)\S/.test(body) &&
-      /outline-offset:/.test(body),
+    ({
+      selector,
+      body
+    }) =>
+    selector.includes(':focus-visible') &&
+    /outline:\s*(?!none)\S/.test(body) &&
+    /outline-offset:/.test(body),
   );
   assert.ok(
     ringIndex >= 0,
@@ -448,9 +481,9 @@ test('the keyboard focus ring survives on the ACTIVE chip', () => {
     );
   }
   for (const selector of [
-    '.map-stack-chip.active',
-    '.map-stack-chip.unavailable',
-  ]) {
+      '.map-stack-chip.active',
+      '.map-stack-chip.unavailable',
+    ]) {
     assert.ok(
       chipRules.some((rule) => rule.selector.includes(selector)),
       `expected a ${selector} rule to exist for this check to mean anything`,
