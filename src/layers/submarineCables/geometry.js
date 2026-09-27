@@ -14,7 +14,10 @@ export function featureReference(feature) {
   if (geometry.type === 'Point') {
     const coords = coordsFromPoint(geometry.coordinates);
     if (!coords) return null;
-    return { lon: coords[0], lat: coords[1] };
+    return {
+      lon: coords[0],
+      lat: coords[1]
+    };
   }
 
   const coords = [];
