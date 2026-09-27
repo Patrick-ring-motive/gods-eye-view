@@ -1,8 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
-import { WebSocketServer } from 'ws';
-import { setTimeout as delay } from 'node:timers/promises';
+import {
+  once
+} from 'node:events';
+import {
+  WebSocketServer
+} from 'ws';
+import {
+  setTimeout as delay
+} from 'node:timers/promises';
 import * as providers from '../../server/providers/live.js';
 import * as portable from '../../src/data/adsbLolFallback.js';
 
@@ -32,7 +38,10 @@ function install(plugin, preview = false) {
         this.body = body;
       },
     };
-    await routes.get(route)({ url, method }, response);
+    await routes.get(route)({
+      url,
+      method
+    }, response);
     return response;
   };
 }
@@ -73,21 +82,37 @@ test('OpenSky state and track routes share tokens, retain cache and use regional
   t.mock.method(console, 'log', () => {});
   const calls = [];
   t.mock.method(globalThis, 'fetch', async (url, options) => {
-    calls.push({ url, options });
+    calls.push({
+      url,
+      options
+    });
     if (url.includes('/token'))
-      return Response.json({ access_token: 'fixture-token', expires_in: 1800 });
+      return Response.json({
+        access_token: 'fixture-token',
+        expires_in: 1800
+      });
     if (url.includes('/states/')) {
       assert.equal(options.headers.Authorization, 'Bearer fixture-token');
-      return Response.json({ time: Math.floor(now / 1000), states: [] });
+      return Response.json({
+        time: Math.floor(now / 1000),
+        states: []
+      });
     }
     if (url.includes('/tracks/')) {
       assert.equal(options.headers.Authorization, 'Bearer fixture-token');
-      return Response.json({ path: [] });
+      return Response.json({
+        path: []
+      });
     }
     if (url.includes('/lat/'))
       return Response.json({
         now: now / 1000,
-        ac: [{ hex: 'abc123', lat: 30, lon: -97, alt_baro: 10000 }],
+        ac: [{
+          hex: 'abc123',
+          lat: 30,
+          lon: -97,
+          alt_baro: 10000
+        }],
       });
     throw Error(`Unexpected URL: ${url}`);
   });
@@ -117,11 +142,18 @@ test('OpenSky state and track routes share tokens, retain cache and use regional
   );
   now += 130_000;
   t.mock.method(globalThis, 'fetch', async (url) => {
-    if (url.includes('/states/')) return new Response('', { status: 503 });
+    if (url.includes('/states/')) return new Response('', {
+      status: 503
+    });
     if (url.includes('/lat/'))
       return Response.json({
         now: now / 1000,
-        ac: [{ hex: 'abc123', lat: 30, lon: -97, alt_baro: 10000 }],
+        ac: [{
+          hex: 'abc123',
+          lat: 30,
+          lon: -97,
+          alt_baro: 10000
+        }],
       });
     throw Error(`Unexpected URL: ${url}`);
   });
@@ -146,7 +178,11 @@ test('military aircraft route preserves fresh cache and stale response after ups
   t.mock.method(console, 'error', () => {});
   t.mock.method(globalThis, 'fetch', async () => {
     if (++calls > 1) throw Error('offline');
-    return Response.json({ ac: [{ hex: 'abc123' }] });
+    return Response.json({
+      ac: [{
+        hex: 'abc123'
+      }]
+    });
   });
   const request = install(providers.adsbLolProxy());
   const first = await request('/api/adsblol/mil');
@@ -158,7 +194,10 @@ test('military aircraft route preserves fresh cache and stale response after ups
 });
 
 test('AIS preview route ingests through the socket, returns tracks and disposes before restart', async (t) => {
-  const upstream = new WebSocketServer({ host: '127.0.0.1', port: 0 });
+  const upstream = new WebSocketServer({
+    host: '127.0.0.1',
+    port: 0
+  });
   await once(upstream, 'listening');
   const sockets = [];
   t.after(async () => {
@@ -177,9 +216,9 @@ test('AIS preview route ingests through the socket, returns tracks and disposes 
     socket.on('message', (raw) => {
       assert.equal(JSON.parse(raw).APIKey, 'fixture-key');
       for (const [lat, epoch] of [
-        [30, Math.floor(Date.now() / 1000) - 120],
-        [30.01, Math.floor(Date.now() / 1000) - 60],
-      ]) {
+          [30, Math.floor(Date.now() / 1000) - 120],
+          [30.01, Math.floor(Date.now() / 1000) - 60],
+        ]) {
         socket.send(
           JSON.stringify({
             MessageType: 'PositionReport',
@@ -238,10 +277,18 @@ test('military aircraft route serves stale cache on an upstream 429 and cools do
   t.mock.method(console, 'warn', () => {});
   t.mock.method(globalThis, 'fetch', async () => {
     calls += 1;
-    if (calls === 1) return Response.json({ ac: [{ hex: 'abc123' }] });
-    return new Response(JSON.stringify({ error: 'rate limited' }), {
+    if (calls === 1) return Response.json({
+      ac: [{
+        hex: 'abc123'
+      }]
+    });
+    return new Response(JSON.stringify({
+      error: 'rate limited'
+    }), {
       status: 429,
-      headers: { 'Retry-After': '20' },
+      headers: {
+        'Retry-After': '20'
+      },
     });
   });
   const request = install(providers.adsbLolProxy());
@@ -274,7 +321,9 @@ test('military aircraft route relays an upstream 429 when nothing is cached', as
   let calls = 0;
   t.mock.method(globalThis, 'fetch', async () => {
     calls += 1;
-    return new Response('{"error":"rate limited"}', { status: 429 });
+    return new Response('{"error":"rate limited"}', {
+      status: 429
+    });
   });
   const request = install(providers.adsbLolProxy());
   const limited = await request('/api/adsblol/mil');
@@ -300,17 +349,20 @@ test('military fallback cancels a stalled 5xx body and starts cooldown at receip
   t.mock.method(Date, 'now', () => now);
   t.mock.method(console, 'warn', () => {});
   t.mock.method(globalThis, 'fetch', async () => {
-    if (++calls === 1) return Response.json({ ac: [] });
+    if (++calls === 1) return Response.json({
+      ac: []
+    });
     now += 10000;
     return new Response(
       new ReadableStream({
         cancel() {
           cancelled = true;
         },
-      }),
-      {
+      }), {
         status: 503,
-        headers: { 'Retry-After': new Date(now + 20000).toUTCString() },
+        headers: {
+          'Retry-After': new Date(now + 20000).toUTCString()
+        },
       },
     );
   });
@@ -336,17 +388,19 @@ test('military fallback cancels a stalled 5xx body and starts cooldown at receip
 test('military cooldown bounds untrusted Retry-After and defaults server errors', async (t) => {
   t.mock.method(console, 'warn', () => {});
   for (const [status, raw, seconds] of [
-    [429, '1', 5],
-    [429, '99999', 120],
-    [503, 'invalid', 15],
-  ]) {
+      [429, '1', 5],
+      [429, '99999', 120],
+      [503, 'invalid', 15],
+    ]) {
     t.mock.method(
       globalThis,
       'fetch',
       async () =>
         new Response('{}', {
           status,
-          headers: { 'Retry-After': raw },
+          headers: {
+            'Retry-After': raw
+          },
         }),
     );
     const result = await install(providers.adsbLolProxy())('/api/adsblol/mil');
