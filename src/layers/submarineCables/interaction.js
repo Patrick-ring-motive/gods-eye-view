@@ -1,6 +1,9 @@
 import * as Cesium from 'cesium';
 
-export function createInteraction({ state, screenSpaceEventHandlerFactory }) {
+export function createInteraction({
+  state,
+  screenSpaceEventHandlerFactory
+}) {
   function registerPickEntity(entity, info) {
     entity.__gevTeleGeography = info;
     state._pickByEntity.set(entity, info);
