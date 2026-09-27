@@ -196,16 +196,14 @@ export function createControls({
         autoHop: layerState._autoHop,
         autoHopSec: layerState._autoHopSec,
         selectedCameraId: active?.camera.id || null,
-        calibration: active?.camera ?
-          {
-            cameraId: active.camera.id,
-            values: {
-              ...parts.calibration.normalizeCalibration(
-                active.camera.calibration,
-              ),
-            },
-          } :
-          null,
+        calibration: active?.camera ? {
+          cameraId: active.camera.id,
+          values: {
+            ...parts.calibration.normalizeCalibration(
+              active.camera.calibration,
+            ),
+          },
+        } : null,
       };
     },
 
