@@ -1,6 +1,14 @@
-import { VOICE_RESTORE_DELAY_MS, VOICE_RESTORE_DURATION_MS } from './policy.js';
+import {
+  VOICE_RESTORE_DELAY_MS,
+  VOICE_RESTORE_DURATION_MS
+} from './policy.js';
 
-export function createVolume({ state: layerState, services, parts, source }) {
+export function createVolume({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function clampRadioVolume(value) {
     return Math.min(1, Math.max(0, Number(value) || 0));
   }
@@ -26,9 +34,9 @@ export function createVolume({ state: layerState, services, parts, source }) {
 
   function volumeClock() {
     return typeof performance !== 'undefined' &&
-      typeof performance.now === 'function'
-      ? performance.now()
-      : Date.now();
+      typeof performance.now === 'function' ?
+      performance.now() :
+      Date.now();
   }
 
   /** Set shared audio volume, clamped to [0, 1]. */
@@ -54,8 +62,7 @@ export function createVolume({ state: layerState, services, parts, source }) {
    */
 
   function setRadioVoiceDucking(
-    ducked,
-    {
+    ducked, {
       restoreDelayMs = VOICE_RESTORE_DELAY_MS,
       restoreDurationMs = VOICE_RESTORE_DURATION_MS,
     } = {},
@@ -115,9 +122,9 @@ export function createVolume({ state: layerState, services, parts, source }) {
         )
           return;
         const progress =
-          duration === 0
-            ? 1
-            : Math.min(1, Math.max(0, (now - startedAt) / duration));
+          duration === 0 ?
+          1 :
+          Math.min(1, Math.max(0, (now - startedAt) / duration));
         const eased = progress * progress * (3 - 2 * progress);
         layerState._audio.volume = clampRadioVolume(
           initialVolume + (layerState._userVolume - initialVolume) * eased,
