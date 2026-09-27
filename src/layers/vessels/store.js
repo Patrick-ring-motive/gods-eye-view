@@ -1,6 +1,11 @@
 import * as Cesium from 'cesium';
-import { PARTIAL_RETENTION_MS } from './policy.js';
-import { SELECTED_PIN_REFRESHES, VESSEL_LIFT_M } from './policy.js';
+import {
+  PARTIAL_RETENTION_MS
+} from './policy.js';
+import {
+  SELECTED_PIN_REFRESHES,
+  VESSEL_LIFT_M
+} from './policy.js';
 
 export function createStore({
   vesselState,
@@ -9,7 +14,9 @@ export function createStore({
   layer,
   options,
 }) {
-  const { state } = vesselState;
+  const {
+    state
+  } = vesselState;
 
   /**
    * Reconcile the incoming AIS rows against the MMSI-keyed record map.
@@ -22,7 +29,9 @@ export function createStore({
    * @param {Array<Object>} rows - Raw AIS rows from the live API.
    */
 
-  function reconcileVessels(viewer, rows, { complete = true } = {}) {
+  function reconcileVessels(viewer, rows, {
+    complete = true
+  } = {}) {
     const receivedAtMs = vesselState._aisRuntime.now();
     components.rendering.ensureCollections(viewer);
 
@@ -77,7 +86,9 @@ export function createStore({
           continue;
         }
         // Aged out of the feed after exhausting its pin — not a deselect.
-        components.selection.clearVesselInspection({ evicted: true });
+        components.selection.clearVesselInspection({
+          evicted: true
+        });
       }
       components.rendering.removeRecordPrimitives(record);
       state.vesselMap.delete(mmsi);
