@@ -1,6 +1,10 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { loadFintrafficSourcesFromOpenData } from '../../server/providers/cctv/sources.js';
+import {
+  loadFintrafficSourcesFromOpenData
+} from '../../server/providers/cctv/sources.js';
 import {
   fintrafficCameraName,
   isLikelyFinlandCoordinate,
@@ -13,8 +17,7 @@ import {
 
 /** One station feature in the shape tie.digitraffic.fi actually returns. */
 function station(
-  id,
-  {
+  id, {
     name = `vt4_${id}`,
     status = 'GATHERING',
     lon = 24.9384,
@@ -26,7 +29,10 @@ function station(
   return {
     type: 'Feature',
     id,
-    geometry: { type: 'Point', coordinates: [lon, lat, altitude] },
+    geometry: {
+      type: 'Point',
+      coordinates: [lon, lat, altitude]
+    },
     properties: {
       id,
       name,
@@ -39,7 +45,10 @@ function station(
 }
 
 /** Run the loader against a canned station list, restoring global fetch after. */
-async function loadWith(features, { env = {}, capture = {} } = {}) {
+async function loadWith(features, {
+  env = {},
+  capture = {}
+} = {}) {
   const originalFetch = globalThis.fetch;
   const originalEnv = {};
   for (const [key, value] of Object.entries(env)) {
@@ -55,10 +64,11 @@ async function loadWith(features, { env = {}, capture = {} } = {}) {
         type: 'FeatureCollection',
         dataUpdatedTime: '2026-09-13T05:31:58Z',
         features,
-      }),
-      {
+      }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
       },
     );
   };
@@ -79,9 +89,14 @@ test('Fintraffic loader turns every in-collection preset into one camera', async
       name: 'kt51_Inkoo',
       lon: 23.99616,
       lat: 60.05374,
-      presets: [
-        { id: 'C0150301', inCollection: true },
-        { id: 'C0150302', inCollection: true },
+      presets: [{
+          id: 'C0150301',
+          inCollection: true
+        },
+        {
+          id: 'C0150302',
+          inCollection: true
+        },
       ],
     }),
   ]);
@@ -108,7 +123,12 @@ test('Fintraffic loader turns every in-collection preset into one camera', async
 
 test('Fintraffic frame URLs are built on the official image origin', async () => {
   const cameras = await loadWith([
-    station('C01503', { presets: [{ id: 'C0150301', inCollection: true }] }),
+    station('C01503', {
+      presets: [{
+        id: 'C0150301',
+        inCollection: true
+      }]
+    }),
   ]);
 
   assert.equal(cameras[0].url, `${FINTRAFFIC_IMAGE_ORIGIN}C0150301.jpg`);
@@ -121,24 +141,43 @@ test('Fintraffic loader drops dead stations, uncollected presets and bad ids', a
     // Station off collection: every preset goes, live or not.
     station('C01601', {
       status: 'REMOVED_TEMPORARILY',
-      presets: [{ id: 'C0160101', inCollection: true }],
+      presets: [{
+        id: 'C0160101',
+        inCollection: true
+      }],
     }),
     station('C01503', {
-      presets: [
-        { id: 'C0150301', inCollection: true },
-        { id: 'C0150302', inCollection: false },
-        { id: 'C0150303' },
+      presets: [{
+          id: 'C0150301',
+          inCollection: true
+        },
+        {
+          id: 'C0150302',
+          inCollection: false
+        },
+        {
+          id: 'C0150303'
+        },
         // Ids that would escape the synthesized frame path, or belong to
         // another station, never become a camera.
-        { id: '../../etc/passwd', inCollection: true },
-        { id: 'C9999901', inCollection: true },
+        {
+          id: '../../etc/passwd',
+          inCollection: true
+        },
+        {
+          id: 'C9999901',
+          inCollection: true
+        },
       ],
     }),
     // Coordinates nowhere near Finland (swapped lat/lon).
     station('C01504', {
       lon: 60.1699,
       lat: 24.9384,
-      presets: [{ id: 'C0150401', inCollection: true }],
+      presets: [{
+        id: 'C0150401',
+        inCollection: true
+      }],
     }),
   ]);
 
@@ -152,15 +191,24 @@ test('Fintraffic ground elevation uses a reported altitude and falls back otherw
   const cameras = await loadWith([
     station('C08508', {
       altitude: 136,
-      presets: [{ id: 'C0850801', inCollection: true }],
+      presets: [{
+        id: 'C0850801',
+        inCollection: true
+      }],
     }),
     station('C01503', {
       altitude: 0,
-      presets: [{ id: 'C0150301', inCollection: true }],
+      presets: [{
+        id: 'C0150301',
+        inCollection: true
+      }],
     }),
     station('C03506', {
       altitude: 99_000,
-      presets: [{ id: 'C0350601', inCollection: true }],
+      presets: [{
+        id: 'C0350601',
+        inCollection: true
+      }],
     }),
   ]);
 
@@ -178,8 +226,14 @@ test('Fintraffic ground elevation uses a reported altitude and falls back otherw
 test('Fintraffic loader identifies itself to Digitraffic and refuses redirects', async () => {
   const capture = {};
   await loadWith(
-    [station('C01503', { presets: [{ id: 'C0150301', inCollection: true }] })],
-    { capture },
+    [station('C01503', {
+      presets: [{
+        id: 'C0150301',
+        inCollection: true
+      }]
+    })], {
+      capture
+    },
   );
 
   assert.equal(capture.url, FINTRAFFIC_STATIONS_URL);
@@ -192,7 +246,9 @@ test('Fintraffic loader identifies itself to Digitraffic and refuses redirects',
   globalThis.fetch = async () =>
     new Response(null, {
       status: 302,
-      headers: { Location: 'https://example.com/stations' },
+      headers: {
+        Location: 'https://example.com/stations'
+      },
     });
   try {
     assert.deepEqual(await loadFintrafficSourcesFromOpenData(), []);
@@ -202,12 +258,18 @@ test('Fintraffic loader identifies itself to Digitraffic and refuses redirects',
 });
 
 test('Fintraffic pack caps itself and fails to an empty list, never a throw', async () => {
-  const presets = Array.from({ length: 40 }, (_, index) => ({
+  const presets = Array.from({
+    length: 40
+  }, (_, index) => ({
     id: `C01503${String(index).padStart(2, '0')}`,
     inCollection: true,
   }));
-  const capped = await loadWith([station('C01503', { presets })], {
-    env: { CCTV_FINTRAFFIC_MAX_SOURCES: '8' },
+  const capped = await loadWith([station('C01503', {
+    presets
+  })], {
+    env: {
+      CCTV_FINTRAFFIC_MAX_SOURCES: '8'
+    },
   });
   assert.equal(capped.length, 8);
 
@@ -221,7 +283,9 @@ test('Fintraffic pack caps itself and fails to an empty list, never a throw', as
     globalThis.fetch = originalFetch;
   }
 
-  globalThis.fetch = async () => new Response('nope', { status: 503 });
+  globalThis.fetch = async () => new Response('nope', {
+    status: 503
+  });
   try {
     assert.deepEqual(await loadFintrafficSourcesFromOpenData(), []);
   } finally {
