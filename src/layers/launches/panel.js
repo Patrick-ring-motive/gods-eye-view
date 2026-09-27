@@ -234,8 +234,7 @@ export function createPanel({
           .filter(Boolean)
           .join(' · ');
         return `<tr><td>${escapeMissionText(payload.name)}${payload.amount > 1 ? ` ×${payload.amount}` : ''}${detail ? `<small>${escapeMissionText(detail)}</small>` : ''}</td><td>${escapeMissionText(payload.type || 'UNSPECIFIED')}</td><td>${escapeMissionText(payload.destination || launch.orbit?.name || 'UNAVAILABLE')}</td></tr>`;
-      }) :
-      [];
+      }) : [];
     if (launch.payloads.length > 5) {
       payloadRows.push(
         `<tr><td colspan="3" class="mission-table-empty">+${launch.payloads.length - 5} additional payload records</td></tr>`,
