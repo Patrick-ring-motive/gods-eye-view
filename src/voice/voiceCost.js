@@ -371,8 +371,7 @@ export function formatCostUsd(usd) {
  */
 export function createVoiceCostTracker(options = {}) {
   const model = options.modelId ?
-    resolveVoiceModelById(options.modelId) :
-    {
+    resolveVoiceModelById(options.modelId) : {
       ...resolveVoiceModel(options.tier),
       recognized: true
     };
@@ -416,8 +415,7 @@ export function createVoiceCostTracker(options = {}) {
     display: formatCostUsd(totalUsd) + (incomplete ? '*' : ''),
     /** Prose for the tooltip; null when the accounting is complete. */
     note: incomplete ?
-      'Estimate is incomplete — a response was still in flight when the session ended, so its usage was never reported.' :
-      null,
+      'Estimate is incomplete — a response was still in flight when the session ended, so its usage was never reported.' : null,
   });
 
   return {
