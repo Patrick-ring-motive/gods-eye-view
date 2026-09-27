@@ -1,5 +1,8 @@
 import * as Cesium from 'cesium';
-import { MISSION_GLOBE_VIEW_RANGE_M, MISSION_FOCUS_RANGE_M } from './policy.js';
+import {
+  MISSION_GLOBE_VIEW_RANGE_M,
+  MISSION_FOCUS_RANGE_M
+} from './policy.js';
 
 export function createSelection({
   state: layerState,
@@ -7,7 +10,9 @@ export function createSelection({
   parts,
   source,
 }) {
-  const { getKeyholeGeometry } = services.geometry;
+  const {
+    getKeyholeGeometry
+  } = services.geometry;
 
   function focusFullGlobe(viewer, duration = 2.4) {
     const canvas = viewer?.scene?.canvas;
@@ -76,9 +81,9 @@ export function createSelection({
     if (!layerState._dataSource) return;
     for (const entity of layerState._dataSource.entities.values) {
       const relatedId = entityLaunchId(entity);
-      entity.show = launchId
-        ? relatedId === launchId
-        : entity.id.startsWith('rocket-launch:');
+      entity.show = launchId ?
+        relatedId === launchId :
+        entity.id.startsWith('rocket-launch:');
     }
     parts.orbitRendering.syncMissionOrbitPrimitiveVisibility();
     parts.overlays.syncMissionOverlayEntries();
@@ -139,13 +144,13 @@ export function createSelection({
       const aspect = Math.max(
         0.1,
         (canvas.clientWidth || canvas.width) /
-          Math.max(1, canvas.clientHeight || canvas.height),
+        Math.max(1, canvas.clientHeight || canvas.height),
       );
       const fovx = 2 * Math.atan(Math.tan(fovy * 0.5) * aspect);
       const paddedHalfAngle = Math.min(fovy, fovx) * 0.5 * 0.62;
       const orbitExtent = orbitPositions.reduce(
         (largest, point) =>
-          Math.max(largest, Cesium.Cartesian3.distance(launchPosition, point)),
+        Math.max(largest, Cesium.Cartesian3.distance(launchPosition, point)),
         0,
       );
       range = Math.max(
@@ -189,7 +194,10 @@ export function createSelection({
     );
     layerState._viewer.camera.flyTo({
       destination,
-      orientation: { direction, up },
+      orientation: {
+        direction,
+        up
+      },
       duration: 1.1,
       complete: () => {
         if (layerState._selectedLaunchId === launch.id)
@@ -210,8 +218,7 @@ export function createSelection({
       `rocket-launch:${launch.id}`,
     );
     layerState._viewer.camera.flyToBoundingSphere(
-      new Cesium.BoundingSphere(launchPosition, 0),
-      {
+      new Cesium.BoundingSphere(launchPosition, 0), {
         offset: new Cesium.HeadingPitchRange(
           0,
           Cesium.Math.toRadians(-42),
