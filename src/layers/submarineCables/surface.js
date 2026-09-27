@@ -36,9 +36,9 @@ export function cableClassificationTypeForStack(activeId) {
 
 export function cableClassificationTypeForScene(scene) {
   if (!scene?.globe) return Cesium.ClassificationType.BOTH;
-  return scene.globe.show === false
-    ? Cesium.ClassificationType.CESIUM_3D_TILE
-    : Cesium.ClassificationType.TERRAIN;
+  return scene.globe.show === false ?
+    Cesium.ClassificationType.CESIUM_3D_TILE :
+    Cesium.ClassificationType.TERRAIN;
 }
 
 /**
@@ -52,11 +52,19 @@ export function cableClassificationTypeForScene(scene) {
 
 export function probeTranslucentMarkerBlend(dataSource) {
   const cluster = dataSource?.clustering;
-  if (!cluster) return { ready: [], pending: 0, invariantFailed: true };
+  if (!cluster) return {
+    ready: [],
+    pending: 0,
+    invariantFailed: true
+  };
   const ready = [];
   let pending = 0;
   let invariantFailed = false;
-  for (const { key, type } of MARKER_COLLECTION_EXPECTATIONS) {
+  for (const {
+      key,
+      type
+    }
+    of MARKER_COLLECTION_EXPECTATIONS) {
     if (!(key in cluster)) {
       invariantFailed = true;
       continue;
@@ -73,8 +81,16 @@ export function probeTranslucentMarkerBlend(dataSource) {
     ready.push(collection);
   }
   // Any failure discards every collected target: nothing is mutated at all.
-  if (invariantFailed) return { ready: [], pending: 0, invariantFailed: true };
-  return { ready, pending, invariantFailed: false };
+  if (invariantFailed) return {
+    ready: [],
+    pending: 0,
+    invariantFailed: true
+  };
+  return {
+    ready,
+    pending,
+    invariantFailed: false
+  };
 }
 
 /**
@@ -121,6 +137,10 @@ export function commitTranslucentMarkerBlend(probe) {
 export function applyTranslucentMarkerBlend(dataSource) {
   const probe = probeTranslucentMarkerBlend(dataSource);
   if (probe.invariantFailed)
-    return { applied: 0, pending: 0, invariantFailed: true };
+    return {
+      applied: 0,
+      pending: 0,
+      invariantFailed: true
+    };
   return commitTranslucentMarkerBlend(probe);
 }
