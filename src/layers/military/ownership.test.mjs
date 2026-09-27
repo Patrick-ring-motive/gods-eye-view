@@ -1,7 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMilitaryFlightLayer } from './index.js';
-import { createFlightState } from './state.js';
+import {
+  createMilitaryFlightLayer
+} from './index.js';
+import {
+  createFlightState
+} from './state.js';
 
 function services() {
   const names = [
@@ -23,7 +27,11 @@ function services() {
   ];
   return {
     ...Object.fromEntries(names.map((name) => [name, {}])),
-    groundSnap: { createGroundSnap: () => ({ clear() {} }) },
+    groundSnap: {
+      createGroundSnap: () => ({
+        clear() {}
+      })
+    },
   };
 }
 
@@ -35,12 +43,22 @@ test('military layer instances isolate policy and restoration state without requ
       requests++;
     },
   };
-  const first = createMilitaryFlightLayer({ source, services: services() });
-  const second = createMilitaryFlightLayer({ source, services: services() });
-  first.setParams({ models3dMode: 'all' });
+  const first = createMilitaryFlightLayer({
+    source,
+    services: services()
+  });
+  const second = createMilitaryFlightLayer({
+    source,
+    services: services()
+  });
+  first.setParams({
+    models3dMode: 'all'
+  });
   assert.equal(first.getParams().models3dMode, 'all');
   assert.equal(second.getParams().models3dMode, 'proximity');
-  first.testing._setMilitaryTrackingRefreshOutcomeForTest({ ids: [] });
+  first.testing._setMilitaryTrackingRefreshOutcomeForTest({
+    ids: []
+  });
   assert.equal(
     (await first.resolveTrackingRestoreTarget('abc123')).status,
     'missing',
@@ -53,23 +71,29 @@ test('military layer instances isolate policy and restoration state without requ
 });
 
 test('military source omission fails before viewer initialization', () => {
-  const layer = createMilitaryFlightLayer({ services: services() });
+  const layer = createMilitaryFlightLayer({
+    services: services()
+  });
   assert.throws(() => layer.init({}), /snapshot source/);
 });
 
 test('military state owns separate contact maps, motion scratch and ground sampling', () => {
-  const first = createFlightState({ services: services() });
-  const second = createFlightState({ services: services() });
+  const first = createFlightState({
+    services: services()
+  });
+  const second = createFlightState({
+    services: services()
+  });
   for (const key of [
-    '_flightData',
-    '_billboards',
-    '_positionHistory',
-    '_groundSnap',
-    '_scratchCarto',
-    '_models',
-    '_activeUpdateControllers',
-    'lifetime',
-  ]) {
+      '_flightData',
+      '_billboards',
+      '_positionHistory',
+      '_groundSnap',
+      '_scratchCarto',
+      '_models',
+      '_activeUpdateControllers',
+      'lifetime',
+    ]) {
     assert.notEqual(first[key], second[key], key);
   }
 });
