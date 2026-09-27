@@ -1,4 +1,7 @@
-export { resolveHudRailLayout } from './ui/panelRailGeometry.js';
+export {
+  resolveHudRailLayout
+}
+from './ui/panelRailGeometry.js';
 
 /** Normalize a heading into the [0, 360) range. */
 export function normalizeHeading(value) {
@@ -90,15 +93,15 @@ export function formatCockpitContextScope(
   installationCoverage = null,
 ) {
   const normalizedLabel =
-    typeof subjectLabel === 'string'
-      ? subjectLabel.trim() || '—'
-      : Number.isFinite(subjectLabel)
-        ? String(subjectLabel)
-        : '—';
+    typeof subjectLabel === 'string' ?
+    subjectLabel.trim() || '—' :
+    Number.isFinite(subjectLabel) ?
+    String(subjectLabel) :
+    '—';
   const radiusKm =
-    Number.isFinite(radiusM) && radiusM >= 0
-      ? String(Math.round(radiusM / 1000))
-      : '—';
+    Number.isFinite(radiusM) && radiusM >= 0 ?
+    String(Math.round(radiusM / 1000)) :
+    '—';
   const coverage =
     typeof installationCoverage === 'string' ? installationCoverage.trim() : '';
   const base = `${normalizedLabel} · ${radiusKm} KM AIR/SEA WINDOW`;
@@ -152,7 +155,9 @@ export function altitudeRulerTicks(altitudeFt, count = 9) {
   const altitudeUnits = altitude / stepFt;
   const anchorUnits = Math.floor(altitudeUnits);
   const half = Math.floor(tickCount / 2);
-  return Array.from({ length: tickCount }, (_, index) => {
+  return Array.from({
+    length: tickCount
+  }, (_, index) => {
     const tickUnits = anchorUnits + index - half;
     const slot = tickUnits - altitudeUnits;
     return {
@@ -199,7 +204,9 @@ export function speedRulerTicks(speedKt, count = 9) {
   const speedUnits = speed / stepKt;
   const anchorUnits = Math.floor(speedUnits);
   const half = Math.floor(tickCount / 2);
-  return Array.from({ length: tickCount }, (_, index) => {
+  return Array.from({
+    length: tickCount
+  }, (_, index) => {
     const tickUnits = anchorUnits + index - half;
     const slot = tickUnits - speedUnits;
     return {
@@ -259,8 +266,14 @@ export function resolveTrackedAircraftInfo({
   trackedId = '',
 } = {}) {
   const candidates = [];
-  if (civilian) candidates.push({ ...civilian, layerId: 'flights' });
-  if (military) candidates.push({ ...military, layerId: 'military' });
+  if (civilian) candidates.push({
+    ...civilian,
+    layerId: 'flights'
+  });
+  if (military) candidates.push({
+    ...military,
+    layerId: 'military'
+  });
   if (!candidates.length) return null;
   const trackedKey = String(trackedId || '')
     .trim()
@@ -268,7 +281,7 @@ export function resolveTrackedAircraftInfo({
   if (trackedKey) {
     const owner = candidates.find(
       (candidate) =>
-        `${candidate.layerId}:${candidate.icao24}`.toLowerCase() === trackedKey,
+      `${candidate.layerId}:${candidate.icao24}`.toLowerCase() === trackedKey,
     );
     if (owner) return owner;
   }
