@@ -1,10 +1,25 @@
 import * as Cesium from 'cesium';
-import { staticFrameRefreshMs } from '../../data/cctvLod.js';
-import { frameFetchDue, cardFetchPolicy } from '../../data/cctvCards.js';
-import { DEFAULT_CAMERA_CALIBRATION } from './policy.js';
+import {
+  staticFrameRefreshMs
+} from '../../data/cctvLod.js';
+import {
+  frameFetchDue,
+  cardFetchPolicy
+} from '../../data/cctvCards.js';
+import {
+  DEFAULT_CAMERA_CALIBRATION
+} from './policy.js';
 
-export function createModel({ state: layerState, services, parts, source }) {
-  const { focusPassIsNeeded, getFocusTarget } = services.focus;
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    focusPassIsNeeded,
+    getFocusTarget
+  } = services.focus;
 
   /**
    * Converts degrees to radians.
@@ -163,7 +178,10 @@ export function createModel({ state: layerState, services, parts, source }) {
     const latOffset = northMeters / 111320;
     const lonDivisor = Math.max(0.15, Math.cos(toRad(latDeg)));
     const lonOffset = eastMeters / (111320 * lonDivisor);
-    return { latOffset, lonOffset };
+    return {
+      latOffset,
+      lonOffset
+    };
   }
 
   /**
@@ -332,21 +350,21 @@ export function createModel({ state: layerState, services, parts, source }) {
     const lon = Cesium.Math.toDegrees(carto.longitude);
     const alt = carto.height || 0;
     const zoomBucket =
-      alt < 1500
-        ? 'street'
-        : alt < 12000
-          ? 'city'
-          : alt < 75000
-            ? 'regional'
-            : 'global';
+      alt < 1500 ?
+      'street' :
+      alt < 12000 ?
+      'city' :
+      alt < 75000 ?
+      'regional' :
+      'global';
     const grid =
-      zoomBucket === 'street'
-        ? 0.045
-        : zoomBucket === 'city'
-          ? 0.24
-          : zoomBucket === 'regional'
-            ? 1.0
-            : 4.5;
+      zoomBucket === 'street' ?
+      0.045 :
+      zoomBucket === 'city' ?
+      0.24 :
+      zoomBucket === 'regional' ?
+      1.0 :
+      4.5;
     return `${zoomBucket}:${Math.floor(lat / grid)}:${Math.floor(lon / grid)}`;
   }
 
@@ -487,11 +505,19 @@ export function createModel({ state: layerState, services, parts, source }) {
       if (!frameFetchDue(slot, refreshMs, now)) return;
       if (!(slot.stamp > 0)) {
         coldFill = true;
-        if (!frameless) frameless = { record, slot, refreshMs };
+        if (!frameless) frameless = {
+          record,
+          slot,
+          refreshMs
+        };
         return;
       }
       if (!stalest || slot.stamp < stalest.slot.stamp) {
-        stalest = { record, slot, refreshMs };
+        stalest = {
+          record,
+          slot,
+          refreshMs
+        };
       }
     };
     // The optional protected active card stays outside the 40-card ambient
@@ -506,10 +532,9 @@ export function createModel({ state: layerState, services, parts, source }) {
       // the burst fires the moment the drain completes.
       coldFill: coldFill && !layerState._geoLoading,
       inFlight: layerState._cardFetchInFlightCount,
-      sinceLastLaunchMs:
-        layerState._cardLastFetchAt > 0
-          ? now - layerState._cardLastFetchAt
-          : Infinity,
+      sinceLastLaunchMs: layerState._cardLastFetchAt > 0 ?
+        now - layerState._cardLastFetchAt :
+        Infinity,
     });
     layerState._cardFetchMode = policy.mode;
     if (!policy.launch) return;
