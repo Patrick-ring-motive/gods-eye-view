@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { getOverlayPaintRect } from '../overlays/worldOverlay.js';
+import {
+  getOverlayPaintRect
+} from '../overlays/worldOverlay.js';
 import {
   getActiveTrackedReadoutId,
   TRACKED_OVERLAY_SOURCE_ID,
@@ -37,13 +39,14 @@ const PALETTE = {
 // Altitude-scaled marker geometry. Zoomed in (≤ NEAR_H) reticles are full-size; pulling
 // back shrinks them toward small recon dots (MIN floor) so many world-anchored marks no
 // longer collapse into an overlapping blob when their anchors project close together.
-const MARK_SCALE_NEAR_H = 800;   // m: at/below this, full-size reticles
-const MARK_SCALE_FAR_H = 6000;   // m: at/above this, minimum size
-const MARK_SCALE_MIN = 0.32;     // floor so dots never vanish
+const MARK_SCALE_NEAR_H = 800; // m: at/below this, full-size reticles
+const MARK_SCALE_FAR_H = 6000; // m: at/above this, minimum size
+const MARK_SCALE_MIN = 0.32; // floor so dots never vanish
 const RING_OUTER_R = 34;
 const RING_INNER_R = 18;
 const DOT_R = 5;
 const LABEL_DOT_R = 4;
+
 function markScale(h) {
   if (!(h > MARK_SCALE_NEAR_H)) return 1;
   if (h >= MARK_SCALE_FAR_H) return MARK_SCALE_MIN;
@@ -56,7 +59,11 @@ export function createScreenAnnotationRenderer(viewer, {
   activeTrackedReadoutId = getActiveTrackedReadoutId,
 } = {}) {
   injectStyles();
-  const { layer, svg, defs } = buildOverlay();
+  const {
+    layer,
+    svg,
+    defs
+  } = buildOverlay();
   document.body.appendChild(layer);
 
   const scene = viewer.scene;
@@ -117,22 +124,34 @@ export function createScreenAnnotationRenderer(viewer, {
         if (c) {
           const h = Cesium.Cartographic.fromCartesian(c).height;
           if (Number.isFinite(h) && h > -430 && h < 9000) {
-            heightCache.set(key, { h, settled: true, gen: projGen });
+            heightCache.set(key, {
+              h,
+              settled: true,
+              gen: projGen
+            });
             trimHeightCache();
             return h;
           }
         }
       }
-    } catch { /* tiles not ready */ }
+    } catch {
+      /* tiles not ready */ }
     const fallback = cached ? cached.h : 0;
-    heightCache.set(key, { h: fallback, settled: false, gen: projGen });
+    heightCache.set(key, {
+      h: fallback,
+      settled: false,
+      gen: projGen
+    });
     trimHeightCache();
     return fallback;
   }
 
   function add(anno) {
     const c = color(anno);
-    const group = svgEl('g', { class: 'gev-anno', opacity: '0' });
+    const group = svgEl('g', {
+      class: 'gev-anno',
+      opacity: '0'
+    });
     const parts = {};
 
     if (anno.type === 'area' && anno.ring && anno.ring.length >= 3) {
@@ -140,10 +159,13 @@ export function createScreenAnnotationRenderer(viewer, {
       // "draw-on" gesture, so they never masquerade as an authoritative boundary.
       parts.poly = svgEl('polygon', {
         class: anno.synthesized ? 'gev-anno-area' : 'gev-anno-area gev-draw',
-        fill: c, stroke: c,
+        fill: c,
+        stroke: c,
         'fill-opacity': anno.synthesized ? '0.08' : '0.14',
         'stroke-width': '2.5',
-        ...(anno.synthesized ? { 'stroke-dasharray': '9 7' } : {}),
+        ...(anno.synthesized ? {
+          'stroke-dasharray': '9 7'
+        } : {}),
         filter: 'url(#gev-sketch)',
       });
       group.appendChild(parts.poly);
@@ -151,8 +173,11 @@ export function createScreenAnnotationRenderer(viewer, {
       if (parts.label) group.appendChild(parts.label.node);
     } else if (anno.type === 'arrow' && anno.to) {
       parts.path = svgEl('path', {
-        class: 'gev-anno-arrow gev-draw', fill: 'none', stroke: c,
-        'stroke-width': '3', 'marker-end': `url(#gev-arrow-${anno.color || 'primary'})`,
+        class: 'gev-anno-arrow gev-draw',
+        fill: 'none',
+        stroke: c,
+        'stroke-width': '3',
+        'marker-end': `url(#gev-arrow-${anno.color || 'primary'})`,
         filter: 'url(#gev-sketch)',
       });
       ensureArrowMarker(defs, anno.color || 'primary', c);
@@ -162,14 +187,23 @@ export function createScreenAnnotationRenderer(viewer, {
     } else if (anno.type === 'route' && Array.isArray(anno.path) && anno.path.length >= 2) {
       // Multi-waypoint path: a drawn-on polyline with a dot at each waypoint.
       parts.poly = svgEl('polyline', {
-        class: 'gev-anno-arrow gev-draw', fill: 'none', stroke: c,
-        'stroke-width': '3', 'marker-end': `url(#gev-arrow-${anno.color || 'primary'})`,
+        class: 'gev-anno-arrow gev-draw',
+        fill: 'none',
+        stroke: c,
+        'stroke-width': '3',
+        'marker-end': `url(#gev-arrow-${anno.color || 'primary'})`,
         filter: 'url(#gev-sketch)',
       });
       ensureArrowMarker(defs, anno.color || 'primary', c);
       group.appendChild(parts.poly);
       parts.dots = anno.path.map(() => {
-        const dot = svgEl('circle', { class: 'gev-anno-dot', fill: c, stroke: '#06121c', 'stroke-width': '2', r: '4' });
+        const dot = svgEl('circle', {
+          class: 'gev-anno-dot',
+          fill: c,
+          stroke: '#06121c',
+          'stroke-width': '2',
+          r: '4'
+        });
         group.appendChild(dot);
         return dot;
       });
@@ -178,14 +212,39 @@ export function createScreenAnnotationRenderer(viewer, {
     } else {
       // pin / highlight / label — pulsing target rings + a marker dot + callout
       if (anno.type !== 'label') {
-        parts.ringOuter = svgEl('circle', { class: 'gev-anno-ring gev-pulse', fill: 'none', stroke: c, 'stroke-width': '2', r: '34' });
-        parts.ringInner = svgEl('circle', { class: 'gev-anno-ring', fill: c, 'fill-opacity': '0.12', stroke: c, 'stroke-width': '2.5', r: '18', filter: 'url(#gev-sketch)' });
+        parts.ringOuter = svgEl('circle', {
+          class: 'gev-anno-ring gev-pulse',
+          fill: 'none',
+          stroke: c,
+          'stroke-width': '2',
+          r: '34'
+        });
+        parts.ringInner = svgEl('circle', {
+          class: 'gev-anno-ring',
+          fill: c,
+          'fill-opacity': '0.12',
+          stroke: c,
+          'stroke-width': '2.5',
+          r: '18',
+          filter: 'url(#gev-sketch)'
+        });
         group.appendChild(parts.ringOuter);
         group.appendChild(parts.ringInner);
       }
-      parts.dot = svgEl('circle', { class: 'gev-anno-dot', fill: c, stroke: '#06121c', 'stroke-width': '2', r: anno.type === 'label' ? '4' : '5' });
+      parts.dot = svgEl('circle', {
+        class: 'gev-anno-dot',
+        fill: c,
+        stroke: '#06121c',
+        'stroke-width': '2',
+        r: anno.type === 'label' ? '4' : '5'
+      });
       group.appendChild(parts.dot);
-      parts.leader = svgEl('line', { class: 'gev-anno-leader', stroke: c, 'stroke-width': '1.5', 'stroke-opacity': '0.7' });
+      parts.leader = svgEl('line', {
+        class: 'gev-anno-leader',
+        stroke: c,
+        'stroke-width': '1.5',
+        'stroke-opacity': '0.7'
+      });
       group.appendChild(parts.leader);
       parts.label = makeCallout(anno.label, c);
       if (parts.label) group.appendChild(parts.label.node);
@@ -196,7 +255,11 @@ export function createScreenAnnotationRenderer(viewer, {
     // lost context). Previously a throw past the DOM insert left an ORPHANED
     // <g>: the engine's rollback only deletes its own map entry, so the next
     // annotate of the same geometry stacked a fresh mark on top of the corpse.
-    records.set(anno.id, { anno, group, parts });
+    records.set(anno.id, {
+      anno,
+      group,
+      parts
+    });
     try {
       svg.appendChild(group);
       // trigger draw-on / fade-in on the next frame
@@ -213,14 +276,19 @@ export function createScreenAnnotationRenderer(viewer, {
           if (e.propertyName === 'stroke-dashoffset') {
             drawEl.style.strokeDasharray = 'none';
           }
-        }, { once: true });
+        }, {
+          once: true
+        });
       }
       projectAll();
     } catch (error) {
       // Hard, immediate unwind — a mark that never finished has nothing to
       // fade out, and the caller (engine rollback) must find a clean board.
       records.delete(anno.id);
-      try { group.remove(); } catch { /* never inserted */ }
+      try {
+        group.remove();
+      } catch {
+        /* never inserted */ }
       if (records.size === 0) heightCache.clear();
       throw error;
     }
@@ -231,7 +299,9 @@ export function createScreenAnnotationRenderer(viewer, {
    * renderer converts the pending reticle to a centroid label; keeping the group
    * preserves element identity and prevents the old/new 320 ms fades from overlapping.
    */
-  function update(anno, { empty = false } = {}) {
+  function update(anno, {
+    empty = false
+  } = {}) {
     const rec = records.get(anno.id);
     if (!rec) {
       if (!empty) add(anno);
@@ -281,7 +351,10 @@ export function createScreenAnnotationRenderer(viewer, {
     const w = scene.canvas.clientWidth || scene.canvas.width;
     const h = scene.canvas.clientHeight || scene.canvas.height;
     if (win.x < -w || win.x > 2 * w || win.y < -h || win.y > 2 * h) return null;
-    return { x: win.x, y: win.y };
+    return {
+      x: win.x,
+      y: win.y
+    };
   }
 
   // Tracked-entity z-order: the tracked aircraft is a Cesium billboard in the
@@ -291,9 +364,9 @@ export function createScreenAnnotationRenderer(viewer, {
   // tracked subject's screen FOOTPRINT is faded. The complete card footprint comes
   // from the host's ACTUAL painted rectangle after final layout; the billboard extent
   // is unioned for aircraft/satellites that also own a native tracked graphic.
-  const TRACKED_BBOX_MARGIN = 8;     // px buffer added around the footprint
-  const TRACKED_FADE_EASE = 0.22;    // per-frame ease toward hidden(0) / visible(1)
-  const TRACKED_HYSTERESIS_PX = 18;  // dead-band so the overlap test can't flip-flop
+  const TRACKED_BBOX_MARGIN = 8; // px buffer added around the footprint
+  const TRACKED_FADE_EASE = 0.22; // per-frame ease toward hidden(0) / visible(1)
+  const TRACKED_HYSTERESIS_PX = 18; // dead-band so the overlap test can't flip-flop
   const _scratchTrackedWin = new Cesium.Cartesian2();
 
   // Evaluate a NearFarScalar (billboard scaleByDistance) at a camera distance.
@@ -307,9 +380,9 @@ export function createScreenAnnotationRenderer(viewer, {
   // tracked graphic painted. The host rectangle is authoritative for the card.
   function trackedEntityRect() {
     const trackedId = activeTrackedReadoutId();
-    const painted = trackedId
-      ? overlayPaintRect(TRACKED_OVERLAY_SOURCE_ID, trackedId)
-      : null;
+    const painted = trackedId ?
+      overlayPaintRect(TRACKED_OVERLAY_SOURCE_ID, trackedId) :
+      null;
     let left = painted?.x;
     let right = painted ? painted.x + painted.w : undefined;
     let top = painted?.y;
@@ -317,12 +390,12 @@ export function createScreenAnnotationRenderer(viewer, {
 
     const ent = viewer.trackedEntity;
     const now = Cesium.JulianDate.now();
-    const world = typeof ent?.gevDisplayPosition === 'function'
-      ? ent.gevDisplayPosition()
-      : null;
-    const win = world
-      ? Cesium.SceneTransforms.worldToWindowCoordinates(scene, world, _scratchTrackedWin)
-      : null;
+    const world = typeof ent?.gevDisplayPosition === 'function' ?
+      ent.gevDisplayPosition() :
+      null;
+    const win = world ?
+      Cesium.SceneTransforms.worldToWindowCoordinates(scene, world, _scratchTrackedWin) :
+      null;
 
     // Billboard box — centered on the anchor, magnified by scaleByDistance.
     const bb = ent?.billboard;
@@ -332,7 +405,8 @@ export function createScreenAnnotationRenderer(viewer, {
       let scale = 1;
       const sbd = bb.scaleByDistance?.getValue?.(now);
       if (sbd) scale = nearFarValue(sbd, Cesium.Cartesian3.distance(scene.camera.positionWC, world));
-      const hw = (baseW * scale) / 2; const hh = (baseH * scale) / 2;
+      const hw = (baseW * scale) / 2;
+      const hh = (baseH * scale) / 2;
       const bbLeft = win.x - hw;
       const bbRight = win.x + hw;
       const bbTop = win.y - hh;
@@ -345,7 +419,12 @@ export function createScreenAnnotationRenderer(viewer, {
     if (![left, right, top, bottom].every(Number.isFinite)) return null;
 
     const m = TRACKED_BBOX_MARGIN;
-    return { left: left - m, right: right + m, top: top - m, bottom: bottom + m };
+    return {
+      left: left - m,
+      right: right + m,
+      top: top - m,
+      bottom: bottom + m
+    };
   }
 
   function projectAll() {
@@ -360,7 +439,11 @@ export function createScreenAnnotationRenderer(viewer, {
     const mScale = markScale(viewer.camera.positionCartographic?.height ?? 1000);
 
     for (const rec of records.values()) {
-      const { anno, group, parts } = rec;
+      const {
+        anno,
+        group,
+        parts
+      } = rec;
       if (rec.hidden) {
         group.style.display = 'none';
         continue;
@@ -369,12 +452,16 @@ export function createScreenAnnotationRenderer(viewer, {
 
       if (anno.type === 'area' && parts.poly) {
         const pts = [];
-        let cx = 0; let cy = 0; let n = 0;
+        let cx = 0;
+        let cy = 0;
+        let n = 0;
         for (const [lon, lat] of anno.ring) {
           const p = project(lon, lat);
           if (!p) continue;
           pts.push(`${p.x.toFixed(1)},${p.y.toFixed(1)}`);
-          cx += p.x; cy += p.y; n++;
+          cx += p.x;
+          cy += p.y;
+          n++;
         }
         if (pts.length >= 3) {
           parts.poly.setAttribute('points', pts.join(' '));
@@ -388,8 +475,10 @@ export function createScreenAnnotationRenderer(viewer, {
         const b = project(anno.to.lon, anno.to.lat);
         if (a && b) {
           // gentle arc so the connector reads as a drawn gesture, not a ruler line
-          const mx = (a.x + b.x) / 2; const my = (a.y + b.y) / 2;
-          const dx = b.x - a.x; const dy = b.y - a.y;
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
           const len = Math.hypot(dx, dy) || 1;
           const bow = Math.min(60, len * 0.18);
           const ctrlX = mx - (dy / len) * bow;
@@ -412,8 +501,13 @@ export function createScreenAnnotationRenderer(viewer, {
           // dots at each resolvable waypoint; hide the rest
           parts.dots.forEach((dot, i) => {
             const p = projected[i];
-            if (p) { dot.setAttribute('cx', p.x.toFixed(1)); dot.setAttribute('cy', p.y.toFixed(1)); dot.style.display = ''; }
-            else { dot.style.display = 'none'; }
+            if (p) {
+              dot.setAttribute('cx', p.x.toFixed(1));
+              dot.setAttribute('cy', p.y.toFixed(1));
+              dot.style.display = '';
+            } else {
+              dot.style.display = 'none';
+            }
           });
           group.style.display = '';
           // label at the middle waypoint
@@ -427,16 +521,31 @@ export function createScreenAnnotationRenderer(viewer, {
         if (p) {
           group.style.display = '';
           const baseDotR = anno.type === 'label' ? LABEL_DOT_R : DOT_R;
-          if (parts.dot) { parts.dot.setAttribute('cx', p.x.toFixed(1)); parts.dot.setAttribute('cy', p.y.toFixed(1)); parts.dot.setAttribute('r', (baseDotR * mScale).toFixed(1)); }
-          if (parts.ringOuter) { parts.ringOuter.setAttribute('cx', p.x.toFixed(1)); parts.ringOuter.setAttribute('cy', p.y.toFixed(1)); parts.ringOuter.setAttribute('r', (RING_OUTER_R * mScale).toFixed(1)); }
-          if (parts.ringInner) { parts.ringInner.setAttribute('cx', p.x.toFixed(1)); parts.ringInner.setAttribute('cy', p.y.toFixed(1)); parts.ringInner.setAttribute('r', (RING_INNER_R * mScale).toFixed(1)); }
+          if (parts.dot) {
+            parts.dot.setAttribute('cx', p.x.toFixed(1));
+            parts.dot.setAttribute('cy', p.y.toFixed(1));
+            parts.dot.setAttribute('r', (baseDotR * mScale).toFixed(1));
+          }
+          if (parts.ringOuter) {
+            parts.ringOuter.setAttribute('cx', p.x.toFixed(1));
+            parts.ringOuter.setAttribute('cy', p.y.toFixed(1));
+            parts.ringOuter.setAttribute('r', (RING_OUTER_R * mScale).toFixed(1));
+          }
+          if (parts.ringInner) {
+            parts.ringInner.setAttribute('cx', p.x.toFixed(1));
+            parts.ringInner.setAttribute('cy', p.y.toFixed(1));
+            parts.ringInner.setAttribute('r', (RING_INNER_R * mScale).toFixed(1));
+          }
           if (parts.label) {
             // Keep the callout tucked near the (now smaller) reticle by scaling its offset.
-            const lx = p.x + 18 * mScale; const ly = p.y - 34 * mScale;
+            const lx = p.x + 18 * mScale;
+            const ly = p.y - 34 * mScale;
             positionCallout(parts.label, lx, ly, false);
             if (parts.leader) {
-              parts.leader.setAttribute('x1', p.x.toFixed(1)); parts.leader.setAttribute('y1', p.y.toFixed(1));
-              parts.leader.setAttribute('x2', lx.toFixed(1)); parts.leader.setAttribute('y2', (ly + parts.label.height).toFixed(1));
+              parts.leader.setAttribute('x1', p.x.toFixed(1));
+              parts.leader.setAttribute('y1', p.y.toFixed(1));
+              parts.leader.setAttribute('x2', lx.toFixed(1));
+              parts.leader.setAttribute('y2', (ly + parts.label.height).toFixed(1));
               parts.label._leader = parts.leader; // so de-collision can re-point it
             }
           }
@@ -465,13 +574,20 @@ export function createScreenAnnotationRenderer(viewer, {
     // the big area/route footprints live in the world layer — so fully hiding an
     // overlapped one is safe and not jarring.
     for (const rec of records.values()) {
-      const { anno, group } = rec;
+      const {
+        anno,
+        group
+      } = rec;
       if (group.style.display === 'none') continue;
       const cur = rec._trackedFade ?? 1;
       let overlapping = false;
       if (trackedRect) {
         let bb = null;
-        try { bb = group.getBBox(); } catch { bb = null; }
+        try {
+          bb = group.getBBox();
+        } catch {
+          bb = null;
+        }
         if (bb && (bb.width !== 0 || bb.height !== 0)) {
           // HYSTERESIS: a mark that's already hidden must clear the rect by
           // TRACKED_HYSTERESIS_PX before it starts showing again; one that's visible fades
@@ -479,8 +595,8 @@ export function createScreenAnnotationRenderer(viewer, {
           // frame-to-frame (the pulsing reticle stroke + de-collided cards keep the bbox in
           // motion), which was the source of the flicker.
           const m = cur < 0.5 ? TRACKED_HYSTERESIS_PX : 0;
-          overlapping = bb.x <= trackedRect.right + m && bb.x + bb.width >= trackedRect.left - m
-            && bb.y <= trackedRect.bottom + m && bb.y + bb.height >= trackedRect.top - m;
+          overlapping = bb.x <= trackedRect.right + m && bb.x + bb.width >= trackedRect.left - m &&
+            bb.y <= trackedRect.bottom + m && bb.y + bb.height >= trackedRect.top - m;
         }
       }
       const target = overlapping ? 0 : 1;
@@ -501,7 +617,12 @@ export function createScreenAnnotationRenderer(viewer, {
     rec.group.classList.remove('gev-in');
     rec.group.classList.add('gev-out');
     const node = rec.group;
-    window.setTimeout(() => { try { node.remove(); } catch { /* gone */ } }, 360);
+    window.setTimeout(() => {
+      try {
+        node.remove();
+      } catch {
+        /* gone */ }
+    }, 360);
     records.delete(anno.id);
     // Board emptied → drop accumulated height samples (natural reset point).
     if (records.size === 0) heightCache.clear();
@@ -513,13 +634,25 @@ export function createScreenAnnotationRenderer(viewer, {
   }
 
   function destroy() {
-    try { scene.postRender.removeEventListener(onPostRender); } catch { /* torn down */ }
-    try { layer.remove(); } catch { /* gone */ }
+    try {
+      scene.postRender.removeEventListener(onPostRender);
+    } catch {
+      /* torn down */ }
+    try {
+      layer.remove();
+    } catch {
+      /* gone */ }
     records.clear();
     heightCache.clear();
   }
 
-  return { add, update, remove, sync, destroy };
+  return {
+    add,
+    update,
+    remove,
+    sync,
+    destroy
+  };
 }
 
 // --- SVG helpers ------------------------------------------------------------
@@ -539,7 +672,11 @@ function buildOverlay() {
     </filter>`;
   svg.appendChild(defs);
   layer.appendChild(svg);
-  return { layer, svg, defs };
+  return {
+    layer,
+    svg,
+    defs
+  };
 }
 
 function makeCallout(text, c) {
@@ -562,7 +699,15 @@ function makeCallout(text, c) {
   node.appendChild(rect);
   node.appendChild(accent);
   node.appendChild(t);
-  const callout = { node, rect, text: t, accent, width: 0, height: 26, sized: false };
+  const callout = {
+    node,
+    rect,
+    text: t,
+    accent,
+    width: 0,
+    height: 26,
+    sized: false
+  };
   // size the card to the text once it is in the DOM
   requestAnimationFrame(() => sizeCallout(callout));
   return callout;
@@ -581,7 +726,8 @@ function sizeCallout(callout) {
     callout.width = w;
     callout.height = h;
     callout.sized = true;
-  } catch { /* not laid out yet */ }
+  } catch {
+    /* not laid out yet */ }
 }
 
 function positionCallout(callout, x, y, center) {
