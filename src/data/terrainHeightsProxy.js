@@ -52,7 +52,10 @@ export function terrainPointKey([lon, lat]) {
 /** @param {[number, number]} point */
 function canonicalTerrainPoint(point) {
   const key = terrainPointKey(point);
-  return { key, point: key.split(',').map(Number) };
+  return {
+    key,
+    point: key.split(',').map(Number)
+  };
 }
 
 /** Only a real numeric ellipsoid height is cacheable/servable. */
@@ -109,8 +112,7 @@ export function terrainRetryAfterMs(value, nowMs = Date.now()) {
  * @returns {Promise<Array<object>>}
  */
 export async function fetchTerrainChunkWithRetry(
-  points,
-  {
+  points, {
     fetchImpl = globalThis.fetch,
     sleep = defaultSleep,
     random = Math.random,
@@ -136,7 +138,9 @@ export async function fetchTerrainChunkWithRetry(
 
     try {
       const signal = makeSignal(timeoutMs);
-      const res = await fetchImpl(url, signal ? { signal } : {});
+      const res = await fetchImpl(url, signal ? {
+        signal
+      } : {});
       if (!res.ok) {
         const error = new Error(`HTTP ${res.status}`);
         error.retryable = res.status === 429 || res.status >= 500;
@@ -211,7 +215,10 @@ export async function resolveTerrainHeightRequest({
       requestStartedAt - entry.at < ttlMs
     )
       continue;
-    missing.push({ key, point });
+    missing.push({
+      key,
+      point
+    });
   }
 
   let cacheChanged = false;
@@ -227,7 +234,10 @@ export async function resolveTerrainHeightRequest({
       for (let i = 0; i < missing.length; i += 1) {
         const result = fetched[i];
         if (validTerrainResult(result)) {
-          cache.set(missing[i].key, { at: fetchedAt, result });
+          cache.set(missing[i].key, {
+            at: fetchedAt,
+            result
+          });
           cacheChanged = true;
         } else if (absentTerrainDatum(result)) {
           // Upstream answered but had no height. Transient, so deliberately
@@ -250,7 +260,9 @@ export async function resolveTerrainHeightRequest({
     }
   }
 
-  const results = requested.map(({ key }) => {
+  const results = requested.map(({
+    key
+  }) => {
     const entry = cache.get(key);
     return entry && validTerrainResult(entry.result) ? entry.result : null;
   });
@@ -258,8 +270,7 @@ export async function resolveTerrainHeightRequest({
     return {
       status: 502,
       body: {
-        error:
-          'terrain heights fetch failed and no cache available for every point',
+        error: 'terrain heights fetch failed and no cache available for every point',
       },
       cacheChanged,
       upstreamError,
@@ -269,7 +280,9 @@ export async function resolveTerrainHeightRequest({
   }
   return {
     status: 200,
-    body: { results },
+    body: {
+      results
+    },
     cacheChanged,
     upstreamError,
     absentPoints,
