@@ -2,7 +2,10 @@ import {
   googleServerApiKey,
   keylessGooglePlacesResponse,
 } from './google-key.js';
-import { makeOptInRateLimiter, clientKey } from '../common/rate-limit.js';
+import {
+  makeOptInRateLimiter,
+  clientKey
+} from '../common/rate-limit.js';
 import {
   projectNearbyPlaces,
   projectTextSearchPlaces,
@@ -26,12 +29,18 @@ export function validatePlacesCoordinates(searchParams) {
   const rawLat = searchParams.get('lat');
   const rawLon = searchParams.get('lon');
   if (rawLat === null || rawLon === null || !rawLat.trim() || !rawLon.trim()) {
-    return { ok: false, error: 'lat and lon are required' };
+    return {
+      ok: false,
+      error: 'lat and lon are required'
+    };
   }
   const latitude = Number(rawLat);
   const longitude = Number(rawLon);
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return { ok: false, error: 'Valid lat and lon are required' };
+    return {
+      ok: false,
+      error: 'Valid lat and lon are required'
+    };
   }
   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
     return {
@@ -39,7 +48,11 @@ export function validatePlacesCoordinates(searchParams) {
       error: 'lat must be within [-90, 90] and lon within [-180, 180]',
     };
   }
-  return { ok: true, latitude, longitude };
+  return {
+    ok: true,
+    latitude,
+    longitude
+  };
 }
 
 /** Nearby place labels and view-biased text search, with request-time key resolution. */
@@ -53,7 +66,10 @@ export function googlePlacesContextProxy({
       if (req.method !== 'GET') {
         res.statusCode = 405;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: 'Method not allowed', places: [] }));
+        res.end(JSON.stringify({
+          error: 'Method not allowed',
+          places: []
+        }));
         return;
       }
 
@@ -75,10 +91,16 @@ export function googlePlacesContextProxy({
       if (!coordinates.ok) {
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: coordinates.error, places: [] }));
+        res.end(JSON.stringify({
+          error: coordinates.error,
+          places: []
+        }));
         return;
       }
-      const { latitude, longitude } = coordinates;
+      const {
+        latitude,
+        longitude
+      } = coordinates;
 
       // Opt-in per-IP throttle (GEV_RATELIMIT_GOOGLE_PER_MIN). No-op when unset.
       // Inlined (not the shared helper) so the 429 body keeps this endpoint's
@@ -88,7 +110,10 @@ export function googlePlacesContextProxy({
         res.statusCode = 429;
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Retry-After', '5');
-        res.end(JSON.stringify({ error: 'Rate limit exceeded', places: [] }));
+        res.end(JSON.stringify({
+          error: 'Rate limit exceeded',
+          places: []
+        }));
         return;
       }
 
@@ -100,8 +125,7 @@ export function googlePlacesContextProxy({
       try {
         const response = await fetchImpl(
           endpoints.nearby ||
-            'https://places.googleapis.com/v1/places:searchNearby',
-          {
+          'https://places.googleapis.com/v1/places:searchNearby', {
             method: 'POST',
             redirect: 'error',
             headers: {
@@ -123,7 +147,10 @@ export function googlePlacesContextProxy({
               rankPreference: 'DISTANCE',
               locationRestriction: {
                 circle: {
-                  center: { latitude, longitude },
+                  center: {
+                    latitude,
+                    longitude
+                  },
                   radius: radiusM,
                 },
               },
@@ -139,9 +166,9 @@ export function googlePlacesContextProxy({
         res.end(
           JSON.stringify({
             places,
-            error: response.ok
-              ? null
-              : data.error?.message || 'Google Places request failed',
+            error: response.ok ?
+              null :
+              data.error?.message || 'Google Places request failed',
           }),
         );
       } catch (error) {
@@ -164,7 +191,10 @@ export function googlePlacesContextProxy({
       if (req.method !== 'GET') {
         res.statusCode = 405;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: 'Method not allowed', places: [] }));
+        res.end(JSON.stringify({
+          error: 'Method not allowed',
+          places: []
+        }));
         return;
       }
 
@@ -187,7 +217,10 @@ export function googlePlacesContextProxy({
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json');
         res.end(
-          JSON.stringify({ error: 'q, lat and lon are required', places: [] }),
+          JSON.stringify({
+            error: 'q, lat and lon are required',
+            places: []
+          }),
         );
         return;
       }
@@ -195,10 +228,16 @@ export function googlePlacesContextProxy({
       if (!coordinates.ok) {
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: coordinates.error, places: [] }));
+        res.end(JSON.stringify({
+          error: coordinates.error,
+          places: []
+        }));
         return;
       }
-      const { latitude, longitude } = coordinates;
+      const {
+        latitude,
+        longitude
+      } = coordinates;
 
       // Opt-in per-IP throttle (GEV_RATELIMIT_GOOGLE_PER_MIN). No-op when unset.
       // Inlined (like nearby-places) so the 429 body keeps the `places: []`
@@ -208,7 +247,10 @@ export function googlePlacesContextProxy({
         res.statusCode = 429;
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Retry-After', '5');
-        res.end(JSON.stringify({ error: 'Rate limit exceeded', places: [] }));
+        res.end(JSON.stringify({
+          error: 'Rate limit exceeded',
+          places: []
+        }));
         return;
       }
 
@@ -220,8 +262,7 @@ export function googlePlacesContextProxy({
       try {
         const response = await fetchImpl(
           endpoints.textSearch ||
-            'https://places.googleapis.com/v1/places:searchText',
-          {
+          'https://places.googleapis.com/v1/places:searchText', {
             method: 'POST',
             redirect: 'error',
             headers: {
@@ -241,7 +282,10 @@ export function googlePlacesContextProxy({
               textQuery,
               locationBias: {
                 circle: {
-                  center: { latitude, longitude },
+                  center: {
+                    latitude,
+                    longitude
+                  },
                   radius: radiusM,
                 },
               },
@@ -258,9 +302,9 @@ export function googlePlacesContextProxy({
         res.end(
           JSON.stringify({
             places,
-            error: response.ok
-              ? null
-              : data.error?.message || 'Google Places request failed',
+            error: response.ok ?
+              null :
+              data.error?.message || 'Google Places request failed',
           }),
         );
       } catch (error) {
