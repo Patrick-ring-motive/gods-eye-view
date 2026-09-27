@@ -1,13 +1,24 @@
 import * as Cesium from 'cesium';
-import { nextCockpitNearContacts } from '../../data/cockpitAirLod.js';
-import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
-import { trackedModelZoomActive } from '../../data/trackedModelRegime.js';
+import {
+  nextCockpitNearContacts
+} from '../../data/cockpitAirLod.js';
+import {
+  aircraftIcon,
+  TRACKED_ICON_PX
+} from '../../data/aircraftIcons.js';
+import {
+  trackedModelZoomActive
+} from '../../data/trackedModelRegime.js';
 import {
   screenProjectedRotation,
   stabilizeScreenRotation,
 } from '../../data/iconOrientation.js';
-import { trailHeadStart } from '../../data/modelVisualAnchor.js';
-import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
+import {
+  trailHeadStart
+} from '../../data/modelVisualAnchor.js';
+import {
+  CLASS_SCALE_2D
+} from '../../data/aircraftClass.js';
 import {
   bindTrackingClickGesture,
   isTrackingSelectionGesture,
@@ -38,16 +49,39 @@ export function createTracking({
     refreshTrackedSubjectContext,
     clearTrackedSubjectContext,
   } = services.context;
-  const { tr3bTypeLabel, isTr3b, tr3bConvertedIds } =
-    services.aircraftPresentation;
-  const { trackedLabelModelFromText, refreshTrackedReadout } = services.readout;
-  const { floorAltitudeM, cachedGroundFloor, resolveGroundFloorCellsBounded } =
-    services.groundFloor;
-  const { createTrail } = services.trails;
-  const { ensureGeoidReady, geoidHeight } = services.geoid;
-  const { clearFocusTarget } = services.focus;
-  const { applyTrackedCameraFrame } = services.camera;
-  const { resolvePickId, isOwnedByOtherLayer } = services.picking;
+  const {
+    tr3bTypeLabel,
+    isTr3b,
+    tr3bConvertedIds
+  } =
+  services.aircraftPresentation;
+  const {
+    trackedLabelModelFromText,
+    refreshTrackedReadout
+  } = services.readout;
+  const {
+    floorAltitudeM,
+    cachedGroundFloor,
+    resolveGroundFloorCellsBounded
+  } =
+  services.groundFloor;
+  const {
+    createTrail
+  } = services.trails;
+  const {
+    ensureGeoidReady,
+    geoidHeight
+  } = services.geoid;
+  const {
+    clearFocusTarget
+  } = services.focus;
+  const {
+    applyTrackedCameraFrame
+  } = services.camera;
+  const {
+    resolvePickId,
+    isOwnedByOtherLayer
+  } = services.picking;
 
   function _emitAwarenessEvent(type, detail) {
     if (
@@ -56,7 +90,9 @@ export function createTracking({
       typeof CustomEvent === 'undefined'
     )
       return;
-    window.dispatchEvent(new CustomEvent(type, { detail }));
+    window.dispatchEvent(new CustomEvent(type, {
+      detail
+    }));
   }
 
   function _publishTrackedSelection(icao24, origin = 'programmatic') {
@@ -68,8 +104,7 @@ export function createTracking({
     _emitAwarenessEvent('gev:awareness-subject-selected', {
       layerId: 'military',
       id: icao24,
-      label:
-        parts.queries._toCleanText(info.callsign) ||
+      label: parts.queries._toCleanText(info.callsign) ||
         parts.queries._toCleanText(info.registration) ||
         icao24,
       position: Cesium.Cartesian3.clone(bb.position),
@@ -113,15 +148,15 @@ export function createTracking({
           icao24,
           parts.queries._toCleanText(info?.type) || '',
         ),
-        altitude: described.onGround
-          ? 'on ground'
-          : parts.queries._formatAltitude(info?.altitudeFt),
-        speed: Number.isFinite(described.velocityMps)
-          ? `${Math.round(described.velocityMps * 1.944)} kt`
-          : '',
-        heading: Number.isFinite(described.track)
-          ? `${Math.round(described.track)}°`
-          : '',
+        altitude: described.onGround ?
+          'on ground' :
+          parts.queries._formatAltitude(info?.altitudeFt),
+        speed: Number.isFinite(described.velocityMps) ?
+          `${Math.round(described.velocityMps * 1.944)} kt` :
+          '',
+        heading: Number.isFinite(described.track) ?
+          `${Math.round(described.track)}°` :
+          '',
         icao24,
         // Honesty cue: the contact is coasting on dead reckoning, so the
         // narrated position/velocity are last-known rather than live.
@@ -195,11 +230,11 @@ export function createTracking({
 
   function _applyCockpitState(detail = {}) {
     const active = detail?.active === true;
-    flightState._cockpitSubjectId = active
-      ? String(detail?.subjectId || '')
-          .trim()
-          .toLowerCase() || null
-      : null;
+    flightState._cockpitSubjectId = active ?
+      String(detail?.subjectId || '')
+      .trim()
+      .toLowerCase() || null :
+      null;
     _setCockpitContactMode(active);
   }
 
@@ -218,9 +253,9 @@ export function createTracking({
 
   function _buildTrackedLabel(info, icao24) {
     const stale =
-      flightState._missingPolls.get(icao24) || flightState._backoff
-        ? ' · STALE'
-        : '';
+      flightState._missingPolls.get(icao24) || flightState._backoff ?
+      ' · STALE' :
+      '';
     const callsign =
       (parts.queries._toCleanText(info?.callsign) ||
         parts.queries._toCleanText(info?.registration) ||
@@ -359,7 +394,7 @@ export function createTracking({
     if (flightState._trackedModelFailCount >= TRACKED_MODEL_MAX_LOAD_FAILS) {
       console.warn(
         `[Data:Military] tracked 3D model gave up after ${flightState._trackedModelFailCount} failed loads of ${url} — ` +
-          'this contact stays 2D until another is selected',
+        'this contact stays 2D until another is selected',
         err,
       );
     }
@@ -477,9 +512,9 @@ export function createTracking({
   function _refreshTrailDisplay() {
     if (!flightState._trail) return;
     flightState._trail.setPositions(
-      flightState._trailPositions.length > 1
-        ? flightState._trailPositions.slice(0, -1)
-        : flightState._trailPositions,
+      flightState._trailPositions.length > 1 ?
+      flightState._trailPositions.slice(0, -1) :
+      flightState._trailPositions,
     );
   }
 
@@ -577,17 +612,16 @@ export function createTracking({
           material: Cesium.Color.fromCssColorString(TRAIL_COLOR).withAlpha(0.9),
           // Round 4: the head must never vanish into the mesh either (dimmed
           // when occluded so depth still reads).
-          depthFailMaterial:
-            Cesium.Color.fromCssColorString(TRAIL_COLOR).withAlpha(0.45),
+          depthFailMaterial: Cesium.Color.fromCssColorString(TRAIL_COLOR).withAlpha(0.45),
           arcType: Cesium.ArcType.GEODESIC, // round 8: consistent with the trail body (no chords)
         },
       });
     }
     _refreshTrailDisplay();
 
-    const oldestFixEpochSec = history.length
-      ? Cesium.JulianDate.toDate(history[0].time).getTime() / 1000
-      : Infinity;
+    const oldestFixEpochSec = history.length ?
+      Cesium.JulianDate.toDate(history[0].time).getTime() / 1000 :
+      Infinity;
     _backfillTrail(icao24, flightState._trailBackfillToken, oldestFixEpochSec);
   }
 
@@ -607,8 +641,7 @@ export function createTracking({
     let trace = null;
     try {
       const track = await flightState._source.getTrack?.(
-        flightState._flightData.get(icao24)?.sourceReference ?? icao24,
-        {
+        flightState._flightData.get(icao24)?.sourceReference ?? icao24, {
           signal: AbortSignal.any([
             flightState.lifetime.signal,
             AbortSignal.timeout(8000),
@@ -641,7 +674,11 @@ export function createTracking({
         lon = point.longitude;
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
       if (!Number.isFinite(t) || t >= oldestFixEpochSec) continue;
-      parsed.push({ lat, lon, baroAltitudeM: point.baroAltitudeM });
+      parsed.push({
+        lat,
+        lon,
+        baroAltitudeM: point.baroAltitudeM
+      });
     }
     if (!parsed.length) return;
 
@@ -666,7 +703,12 @@ export function createTracking({
 
     let older = [];
     let lastAltM = null; // carry-forward for ground points whose cell isn't warm yet
-    for (const { lat, lon, baroAltitudeM } of parsed) {
+    for (const {
+        lat,
+        lon,
+        baroAltitudeM
+      }
+      of parsed) {
       const baroM =
         baroAltitudeM == null ? null : baroAltitudeM + geoidHeight(lat, lon);
       let altM = floorAltitudeM(baroM, cachedGroundFloor(lat, lon));
@@ -756,8 +798,10 @@ export function createTracking({
    */
 
   function _clearTracking(
-    skipViewerUntrack = false,
-    { evicted = false, origin = 'programmatic' } = {},
+    skipViewerUntrack = false, {
+      evicted = false,
+      origin = 'programmatic'
+    } = {},
   ) {
     flightState._trackedCameraFrameStop?.();
     flightState._trackedCameraFrameStop = null;
@@ -834,7 +878,9 @@ export function createTracking({
     )
       return false;
     flightState._pendingTrackingRestore = null;
-    _trackFlight(pending.id, { origin: pending.origin });
+    _trackFlight(pending.id, {
+      origin: pending.origin
+    });
     return true;
   }
 
@@ -851,8 +897,12 @@ export function createTracking({
    * @param {string} icao24 - ICAO hex identifier of the aircraft to track
    */
 
-  function _trackFlight(icao24, { origin = 'programmatic' } = {}) {
-    _clearTracking(false, { origin }); // switching planes — the new follow-camera takes over
+  function _trackFlight(icao24, {
+    origin = 'programmatic'
+  } = {}) {
+    _clearTracking(false, {
+      origin
+    }); // switching planes — the new follow-camera takes over
 
     const bb = flightState._billboards.get(icao24);
     const info = flightState._flightData.get(icao24);
@@ -914,8 +964,7 @@ export function createTracking({
         ),
         width: 28,
         height: 28,
-        scale:
-          BILLBOARD_SCALE *
+        scale: BILLBOARD_SCALE *
           (CLASS_SCALE_2D[
             flightState._flightData.get(flightState._trackedIcao)?.klass
           ] || 1),
@@ -923,9 +972,9 @@ export function createTracking({
         // transparent once the STANDALONE tracked model is actually up (ready + shown).
         color: new Cesium.CallbackProperty(
           () =>
-            parts.rendering._modelOwnsVisual(flightState._trackedIcao)
-              ? AMBER_TRANSPARENT
-              : TRACKED_ICON_COLOR,
+          parts.rendering._modelOwnsVisual(flightState._trackedIcao) ?
+          AMBER_TRANSPARENT :
+          TRACKED_ICON_COLOR,
           false,
         ),
         sizeInMeters: false,
@@ -1024,7 +1073,9 @@ export function createTracking({
   function _onKeyDown(e) {
     if (e.key === 'Escape' && flightState._trackedIcao) {
       _cancelPendingTrackingRestore();
-      _clearTracking(false, { origin: 'user' });
+      _clearTracking(false, {
+        origin: 'user'
+      });
     }
   }
 
@@ -1051,8 +1102,7 @@ export function createTracking({
             flightState._viewer.trackedEntity !== flightState._trackedEntity
           ) {
             _clearTracking(true, {
-              origin:
-                flightState._viewer.trackedEntity?.gevSelectionOrigin ||
+              origin: flightState._viewer.trackedEntity?.gevSelectionOrigin ||
                 'programmatic',
             });
           }
@@ -1101,7 +1151,9 @@ export function createTracking({
           flightState._billboards.has(billboard.id)
         ) {
           _cancelPendingTrackingRestore();
-          _trackFlight(billboard.id, { origin: 'user' });
+          _trackFlight(billboard.id, {
+            origin: 'user'
+          });
           return;
         }
         // Fallback: some CesiumJS versions surface the id string at picked.id
@@ -1111,7 +1163,9 @@ export function createTracking({
           flightState._billboards.has(picked.id)
         ) {
           _cancelPendingTrackingRestore();
-          _trackFlight(picked.id, { origin: 'user' });
+          _trackFlight(picked.id, {
+            origin: 'user'
+          });
           return;
         }
       }
@@ -1131,7 +1185,9 @@ export function createTracking({
       if (!isTrackingClickGesture(gesture)) return;
       if (flightState._trackedIcao) {
         _cancelPendingTrackingRestore();
-        _clearTracking(false, { origin: 'user' });
+        _clearTracking(false, {
+          origin: 'user'
+        });
       }
     });
 
