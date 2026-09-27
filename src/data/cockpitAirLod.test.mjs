@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nextCockpitNearContacts } from './cockpitAirLod.js';
+import {
+  nextCockpitNearContacts
+} from './cockpitAirLod.js';
 
 test('Cockpit AIR LOD admits at ADD and retains through KEEP', () => {
   const previous = new Set(['retained', 'expired']);
@@ -31,4 +33,3 @@ test('Cockpit AIR LOD drops absent and invalid contacts', () => {
 
   assert.equal(next.size, 0);
 });
-
