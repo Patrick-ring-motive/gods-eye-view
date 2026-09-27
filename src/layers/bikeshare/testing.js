@@ -1,4 +1,9 @@
-export function createTesting({ state: layerState, services, parts, source }) {
+export function createTesting({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** Seed a selected-station runtime record while still exercising real select/clear paths. */
 
   function _setBikeshareSelectionStateForTest({
@@ -8,7 +13,9 @@ export function createTesting({ state: layerState, services, parts, source }) {
     overlayHost,
   }) {
     layerState._viewer = viewer;
-    layerState._stationRenderMap = new Map([[key, record]]);
+    layerState._stationRenderMap = new Map([
+      [key, record]
+    ]);
     layerState._selectedKey = null;
     layerState._selectedEntity = null;
     layerState._overlayHost = overlayHost || layerState.DEFAULT_OVERLAY_HOST;
