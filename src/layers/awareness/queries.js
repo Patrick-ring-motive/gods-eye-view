@@ -1,7 +1,17 @@
-import { AWARENESS_RADIUS_M } from '../../data/militaryAwarenessEngine.js';
-import { DEPENDENCIES, AWARENESS_QUERY_LIMIT } from './policy.js';
+import {
+  AWARENESS_RADIUS_M
+} from '../../data/militaryAwarenessEngine.js';
+import {
+  DEPENDENCIES,
+  AWARENESS_QUERY_LIMIT
+} from './policy.js';
 
-export function createQueries({ state: layerState, services, parts, source }) {
+export function createQueries({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const flightsLayer = services.flights;
   const militaryFlightsLayer = services.military;
 
@@ -14,9 +24,13 @@ export function createQueries({ state: layerState, services, parts, source }) {
     const enabling = lifecycle?.lifecycleState === 'enabling';
     const moduleStats =
       layerState.dataManager?.layers?.get(layerId)?.module?.getStats?.() || {};
-    const stats = enabling
-      ? { ...moduleStats, loading: true, status: 'loading' }
-      : moduleStats;
+    const stats = enabling ?
+      {
+        ...moduleStats,
+        loading: true,
+        status: 'loading'
+      } :
+      moduleStats;
     // A deferred source that has started but not settled is not evidence of an
     // empty cohort. Keep it explicitly unavailable so the panel cannot flash a
     // false all-clear, even if a lifecycle adapter briefly reports the requested
@@ -50,10 +64,13 @@ export function createQueries({ state: layerState, services, parts, source }) {
     const unavailable =
       enabling ||
       !enabled ||
-      neverAnswered ||
-      ['unavailable', 'zoom-in'].includes(stats.status) ||
+      neverAnswered || ['unavailable', 'zoom-in'].includes(stats.status) ||
       Boolean(stats.error && stats.count === 0);
-    return { available: !unavailable, stale: Boolean(stats.stale), stats };
+    return {
+      available: !unavailable,
+      stale: Boolean(stats.stale),
+      stats
+    };
   }
 
   function collectSourceStates() {
@@ -64,18 +81,18 @@ export function createQueries({ state: layerState, services, parts, source }) {
 
   function sourceRevision(sourceStates) {
     return DEPENDENCIES.map((layerId) => {
-      const source = sourceStates[layerId];
-      const stats = source?.stats || {};
-      return [
-        layerId,
-        source?.available,
-        source?.stale,
-        stats.lastUpdate || null,
-        stats.count ?? null,
-        stats.status || null,
-        stats.error || null,
-      ];
-    })
+        const source = sourceStates[layerId];
+        const stats = source?.stats || {};
+        return [
+          layerId,
+          source?.available,
+          source?.stale,
+          stats.lastUpdate || null,
+          stats.count ?? null,
+          stats.status || null,
+          stats.error || null,
+        ];
+      })
       .map((parts) => parts.join(':'))
       .join('|');
   }
@@ -99,14 +116,17 @@ export function createQueries({ state: layerState, services, parts, source }) {
       source,
     );
     if (summary.count === null)
-      return source.stats?.statusMessage
-        ? { ...summary, reason: source.stats.statusMessage }
-        : summary;
+      return source.stats?.statusMessage ?
+        {
+          ...summary,
+          reason: source.stats.statusMessage
+        } :
+        summary;
     return {
       ...summary,
-      reason: summary.count
-        ? 'mapped matches from the loaded viewport'
-        : 'viewport feed is not a complete 250 km survey',
+      reason: summary.count ?
+        'mapped matches from the loaded viewport' :
+        'viewport feed is not a complete 250 km survey',
     };
   }
 
@@ -133,8 +153,10 @@ export function createQueries({ state: layerState, services, parts, source }) {
    */
 
   function collectAircraftProximityWindow(
-    position,
-    { radiusM = AWARENESS_RADIUS_M, subject = null } = {},
+    position, {
+      radiusM = AWARENESS_RADIUS_M,
+      subject = null
+    } = {},
   ) {
     if (!position) return null;
     const flights = flightsLayer
@@ -151,7 +173,11 @@ export function createQueries({ state: layerState, services, parts, source }) {
       .filter(
         (item) => !subject || !isSame(subject, item, 'military', 'icao24'),
       );
-    return { flights, military, aircraft: flights.length + military.length };
+    return {
+      flights,
+      military,
+      aircraft: flights.length + military.length
+    };
   }
   return {
     sourceState,
