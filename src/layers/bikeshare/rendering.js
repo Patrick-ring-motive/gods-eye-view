@@ -19,7 +19,9 @@ export function createRendering({
   parts,
   source,
 }) {
-  const { governorRequestRender } = services.render;
+  const {
+    governorRequestRender
+  } = services.render;
 
   /**
    * Resolve the effective dock capacity for a station.
@@ -120,7 +122,9 @@ export function createRendering({
   function ensureCityRuntime(cityId) {
     if (layerState._cityRuntime.has(cityId))
       return layerState._cityRuntime.get(cityId);
-    const runtime = { stationKeys: new Set() };
+    const runtime = {
+      stationKeys: new Set()
+    };
     layerState._cityRuntime.set(cityId, runtime);
     return runtime;
   }
