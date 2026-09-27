@@ -12,11 +12,9 @@
 #location-bar .panel-glow {
   position: absolute;
   inset: -20px;
-  background: radial-gradient(
-    ellipse at center,
-    var(--accent-dim) 0%,
-    transparent 60%
-  );
+  background: radial-gradient(ellipse at center,
+      var(--accent-dim) 0%,
+      transparent 60%);
   filter: blur(20px);
   opacity: 0.25;
   pointer-events: none;
