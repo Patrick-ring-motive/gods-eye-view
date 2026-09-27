@@ -1,9 +1,13 @@
 // src/data/flowTiles.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import {
   decodeFlowTile,
   fetchFlowForBounds,
@@ -15,7 +19,11 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Real TomTom flow tile, downtown Austin z12 x935 y1686 (probed live 2026-07-16).
 const FIXTURE = path.join(__dirname, 'fixtures', 'tomtom-flow-austin-12-935-1686.pbf');
-const FIXTURE_TILE = { z: 12, x: 935, y: 1686 };
+const FIXTURE_TILE = {
+  z: 12,
+  x: 935,
+  y: 1686
+};
 
 function loadFixture() {
   return fs.readFileSync(FIXTURE);
@@ -70,8 +78,10 @@ test('decode of a non-MVT buffer returns [] (defensive)', () => {
 
 test('tilesForBounds: 30.2672,-97.7431 @ z12 -> covers x935 y1686', () => {
   const tiles = tilesForBounds({
-    south: 30.2672 - 0.001, north: 30.2672 + 0.001,
-    west: -97.7431 - 0.001, east: -97.7431 + 0.001,
+    south: 30.2672 - 0.001,
+    north: 30.2672 + 0.001,
+    west: -97.7431 - 0.001,
+    east: -97.7431 + 0.001,
   }, 12);
   assert.ok(
     tiles.some((t) => t.z === 12 && t.x === 935 && t.y === 1686),
@@ -82,12 +92,19 @@ test('tilesForBounds: 30.2672,-97.7431 @ z12 -> covers x935 y1686', () => {
 // ── fetchFlowForBounds (stubbed fetch: cache + abort) ───────
 
 /** Bounds fully inside the fixture tile. */
-const FIXTURE_BOUNDS = { south: 30.24, north: 30.26, west: -97.76, east: -97.74 };
+const FIXTURE_BOUNDS = {
+  south: 30.24,
+  north: 30.26,
+  west: -97.76,
+  east: -97.74
+};
 
 function stubFetch(impl) {
   const original = globalThis.fetch;
   globalThis.fetch = impl;
-  return () => { globalThis.fetch = original; };
+  return () => {
+    globalThis.fetch = original;
+  };
 }
 
 test('fetchFlowForBounds: fetches covering tiles via /api/tomtom and decodes', async () => {
@@ -97,7 +114,9 @@ test('fetchFlowForBounds: fetches covering tiles via /api/tomtom and decodes', a
     calls.push(String(url));
     return new Response(loadFixture(), {
       status: 200,
-      headers: { 'Content-Type': 'application/x-protobuf' },
+      headers: {
+        'Content-Type': 'application/x-protobuf'
+      },
     });
   });
   try {
@@ -116,7 +135,9 @@ test('fetchFlowForBounds: decode cache serves repeat calls within TTL (no refetc
   let calls = 0;
   const restore = stubFetch(async () => {
     calls += 1;
-    return new Response(loadFixture(), { status: 200 });
+    return new Response(loadFixture(), {
+      status: 200
+    });
   });
   try {
     const first = await fetchFlowForBounds(FIXTURE_BOUNDS);
@@ -137,13 +158,17 @@ test('fetchFlowForBounds: aborted signal rejects (AbortSignal-aware)', async () 
       err.name = 'AbortError';
       throw err;
     }
-    return new Response(loadFixture(), { status: 200 });
+    return new Response(loadFixture(), {
+      status: 200
+    });
   });
   try {
     const controller = new AbortController();
     controller.abort();
     await assert.rejects(
-      fetchFlowForBounds(FIXTURE_BOUNDS, { signal: controller.signal }),
+      fetchFlowForBounds(FIXTURE_BOUNDS, {
+        signal: controller.signal
+      }),
       (err) => err.name === 'AbortError'
     );
   } finally {
@@ -153,7 +178,11 @@ test('fetchFlowForBounds: aborted signal rejects (AbortSignal-aware)', async () 
 
 test('fetchFlowForBounds: non-OK tile responses reject when nothing succeeds', async () => {
   resetFlowTileCache();
-  const restore = stubFetch(async () => new Response(JSON.stringify({ error: 'no_key' }), { status: 503 }));
+  const restore = stubFetch(async () => new Response(JSON.stringify({
+    error: 'no_key'
+  }), {
+    status: 503
+  }));
   try {
     await assert.rejects(fetchFlowForBounds(FIXTURE_BOUNDS));
   } finally {
