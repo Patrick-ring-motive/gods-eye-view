@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { TRAFFIC_TIMING_ENABLED } from './policy.js';
+import {
+  TRAFFIC_TIMING_ENABLED
+} from './policy.js';
 
 export function createLifecycle({
   state: layerState,
@@ -7,8 +9,13 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
-  const { resetFlowTileCache } = source;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
+  const {
+    resetFlowTileCache
+  } = source;
 
   const methods = {
     /**
@@ -198,5 +205,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
