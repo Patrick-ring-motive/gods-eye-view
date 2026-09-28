@@ -178,16 +178,13 @@ export function renderRadioState(state) {
     this._radioStationName.textContent =
     selected?.name || 'NO STATION SELECTED';
   if (this._radioStationMeta) {
-    const place = selected ?
-      [selected.state, selected.countryCode].filter(Boolean).join(' · ') :
+    const place = selected ? [selected.state, selected.countryCode].filter(Boolean).join(' · ') :
       '';
-    const signal = selected ?
-      [selected.codec, selected.bitrate ? `${selected.bitrate} kbps` : '']
+    const signal = selected ? [selected.codec, selected.bitrate ? `${selected.bitrate} kbps` : '']
       .filter(Boolean)
       .join(' · ') :
       '';
-    this._radioStationMeta.textContent = selected ?
-      [place, signal].filter(Boolean).join('  /  ') ||
+    this._radioStationMeta.textContent = selected ? [place, signal].filter(Boolean).join('  /  ') ||
       'Directory metadata only' :
       state.loading ?
       'Loading station directory…' :
@@ -314,8 +311,7 @@ export function renderRadioState(state) {
       selected && state.selectedIndex < 0 ? ' · outside current filter' : '';
     const messages = {
       stopped: enabled ?
-        'Ready — playback starts only from your action' :
-        'Radio off',
+        'Ready — playback starts only from your action' : 'Radio off',
       loading: 'Connecting directly to broadcaster…',
       buffering: 'Buffering broadcaster stream…',
       playing: `Playing ${selected?.name || 'station'}`,
