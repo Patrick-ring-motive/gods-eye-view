@@ -22,7 +22,12 @@ export function createStyleParameters({
   };
   return {
     /** Render uniform metadata with readValue, writeValue and onChange callbacks. */
-    render({ uniforms, readValue, writeValue, onChange }) {
+    render({
+      uniforms,
+      readValue,
+      writeValue,
+      onChange
+    }) {
       if (destroyed) return;
       clear();
       for (const [name, metadata] of Object.entries(uniforms)) {
