@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Moving visual evidence for focus de-emphasis and aircraft recession.
  *
@@ -36,7 +37,10 @@ const HEADFUL = hasFlag('--headful');
 const SMOKE = hasFlag('--smoke');
 const MAP_STACK_IDS = Object.freeze(['photoreal', 'bing-aerial', 'bing-labels', 'esri-imagery', 'osm']);
 const BASEMAP = getOpt('--basemap', 'photoreal');
-const VIEWPORT = Object.freeze({ width: 1440, height: 900 });
+const VIEWPORT = Object.freeze({
+  width: 1440,
+  height: 900
+});
 const FRAME_COUNT = SMOKE ? 6 : 30;
 const FRAME_MS = 100;
 const TILE_SETTLE_TIMEOUT_MS = 45_000;
@@ -61,7 +65,10 @@ const HORIZON_CAMERA = Object.freeze([
 
 function parseParams() {
   const raw = getOpt('--params');
-  if (!raw) return { focus: {}, horizon: {} };
+  if (!raw) return {
+    focus: {},
+    horizon: {}
+  };
   let parsed;
   try {
     parsed = JSON.parse(raw);
@@ -72,11 +79,14 @@ function parseParams() {
     throw new Error('--params must be a JSON object');
   }
   if (parsed.focus || parsed.horizon) {
-    if ((parsed.focus && (typeof parsed.focus !== 'object' || Array.isArray(parsed.focus)))
-      || (parsed.horizon && (typeof parsed.horizon !== 'object' || Array.isArray(parsed.horizon)))) {
+    if ((parsed.focus && (typeof parsed.focus !== 'object' || Array.isArray(parsed.focus))) ||
+      (parsed.horizon && (typeof parsed.horizon !== 'object' || Array.isArray(parsed.horizon)))) {
       throw new Error('--params focus and horizon values must be JSON objects');
     }
-    return { focus: parsed.focus || {}, horizon: parsed.horizon || {} };
+    return {
+      focus: parsed.focus || {},
+      horizon: parsed.horizon || {}
+    };
   }
   const focusKeys = new Set([
     'paddingPx', 'dimFloor', 'nearerBehavior', 'hysteresisPx',
@@ -93,7 +103,10 @@ function parseParams() {
     if (focusKeys.has(key)) focus[key] = value;
     if (horizonKeys.has(key)) horizon[key] = value;
   }
-  return { focus, horizon };
+  return {
+    focus,
+    horizon
+  };
 }
 
 function add(a, b) {
@@ -206,7 +219,10 @@ async function capture(page, scenario, frame) {
     window.__godsEyeView.viewer.scene.canvas.toDataURL('image/png')
   ));
   fs.writeFileSync(out, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
-  return { file: out, ...tileReadiness };
+  return {
+    file: out,
+    ...tileReadiness
+  };
 }
 
 async function captureSequenceFrame(page, scenario, frameIndex, update) {
@@ -264,25 +280,45 @@ async function installSyntheticFetches(page) {
     const realFetch = window.fetch.bind(window);
     const json = (body) => Promise.resolve(new Response(JSON.stringify(body), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
     }));
     window.fetch = (input, init) => {
       const url = typeof input === 'string' ? input : input?.url || '';
-      if (url.includes('/api/opensky-track')) return json({ path: [] });
-      if (url.includes('/api/adsblol/trace')) return json({ timestamp: Date.now() / 1000, trace: [] });
-      if (url.includes('/api/opensky')) return json({ time: Math.floor(Date.now() / 1000), states: [] });
-      if (url.includes('/api/adsbdb/')) return json({ found: false });
-      if (url.includes('/api/ais-live')) return json({ status: 'open', rows: [] });
+      if (url.includes('/api/opensky-track')) return json({
+        path: []
+      });
+      if (url.includes('/api/adsblol/trace')) return json({
+        timestamp: Date.now() / 1000,
+        trace: []
+      });
+      if (url.includes('/api/opensky')) return json({
+        time: Math.floor(Date.now() / 1000),
+        states: []
+      });
+      if (url.includes('/api/adsbdb/')) return json({
+        found: false
+      });
+      if (url.includes('/api/ais-live')) return json({
+        status: 'open',
+        rows: []
+      });
       return realFetch(input, init);
     };
   });
 }
 
 async function waitForApp(page) {
-  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.goto(APP_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000
+  });
   await page.waitForFunction(
-    () => Boolean(window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager),
-    { timeout: 60_000, polling: 200 },
+    () => Boolean(window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager), {
+      timeout: 60_000,
+      polling: 200
+    },
   );
 }
 
@@ -328,25 +364,39 @@ async function setCamera(page, values) {
         latitude: lat * Math.PI / 180,
         height,
       }),
-      orientation: { heading, pitch, roll: 0 },
+      orientation: {
+        heading,
+        pitch,
+        roll: 0
+      },
     });
   }, values);
   await advanceEvidenceDuration(page, 300);
 }
 
 async function injectAndTrackTarget(page, extraAircraft = [], target = TARGET) {
-  const result = await page.evaluate(({ targetRecord, extras }) => {
+  const result = await page.evaluate(({
+    targetRecord,
+    extras
+  }) => {
     const layer = window.__godsEyeView.dataManager.layers.get('flights').module;
     const injected = layer.__focusEvidence.setAircraft([targetRecord, ...extras]);
     const tracked = layer.trackById(targetRecord.id);
-    return { injected, tracked };
-  }, { targetRecord: target, extras: extraAircraft });
+    return {
+      injected,
+      tracked
+    };
+  }, {
+    targetRecord: target,
+    extras: extraAircraft
+  });
   if (!result.injected?.ok || !result.tracked) {
     throw new Error(`Synthetic target setup failed: ${JSON.stringify(result)}`);
   }
   await page.waitForFunction(
-    () => Boolean(window.__godsEyeView.viewer.trackedEntity),
-    { timeout: 10_000 },
+    () => Boolean(window.__godsEyeView.viewer.trackedEntity), {
+      timeout: 10_000
+    },
   );
   await advanceEvidenceDuration(page, 400);
 }
@@ -392,7 +442,11 @@ async function setTuning(page, params) {
 async function runControlledCrossing(page, effectiveParams) {
   const scenario = 's1-controlled-crossing';
   if (SMOKE) console.log('    setup: inject + track');
-  await injectAndTrackTarget(page, [{ ...TARGET, id: 'f0c002', callsign: 'CROSS2' }]);
+  await injectAndTrackTarget(page, [{
+    ...TARGET,
+    id: 'f0c002',
+    callsign: 'CROSS2'
+  }]);
   if (SMOKE) console.log('    setup: read tracked basis');
   const basis = await readTrackedBasis(page);
   // Stay beyond the default 8% range-side hysteresis band so S1 exercises
@@ -401,7 +455,11 @@ async function runControlledCrossing(page, effectiveParams) {
   const start = screenPlanePosition(basis, -180, 0, crossingDepthM);
   await page.evaluate((position) => {
     const seam = window.__godsEyeView.dataManager.layers.get('flights').module.__focusEvidence;
-    seam.moveAircraft([{ id: 'f0c002', cartesian: position, trackDeg: 90 }]);
+    seam.moveAircraft([{
+      id: 'f0c002',
+      cartesian: position,
+      trackDeg: 90
+    }]);
   }, start);
   // The placeholder begins at the target so tracking can establish its camera
   // first. Restore fully off-target before frame 0; otherwise the sequence
@@ -414,12 +472,27 @@ async function runControlledCrossing(page, effectiveParams) {
     const cartesian = screenPlanePosition(basis, xPx, 0, crossingDepthM);
     const captured = await captureSequenceFrame(page, scenario, i, () => page.evaluate((position) => {
       const seam = window.__godsEyeView.dataManager.layers.get('flights').module.__focusEvidence;
-      seam.moveAircraft([{ id: 'f0c002', cartesian: position, trackDeg: 90 }]);
+      seam.moveAircraft([{
+        id: 'f0c002',
+        cartesian: position,
+        trackDeg: 90
+      }]);
     }, cartesian));
     const snapshot = await flightSnapshot(page);
-    frames.push({ index: i, xPx, ...captured, contacts: snapshot });
+    frames.push({
+      index: i,
+      xPx,
+      ...captured,
+      contacts: snapshot
+    });
   }
-  return { id: scenario, frameCount: frames.length, basis, crossingDepthM, frames };
+  return {
+    id: scenario,
+    frameCount: frames.length,
+    basis,
+    crossingDepthM,
+    frames
+  };
 }
 
 async function vesselRowsAroundTarget(page) {
@@ -438,8 +511,8 @@ async function vesselRowsAroundTarget(page) {
       // sufficient at harbor scale and keeps the injected vessel at sea level.
       const carto = Cartographic.fromCartesian(target, ellipsoid);
       const lat = carto.latitude * 180 / Math.PI + northM / 111_320;
-      const lon = carto.longitude * 180 / Math.PI
-        + eastM / (111_320 * Math.cos(carto.latitude));
+      const lon = carto.longitude * 180 / Math.PI +
+        eastM / (111_320 * Math.cos(carto.latitude));
       rows.push({
         mmsi: String(990000000 + i),
         name: `HARBOR ${String(i + 1).padStart(2, '0')}`,
@@ -456,11 +529,17 @@ async function vesselRowsAroundTarget(page) {
 
 async function runHarborClutter(page, effectiveParams) {
   const scenario = 's2-harbor-clutter';
-  const lowTarget = { ...TARGET, altitudeM: 50 };
+  const lowTarget = {
+    ...TARGET,
+    altitudeM: 50
+  };
   // Harbor contacts straddle the tracked low-altitude subject's range. This
   // scenario deliberately exercises the documented tunable all-overlap policy
   // instead of being neutralized by the production `allow` range band.
-  const clutterFocus = { ...effectiveParams.focus, nearerBehavior: 'dim' };
+  const clutterFocus = {
+    ...effectiveParams.focus,
+    nearerBehavior: 'dim'
+  };
   await injectAndTrackTarget(page, [], lowTarget);
   const rows = await vesselRowsAroundTarget(page);
   await page.evaluate((vessels) => {
@@ -469,35 +548,52 @@ async function runHarborClutter(page, effectiveParams) {
     seam.setVessels(vessels);
   }, rows);
 
-  await setTuning(page, { focus: { ...clutterFocus, dimFloor: 1 } });
+  await setTuning(page, {
+    focus: {
+      ...clutterFocus,
+      dimFloor: 1
+    }
+  });
   await advanceEvidenceDuration(page, 450);
   const beforeCapture = await capture(page, scenario, 'before');
   const before = await page.evaluate(() => (
     window.__godsEyeView.dataManager.layers
-      .get('ais-live-vessels').module.__focusEvidence.snapshot()
+    .get('ais-live-vessels').module.__focusEvidence.snapshot()
   ));
 
-  await setTuning(page, { ...effectiveParams, focus: clutterFocus });
+  await setTuning(page, {
+    ...effectiveParams,
+    focus: clutterFocus
+  });
   await advanceEvidenceDuration(page, Math.max(500, effectiveParams.focus.attackMs + 200));
   const afterCapture = await capture(page, scenario, 'after');
   const after = await page.evaluate(() => (
     window.__godsEyeView.dataManager.layers
-      .get('ais-live-vessels').module.__focusEvidence.snapshot()
+    .get('ais-live-vessels').module.__focusEvidence.snapshot()
   ));
   await setTuning(page, effectiveParams);
   return {
     id: scenario,
     focusParams: clutterFocus,
-    frames: [
-      { phase: 'before', ...beforeCapture, contacts: before },
-      { phase: 'after', ...afterCapture, contacts: after },
+    frames: [{
+        phase: 'before',
+        ...beforeCapture,
+        contacts: before
+      },
+      {
+        phase: 'after',
+        ...afterCapture,
+        contacts: after
+      },
     ],
   };
 }
 
 async function runAirportTraffic(page, effectiveParams) {
   const scenario = 's3-airport-traffic';
-  const placeholders = Array.from({ length: 40 }, (_, index) => ({
+  const placeholders = Array.from({
+    length: 40
+  }, (_, index) => ({
     ...TARGET,
     id: `f3${String(index).padStart(4, '0')}`,
     callsign: `APT${String(index).padStart(2, '0')}`,
@@ -545,9 +641,19 @@ async function runAirportTraffic(page, effectiveParams) {
       const seam = window.__godsEyeView.dataManager.layers.get('flights').module.__focusEvidence;
       seam.moveAircraft(positions);
     }, moves));
-    frames.push({ index: frame, radiusPx, ...captured, contacts: await flightSnapshot(page) });
+    frames.push({
+      index: frame,
+      radiusPx,
+      ...captured,
+      contacts: await flightSnapshot(page)
+    });
   }
-  return { id: scenario, frameCount: frames.length, basis, frames };
+  return {
+    id: scenario,
+    frameCount: frames.length,
+    basis,
+    frames
+  };
 }
 
 async function runHorizonBand(page, effectiveParams) {
@@ -575,7 +681,11 @@ async function runHorizonBand(page, effectiveParams) {
   await setCamera(page, HORIZON_CAMERA);
 
   await setTuning(page, {
-    horizon: { ...effectiveParams.horizon, scaleFloor: 1, alphaFloor: 1 },
+    horizon: {
+      ...effectiveParams.horizon,
+      scaleFloor: 1,
+      alphaFloor: 1
+    },
   });
   await advanceEvidenceDuration(page, 450);
   const beforeCapture = await capture(page, scenario, 'before');
@@ -588,9 +698,16 @@ async function runHorizonBand(page, effectiveParams) {
   return {
     id: scenario,
     camera: HORIZON_CAMERA,
-    frames: [
-      { phase: 'before', ...beforeCapture, contacts: before },
-      { phase: 'after', ...afterCapture, contacts: after },
+    frames: [{
+        phase: 'before',
+        ...beforeCapture,
+        contacts: before
+      },
+      {
+        phase: 'after',
+        ...afterCapture,
+        contacts: after
+      },
     ],
   };
 }
@@ -603,12 +720,12 @@ async function browserContext(page, browser) {
     return {
       userAgent: navigator.userAgent,
       dpr: window.devicePixelRatio,
-      vendor: debug
-        ? context.getParameter(debug.UNMASKED_VENDOR_WEBGL)
-        : context?.getParameter(context.VENDOR) || 'unavailable',
-      renderer: debug
-        ? context.getParameter(debug.UNMASKED_RENDERER_WEBGL)
-        : context?.getParameter(context.RENDERER) || 'unavailable',
+      vendor: debug ?
+        context.getParameter(debug.UNMASKED_VENDOR_WEBGL) :
+        context?.getParameter(context.VENDOR) || 'unavailable',
+      renderer: debug ?
+        context.getParameter(debug.UNMASKED_RENDERER_WEBGL) :
+        context?.getParameter(context.RENDERER) || 'unavailable',
     };
   });
   return {
@@ -616,26 +733,36 @@ async function browserContext(page, browser) {
     userAgent: gl.userAgent,
     webglVendor: gl.vendor,
     webglRenderer: gl.renderer,
-    viewport: { ...VIEWPORT, dpr: gl.dpr },
+    viewport: {
+      ...VIEWPORT,
+      dpr: gl.dpr
+    },
     machine: {
       hostname: os.hostname(),
       platform: os.platform(),
       arch: os.arch(),
     },
-    caveat: HEADFUL
-      ? 'Headful capture omits SwiftShader flags and is the real-GPU visual sign-off path.'
-      : 'SwiftShader/headless output is relative-only; rerun with --headful for real-GPU sign-off.',
+    caveat: HEADFUL ?
+      'Headful capture omits SwiftShader flags and is the real-GPU visual sign-off path.' :
+      'SwiftShader/headless output is relative-only; rerun with --headful for real-GPU sign-off.',
   };
 }
 
 async function main() {
   const requestedParams = parseParams();
-  const response = await fetch(APP_URL).catch((error) => ({ ok: false, statusText: error.message }));
+  const response = await fetch(APP_URL).catch((error) => ({
+    ok: false,
+    statusText: error.message
+  }));
   if (!response.ok) {
     throw new Error(`Live dev server unavailable at ${APP_URL}: ${response.status || response.statusText}`);
   }
-  fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
-  fs.mkdirSync(path.dirname(JSON_PATH), { recursive: true });
+  fs.mkdirSync(SCREENSHOTS_DIR, {
+    recursive: true
+  });
+  fs.mkdirSync(path.dirname(JSON_PATH), {
+    recursive: true
+  });
 
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
@@ -655,10 +782,16 @@ async function main() {
   const consoleMessages = [];
   page.on('console', (message) => {
     if (['error', 'warning', 'warn'].includes(message.type())) {
-      consoleMessages.push({ type: message.type(), text: message.text() });
+      consoleMessages.push({
+        type: message.type(),
+        text: message.text()
+      });
     }
   });
-  page.on('pageerror', (error) => consoleMessages.push({ type: 'pageerror', text: error.message }));
+  page.on('pageerror', (error) => consoleMessages.push({
+    type: 'pageerror',
+    text: error.message
+  }));
 
   const report = {
     generatedAt: new Date().toISOString(),
@@ -698,7 +831,7 @@ async function main() {
       ['S3 airport traffic', () => runAirportTraffic(page, report.effectiveParams)],
       ['S4 horizon band', () => runHorizonBand(page, report.effectiveParams)],
     ];
-    for (const [label, run] of (SMOKE ? scenarios.slice(0, 1) : scenarios)) {
+    for (const [label, run] of(SMOKE ? scenarios.slice(0, 1) : scenarios)) {
       console.log(`  capture    : ${label}`);
       await page.bringToFront();
       report.scenarios.push(await run());
