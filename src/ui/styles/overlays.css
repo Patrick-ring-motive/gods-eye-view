@@ -40,8 +40,7 @@
 
 #safe-frame-box::before {
   background:
-    linear-gradient(
-      to right,
+    linear-gradient(to right,
       transparent 33.333%,
       rgba(255, 255, 255, 0.2) 33.333%,
       rgba(255, 255, 255, 0.2) 33.7%,
@@ -49,10 +48,8 @@
       transparent 66.333%,
       rgba(255, 255, 255, 0.2) 66.333%,
       rgba(255, 255, 255, 0.2) 66.7%,
-      transparent 66.7%
-    ),
-    linear-gradient(
-      to bottom,
+      transparent 66.7%),
+    linear-gradient(to bottom,
       transparent 33.333%,
       rgba(255, 255, 255, 0.2) 33.333%,
       rgba(255, 255, 255, 0.2) 33.7%,
@@ -60,8 +57,7 @@
       transparent 66.333%,
       rgba(255, 255, 255, 0.2) 66.333%,
       rgba(255, 255, 255, 0.2) 66.7%,
-      transparent 66.7%
-    );
+      transparent 66.7%);
 }
 
 /* ── Orbit Indicator ─────────────────────────── */
@@ -328,11 +324,9 @@
 
 #intel-hud[data-variant='operator'] .hud-bottom-bar {
   border-color: rgba(255, 255, 255, 0.2);
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.52),
-    rgba(8, 22, 18, 0.52)
-  );
+  background: linear-gradient(90deg,
+      rgba(0, 0, 0, 0.52),
+      rgba(8, 22, 18, 0.52));
 }
 
 #intel-hud[data-variant='operator'] .hud-corner {
