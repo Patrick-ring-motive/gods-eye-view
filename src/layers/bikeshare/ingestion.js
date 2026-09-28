@@ -1,4 +1,6 @@
-import { CITY_BY_ID } from './registry.js';
+import {
+  CITY_BY_ID
+} from './registry.js';
 
 export function createIngestion({
   state: layerState,
@@ -113,7 +115,11 @@ export function createIngestion({
         layerState._inFlightInfo.delete(cityId);
     });
 
-    layerState._inFlightInfo.set(cityId, { promise, controller, generation });
+    layerState._inFlightInfo.set(cityId, {
+      promise,
+      controller,
+      generation
+    });
     return promise;
   }
 
@@ -156,7 +162,11 @@ export function createIngestion({
         layerState._inFlightStatus.delete(cityId);
     });
 
-    layerState._inFlightStatus.set(cityId, { promise, controller, generation });
+    layerState._inFlightStatus.set(cityId, {
+      promise,
+      controller,
+      generation
+    });
     return promise;
   }
   const methods = {
