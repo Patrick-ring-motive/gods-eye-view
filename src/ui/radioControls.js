@@ -1,9 +1,18 @@
-import { bindRadioControls } from './radioBindings.js';
-import { renderRadioState } from './radioPresentation.js';
+import {
+  bindRadioControls
+} from './radioBindings.js';
+import {
+  renderRadioState
+} from './radioPresentation.js';
 
 /** Own Radio DOM, tuner interaction and subscription; receive playback and application actions. */
 export class RadioControls {
-  constructor({ elements, radio, actions, canvas }) {
+  constructor({
+    elements,
+    radio,
+    actions,
+    canvas
+  }) {
     Object.assign(this, elements);
     this.radio = radio;
     this.actions = actions;
@@ -87,9 +96,9 @@ export class RadioControls {
     const maximum =
       scroller.scrollTop + directoryRect.top - (viewport.top + margin);
     const desired =
-      minimum <= maximum
-        ? Math.min(Math.max(scroller.scrollTop, minimum), maximum)
-        : minimum;
+      minimum <= maximum ?
+      Math.min(Math.max(scroller.scrollTop, minimum), maximum) :
+      minimum;
     const next = Math.min(
       Math.max(0, scroller.scrollHeight - scroller.clientHeight),
       Math.max(0, desired),
@@ -111,7 +120,9 @@ export class RadioControls {
    * @param {{focusTarget?: HTMLElement|null}} [options]
    * @returns {Promise<boolean>} Whether the internal scroller moved.
    */
-  async _revealRadioPanelInsideContext({ focusTarget = null } = {}) {
+  async _revealRadioPanelInsideContext({
+    focusTarget = null
+  } = {}) {
     const contextPanel = document.getElementById('global-context-panel');
     const scroller = contextPanel?.querySelector('.global-context-panel-inner');
     if (
@@ -150,7 +161,9 @@ export class RadioControls {
         behavior: reducedMotion ? 'auto' : 'smooth',
       });
     }
-    focusTarget?.focus?.({ preventScroll: true });
+    focusTarget?.focus?.({
+      preventScroll: true
+    });
     return moved;
   }
 
@@ -170,9 +183,9 @@ export class RadioControls {
         'aria-expanded',
         String(radioExpanded),
       );
-      const label = radioExpanded
-        ? 'Go to expanded Radio section'
-        : 'Expand Radio section in Context';
+      const label = radioExpanded ?
+        'Go to expanded Radio section' :
+        'Expand Radio section in Context';
       this._contextRadioToggleBtn.setAttribute('aria-label', label);
       this._contextRadioToggleBtn.title = label;
       return;
