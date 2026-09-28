@@ -29,15 +29,14 @@ export function createPresentation({
       stationCount: layerState._stations.length,
       filteredCount: visible.length,
       selected,
-      selectedIndex: selected
-        ? visible.findIndex((station) => station.id === selected.id)
-        : -1,
+      selectedIndex: selected ?
+        visible.findIndex((station) => station.id === selected.id) :
+        -1,
       audioState: layerState._audioState,
       audioError: layerState._audioError,
       playingStationId: layerState._audioStationId,
       volume: layerState._userVolume,
-      effectiveVolume:
-        layerState._audio?.volume ??
+      effectiveVolume: layerState._audio?.volume ??
         (layerState._voiceDucked ? 0 : layerState._userVolume),
       voiceDucked: layerState._voiceDucked,
       voiceRestoring: layerState._voiceRestoring,
@@ -45,8 +44,7 @@ export function createPresentation({
       tuningStatic: layerState._tuningStatic,
       tuningAwaitingStationId: layerState._tuningAwaitingStationId,
       tuningPreviewStationId: layerState._tuningPreviewId,
-      tuningRestoredStationId:
-        layerState._cancelledTuningPresentationStation?.id || null,
+      tuningRestoredStationId: layerState._cancelledTuningPresentationStation?.id || null,
       tuningCatalogGeneration: layerState._tuningResolutionSnapshot.generation,
       tuningUnavailableStationId: layerState._tuningUnavailableStationId,
     });
@@ -85,7 +83,11 @@ export function createPresentation({
     origin,
     attemptId = layerState._activePlaybackAttempt?.id || null,
   ) {
-    const event = { action, origin, attemptId };
+    const event = {
+      action,
+      origin,
+      attemptId
+    };
     for (const listener of layerState._playbackControlListeners) {
       try {
         listener(event);
