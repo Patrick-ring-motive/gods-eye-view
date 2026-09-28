@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { LAYER_ID } from './policy.js';
+import {
+  LAYER_ID
+} from './policy.js';
 
 export function createLifecycle({
   state: layerState,
@@ -7,8 +9,13 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
-  const { clearSelectedEntityContextForLayer } = services.context;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
+  const {
+    clearSelectedEntityContextForLayer
+  } = services.context;
 
   const methods = {
     init(viewer) {
@@ -58,5 +65,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
