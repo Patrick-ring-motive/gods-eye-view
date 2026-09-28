@@ -1,4 +1,6 @@
-import { initFirstRunExperience } from '../firstRunExperience.js';
+import {
+  initFirstRunExperience
+} from '../firstRunExperience.js';
 
 /** Reveal welcome controls only after restoration and the loading transition. */
 export function startApplicationChrome({
@@ -19,7 +21,10 @@ export function startApplicationChrome({
   const delayTimer = setTimeout(resolveDelay, 1000);
   const revealFirstRun = () => {
     if (disposed || signal.aborted || firstRun) return;
-    firstRun = initializeWelcome?.({ styleManager, dataManager });
+    firstRun = initializeWelcome?.({
+      styleManager,
+      dataManager
+    });
     clearTimeout(revealTimer);
     loadingScreen.removeEventListener('transitionend', revealFirstRun);
   };
@@ -36,7 +41,9 @@ export function startApplicationChrome({
       revealTimer = setTimeout(revealFirstRun, 900);
     });
   const keySetup = Promise.resolve(
-    signal.aborted ? null : initializeSettings?.({ signal }),
+    signal.aborted ? null : initializeSettings?.({
+      signal
+    }),
   );
   // Own the pending initializer too; it must not reveal a dialog after abort.
   void keySetup.catch(() =>
