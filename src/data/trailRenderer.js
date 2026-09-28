@@ -20,7 +20,9 @@
  * carrying a pick id the layers' click handlers resolve.
  */
 import * as Cesium from 'cesium';
-import { registerPickOwner } from './pickRegistry.js';
+import {
+  registerPickOwner
+} from './pickRegistry.js';
 
 // Round 6: trail ENTITIES are pickable (the old Primitive had
 // allowPicking:false). A trail hugs its aircraft, so an unclaimed pick would
@@ -52,7 +54,10 @@ const MIN_SEGMENT_DISTANCE_SQ = 0.01;
  *   hides it without discarding history, clear empties it, and destroy removes
  *   the entity permanently.
  */
-export function createTrail(viewer, { color, width = 2.5 }) {
+export function createTrail(viewer, {
+  color,
+  width = 2.5
+}) {
   const baseColor = Cesium.Color.fromCssColorString(color);
   /** @type {Cesium.Cartesian3[]} Current deduped positions (owned copy). */
   let current = [];
@@ -122,7 +127,10 @@ export function createTrail(viewer, { color, width = 2.5 }) {
       destroyed = true;
       current = [];
       if (entity && viewer && !viewer.isDestroyed()) {
-        try { viewer.entities.remove(entity); } catch { /* torn down */ }
+        try {
+          viewer.entities.remove(entity);
+        } catch {
+          /* torn down */ }
       }
       entity = null;
     },
