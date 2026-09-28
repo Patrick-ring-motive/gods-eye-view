@@ -29,7 +29,10 @@ export function findByDoublingRadius(search, {
   let radiusM = initialRadiusM;
   while (radiusM <= maxRadiusM) {
     const candidate = search(radiusM);
-    if (candidate) return { candidate, radiusM };
+    if (candidate) return {
+      candidate,
+      radiusM
+    };
     if (radiusM === maxRadiusM) break;
     radiusM = Math.min(radiusM * 2, maxRadiusM);
   }
@@ -61,13 +64,30 @@ export function formatAwarenessLabel(value) {
  * negative finding. `UNKNOWN` is an input-data state, never an out-of-range
  * claim in this MVP.
  */
-export function summarizeAwarenessCohort(items, { available = true, stale = false, limit = 3 } = {}) {
-  if (!available) return { relationship: AWARENESS_RELATIONSHIP.UNKNOWN, count: null, nearest: [], reason: 'feed unavailable' };
-  if (stale) return { relationship: AWARENESS_RELATIONSHIP.UNKNOWN, count: null, nearest: [], reason: 'feed stale' };
+export function summarizeAwarenessCohort(items, {
+  available = true,
+  stale = false,
+  limit = 3
+} = {}) {
+  if (!available) return {
+    relationship: AWARENESS_RELATIONSHIP.UNKNOWN,
+    count: null,
+    nearest: [],
+    reason: 'feed unavailable'
+  };
+  if (stale) return {
+    relationship: AWARENESS_RELATIONSHIP.UNKNOWN,
+    count: null,
+    nearest: [],
+    reason: 'feed stale'
+  };
   const normalized = (Array.isArray(items) ? items : [])
-    .filter((item) => Number.isFinite(item?.distanceM ?? item?.distance)
-      && (item.distanceM ?? item.distance) >= 0)
-    .map((item) => ({ ...item, distanceM: item.distanceM ?? item.distance }))
+    .filter((item) => Number.isFinite(item?.distanceM ?? item?.distance) &&
+      (item.distanceM ?? item.distance) >= 0)
+    .map((item) => ({
+      ...item,
+      distanceM: item.distanceM ?? item.distance
+    }))
     .sort((a, b) => a.distanceM - b.distanceM);
   return {
     relationship: normalized.length ? AWARENESS_RELATIONSHIP.NEARBY : AWARENESS_RELATIONSHIP.UNKNOWN,
@@ -90,15 +110,20 @@ export function getAwarenessNavigationTargets(cohorts, subject = null, visitedKe
   for (const cohort of Array.isArray(cohorts) ? cohorts : []) {
     const layerId = cohort?.id;
     if (!['flights', 'military', 'ais-live-vessels', 'military-installations'].includes(layerId)) continue;
-    const sourceItems = Array.isArray(cohort?.summary?.navigationNearest)
-      ? cohort.summary.navigationNearest
-      : (Array.isArray(cohort?.summary?.nearest) ? cohort.summary.nearest : []);
+    const sourceItems = Array.isArray(cohort?.summary?.navigationNearest) ?
+      cohort.summary.navigationNearest :
+      (Array.isArray(cohort?.summary?.nearest) ? cohort.summary.nearest : []);
     for (const item of sourceItems) {
       const id = item?.icao24 || item?.mmsi || item?.id;
       if (!id) continue;
       const key = `${layerId}:${id}`;
       if (key === `${subject?.layerId}:${subject?.id}`) continue;
-      targets.push({ layerId, id: String(id), item, visited: visited.has(key) });
+      targets.push({
+        layerId,
+        id: String(id),
+        item,
+        visited: visited.has(key)
+      });
     }
   }
   targets.sort((a, b) => {
