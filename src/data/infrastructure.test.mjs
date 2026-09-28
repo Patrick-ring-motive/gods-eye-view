@@ -1,19 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import {
+  spawnSync
+} from 'node:child_process';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
-import { createInfrastructureLayers } from 'gods-eye-view/infrastructure';
-import { createLocalGeoJsonLayer } from 'gods-eye-view/infrastructure/geojson';
+import {
+  createInfrastructureLayers
+} from 'gods-eye-view/infrastructure';
+import {
+  createLocalGeoJsonLayer
+} from 'gods-eye-view/infrastructure/geojson';
 
 function services() {
   const records = new Map();
   let selection;
   return {
     records,
-    overlayHost: { setEntries() {}, setVisible() {}, clearSource() {} },
+    overlayHost: {
+      setEntries() {},
+      setVisible() {},
+      clearSource() {}
+    },
     registerEntityContext(entity, metadata) {
-      records.set(metadata.id, { entity, ...metadata });
+      records.set(metadata.id, {
+        entity,
+        ...metadata
+      });
     },
     selectEntityContext(entity) {
       selection = entity;
@@ -46,8 +61,10 @@ test('package exports import without an application, DOM, fetch, or timers', () 
     await import('gods-eye-view/infrastructure/geojson');
     await import('gods-eye-view/infrastructure/lod');
   `,
-    ],
-    { cwd: new URL('../..', import.meta.url), encoding: 'utf8' },
+    ], {
+      cwd: new URL('../..', import.meta.url),
+      encoding: 'utf8'
+    },
   );
   assert.equal(result.status, 0, result.stderr);
 });
@@ -59,10 +76,25 @@ test('infrastructure factory preserves identity and creates independent state wi
   const first = createInfrastructureLayers(services());
   const second = createInfrastructureLayers(services());
   assert.deepEqual(
-    first.map(({ id, name, source }) => ({ id, name, source })),
-    [
-      { id: 'local-datacenters', name: 'Datacenters', source: 'Local' },
-      { id: 'local-dams', name: 'Dams', source: 'USACE' },
+    first.map(({
+      id,
+      name,
+      source
+    }) => ({
+      id,
+      name,
+      source
+    })),
+    [{
+        id: 'local-datacenters',
+        name: 'Datacenters',
+        source: 'Local'
+      },
+      {
+        id: 'local-dams',
+        name: 'Dams',
+        source: 'USACE'
+      },
     ],
   );
   first.forEach((layer, index) => {
@@ -79,13 +111,13 @@ test('infrastructure factory preserves identity and creates independent state wi
 
 test('dataset URLs still name the complete bundled sources', () => {
   for (const [file, count] of [
-    ['datacenters', 4351],
-    ['dams', 704],
-  ]) {
+      ['datacenters', 4351],
+      ['dams', 704],
+    ]) {
     const lines = readFileSync(
-      new URL(`./local_data/${file}/${file}.geojsonl`, import.meta.url),
-      'utf8',
-    )
+        new URL(`./local_data/${file}/${file}.geojsonl`, import.meta.url),
+        'utf8',
+      )
       .split('\n')
       .filter((line) => line.trim());
     assert.equal(lines.length, count);
@@ -99,7 +131,9 @@ test('two viewers use their supplied contexts and dispose independently', async 
       JSON.stringify({
         type: 'Feature',
         id: 'same-id',
-        properties: { name: 'Dam' },
+        properties: {
+          name: 'Dam'
+        },
         geometry: {
           type: 'Polygon',
           coordinates: [
@@ -117,8 +151,7 @@ test('two viewers use their supplied contexts and dispose independently', async 
   const instances = hosts.map((host) => {
     const sources = new Cesium.DataSourceCollection();
     let click;
-    const layer = createLocalGeoJsonLayer(
-      {
+    const layer = createLocalGeoJsonLayer({
         id: 'local-dams',
         name: 'Dams',
         color: '#0088ff',
@@ -138,17 +171,36 @@ test('two viewers use their supplied contexts and dispose independently', async 
         canvas: {},
         preRender: new Cesium.Event(),
         requestRender() {},
-        screenSpaceCameraController: { enableInputs: true },
-        pick: () => ({ id: sources.get(0).entities.values[0] }),
+        screenSpaceCameraController: {
+          enableInputs: true
+        },
+        pick: () => ({
+          id: sources.get(0).entities.values[0]
+        }),
       },
-      camera: { moveEnd: new Cesium.Event(), flyTo() {} },
+      camera: {
+        moveEnd: new Cesium.Event(),
+        flyTo() {}
+      },
     };
-    return { layer, viewer, click: () => click({ position: {} }) };
+    return {
+      layer,
+      viewer,
+      click: () => click({
+        position: {}
+      })
+    };
   });
   t.after(() =>
-    instances.forEach(({ layer, viewer }) => layer.destroy(viewer)),
+    instances.forEach(({
+      layer,
+      viewer
+    }) => layer.destroy(viewer)),
   );
-  await Promise.all(instances.map(({ layer, viewer }) => layer.enable(viewer)));
+  await Promise.all(instances.map(({
+    layer,
+    viewer
+  }) => layer.enable(viewer)));
   assert.equal(hosts[0].records.size, 1);
   assert.equal(hosts[1].records.size, 1);
   instances[0].click();
@@ -161,8 +213,12 @@ test('two viewers use their supplied contexts and dispose independently', async 
 });
 
 test('consumer build includes only infrastructure code and resolves assets under a non-root base', async () => {
-  const { build } = await import('vite');
-  const { fileURLToPath } = await import('node:url');
+  const {
+    build
+  } = await import('vite');
+  const {
+    fileURLToPath
+  } = await import('node:url');
   const result = await build({
     configFile: false,
     logLevel: 'silent',
