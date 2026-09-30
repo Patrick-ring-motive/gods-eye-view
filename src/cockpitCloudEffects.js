@@ -1,6 +1,11 @@
-import { applicationServices } from './services/application.js';
+import {
+  applicationServices
+} from './services/application.js';
 import * as Cesium from 'cesium';
-import { deriveWeatherEffectProfile, weatherAltitudeFactors } from './weatherEffectsMath.js';
+import {
+  deriveWeatherEffectProfile,
+  weatherAltitudeFactors
+} from './weatherEffectsMath.js';
 
 const WEATHER_REFRESH_MS = 5 * 60_000;
 const CLOUD_FRAME_MS = 1000 / 12;
@@ -128,17 +133,23 @@ function greatCircleM(a, b) {
   const latitudeB = Cesium.Math.toRadians(b.latitude);
   const latitudeDelta = Cesium.Math.toRadians(b.latitude - a.latitude);
   const longitudeDelta = Cesium.Math.toRadians(b.longitude - a.longitude);
-  const haversine = Math.sin(latitudeDelta / 2) ** 2
-    + Math.cos(latitudeA) * Math.cos(latitudeB) * Math.sin(longitudeDelta / 2) ** 2;
+  const haversine = Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(latitudeA) * Math.cos(latitudeB) * Math.sin(longitudeDelta / 2) ** 2;
   return 6371000 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
 /** Return whether cockpit weather must refresh for elapsed time or movement. */
-export function cockpitWeatherRefreshDue({ nowMs, fetchedAt, anchor, point, hasWeather }) {
+export function cockpitWeatherRefreshDue({
+  nowMs,
+  fetchedAt,
+  anchor,
+  point,
+  hasWeather
+}) {
   if (!hasWeather) return true;
   if (!Number.isFinite(nowMs) || !Number.isFinite(fetchedAt)) return true;
-  return nowMs - fetchedAt >= WEATHER_REFRESH_MS
-    || greatCircleM(anchor, point) >= WEATHER_MOVE_REFRESH_M;
+  return nowMs - fetchedAt >= WEATHER_REFRESH_MS ||
+    greatCircleM(anchor, point) >= WEATHER_MOVE_REFRESH_M;
 }
 
 /** Returns the capped framebuffer size used by the cockpit cloud pass. */
@@ -222,7 +233,9 @@ export class CockpitCloudEffectsController {
 
   emitEnabledState() {
     window.dispatchEvent(new CustomEvent('gev:cockpit-weather-state', {
-      detail: { enabled: this.enabled },
+      detail: {
+        enabled: this.enabled
+      },
     }));
   }
 
@@ -231,7 +244,8 @@ export class CockpitCloudEffectsController {
     this.enabled = next;
     try {
       localStorage.setItem(WEATHER_ENABLED_STORAGE_KEY, next ? '1' : '0');
-    } catch { /* best effort */ }
+    } catch {
+      /* best effort */ }
     if (!next) {
       this.stop();
     } else if (document.body.classList.contains('cockpit-mode')) {
@@ -352,16 +366,16 @@ export class CockpitCloudEffectsController {
   }
 
   async refresh() {
-    if (this.destroyed || !this.enabled || this.pending || this.suspended
-      || !document.body.classList.contains('cockpit-mode')) {
+    if (this.destroyed || !this.enabled || this.pending || this.suspended ||
+      !document.body.classList.contains('cockpit-mode')) {
       return this.pending;
     }
     const point = this.cameraPoint();
     if (!point) return null;
     if (
-      this.weather
-      && Date.now() - this.fetchedAt < WEATHER_REFRESH_MS
-      && greatCircleM(this.anchor, point) < WEATHER_MOVE_REFRESH_M
+      this.weather &&
+      Date.now() - this.fetchedAt < WEATHER_REFRESH_MS &&
+      greatCircleM(this.anchor, point) < WEATHER_MOVE_REFRESH_M
     ) {
       this.applyWeather(this.weather, point.altitudeM);
       return this.weather;
@@ -369,7 +383,9 @@ export class CockpitCloudEffectsController {
 
     this.abort?.abort();
     this.abort = new AbortController();
-    const pending = applicationServices.weather.getConditions(point.latitude, point.longitude, { signal: this.abort.signal });
+    const pending = applicationServices.weather.getConditions(point.latitude, point.longitude, {
+      signal: this.abort.signal
+    });
     const request = this.abort;
     this.pending = pending.then(async (payload) => {
         if (this.abort !== request || request.signal.aborted) return null;
@@ -390,7 +406,10 @@ export class CockpitCloudEffectsController {
         return null;
       })
       .finally(() => {
-        if (this.abort === request) { this.pending = null; this.abort = null; }
+        if (this.abort === request) {
+          this.pending = null;
+          this.abort = null;
+        }
       });
     return this.pending;
   }
@@ -431,12 +450,12 @@ export class CockpitCloudEffectsController {
       this.lastRefreshCheckMs = timeMs;
       const point = this.cameraPoint();
       if (point && cockpitWeatherRefreshDue({
-        nowMs: Date.now(),
-        fetchedAt: this.fetchedAt,
-        anchor: this.anchor,
-        point,
-        hasWeather: Boolean(this.weather),
-      })) void this.refresh();
+          nowMs: Date.now(),
+          fetchedAt: this.fetchedAt,
+          anchor: this.anchor,
+          point,
+          hasWeather: Boolean(this.weather),
+        })) void this.refresh();
     }
 
     const blend = this.reducedMotion ? 1 : 0.08;
@@ -483,8 +502,13 @@ export class CockpitCloudEffectsController {
       enabled: this.enabled,
       active: this.canvas.classList.contains('active'),
       strength: this.targetStrength,
-      weather: this.weather ? { ...this.weather } : null,
-      renderSize: { width: this.canvas.width, height: this.canvas.height },
+      weather: this.weather ? {
+        ...this.weather
+      } : null,
+      renderSize: {
+        width: this.canvas.width,
+        height: this.canvas.height
+      },
       sourceStatus: this.canvas.dataset.sourceStatus || 'idle',
     };
   }
