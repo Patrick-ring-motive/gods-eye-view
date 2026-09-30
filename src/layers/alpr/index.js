@@ -16,7 +16,9 @@ import {
   validateAlprSnapshot,
   alprCreditMarkup,
 } from './model.js';
-import { createAlprPresentation } from './presentation.js';
+import {
+  createAlprPresentation
+} from './presentation.js';
 
 /**
  * Own one layer's requests, records, display and viewer subscriptions.
@@ -30,12 +32,20 @@ import { createAlprPresentation } from './presentation.js';
  * removeEntityContextsForLayer(layerId, { retainIds: Set<string> }), preserving
  * retained selection without dispatching a new selection event.
  */
-export function createAlprCamerasLayer({ source, services } = {}) {
+export function createAlprCamerasLayer({
+  source,
+  services
+} = {}) {
   if (typeof source?.fetch !== 'function')
     throw new TypeError('ALPR requires a camera source');
-  const { governorRequestRender } = services.render;
+  const {
+    governorRequestRender
+  } = services.render;
 
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
 
   const state = {
     viewer: null,
@@ -80,7 +90,11 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     clearSelection,
     updateSelectedAnchor,
     installInteraction,
-  } = createAlprPresentation({ state, services, source });
+  } = createAlprPresentation({
+    state,
+    services,
+    source
+  });
 
   function setAlprStatus(status, error = null) {
     if (state.status === status && state.error === error) return;
@@ -101,7 +115,9 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     }, state.retryDelayMs);
   }
 
-  function clearUnavailableRetry({ resetBackoff = true } = {}) {
+  function clearUnavailableRetry({
+    resetBackoff = true
+  } = {}) {
     clearTimeout(state.retryTimer);
     state.retryTimer = null;
     state.retryAt = 0;
@@ -110,7 +126,9 @@ export function createAlprCamerasLayer({ source, services } = {}) {
 
   function scheduleLoad() {
     if (!state.enabled) return;
-    clearUnavailableRetry({ resetBackoff: false });
+    clearUnavailableRetry({
+      resetBackoff: false
+    });
     clearTimeout(state.debounceTimer);
     state.debounceTimer = setTimeout(() => {
       state.debounceTimer = null;
@@ -122,7 +140,9 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     if (!state.enabled || !state.viewer) return;
     clearTimeout(state.debounceTimer);
     state.debounceTimer = null;
-    clearUnavailableRetry({ resetBackoff: false });
+    clearUnavailableRetry({
+      resetBackoff: false
+    });
     const box = viewportBox(state.viewer);
     if (!box) {
       state.abort?.abort();
@@ -184,7 +204,11 @@ export function createAlprCamerasLayer({ source, services } = {}) {
         !state.enabled
       )
         return;
-      const { records, stale, saturated } = validateAlprSnapshot(snapshot);
+      const {
+        records,
+        stale,
+        saturated
+      } = validateAlprSnapshot(snapshot);
       state.records = records;
       state.recordById = new Map(records.map((r) => [r.id, r]));
       state.lastUpdate = Date.now();
@@ -199,11 +223,11 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       // hit the cap must still warn about coverage, not just about freshness.
       renderRecords();
       setAlprStatus(
-        state.dataSource.entities.values.length
-          ? stale
-            ? 'stale'
-            : 'ready'
-          : 'empty',
+        state.dataSource.entities.values.length ?
+        stale ?
+        'stale' :
+        'ready' :
+        'empty',
       );
     } catch (error) {
       if (
@@ -242,9 +266,9 @@ export function createAlprCamerasLayer({ source, services } = {}) {
       state.viewer = viewer;
       state.dataSource = new Cesium.CustomDataSource('alpr-cameras');
       const creditMarkup = alprCreditMarkup(source.attribution);
-      state.credit = creditMarkup
-        ? new Cesium.Credit(creditMarkup, true)
-        : null;
+      state.credit = creditMarkup ?
+        new Cesium.Credit(creditMarkup, true) :
+        null;
       viewer.dataSources.add(state.dataSource);
       state.moveEndRemove =
         viewer.camera.moveEnd.addEventListener(scheduleLoad);
@@ -306,35 +330,30 @@ export function createAlprCamerasLayer({ source, services } = {}) {
     getRowControls() {
       const count = state.dataSource?.entities.values.length || 0;
       return {
-        chips: [
-          {
-            id: 'find-camera',
-            label: 'SHOW NEAREST',
-            title: state.viewer?.trackedEntity
-              ? 'Stop following the current object before navigating to a camera'
-              : 'Move to the nearest loaded camera and show its details',
-            disabled:
-              !state.enabled || !count || Boolean(state.viewer?.trackedEntity),
-            onClick: focusNearest,
-          },
-        ],
-        legend: [
-          {
-            label: 'Purple dots',
-            color: ALPR_COLOR,
-            count,
-            blurb:
-              'Nearby mapped cameras may be outside the screen. Dots stay 8 pixels wide as you zoom; click one for details.',
-          },
-        ],
+        chips: [{
+          id: 'find-camera',
+          label: 'SHOW NEAREST',
+          title: state.viewer?.trackedEntity ?
+            'Stop following the current object before navigating to a camera' :
+            'Move to the nearest loaded camera and show its details',
+          disabled:
+            !state.enabled || !count || Boolean(state.viewer?.trackedEntity),
+          onClick: focusNearest,
+        }, ],
+        legend: [{
+          label: 'Purple dots',
+          color: ALPR_COLOR,
+          count,
+          blurb: 'Nearby mapped cameras may be outside the screen. Dots stay 8 pixels wide as you zoom; click one for details.',
+        }, ],
       };
     },
     getStats() {
       return {
         count: state.dataSource?.entities.values.length || 0,
-        countLabel: state.enabled
-          ? `${state.dataSource?.entities.values.length || 0} nearby`
-          : '',
+        countLabel: state.enabled ?
+          `${state.dataSource?.entities.values.length || 0} nearby` :
+          '',
         lastUpdate: state.lastUpdate,
         stale: state.stale,
         saturated: state.saturated,
@@ -343,24 +362,24 @@ export function createAlprCamerasLayer({ source, services } = {}) {
         loading: state.loading,
         retryAt: state.retryAt,
         retrying: state.retrying,
-        retryInSec: state.retryAt
-          ? Math.max(0, Math.ceil((state.retryAt - Date.now()) / 1000))
-          : 0,
-        loadingLabel: state.loading
-          ? state.retrying
-            ? 'retrying mapped ALPR cameras'
-            : 'loading mapped ALPR cameras'
-          : state.status === 'zoom-in'
-            ? 'Zoom in to load mapped cameras'
-            : [
-                state.stale ? 'Showing cached locations' : '',
-                state.saturated ? 'Coverage limited — zoom in' : '',
-                state.status === 'empty'
-                  ? 'No mapped cameras returned — coverage is incomplete'
-                  : '',
-              ]
-                .filter(Boolean)
-                .join(' · '),
+        retryInSec: state.retryAt ?
+          Math.max(0, Math.ceil((state.retryAt - Date.now()) / 1000)) :
+          0,
+        loadingLabel: state.loading ?
+          state.retrying ?
+          'retrying mapped ALPR cameras' :
+          'loading mapped ALPR cameras' :
+          state.status === 'zoom-in' ?
+          'Zoom in to load mapped cameras' :
+          [
+            state.stale ? 'Showing cached locations' : '',
+            state.saturated ? 'Coverage limited — zoom in' : '',
+            state.status === 'empty' ?
+            'No mapped cameras returned — coverage is incomplete' :
+            '',
+          ]
+          .filter(Boolean)
+          .join(' · '),
       };
     },
   };
@@ -374,11 +393,16 @@ export {
   isAlprSurveillanceType,
   normalizeAlprNode,
   buildOverpassQuery,
-} from './model.js';
+}
+from './model.js';
 export {
   QUERY_LIMIT,
   MAX_RENDERED,
   QUERY_SNAP_DEGREES,
   QUERY_REUSE_MS,
-} from './policy.js';
-export { createOverpassAlprSource } from './source.js';
+}
+from './policy.js';
+export {
+  createOverpassAlprSource
+}
+from './source.js';
