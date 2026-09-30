@@ -77,17 +77,41 @@ export const SATELLITE_CLASS_ORDER = Object.freeze(['station', 'nav', 'geo', 'vi
  * Keys must stay in sync with CATALOG_GROUPS + the 'dense' tag in satellites.js.
  */
 const GROUP_CLASS = Object.freeze({
-  stations: Object.freeze({ klass: 'station', subtype: null }),
-  visual: Object.freeze({ klass: 'visual', subtype: null }),
-  'gps-ops': Object.freeze({ klass: 'nav', subtype: 'GPS' }),
-  glonass: Object.freeze({ klass: 'nav', subtype: 'GLONASS' }),
-  galileo: Object.freeze({ klass: 'nav', subtype: 'GALILEO' }),
-  geo: Object.freeze({ klass: 'geo', subtype: null }),
-  dense: Object.freeze({ klass: 'comms', subtype: 'STARLINK' }),
+  stations: Object.freeze({
+    klass: 'station',
+    subtype: null
+  }),
+  visual: Object.freeze({
+    klass: 'visual',
+    subtype: null
+  }),
+  'gps-ops': Object.freeze({
+    klass: 'nav',
+    subtype: 'GPS'
+  }),
+  glonass: Object.freeze({
+    klass: 'nav',
+    subtype: 'GLONASS'
+  }),
+  galileo: Object.freeze({
+    klass: 'nav',
+    subtype: 'GALILEO'
+  }),
+  geo: Object.freeze({
+    klass: 'geo',
+    subtype: null
+  }),
+  dense: Object.freeze({
+    klass: 'comms',
+    subtype: 'STARLINK'
+  }),
 });
 
 /** Unknown groups fall back to the neutral bucket rather than vanishing. */
-const FALLBACK = Object.freeze({ klass: 'visual', subtype: null });
+const FALLBACK = Object.freeze({
+  klass: 'visual',
+  subtype: null
+});
 
 /**
  * The ISS is always a STATION, whichever group ingested it. CelesTrak lists it
@@ -95,7 +119,10 @@ const FALLBACK = Object.freeze({ klass: 'visual', subtype: null });
  * group outage — so a dropped stations feed would otherwise file the ISS under
  * VISUAL in both its label and the legend tally.
  */
-const ISS_CLASS = Object.freeze({ klass: 'station', subtype: 'ISS' });
+const ISS_CLASS = Object.freeze({
+  klass: 'station',
+  subtype: 'ISS'
+});
 
 /**
  * Resolve a satellite to its class key and constellation subtype. This is the
@@ -105,7 +132,9 @@ const ISS_CLASS = Object.freeze({ klass: 'station', subtype: 'ISS' });
  * @param {{ isIss?: boolean }} [options] Whether this satellite is the ISS.
  * @returns {{ klass: string, subtype: string|null }} Class key and subtype.
  */
-export function satelliteClassOf(group, { isIss = false } = {}) {
+export function satelliteClassOf(group, {
+  isIss = false
+} = {}) {
   if (isIss) return ISS_CLASS;
   return GROUP_CLASS[group] || FALLBACK;
 }
@@ -131,8 +160,15 @@ export function satelliteClassColor(group) {
  * @param {{ isIss?: boolean }} [options] Whether this is the ISS.
  * @returns {string} Display label.
  */
-export function satelliteClassLabel(group, { isIss = false } = {}) {
-  const { klass, subtype } = satelliteClassOf(group, { isIss });
+export function satelliteClassLabel(group, {
+  isIss = false
+} = {}) {
+  const {
+    klass,
+    subtype
+  } = satelliteClassOf(group, {
+    isIss
+  });
   const base = SATELLITE_CLASSES[klass].label;
   return subtype ? `${base} · ${subtype}` : base;
 }
@@ -150,8 +186,14 @@ export function satelliteClassLabel(group, { isIss = false } = {}) {
 export function tallySatelliteClasses(entries) {
   const counts = Object.create(null);
   for (const entry of entries || []) {
-    const descriptor = entry && typeof entry === 'object' ? entry : { group: entry };
-    const { klass } = satelliteClassOf(descriptor.group, { isIss: descriptor.isIss });
+    const descriptor = entry && typeof entry === 'object' ? entry : {
+      group: entry
+    };
+    const {
+      klass
+    } = satelliteClassOf(descriptor.group, {
+      isIss: descriptor.isIss
+    });
     counts[klass] = (counts[klass] || 0) + 1;
   }
   return counts;
@@ -171,7 +213,13 @@ export function satelliteClassLegend(counts) {
     const count = counts?.[klass];
     if (!(count > 0)) continue;
     const spec = SATELLITE_CLASSES[klass];
-    result.push({ klass, label: spec.label, color: spec.color, blurb: spec.blurb, count });
+    result.push({
+      klass,
+      label: spec.label,
+      color: spec.color,
+      blurb: spec.blurb,
+      count
+    });
   }
   return result;
 }
