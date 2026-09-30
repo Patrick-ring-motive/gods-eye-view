@@ -1,4 +1,6 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
 import * as Cesium from 'cesium';
 import {
   createFirmsHeatmapLayer as createLayer,
@@ -27,7 +29,9 @@ const sourceSlot = createSourceSlot(
   'Fire source',
 );
 export const configureFirmsSource = sourceSlot.configure;
-const helpers = createFirmsHelpers({ services });
+const helpers = createFirmsHelpers({
+  services
+});
 export const mapAnalystRecord = helpers.mapAnalystRecord;
 export const fireCullPosition = helpers.fireCullPosition;
 export const applyHorizonCull = helpers.applyHorizonCull;
@@ -50,8 +54,7 @@ export function createFirmsHeatmapLayer(options) {
       clearSource: overlays.clearOverlaySource,
       hitTest: overlays.hitTestWorldOverlay,
     },
-    screenSpaceEventHandlerFactory:
-      options.screenSpaceEventHandlerFactory ??
+    screenSpaceEventHandlerFactory: options.screenSpaceEventHandlerFactory ??
       ((viewer) => new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)),
   });
 }
