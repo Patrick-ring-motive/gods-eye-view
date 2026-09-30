@@ -67,7 +67,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* ignore */ }
+      /* ignore */
+    }
   }
   return null;
 }
@@ -125,7 +126,8 @@ async function moveCamera(page, view) {
     try {
       gev.viewer.camera.cancelFlight();
     } catch {
-      /* no active flight */ }
+      /* no active flight */
+    }
     gev.viewer.camera.setView({
       destination: ellipsoid.cartographicToCartesian({
         longitude: v.lon * radians,
@@ -382,7 +384,8 @@ async function main() {
       try {
         await request.continue();
       } catch {
-        /* page closed or already handled */ }
+        /* page closed or already handled */
+      }
     });
 
     await page.goto(url, {
