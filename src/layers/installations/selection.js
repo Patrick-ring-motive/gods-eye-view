@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { LAYER_ID } from './policy.js';
+import {
+  LAYER_ID
+} from './policy.js';
 
 export function createSelection({
   state: layerState,
@@ -7,13 +9,17 @@ export function createSelection({
   parts,
   source,
 }) {
-  const { clearSelectedEntityContextForLayer } = services.context;
+  const {
+    clearSelectedEntityContextForLayer
+  } = services.context;
 
   function selectRecord(id) {
     const record = layerState.recordById.get(id);
     if (!record || !layerState.dataSource) return false;
     layerState.selectedId = id;
-    parts.rendering.renderRecords({ claimSelection: true });
+    parts.rendering.renderRecords({
+      claimSelection: true
+    });
     // renderRecords drops selectedId when the record produced no entity.
     return layerState.selectedId === id;
   }
@@ -39,5 +45,8 @@ export function createSelection({
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
   }
-  return { selectRecord, installInteraction };
+  return {
+    selectRecord,
+    installInteraction
+  };
 }
