@@ -308,7 +308,8 @@ export class IntelHUD {
             this._geoidReady = true;
           })
           .catch(() => {
-            /* readout falls back to the uncorrected height */ });
+            /* readout falls back to the uncorrected height */
+          });
       }
       return null;
     }
