@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-failstate-b10.mjs
  *
@@ -34,7 +35,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -80,14 +83,20 @@ function findChromeExecutable() {
   for (const candidate of CHROME_EXECUTABLE_CANDIDATES) {
     try {
       if (fs.existsSync(candidate)) return candidate;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */ }
   }
   return null;
 }
 
 const results = [];
+
 function record(name, ok, detail) {
-  results.push({ name, ok, detail });
+  results.push({
+    name,
+    ok,
+    detail
+  });
   const tag = ok === null ? '\x1b[33mINCONCLUSIVE\x1b[0m' : ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  [${tag}] ${name}${detail ? `  — ${detail}` : ''}`);
 }
@@ -99,8 +108,9 @@ async function readLayerControl(page, layerId, expectedLabel) {
     (id, label) => {
       const button = document.querySelector(`[data-layer-id="${id}"] .data-toggle-btn`);
       return button?.textContent?.trim() === label;
+    }, {
+      timeout: 5000
     },
-    { timeout: 5000 },
     layerId,
     expectedLabel,
   );
@@ -119,20 +129,28 @@ async function readLayerControl(page, layerId, expectedLabel) {
 
 async function captureLayerControl(page, layerId, filename) {
   if (!ARTIFACT_DIR) return;
-  fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+  fs.mkdirSync(ARTIFACT_DIR, {
+    recursive: true
+  });
   const dataPanel = await page.$('#data-panel');
   const panelCollapsed = await dataPanel?.evaluate((element) => element.classList.contains('collapsed'));
   if (panelCollapsed) await page.click('#data-panel .panel-collapse-btn');
   const row = await page.$(`[data-layer-id="${layerId}"]`);
   if (!row) throw new Error(`Layer control not found for screenshot: ${layerId}`);
-  await row.evaluate((element) => element.scrollIntoView({ block: 'center' }));
+  await row.evaluate((element) => element.scrollIntoView({
+    block: 'center'
+  }));
   await page.waitForFunction((id) => {
     const element = document.querySelector(`[data-layer-id="${id}"]`);
     const rect = element?.getBoundingClientRect();
     return !!rect && rect.width > 0 && rect.height > 0;
-  }, { timeout: 5_000 }, layerId);
+  }, {
+    timeout: 5_000
+  }, layerId);
   await sleep(100);
-  await row.screenshot({ path: path.join(ARTIFACT_DIR, filename) });
+  await row.screenshot({
+    path: path.join(ARTIFACT_DIR, filename)
+  });
 }
 
 // A minimal but valid TLE for one satellite (ISS), so the "good catalog" pass
@@ -153,7 +171,9 @@ async function main() {
   console.log(`  Mode    : ${HEADFUL ? 'headful' : 'headless'}\n`);
 
   try {
-    const res = await fetch(APP_URL, { method: 'GET' });
+    const res = await fetch(APP_URL, {
+      method: 'GET'
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch (e) {
     console.error(`\x1b[31mDev server not reachable at ${APP_URL} (${e.message}).\x1b[0m`);
@@ -163,7 +183,9 @@ async function main() {
   const chromeExecutable = findChromeExecutable();
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(chromeExecutable ? { executablePath: chromeExecutable } : {}),
+    ...(chromeExecutable ? {
+      executablePath: chromeExecutable
+    } : {}),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -183,11 +205,16 @@ async function main() {
   //   celestrak: 'good'  → serve GOOD_TLE for every group
   //   celestrak: 'partial' → fail one group while preserving a usable catalog
   //   celestrak: 'down'    → 503 for every group (total outage)
-  const mode = { celestrak: 'good' };
+  const mode = {
+    celestrak: 'good'
+  };
 
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800 });
+    await page.setViewport({
+      width: 1280,
+      height: 800
+    });
 
     await page.setRequestInterception(true);
     page.on('request', (req) => {
@@ -197,17 +224,29 @@ async function main() {
         req.respond({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ rows: [], status: 'error', error: 'invalid key' }),
+          body: JSON.stringify({
+            rows: [],
+            status: 'error',
+            error: 'invalid key'
+          }),
         });
         return;
       }
       // (ii) CelesTrak proxy — /api/celestrak/<group>
       if (url.includes('/api/celestrak/')) {
-        if (mode.celestrak === 'down'
-          || (mode.celestrak === 'partial' && url.includes('/api/celestrak/stations'))) {
-          req.respond({ status: 503, contentType: 'text/plain', body: 'upstream unavailable' });
+        if (mode.celestrak === 'down' ||
+          (mode.celestrak === 'partial' && url.includes('/api/celestrak/stations'))) {
+          req.respond({
+            status: 503,
+            contentType: 'text/plain',
+            body: 'upstream unavailable'
+          });
         } else {
-          req.respond({ status: 200, contentType: 'text/plain', body: GOOD_TLE });
+          req.respond({
+            status: 200,
+            contentType: 'text/plain',
+            body: GOOD_TLE
+          });
         }
         return;
       }
@@ -215,13 +254,17 @@ async function main() {
     });
 
     console.log('Loading app...');
-    await page.goto(withDetectDebug(APP_URL), { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(withDetectDebug(APP_URL), {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView
-        && window.__godsEyeView.viewer
-        && window.__godsEyeView.dataManager
-        && window.__godsEyeView.styleManager,
-      { timeout: 60000 },
+      () => window.__godsEyeView &&
+      window.__godsEyeView.viewer &&
+      window.__godsEyeView.dataManager &&
+      window.__godsEyeView.styleManager, {
+        timeout: 60000
+      },
     );
     await sleep(1500);
 
@@ -242,7 +285,10 @@ async function main() {
       for (const id of ids) {
         const entry = dm.layers.get(id);
         if (!entry) {
-          outcomes.push({ id, missing: true });
+          outcomes.push({
+            id,
+            missing: true
+          });
           continue;
         }
         const original = {
@@ -253,9 +299,12 @@ async function main() {
           getStats: entry.module.getStats,
           managerRefreshError: entry.managerRefreshError,
         };
-        const baseStats = typeof original.getStats === 'function'
-          ? original.getStats.call(entry.module)
-          : { count: 0, lastUpdate: null };
+        const baseStats = typeof original.getStats === 'function' ?
+          original.getStats.call(entry.module) :
+          {
+            count: 0,
+            lastUpdate: null
+          };
         let rejectRefresh;
         try {
           entry.enabled = true;
@@ -312,17 +361,17 @@ async function main() {
       return outcomes;
     });
     for (const outcome of refreshFeedback) {
-      const passed = !outcome.missing
-        && outcome.working.hidden === false
-        && outcome.working.label === 'REFRESHING LIVE DATA'
-        && outcome.working.detail.includes(outcome.name)
-        && outcome.failed.hidden === false
-        && outcome.failed.label === 'LOAD FAILED'
-        && outcome.failed.state === 'error'
-        && outcome.managerError?.includes('QA refresh failure')
-        && outcome.recoveredError === null
-        && outcome.lifecycleState === 'enabled'
-        && outcome.enabled === true;
+      const passed = !outcome.missing &&
+        outcome.working.hidden === false &&
+        outcome.working.label === 'REFRESHING LIVE DATA' &&
+        outcome.working.detail.includes(outcome.name) &&
+        outcome.failed.hidden === false &&
+        outcome.failed.label === 'LOAD FAILED' &&
+        outcome.failed.state === 'error' &&
+        outcome.managerError?.includes('QA refresh failure') &&
+        outcome.recoveredError === null &&
+        outcome.lifecycleState === 'enabled' &&
+        outcome.enabled === true;
       record(
         `${outcome.name || outcome.id}: periodic refresh reports work, failure, and recovery`,
         passed,
@@ -359,11 +408,11 @@ async function main() {
       if (!hasError) exitCode = 1;
     }
     const aisControl = await readLayerControl(page, 'ais-live-vessels', 'UNAVAILABLE');
-    const aisChipHonest = aisControl.feedState === 'unavailable'
-      && aisControl.ariaLabel === 'Live AIS Vessels: UNAVAILABLE';
-    const aisMetaHonest = /^UNAVAILABLE · AISStream · /i.test(aisControl.meta)
-      && aisStats.error
-      && aisControl.meta.includes(aisStats.error);
+    const aisChipHonest = aisControl.feedState === 'unavailable' &&
+      aisControl.ariaLabel === 'Live AIS Vessels: UNAVAILABLE';
+    const aisMetaHonest = /^UNAVAILABLE · AISStream · /i.test(aisControl.meta) &&
+      aisStats.error &&
+      aisControl.meta.includes(aisStats.error);
     record(
       'AIS: layer control reads UNAVAILABLE',
       aisChipHonest,
@@ -406,16 +455,19 @@ async function main() {
         return dm.layers.get('satellites').module.getStats();
       });
       const partialControl = await readLayerControl(page, 'satellites', 'DEGRADED');
-      const partialChipHonest = partialStats.count > 0
-        && /1 CelesTrak group unavailable/i.test(partialStats.error || '')
-        && partialControl.feedState === 'degraded'
-        && partialControl.ariaLabel === 'Satellites: DEGRADED';
-      const partialMetaHonest = /^DEGRADED · CelesTrak · /i.test(partialControl.meta)
-        && /1 CelesTrak group unavailable/i.test(partialControl.meta);
+      const partialChipHonest = partialStats.count > 0 &&
+        /1 CelesTrak group unavailable/i.test(partialStats.error || '') &&
+        partialControl.feedState === 'degraded' &&
+        partialControl.ariaLabel === 'Satellites: DEGRADED';
+      const partialMetaHonest = /^DEGRADED · CelesTrak · /i.test(partialControl.meta) &&
+        /1 CelesTrak group unavailable/i.test(partialControl.meta);
       record(
         'Satellites: partial outage renders a DEGRADED chip',
         partialChipHonest,
-        JSON.stringify({ stats: partialStats, control: partialControl }),
+        JSON.stringify({
+          stats: partialStats,
+          control: partialControl
+        }),
       );
       record(
         'Satellites: degraded metadata names partial coverage',
@@ -435,17 +487,20 @@ async function main() {
         await dm.setEnabled('satellites', true);
         await new Promise((r) => setTimeout(r, 800));
         const mod = dm.layers.get('satellites').module;
-        return { stats: mod.getStats(), baseline };
+        return {
+          stats: mod.getStats(),
+          baseline
+        };
       }, goodStats.count);
 
       const s = outageStats.stats;
       const notWiped = s.count > 0; // catalog preserved, not blanked to 0
       const errorSet = typeof s.error === 'string' && s.error.length > 0;
       const outageControl = await readLayerControl(page, 'satellites', 'UNAVAILABLE');
-      const outageChipHonest = outageControl.feedState === 'unavailable'
-        && outageControl.ariaLabel === 'Satellites: UNAVAILABLE';
-      const outageMetaHonest = /^UNAVAILABLE · CelesTrak · /i.test(outageControl.meta)
-        && outageControl.meta.includes(s.error || '');
+      const outageChipHonest = outageControl.feedState === 'unavailable' &&
+        outageControl.ariaLabel === 'Satellites: UNAVAILABLE';
+      const outageMetaHonest = /^UNAVAILABLE · CelesTrak · /i.test(outageControl.meta) &&
+        outageControl.meta.includes(s.error || '');
       record(
         'Satellites: catalog NOT wiped to 0 on total outage',
         notWiped,
@@ -477,12 +532,22 @@ async function main() {
       const dm = gev.dataManager;
       // Turn OFF every data layer so detection collects zero objects.
       for (const [id, entry] of dm.layers) {
-        if (entry.enabled) { try { await dm.setEnabled(id, false); } catch { /* ignore */ } }
+        if (entry.enabled) {
+          try {
+            await dm.setEnabled(id, false);
+          } catch {
+            /* ignore */ }
+        }
       }
       // Enable panoptic detection via the styleManager facade (the UI path).
-      gev.styleManager.setDetection({ enabled: true, mode: 'panoptic' });
+      gev.styleManager.setDetection({
+        enabled: true,
+        mode: 'panoptic'
+      });
       const canvas = document.getElementById('world-overlay-canvas');
-      if (!canvas) return { present: false };
+      if (!canvas) return {
+        present: false
+      };
       const viewer = gev.viewer;
       const tileset = gev.tileset;
       const priorDefaultLoop = viewer.useDefaultRenderLoop;
@@ -497,9 +562,11 @@ async function main() {
         while (performance.now() < deadline && solid <= 20) {
           viewer.render();
           await new Promise((resolve) => setTimeout(resolve, 50));
-          const w = canvas.width, h = canvas.height;
+          const w = canvas.width,
+            h = canvas.height;
           const off = document.createElement('canvas');
-          off.width = w; off.height = h;
+          off.width = w;
+          off.height = h;
           const octx = off.getContext('2d');
           // The detection pass (banner included) paints on the host-owned
           // blend-isolation surface beneath the shared canvas — composite
@@ -529,7 +596,13 @@ async function main() {
         viewer.scene.requestRender();
       }
       const detState = gev.styleManager.getDetectionState?.() || null;
-      return { present: true, nonEmpty, solid, sampled, mode: detState?.detectionMode ?? null };
+      return {
+        present: true,
+        nonEmpty,
+        solid,
+        sampled,
+        mode: detState?.detectionMode ?? null
+      };
     });
 
     if (!detect.present) {
