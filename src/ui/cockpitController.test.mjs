@@ -1,15 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CockpitViewController } from './cockpitController.js';
+import {
+  CockpitViewController
+} from './cockpitController.js';
 
 function environment() {
-  const original = { document: globalThis.document, window: globalThis.window };
+  const original = {
+    document: globalThis.document,
+    window: globalThis.window
+  };
   const document = Object.assign(new EventTarget(), {
     getElementById: () => null,
     querySelectorAll: () => [],
-    body: { classList: { remove() {} } },
+    body: {
+      classList: {
+        remove() {}
+      }
+    },
   });
-  const window = Object.assign(new EventTarget(), { clearTimeout, setTimeout });
+  const window = Object.assign(new EventTarget(), {
+    clearTimeout,
+    setTimeout
+  });
   globalThis.document = document;
   globalThis.window = window;
   const callbacks = new Set();
@@ -22,10 +34,14 @@ function environment() {
   const viewer = {
     scene: {
       preUpdate: event,
-      screenSpaceCameraController: { enableInputs: false },
+      screenSpaceCameraController: {
+        enableInputs: false
+      },
     },
     trackedEntityChanged: event,
-    entities: { contains: () => false },
+    entities: {
+      contains: () => false
+    },
   };
   return {
     viewer,
@@ -39,7 +55,9 @@ function environment() {
 test('Cockpit subscriptions are released once and retained actions cannot restart it', () => {
   const env = environment();
   try {
-    const owner = new CockpitViewController(env.viewer, { services: {} });
+    const owner = new CockpitViewController(env.viewer, {
+      services: {}
+    });
     assert.equal(env.callbacks.size, 2);
     owner.dispose();
     owner.dispose();
@@ -59,7 +77,9 @@ test('disposing an active Cockpit releases the supplied render owner without ret
   try {
     const released = [];
     const owner = new CockpitViewController(env.viewer, {
-      services: { releaseContinuousRender: (reason) => released.push(reason) },
+      services: {
+        releaseContinuousRender: (reason) => released.push(reason)
+      },
     });
     owner.active = true;
     owner.dispose();
@@ -91,13 +111,21 @@ test('aircraft identity is read from the supplied layer instances', () => {
     };
     const owner = new CockpitViewController(env.viewer, {
       services: {
-        flightsLayer: { getTrackedInfo: () => civilian },
-        militaryFlightsLayer: { getTrackedInfo: () => military },
+        flightsLayer: {
+          getTrackedInfo: () => civilian
+        },
+        militaryFlightsLayer: {
+          getTrackedInfo: () => military
+        },
       },
     });
-    env.viewer.trackedEntity = { gevTrackedId: 'military:def456' };
+    env.viewer.trackedEntity = {
+      gevTrackedId: 'military:def456'
+    };
     assert.deepEqual(owner.readAircraftInfo(), military);
-    env.viewer.trackedEntity = { gevTrackedId: 'flights:abc123' };
+    env.viewer.trackedEntity = {
+      gevTrackedId: 'flights:abc123'
+    };
     assert.deepEqual(owner.readAircraftInfo(), civilian);
     owner.dispose();
   } finally {
@@ -133,7 +161,9 @@ test('an obsolete regional briefing cannot publish after Cockpit disposal', asyn
     });
     owner.dispose();
     assert.equal(signal.aborted, true);
-    finish({ articles: [] });
+    finish({
+      articles: []
+    });
     await new Promise((resolve) => setImmediate(resolve));
     assert.deepEqual(published, []);
     assert.equal(owner.regionalBriefAbort, null);
@@ -183,7 +213,9 @@ test('stopped Cockpit cannot rearm briefing rotation or request a fresh region',
         regionalDistanceM: () => Infinity,
         fetchRegionalBrief: () => {
           fetches++;
-          return Promise.resolve({ articles: [] });
+          return Promise.resolve({
+            articles: []
+          });
         },
         releaseContinuousRender() {},
       },
@@ -200,7 +232,10 @@ test('stopped Cockpit cannot rearm briefing rotation or request a fresh region',
     queued();
     owner.setBriefAutoRotate(true);
     owner.startBriefRotation();
-    owner.maybeRefreshRegionalBrief({ latitude: 30, longitude: -97 });
+    owner.maybeRefreshRegionalBrief({
+      latitude: 30,
+      longitude: -97
+    });
     assert.equal(frames.size, 0);
     assert.equal(paints, 0);
     assert.equal(fetches, 0);
