@@ -17,8 +17,14 @@ export const DEFAULT_AIRCRAFT_RECESSION_PARAMS = Object.freeze({
   writeEpsilon: 0.005,
 });
 
-let _params = { ...DEFAULT_AIRCRAFT_RECESSION_PARAMS };
-const _scratchFactors = { scale: 1, alpha: 1, limbRatio: null };
+let _params = {
+  ...DEFAULT_AIRCRAFT_RECESSION_PARAMS
+};
+const _scratchFactors = {
+  scale: 1,
+  alpha: 1,
+  limbRatio: null
+};
 const _treatmentResult = {
   scale: 1,
   alpha: 1,
@@ -33,13 +39,16 @@ function clamp(value, min, max) {
 
 function resolvedParams(overrides) {
   if (!overrides || overrides === _params) return _params;
-  return { ..._params, ...overrides };
+  return {
+    ..._params,
+    ...overrides
+  };
 }
 
 function aircraftRecessionFactorsResolved(cameraDistanceM, cameraHeightM, tuning, result) {
-  if (!Number.isFinite(cameraDistanceM) || cameraDistanceM < 0
-    || !Number.isFinite(cameraHeightM) || cameraHeightM <= 0
-    || cameraHeightM >= tuning.globeViewBlendEndM) {
+  if (!Number.isFinite(cameraDistanceM) || cameraDistanceM < 0 ||
+    !Number.isFinite(cameraHeightM) || cameraHeightM <= 0 ||
+    cameraHeightM >= tuning.globeViewBlendEndM) {
     result.scale = 1;
     result.alpha = 1;
     result.limbRatio = null;
@@ -63,8 +72,8 @@ function aircraftRecessionFactorsResolved(cameraDistanceM, cameraHeightM, tuning
   const rawT = (limbRatio - tuning.startLimbRatio) / (1 - tuning.startLimbRatio);
   const t = clamp(rawT, 0, 1);
   const limbEase = t * t * (3 - 2 * t); // smoothstep: zero slope at both band edges
-  const globeRawT = (cameraHeightM - tuning.globeViewBlendStartM)
-    / (tuning.globeViewBlendEndM - tuning.globeViewBlendStartM);
+  const globeRawT = (cameraHeightM - tuning.globeViewBlendStartM) /
+    (tuning.globeViewBlendEndM - tuning.globeViewBlendStartM);
   const globeT = clamp(globeRawT, 0, 1);
   const globeEase = globeT * globeT * (3 - 2 * globeT);
   const strength = 1 - globeEase;
@@ -80,7 +89,9 @@ function aircraftRecessionFactorsResolved(cameraDistanceM, cameraHeightM, tuning
  * @returns {typeof DEFAULT_AIRCRAFT_RECESSION_PARAMS}
  */
 export function setAircraftRecessionParams(patch = {}) {
-  const next = { ..._params };
+  const next = {
+    ..._params
+  };
   if (Number.isFinite(patch.startLimbRatio)) {
     next.startLimbRatio = clamp(patch.startLimbRatio, 0, 0.99);
   }
@@ -112,7 +123,9 @@ export function setAircraftRecessionParams(patch = {}) {
   if (Number.isFinite(patch.earthRadiusM)) next.earthRadiusM = Math.max(1, patch.earthRadiusM);
   if (Number.isFinite(patch.writeEpsilon)) next.writeEpsilon = Math.max(0, patch.writeEpsilon);
   _params = next;
-  return { ..._params };
+  return {
+    ..._params
+  };
 }
 
 /** @returns {typeof DEFAULT_AIRCRAFT_RECESSION_PARAMS} Current tuning. */
@@ -122,7 +135,9 @@ export function getAircraftRecessionParams() {
 
 /** Restore production defaults for deterministic QA. */
 export function resetAircraftRecessionParams() {
-  _params = { ...DEFAULT_AIRCRAFT_RECESSION_PARAMS };
+  _params = {
+    ...DEFAULT_AIRCRAFT_RECESSION_PARAMS
+  };
 }
 
 /**
@@ -149,13 +164,19 @@ export function cameraLimbDistanceM(
  * @param {Partial<typeof DEFAULT_AIRCRAFT_RECESSION_PARAMS>} [params]
  * @returns {{scale:number,alpha:number,limbRatio:number|null}}
  */
-export function aircraftRecessionFactors({ cameraDistanceM, cameraHeightM }, params) {
+export function aircraftRecessionFactors({
+  cameraDistanceM,
+  cameraHeightM
+}, params) {
   const tuning = resolvedParams(params);
   return aircraftRecessionFactorsResolved(
     cameraDistanceM,
     cameraHeightM,
-    tuning,
-    { scale: 1, alpha: 1, limbRatio: null },
+    tuning, {
+      scale: 1,
+      alpha: 1,
+      limbRatio: null
+    },
   );
 }
 
@@ -206,8 +227,8 @@ export function applyAircraftBillboardTreatment({
     billboard.scale = scale;
     scaleWrites = 1;
   }
-  if (!Number.isFinite(billboard.color?.alpha)
-    || Math.abs(billboard.color.alpha - alpha) > tuning.writeEpsilon) {
+  if (!Number.isFinite(billboard.color?.alpha) ||
+    Math.abs(billboard.color.alpha - alpha) > tuning.writeEpsilon) {
     billboard.color = baseColor.withAlpha(alpha);
     alphaWrites = 1;
   }
@@ -228,11 +249,16 @@ export function applyAircraftBillboardTreatment({
  * @param {Partial<typeof DEFAULT_AIRCRAFT_RECESSION_PARAMS>} [input.params]
  * @returns {number} One when a color write occurred, otherwise zero.
  */
-export function applyAircraftModelTreatment({ model, baseColor, alpha, params }) {
+export function applyAircraftModelTreatment({
+  model,
+  baseColor,
+  alpha,
+  params
+}) {
   const tuning = resolvedParams(params);
   if (!model || !baseColor || !Number.isFinite(alpha)) return 0;
-  if (Number.isFinite(model.color?.alpha)
-    && Math.abs(model.color.alpha - alpha) <= tuning.writeEpsilon) return 0;
+  if (Number.isFinite(model.color?.alpha) &&
+    Math.abs(model.color.alpha - alpha) <= tuning.writeEpsilon) return 0;
   model.color = baseColor.withAlpha(alpha);
   return 1;
 }
