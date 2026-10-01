@@ -1,9 +1,13 @@
 // src/data/firmsCsv.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import {
   acquisitionMsUtc,
   filterTrailing24h,
@@ -115,7 +119,10 @@ test('isLikelyCsv accepts the real fixture', () => {
 
 test('filterTrailing24h: window is [now − 24 h, now + 2 h] inclusive', () => {
   const now = Date.UTC(2026, 6, 16, 12, 0); // 2026-07-16 12:00Z
-  const rec = (acqDate, acqTime) => ({ acqDate, acqTime });
+  const rec = (acqDate, acqTime) => ({
+    acqDate,
+    acqTime
+  });
   const records = [
     rec('2026-07-15', '1159'), // 24h + 1min old → out
     rec('2026-07-15', '1200'), // exactly 24h old → in (inclusive)
