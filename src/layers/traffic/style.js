@@ -11,7 +11,12 @@ import {
   FLOW_BUCKET_COLORS,
 } from './policy.js';
 
-export function createStyle({ state: layerState, services, parts, source }) {
+export function createStyle({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** @returns {boolean} A non-normal preset profile is active and enabled. */
 
   function presetProfileActive() {
@@ -29,9 +34,9 @@ export function createStyle({ state: layerState, services, parts, source }) {
    */
 
   function activeSizeDelta(bucket) {
-    return layerState._presetDots === 'on'
-      ? presetSizeDelta(layerState._stylePreset, bucket)
-      : 0;
+    return layerState._presetDots === 'on' ?
+      presetSizeDelta(layerState._stylePreset, bucket) :
+      0;
   }
 
   /**
@@ -44,9 +49,9 @@ export function createStyle({ state: layerState, services, parts, source }) {
 
   function baseDotSize(roadType, bucket) {
     const base = SIZE_BY_TYPE[roadType] || 4;
-    return bucket && presetProfileActive()
-      ? Math.max(base, STYLED_MIN_BASE_PX)
-      : base;
+    return bucket && presetProfileActive() ?
+      Math.max(base, STYLED_MIN_BASE_PX) :
+      base;
   }
 
   /** Recompute `_activeBucketColors` from the active style + kill switch. */
@@ -54,12 +59,12 @@ export function createStyle({ state: layerState, services, parts, source }) {
   function refreshBucketColors() {
     for (const bucket of ['free', 'slow', 'jam']) {
       const rgba =
-        layerState._presetDots === 'on'
-          ? presetDotRgba(layerState._stylePreset, bucket)
-          : null;
-      layerState._activeBucketColors[bucket] = rgba
-        ? new Cesium.Color(rgba[0] / 255, rgba[1] / 255, rgba[2] / 255, rgba[3])
-        : FLOW_BUCKET_COLORS[bucket];
+        layerState._presetDots === 'on' ?
+        presetDotRgba(layerState._stylePreset, bucket) :
+        null;
+      layerState._activeBucketColors[bucket] = rgba ?
+        new Cesium.Color(rgba[0] / 255, rgba[1] / 255, rgba[2] / 255, rgba[3]) :
+        FLOW_BUCKET_COLORS[bucket];
     }
   }
 
@@ -74,9 +79,9 @@ export function createStyle({ state: layerState, services, parts, source }) {
 
   function applyOutline(point, bucket) {
     const spec =
-      layerState._presetDots === 'on'
-        ? presetDotOutline(layerState._stylePreset, bucket)
-        : null;
+      layerState._presetDots === 'on' ?
+      presetDotOutline(layerState._stylePreset, bucket) :
+      null;
     if (spec) {
       point.outlineColor = new Cesium.Color(
         spec.rgba[0] / 255,
