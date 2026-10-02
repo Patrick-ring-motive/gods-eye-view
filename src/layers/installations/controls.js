@@ -1,8 +1,18 @@
 import * as Cesium from 'cesium';
-import { installationFeedback } from '../../data/installationFeedback.js';
-import { LAYER_ID, DISTANCE_PREFILTER_MARGIN_M } from './policy.js';
+import {
+  installationFeedback
+} from '../../data/installationFeedback.js';
+import {
+  LAYER_ID,
+  DISTANCE_PREFILTER_MARGIN_M
+} from './policy.js';
 
-export function createControls({ state: layerState, services, parts, source }) {
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const methods = {
     id: LAYER_ID,
 
@@ -28,9 +38,9 @@ export function createControls({ state: layerState, services, parts, source }) {
       const centerCartographic = Cesium.Cartographic.fromCartesian(center);
       if (!centerCartographic) return [];
       const nearby = [];
-      const approximateLimit = Number.isFinite(range)
-        ? range * 1.03 + DISTANCE_PREFILTER_MARGIN_M
-        : Infinity;
+      const approximateLimit = Number.isFinite(range) ?
+        range * 1.03 + DISTANCE_PREFILTER_MARGIN_M :
+        Infinity;
       for (const record of layerState.records) {
         if (record.kind !== 'installation') continue;
         if (
@@ -93,8 +103,9 @@ export function createControls({ state: layerState, services, parts, source }) {
             parts.rendering.installationSurfaceHeightM(record),
           ),
           18000,
-        ),
-        { duration: 1.4 },
+        ), {
+          duration: 1.4
+        },
       );
       return true;
     },
@@ -115,12 +126,14 @@ export function createControls({ state: layerState, services, parts, source }) {
           ...layerState,
           retrying: layerState.loading && Boolean(layerState.failureReason),
         }),
-        loadingLabel: layerState.loading
-          ? 'loading mapped installation context'
-          : '',
+        loadingLabel: layerState.loading ?
+          'loading mapped installation context' :
+          '',
       };
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
