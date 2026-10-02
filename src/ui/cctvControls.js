@@ -16,11 +16,17 @@ import {
   _typeCctvSummary,
   _updateCctvSyncChip,
 } from './cctvPresentation.js';
-import { _initCctvPanel } from './cctvBindings.js';
+import {
+  _initCctvPanel
+} from './cctvBindings.js';
 
 /** Own camera-panel interaction and presentation; receive the camera port and application actions. */
 export class CctvControls {
-  constructor({ elements, cctv, actions }) {
+  constructor({
+    elements,
+    cctv,
+    actions
+  }) {
     Object.assign(this, elements);
     this.cctv = cctv;
     this.actions = actions;
