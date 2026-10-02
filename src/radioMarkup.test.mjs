@@ -1,13 +1,25 @@
-import { expandApplicationHtml } from '../build/application-html.js';
-import { readLayerSource } from './testSupport/readLayerSource.mjs';
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
-import { readFileSync as readRadioSource } from 'node:fs';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
+import {
+  readLayerSource
+} from './testSupport/readLayerSource.mjs';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
+import {
+  readFileSync as readRadioSource
+} from 'node:fs';
 const radioBindings = readRadioSource(new URL('./ui/radioBindings.js', import.meta.url), 'utf8');
 const radioPresentation = readRadioSource(new URL('./ui/radioPresentation.js', import.meta.url), 'utf8');
 const radioControlsSource = readRadioSource(new URL('./ui/radioControls.js', import.meta.url), 'utf8');
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import {
+  createHash
+} from 'node:crypto';
+import {
+  readFileSync
+} from 'node:fs';
 import test from 'node:test';
 
 const html = expandApplicationHtml(readFileSync(new URL('../index.html', import.meta.url), 'utf8'));
