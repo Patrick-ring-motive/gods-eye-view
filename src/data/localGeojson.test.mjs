@@ -1364,17 +1364,15 @@ async function createMultiFeatureLodHarness({
     return JSON.stringify({
       type: 'Feature',
       id: `dc-${i}`,
-      properties: i % 2 === 0 ?
-        {
+      properties: i % 2 === 0 ? {
+        name: `Datacenter ${i}`,
+        tags: {
           name: `Datacenter ${i}`,
-          tags: {
-            name: `Datacenter ${i}`,
-            operator: 'Example Cloud'
-          }
-        } :
-        {
-          tags: {}
-        },
+          operator: 'Example Cloud'
+        }
+      } : {
+        tags: {}
+      },
       geometry: {
         type: 'Polygon',
         coordinates: [
