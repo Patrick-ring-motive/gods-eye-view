@@ -1,16 +1,36 @@
 import flights from '../data/flights.js';
 import military from '../data/militaryFlights.js';
 import vessels from '../data/aisLiveVessels.js';
-import { configureAlprSource } from '../data/alprCameras.js';
-import { configureCctvSource } from '../data/cctv.js';
-import { configureRadioSource } from '../data/radio.js';
-import { configureTrafficSource } from '../data/traffic.js';
-import { configureBikeshareSource } from '../data/bikeshare.js';
-import { configureInstallationSource } from '../data/militaryInstallations.js';
-import { configureSatelliteSource } from '../data/satellites.js';
-import { configureLaunchSource } from '../data/rocketLaunches.js';
-import { configureFirmsSource } from '../data/firmsHeatmap.js';
-import { configureMilitaryRegistrySource } from '../data/militaryRegistry.js';
+import {
+  configureAlprSource
+} from '../data/alprCameras.js';
+import {
+  configureCctvSource
+} from '../data/cctv.js';
+import {
+  configureRadioSource
+} from '../data/radio.js';
+import {
+  configureTrafficSource
+} from '../data/traffic.js';
+import {
+  configureBikeshareSource
+} from '../data/bikeshare.js';
+import {
+  configureInstallationSource
+} from '../data/militaryInstallations.js';
+import {
+  configureSatelliteSource
+} from '../data/satellites.js';
+import {
+  configureLaunchSource
+} from '../data/rocketLaunches.js';
+import {
+  configureFirmsSource
+} from '../data/firmsHeatmap.js';
+import {
+  configureMilitaryRegistrySource
+} from '../data/militaryRegistry.js';
 const configure = {
   alpr: configureAlprSource,
   cctv: configureCctvSource,
@@ -36,8 +56,14 @@ export function configureApplicationSources({
   if (live.flights) flights.setSource(live.flights);
   if (live.military) {
     military.setSource(live.military);
-    defer(configureMilitaryRegistrySource(live.military, { signal }));
+    defer(configureMilitaryRegistrySource(live.military, {
+      signal
+    }));
   }
   if (live.vessels) vessels.setSource(live.vessels);
 }
-export const liveLayers = Object.freeze({ flights, military, vessels });
+export const liveLayers = Object.freeze({
+  flights,
+  military,
+  vessels
+});
