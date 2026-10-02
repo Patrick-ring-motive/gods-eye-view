@@ -24,7 +24,10 @@ export function sceneElements(root = document) {
   );
 }
 
-export function renderSceneOptions(element, { scenes, selectedSceneId }) {
+export function renderSceneOptions(element, {
+  scenes,
+  selectedSceneId
+}) {
   if (!element) return;
   element.textContent = '';
   for (const scene of scenes) {
@@ -38,8 +41,13 @@ export function renderSceneOptions(element, { scenes, selectedSceneId }) {
 
 export function renderSceneShots(
   element,
-  state,
-  { listen, select, rename, load, remove },
+  state, {
+    listen,
+    select,
+    rename,
+    load,
+    remove
+  },
 ) {
   if (!element) return;
   const scene = state.scenes.find((item) => item.id === state.selectedSceneId);
@@ -99,16 +107,16 @@ export function presentSceneSelection(element, selectedShotId) {
 
 export function presentSceneButtons(elements, running, hasRun) {
   for (const name of [
-    'start',
-    'next',
-    'select',
-    'new',
-    'delete',
-    'capture',
-    'update',
-    'export',
-    'import',
-  ]) {
+      'start',
+      'next',
+      'select',
+      'new',
+      'delete',
+      'capture',
+      'update',
+      'export',
+      'import',
+    ]) {
     if (elements[name]) elements[name].disabled = running;
   }
   if (elements.stop) elements.stop.disabled = !running;
