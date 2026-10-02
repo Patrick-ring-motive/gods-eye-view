@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSurfaceKeyboard } from './surfaceKeyboard.js';
+import {
+  createSurfaceKeyboard
+} from './surfaceKeyboard.js';
 
 function fixture() {
   const listeners = new Set();
@@ -105,10 +107,14 @@ test('construction is inert; activation is idempotent and captures the opener on
   f.first.focus();
   f.controller.activate();
   assert.equal(f.listeners.size, 1);
-  f.controller.deactivate({ restoreFocus: true });
+  f.controller.deactivate({
+    restoreFocus: true
+  });
   assert.equal(f.listeners.size, 0);
   assert.equal(f.documentRef.activeElement, f.opener);
-  assert.deepEqual(f.opener.focusCalls.at(-1), { preventScroll: true });
+  assert.deepEqual(f.opener.focusCalls.at(-1), {
+    preventScroll: true
+  });
 });
 
 test('Tab enters from outside in either direction and wraps only at an edge', () => {
@@ -118,14 +124,20 @@ test('Tab enters from outside in either direction and wraps only at an edge', ()
   assert.equal(f.documentRef.activeElement, f.first);
   assert.equal(f.send('Tab').defaultPrevented, false);
   f.middle.focus();
-  assert.equal(f.send('Tab', { shiftKey: true }).defaultPrevented, false);
+  assert.equal(f.send('Tab', {
+    shiftKey: true
+  }).defaultPrevented, false);
   f.last.focus();
   f.send('Tab');
   assert.equal(f.documentRef.activeElement, f.first);
-  f.send('Tab', { shiftKey: true });
+  f.send('Tab', {
+    shiftKey: true
+  });
   assert.equal(f.documentRef.activeElement, f.last);
   f.opener.focus();
-  f.send('Tab', { shiftKey: true });
+  f.send('Tab', {
+    shiftKey: true
+  });
   assert.equal(f.documentRef.activeElement, f.last);
   assert.equal(
     f.last.focusCalls.at(-1),
@@ -156,8 +168,12 @@ test('hidden or covered surfaces and already-claimed keys never dismiss or redir
   assert.equal(f.send('Escape').defaultPrevented, false);
   assert.equal(f.send('Tab').defaultPrevented, false);
   f.setVisible(true);
-  f.send('Escape', { defaultPrevented: true });
-  f.send('Tab', { defaultPrevented: true });
+  f.send('Escape', {
+    defaultPrevented: true
+  });
+  f.send('Tab', {
+    defaultPrevented: true
+  });
   assert.equal(f.escapes(), 0);
   assert.equal(f.documentRef.activeElement, f.opener);
   assert.equal(f.send('x').defaultPrevented, false);
@@ -189,10 +205,14 @@ test('deactivation can yield without stealing focus, then reopen with a new retu
   f.last.focus();
   f.controller.activate();
   f.middle.focus();
-  f.controller.deactivate({ restoreFocus: true });
+  f.controller.deactivate({
+    restoreFocus: true
+  });
   assert.equal(f.documentRef.activeElement, f.last);
   const calls = f.last.focusCalls.length;
-  f.controller.deactivate({ restoreFocus: true });
+  f.controller.deactivate({
+    restoreFocus: true
+  });
   assert.equal(f.last.focusCalls.length, calls);
 });
 
@@ -200,7 +220,9 @@ test('a disconnected opener uses the caller fallback', () => {
   const f = fixture();
   f.controller.activate();
   f.opener.isConnected = false;
-  f.controller.deactivate({ restoreFocus: true });
+  f.controller.deactivate({
+    restoreFocus: true
+  });
   assert.equal(f.documentRef.activeElement, f.fallback);
 });
 
@@ -212,7 +234,9 @@ test('destroy is permanent, releases its listener and never restores focus', () 
   f.controller.destroy();
   f.controller.destroy();
   f.controller.activate();
-  f.controller.deactivate({ restoreFocus: true });
+  f.controller.deactivate({
+    restoreFocus: true
+  });
   assert.equal(f.listeners.size, 0);
   assert.equal(f.documentRef.activeElement, f.first);
   const e = f.event('Tab');
