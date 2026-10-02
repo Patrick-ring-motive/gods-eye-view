@@ -5,7 +5,11 @@
  */
 const RATE_LIMITER_MAX_KEYS = 2000;
 
-export function makeRateLimiter({ windowMs, max, globalMax }) {
+export function makeRateLimiter({
+  windowMs,
+  max,
+  globalMax
+}) {
   const hits = new Map(); // key -> number[] (timestamps within window)
   let globalTimes = []; // all hits in window, for the global backstop
   return function allow(key) {
