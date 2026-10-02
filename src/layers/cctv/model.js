@@ -533,8 +533,7 @@ export function createModel({
       coldFill: coldFill && !layerState._geoLoading,
       inFlight: layerState._cardFetchInFlightCount,
       sinceLastLaunchMs: layerState._cardLastFetchAt > 0 ?
-        now - layerState._cardLastFetchAt :
-        Infinity,
+        now - layerState._cardLastFetchAt : Infinity,
     });
     layerState._cardFetchMode = policy.mode;
     if (!policy.launch) return;
