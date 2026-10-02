@@ -12,7 +12,10 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { clearOverlaySource, setOverlaySourceVisible } = services.overlays;
+  const {
+    clearOverlaySource,
+    setOverlaySourceVisible
+  } = services.overlays;
 
   const methods = {
     /** Initialize the Cesium data source and the single audio element. */
@@ -54,7 +57,9 @@ export function createLifecycle({
       parts.tuning.endRadioTuning();
       layerState._cancelledTuningPresentationStation = null;
       layerState._tuningUnavailableStationId = null;
-      parts.playback.stopRadioPlayback({ origin: 'layer-disable' });
+      parts.playback.stopRadioPlayback({
+        origin: 'layer-disable'
+      });
       if (layerState._dataSource) layerState._dataSource.show = false;
       if (layerState._selectedEntity && layerState._viewer)
         layerState._viewer.entities.remove(layerState._selectedEntity);
@@ -118,5 +123,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
