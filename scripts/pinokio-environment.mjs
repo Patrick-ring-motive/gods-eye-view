@@ -1,7 +1,15 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync
+} from 'node:fs';
 import path from 'node:path';
-import { parseEnv } from 'node:util';
-import { fileURLToPath } from 'node:url';
+import {
+  parseEnv
+} from 'node:util';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_ENVIRONMENT_FILE = path.join(ROOT, 'pinokio', 'ENVIRONMENT');
@@ -66,7 +74,9 @@ export function readEnvironmentSource(filepath) {
   if (!existsSync(filepath)) return '';
   const buffer = readFileSync(filepath);
   try {
-    return new TextDecoder(detectEnvironmentEncoding(buffer), { fatal: true }).decode(buffer);
+    return new TextDecoder(detectEnvironmentEncoding(buffer), {
+      fatal: true
+    }).decode(buffer);
   } catch {
     throw new Error('Pinokio ENVIRONMENT could not be decoded as UTF-8 or UTF-16.');
   }
@@ -105,7 +115,9 @@ export function ensurePinokioSharingBoundary(filepath = DEFAULT_ENVIRONMENT_FILE
 
   const encoded = Buffer.from(source, 'utf8');
   if (!original || !original.equals(encoded)) {
-    writeFileSync(filepath, source, { mode: 0o600 });
+    writeFileSync(filepath, source, {
+      mode: 0o600
+    });
   }
   return configured;
 }
