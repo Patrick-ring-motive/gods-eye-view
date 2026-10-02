@@ -49,12 +49,12 @@ export function createGeometryQueue({
 
   function createGeometryProgressNotifier(notify, options = {}) {
     const now = typeof options.now === 'function' ? options.now : Date.now;
-    const intervalMs = Number.isFinite(options.intervalMs)
-      ? Math.max(0, options.intervalMs)
-      : GEO_PROGRESS_NOTIFY_INTERVAL_MS;
-    const batchLimit = Number.isFinite(options.batchLimit)
-      ? Math.max(1, Math.floor(options.batchLimit))
-      : GEO_PROGRESS_NOTIFY_BATCH_LIMIT;
+    const intervalMs = Number.isFinite(options.intervalMs) ?
+      Math.max(0, options.intervalMs) :
+      GEO_PROGRESS_NOTIFY_INTERVAL_MS;
+    const batchLimit = Number.isFinite(options.batchLimit) ?
+      Math.max(1, Math.floor(options.batchLimit)) :
+      GEO_PROGRESS_NOTIFY_BATCH_LIMIT;
     let lastNotifyAt = now();
     let batchesSinceNotify = 0;
 
@@ -102,9 +102,9 @@ export function createGeometryQueue({
     complete,
   }) {
     const safeQueue = Array.isArray(queue) ? queue : [];
-    const take = Number.isFinite(batchSize)
-      ? Math.max(1, Math.floor(batchSize))
-      : 1;
+    const take = Number.isFinite(batchSize) ?
+      Math.max(1, Math.floor(batchSize)) :
+      1;
     const batch = safeQueue.splice(0, take);
     for (const record of batch) visit?.(record);
     if (safeQueue.length) {
@@ -136,7 +136,10 @@ export function createGeometryQueue({
         delayMs: GEO_TRACKING_BATCH_DELAY_MS,
       };
     }
-    return { batchSize: GEO_LOAD_BATCH_SIZE, delayMs: GEO_LOAD_BATCH_DELAY_MS };
+    return {
+      batchSize: GEO_LOAD_BATCH_SIZE,
+      delayMs: GEO_LOAD_BATCH_DELAY_MS
+    };
   }
 
   /**
@@ -168,7 +171,10 @@ export function createGeometryQueue({
       progress,
       complete,
     });
-    return { hasMore, ...pacing };
+    return {
+      hasMore,
+      ...pacing
+    };
   }
 
   /**
@@ -210,8 +216,7 @@ export function createGeometryQueue({
       queue: layerState._geoQueue,
       readOwnership: () => ({
         trackedEntity: layerState._viewer.trackedEntity,
-        cockpitActive:
-          typeof document !== 'undefined' &&
+        cockpitActive: typeof document !== 'undefined' &&
           document.body?.classList.contains('cockpit-mode'),
       }),
       visit: (record) => {
@@ -297,12 +302,12 @@ export function createGeometryQueue({
     if (!layerState._records.length) return;
     const active = parts.selection.getActiveRecord();
     const carto = layerState._viewer?.camera?.positionCartographic;
-    const refLat = carto
-      ? Cesium.Math.toDegrees(carto.latitude)
-      : (active?.camera.lat ?? 0);
-    const refLon = carto
-      ? Cesium.Math.toDegrees(carto.longitude)
-      : (active?.camera.lon ?? 0);
+    const refLat = carto ?
+      Cesium.Math.toDegrees(carto.latitude) :
+      (active?.camera.lat ?? 0);
+    const refLon = carto ?
+      Cesium.Math.toDegrees(carto.longitude) :
+      (active?.camera.lon ?? 0);
     const pending = layerState._records
       .filter((record) => record !== active)
       .map((record) => ({
