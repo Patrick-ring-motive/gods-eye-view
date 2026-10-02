@@ -1,6 +1,12 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
-import { createRadioSource } from '../layers/radio/source.js';
-import { createRadioLayer } from '../layers/radio/index.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
+import {
+  createRadioSource
+} from '../layers/radio/source.js';
+import {
+  createRadioLayer
+} from '../layers/radio/index.js';
 import * as ground from './groundFloor.js';
 import * as picking from './pickRegistry.js';
 import * as overlays from '../overlays/worldOverlay.js';
@@ -15,7 +21,13 @@ const sourceSlot = createSourceSlot(
 export const configureRadioSource = sourceSlot.configure;
 const layer = createRadioLayer({
   source: sourceSlot.source,
-  services: { ground, picking, overlays, globe, render },
+  services: {
+    ground,
+    picking,
+    overlays,
+    globe,
+    render
+  },
 });
 export const radioGlobeLabel = layer.radioGlobeLabel;
 export const createRadioSelectedOverlayEntry =
@@ -94,7 +106,8 @@ export {
   RADIO_OVERLAY_SOURCE_OPTIONS,
   DEFAULT_RADIO_FILTER,
   GLOBAL_RADIO_ALTITUDE_M,
-} from '../layers/radio/index.js';
+}
+from '../layers/radio/index.js';
 export default layer;
 
 export const radioLayer = layer;
@@ -103,4 +116,5 @@ export {
   radioTunerCommitSlot,
   radioTunerPointerPosition,
   buildRadioTunerTicks,
-} from '../ui/radioTunerModel.js';
+}
+from '../ui/radioTunerModel.js';
