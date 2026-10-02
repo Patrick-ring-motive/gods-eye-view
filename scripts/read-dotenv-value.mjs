@@ -1,7 +1,12 @@
 #!/usr/bin/env node
+
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { loadEnv } from 'vite';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  loadEnv
+} from 'vite';
 
 /**
  * Read one dotenv key with Vite's parser; no file content is executed.
@@ -15,9 +20,9 @@ import { loadEnv } from 'vite';
 export function readDotenvValue(variableName, rootDir = process.cwd(), mode = 'development') {
   const key = String(variableName || '').trim();
   if (!/^[A-Z_][A-Z0-9_]*$/i.test(key)) return '';
-  const inherited = Object.prototype.hasOwnProperty.call(process.env, key)
-    ? process.env[key]
-    : undefined;
+  const inherited = Object.prototype.hasOwnProperty.call(process.env, key) ?
+    process.env[key] :
+    undefined;
   if (inherited !== undefined) delete process.env[key];
   try {
     const env = loadEnv(mode, path.resolve(rootDir), '');
