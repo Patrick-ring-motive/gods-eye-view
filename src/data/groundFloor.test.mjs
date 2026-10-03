@@ -3,20 +3,34 @@
 // clamp military render altitudes and trail waypoints so they never render
 // below the local ellipsoidal surface (RS46 heli-in-hillside + WAKE01
 // trail-underground findings).
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  coarseFloorCoord, floorAltitudeM, GROUND_FLOOR_LIFT_M, displayFloorHeightM,
-  corridorFloorCells, CORRIDOR_MAX_CELLS, stickyFloorCell, allocateCorridorCells,
+  coarseFloorCoord,
+  floorAltitudeM,
+  GROUND_FLOOR_LIFT_M,
+  displayFloorHeightM,
+  corridorFloorCells,
+  CORRIDOR_MAX_CELLS,
+  stickyFloorCell,
+  allocateCorridorCells,
   CORRIDOR_WALK_STEP_DEG,
   meshFloorSampleWithinPrior,
-  reportMeshFloorCell, cachedMeshFloor, cachedGroundFloor,
-  setMeshFloorPreferred, meshFloorPreferred, _clearMeshFloorCellsForTest,
+  reportMeshFloorCell,
+  cachedMeshFloor,
+  cachedGroundFloor,
+  setMeshFloorPreferred,
+  meshFloorPreferred,
+  _clearMeshFloorCellsForTest,
   neighborFloorM,
 } from './groundFloor.js';
 import {
-  corridorPathLatLon, projectGroundArcLatLon,
-  CORRIDOR_SAMPLE_SPACING_M, CORRIDOR_MAX_LENGTH_M,
+  corridorPathLatLon,
+  projectGroundArcLatLon,
+  CORRIDOR_SAMPLE_SPACING_M,
+  CORRIDOR_MAX_LENGTH_M,
 } from './motionModel.js';
 
 test('coarseFloorCoord rounds to a 3-decimal (~111 m) grid cell', () => {
@@ -161,34 +175,91 @@ test('displayFloorHeightM honours a caller-supplied lift', () => {
 // `cellFloor=COLD` for the whole observation).
 
 test('corridorFloorCells covers both ends of the display→fix walk', () => {
-  const cells = corridorFloorCells([{ lat: 30.200, lon: -97.660 }, { lat: 30.203, lon: -97.660 }]);
-  assert.deepEqual(cells[0], { lat: 30.2, lon: -97.66 });
-  assert.deepEqual(cells[cells.length - 1], { lat: 30.203, lon: -97.66 });
+  const cells = corridorFloorCells([{
+    lat: 30.200,
+    lon: -97.660
+  }, {
+    lat: 30.203,
+    lon: -97.660
+  }]);
+  assert.deepEqual(cells[0], {
+    lat: 30.2,
+    lon: -97.66
+  });
+  assert.deepEqual(cells[cells.length - 1], {
+    lat: 30.203,
+    lon: -97.66
+  });
 });
 
 test('corridorFloorCells has no gaps along a multi-cell walk', () => {
   // ~330 m north = 3 coarse cells.
-  const lats = corridorFloorCells([{ lat: 30.200, lon: -97.660 }, { lat: 30.203, lon: -97.660 }]).map((c) => c.lat);
+  const lats = corridorFloorCells([{
+    lat: 30.200,
+    lon: -97.660
+  }, {
+    lat: 30.203,
+    lon: -97.660
+  }]).map((c) => c.lat);
   assert.deepEqual(lats, [30.2, 30.201, 30.202, 30.203]);
 });
 
 test('corridorFloorCells dedupes when both ends share one cell', () => {
-  const cells = corridorFloorCells([{ lat: 30.2001, lon: -97.6601 }, { lat: 30.2004, lon: -97.6604 }]);
-  assert.deepEqual(cells, [{ lat: 30.2, lon: -97.66 }]);
+  const cells = corridorFloorCells([{
+    lat: 30.2001,
+    lon: -97.6601
+  }, {
+    lat: 30.2004,
+    lon: -97.6604
+  }]);
+  assert.deepEqual(cells, [{
+    lat: 30.2,
+    lon: -97.66
+  }]);
 });
 
 test('corridorFloorCells is bounded on a long walk (never unbounded)', () => {
-  const cells = corridorFloorCells([{ lat: 30.2, lon: -97.66 }, { lat: 31.2, lon: -96.66 }]);
+  const cells = corridorFloorCells([{
+    lat: 30.2,
+    lon: -97.66
+  }, {
+    lat: 31.2,
+    lon: -96.66
+  }]);
   assert.ok(cells.length <= CORRIDOR_MAX_CELLS, `bounded, got ${cells.length}`);
 });
 
 test('corridorFloorCells returns the start cell alone for a bad endpoint', () => {
-  assert.deepEqual(corridorFloorCells([{ lat: 30.2, lon: -97.66 }, { lat: NaN, lon: -97.66 }]), [{ lat: 30.2, lon: -97.66 }]);
-  assert.deepEqual(corridorFloorCells([{ lat: 30.2, lon: -97.66 }, { lat: null, lon: null }]), [{ lat: 30.2, lon: -97.66 }]);
+  assert.deepEqual(corridorFloorCells([{
+    lat: 30.2,
+    lon: -97.66
+  }, {
+    lat: NaN,
+    lon: -97.66
+  }]), [{
+    lat: 30.2,
+    lon: -97.66
+  }]);
+  assert.deepEqual(corridorFloorCells([{
+    lat: 30.2,
+    lon: -97.66
+  }, {
+    lat: null,
+    lon: null
+  }]), [{
+    lat: 30.2,
+    lon: -97.66
+  }]);
 });
 
 test('corridorFloorCells returns nothing for a bad start', () => {
-  assert.deepEqual(corridorFloorCells([{ lat: NaN, lon: -97.66 }, { lat: 30.2, lon: -97.66 }]), []);
+  assert.deepEqual(corridorFloorCells([{
+    lat: NaN,
+    lon: -97.66
+  }, {
+    lat: 30.2,
+    lon: -97.66
+  }]), []);
 });
 
 // --- F5: contiguous prefix + guaranteed endpoint ---------------------------
@@ -199,7 +270,13 @@ test('corridorFloorCells returns nothing for a bad start', () => {
 
 test('corridorFloorCells: 3 km corridor keeps a gap-free prefix', () => {
   // ~3.3 km north.
-  const cells = corridorFloorCells([{ lat: 30.200, lon: -97.660 }, { lat: 30.230, lon: -97.660 }]);
+  const cells = corridorFloorCells([{
+    lat: 30.200,
+    lon: -97.660
+  }, {
+    lat: 30.230,
+    lon: -97.660
+  }]);
   assert.ok(cells.length <= CORRIDOR_MAX_CELLS, `bounded, got ${cells.length}`);
   // Every prefix cell is exactly one cell on from the previous — no holes.
   const prefix = cells.slice(0, -1);
@@ -210,13 +287,28 @@ test('corridorFloorCells: 3 km corridor keeps a gap-free prefix', () => {
 });
 
 test('corridorFloorCells: the destination cell always survives truncation', () => {
-  const cells = corridorFloorCells([{ lat: 30.200, lon: -97.660 }, { lat: 30.230, lon: -97.660 }]);
-  assert.deepEqual(cells[cells.length - 1], { lat: 30.23, lon: -97.66 },
+  const cells = corridorFloorCells([{
+    lat: 30.200,
+    lon: -97.660
+  }, {
+    lat: 30.230,
+    lon: -97.660
+  }]);
+  assert.deepEqual(cells[cells.length - 1], {
+      lat: 30.23,
+      lon: -97.66
+    },
     'the far end is where the contact is headed — it must be warmed, not dropped');
 });
 
 test('corridorFloorCells: a diagonal 3 km corridor is still gap-free', () => {
-  const cells = corridorFloorCells([{ lat: 30.200, lon: -97.660 }, { lat: 30.220, lon: -97.640 }]);
+  const cells = corridorFloorCells([{
+    lat: 30.200,
+    lon: -97.660
+  }, {
+    lat: 30.220,
+    lon: -97.640
+  }]);
   const prefix = cells.slice(0, -1);
   for (let i = 1; i < prefix.length; i++) {
     const dLat = Math.abs(Math.round((prefix[i].lat - prefix[i - 1].lat) * 1000));
@@ -232,29 +324,50 @@ test('corridorFloorCells: a diagonal 3 km corridor is still gap-free', () => {
 // between two heights.
 
 test('stickyFloorCell picks the containing cell with no previous cell', () => {
-  assert.deepEqual(stickyFloorCell(30.2004, -97.6604, null), { lat: 30.2, lon: -97.66 });
+  assert.deepEqual(stickyFloorCell(30.2004, -97.6604, null), {
+    lat: 30.2,
+    lon: -97.66
+  });
 });
 
 test('stickyFloorCell holds the previous cell for a jitter-sized excursion', () => {
-  const prev = { lat: 30.2, lon: -97.66 };
+  const prev = {
+    lat: 30.2,
+    lon: -97.66
+  };
   // 30.2006 belongs to cell 30.201, but it is only ~11 m past the boundary.
   assert.deepEqual(stickyFloorCell(30.2006, -97.66, prev), prev);
   assert.deepEqual(stickyFloorCell(30.1994, -97.66, prev), prev);
 });
 
 test('stickyFloorCell releases once the contact is properly into the next cell', () => {
-  const prev = { lat: 30.2, lon: -97.66 };
-  assert.deepEqual(stickyFloorCell(30.2011, -97.66, prev), { lat: 30.201, lon: -97.66 });
+  const prev = {
+    lat: 30.2,
+    lon: -97.66
+  };
+  assert.deepEqual(stickyFloorCell(30.2011, -97.66, prev), {
+    lat: 30.201,
+    lon: -97.66
+  });
 });
 
 test('stickyFloorCell holds across a diagonal corner excursion', () => {
-  const prev = { lat: 30.2, lon: -97.66 };
+  const prev = {
+    lat: 30.2,
+    lon: -97.66
+  };
   assert.deepEqual(stickyFloorCell(30.2006, -97.6606, prev), prev);
 });
 
 test('stickyFloorCell does not stick to a far-away stale cell', () => {
-  const prev = { lat: 30.1, lon: -97.66 };
-  assert.deepEqual(stickyFloorCell(30.2004, -97.6604, prev), { lat: 30.2, lon: -97.66 });
+  const prev = {
+    lat: 30.1,
+    lon: -97.66
+  };
+  assert.deepEqual(stickyFloorCell(30.2004, -97.6604, prev), {
+    lat: 30.2,
+    lon: -97.66
+  });
 });
 
 // --- F2: corridor budget fairness ------------------------------------------
@@ -267,20 +380,43 @@ test('stickyFloorCell does not stick to a far-away stale cell', () => {
  *  is charged and the allocation order under test is the only variable. */
 const NONE_WARM = () => false;
 
-const cellsFrom = (lat, n) => Array.from({ length: n }, (_, i) => ({ lat: +(lat + i * 0.001).toFixed(3), lon: -97.66 }));
+const cellsFrom = (lat, n) => Array.from({
+  length: n
+}, (_, i) => ({
+  lat: +(lat + i * 0.001).toFixed(3),
+  lon: -97.66
+}));
 
 test('allocateCorridorCells: already-collected cells cost nothing', () => {
   const seen = new Set(['30.2,-97.66']);
   const got = allocateCorridorCells(
-    [{ cells: [{ lat: 30.2, lon: -97.66 }], cold: 0, speedMps: 0 }], seen, 4, 4, 0, NONE_WARM,
+    [{
+      cells: [{
+        lat: 30.2,
+        lon: -97.66
+      }],
+      cold: 0,
+      speedMps: 0
+    }], seen, 4, 4, 0, NONE_WARM,
   );
   assert.deepEqual(got, [], 'a parked contact on a collected cell allocates nothing');
 });
 
 test('allocateCorridorCells: a parked contact never crowds out a mover', () => {
   const seen = new Set(['30.2,-97.66']);
-  const parked = { cells: [{ lat: 30.2, lon: -97.66 }], cold: 0, speedMps: 0 };
-  const mover = { cells: cellsFrom(30.3, 3), cold: 3, speedMps: 12 };
+  const parked = {
+    cells: [{
+      lat: 30.2,
+      lon: -97.66
+    }],
+    cold: 0,
+    speedMps: 0
+  };
+  const mover = {
+    cells: cellsFrom(30.3, 3),
+    cold: 3,
+    speedMps: 12
+  };
   // Parked FIRST in insertion order — the old bug's shape.
   const got = allocateCorridorCells([parked, mover], seen, 3, 4, 0, NONE_WARM);
   assert.equal(got.length, 3);
@@ -293,15 +429,26 @@ test('allocateCorridorCells: 85 grounded contacts — the needy are served first
   const seen = new Set();
   const candidates = [];
   for (let i = 0; i < 64; i++) {
-    const cell = { lat: +(31 + i * 0.001).toFixed(3), lon: -97.66 };
+    const cell = {
+      lat: +(31 + i * 0.001).toFixed(3),
+      lon: -97.66
+    };
     seen.add(`${cell.lat},${cell.lon}`);
-    candidates.push({ cells: [cell], cold: 0, speedMps: 0 });
+    candidates.push({
+      cells: [cell],
+      cold: 0,
+      speedMps: 0
+    });
   }
   const movers = [];
   for (let i = 0; i < 21; i++) {
     const cells = cellsFrom(32 + i, 4);
     movers.push(cells);
-    candidates.push({ cells, cold: 4, speedMps: 10 });
+    candidates.push({
+      cells,
+      cold: 4,
+      speedMps: 10
+    });
   }
   const got = allocateCorridorCells(candidates, seen, 64, 4, 0, NONE_WARM);
   const gotKeys = new Set(got.map((c) => `${c.lat},${c.lon}`));
@@ -320,8 +467,16 @@ test('allocateCorridorCells: 85 grounded contacts — the needy are served first
 
 test('allocateCorridorCells: fair share caps a long corridor in the first pass', () => {
   const seen = new Set();
-  const hog = { cells: cellsFrom(30, 12), cold: 12, speedMps: 30 };
-  const small = { cells: cellsFrom(40, 2), cold: 2, speedMps: 5 };
+  const hog = {
+    cells: cellsFrom(30, 12),
+    cold: 12,
+    speedMps: 30
+  };
+  const small = {
+    cells: cellsFrom(40, 2),
+    cold: 2,
+    speedMps: 5
+  };
   const got = allocateCorridorCells([hog, small], seen, 6, 4, 0, NONE_WARM);
   const lats = got.map((c) => c.lat);
   assert.ok(lats.includes(40) && lats.includes(40.001),
@@ -330,8 +485,16 @@ test('allocateCorridorCells: fair share caps a long corridor in the first pass',
 
 test('allocateCorridorCells: leftover budget goes to the neediest in pass two', () => {
   const seen = new Set();
-  const hog = { cells: cellsFrom(30, 8), cold: 8, speedMps: 30 };
-  const small = { cells: cellsFrom(40, 1), cold: 1, speedMps: 5 };
+  const hog = {
+    cells: cellsFrom(30, 8),
+    cold: 8,
+    speedMps: 30
+  };
+  const small = {
+    cells: cellsFrom(40, 1),
+    cold: 1,
+    speedMps: 5
+  };
   const got = allocateCorridorCells([hog, small], seen, 8, 4, 0, NONE_WARM);
   assert.equal(got.length, 8);
   assert.ok(got.filter((c) => c.lat >= 30 && c.lat < 31).length === 7, 'hog gets the remainder');
@@ -339,12 +502,20 @@ test('allocateCorridorCells: leftover budget goes to the neediest in pass two', 
 
 test('allocateCorridorCells: mutates `seen` so the caller stays deduped', () => {
   const seen = new Set();
-  allocateCorridorCells([{ cells: cellsFrom(30, 2), cold: 2, speedMps: 1 }], seen, 4, 4, 0, NONE_WARM);
+  allocateCorridorCells([{
+    cells: cellsFrom(30, 2),
+    cold: 2,
+    speedMps: 1
+  }], seen, 4, 4, 0, NONE_WARM);
   assert.ok(seen.has('30,-97.66') && seen.has('30.001,-97.66'));
 });
 
 test('allocateCorridorCells: no budget, no allocation', () => {
-  assert.deepEqual(allocateCorridorCells([{ cells: cellsFrom(30, 2), cold: 2, speedMps: 1 }], new Set(), 0, 4, 0, NONE_WARM), []);
+  assert.deepEqual(allocateCorridorCells([{
+    cells: cellsFrom(30, 2),
+    cold: 2,
+    speedMps: 1
+  }], new Set(), 0, 4, 0, NONE_WARM), []);
   assert.deepEqual(allocateCorridorCells([], new Set(), 10, 4, 0, NONE_WARM), []);
 });
 
@@ -353,8 +524,14 @@ test('allocateCorridorCells: no budget, no allocation', () => {
 test('corridorFloorCells walks a turning path\'s arc, not the chord across it', () => {
   const path = corridorPathLatLon({
     extrapolating: true,
-    displayLat: 30.200, displayLon: -97.660, courseDeg: 0, speedMps: 12, turnRateDps: 3,
-    fixLat: 30.199, fixLon: -97.660, lookaheadSec: 30,
+    displayLat: 30.200,
+    displayLon: -97.660,
+    courseDeg: 0,
+    speedMps: 12,
+    turnRateDps: 3,
+    fixLat: 30.199,
+    fixLon: -97.660,
+    lookaheadSec: 30,
   });
   const arcCells = corridorFloorCells(path);
   const chordCells = corridorFloorCells([path[0], path[path.length - 1]]);
@@ -367,8 +544,14 @@ test('corridorFloorCells walks a turning path\'s arc, not the chord across it', 
 test('corridorFloorCells keeps a multi-leg path gap-free', () => {
   const path = corridorPathLatLon({
     extrapolating: true,
-    displayLat: 30.200, displayLon: -97.660, courseDeg: 0, speedMps: 12, turnRateDps: 2,
-    fixLat: 30.199, fixLon: -97.660, lookaheadSec: 40,
+    displayLat: 30.200,
+    displayLon: -97.660,
+    courseDeg: 0,
+    speedMps: 12,
+    turnRateDps: 2,
+    fixLat: 30.199,
+    fixLon: -97.660,
+    lookaheadSec: 40,
   });
   const cells = corridorFloorCells(path);
   const prefix = cells.slice(0, -1);
@@ -386,16 +569,39 @@ test('corridorFloorCells keeps a multi-leg path gap-free', () => {
 // runs so the tail cycles in.
 
 test('allocateCorridorCells: the epoch rotates a tie, so a different prefix leads each poll', () => {
-  const cellsFor = (i) => [{ lat: +(50 + i).toFixed(3), lon: -97.66 }];
-  const candidates = Array.from({ length: 5 }, (_, i) => ({ cells: cellsFor(i), cold: 1, speedMps: 10 }));
+  const cellsFor = (i) => [{
+    lat: +(50 + i).toFixed(3),
+    lon: -97.66
+  }];
+  const candidates = Array.from({
+    length: 5
+  }, (_, i) => ({
+    cells: cellsFor(i),
+    cold: 1,
+    speedMps: 10
+  }));
   const first = (epoch) => allocateCorridorCells(candidates, new Set(), 1, 4, epoch, NONE_WARM)[0].lat;
   const leaders = new Set([first(0), first(1), first(2)]);
   assert.equal(leaders.size, 3, 'the same contact led every poll — the tie never cycles');
 });
 
 test('allocateCorridorCells: rotation never demotes a needier contact below a less needy one', () => {
-  const needy = { cells: [{ lat: 60, lon: -97.66 }], cold: 4, speedMps: 1 };
-  const idle = { cells: [{ lat: 61, lon: -97.66 }], cold: 1, speedMps: 99 };
+  const needy = {
+    cells: [{
+      lat: 60,
+      lon: -97.66
+    }],
+    cold: 4,
+    speedMps: 1
+  };
+  const idle = {
+    cells: [{
+      lat: 61,
+      lon: -97.66
+    }],
+    cold: 1,
+    speedMps: 99
+  };
   for (let epoch = 0; epoch < 6; epoch++) {
     const got = allocateCorridorCells([idle, needy], new Set(), 1, 4, epoch, NONE_WARM);
     assert.equal(got[0].lat, 60, `epoch ${epoch} served the less needy contact first`);
@@ -411,9 +617,13 @@ test('allocateCorridorCells: rotation never demotes a needier contact below a le
 
 const TURNING_COAST = {
   extrapolating: true,
-  displayLat: 30.200, displayLon: -97.660,
-  courseDeg: 0, speedMps: 5, turnRateDps: 0.4,
-  fixLat: 30.199, fixLon: -97.660,
+  displayLat: 30.200,
+  displayLon: -97.660,
+  courseDeg: 0,
+  speedMps: 5,
+  turnRateDps: 0.4,
+  fixLat: 30.199,
+  fixLon: -97.660,
   lookaheadSec: 60,
 };
 
@@ -449,7 +659,11 @@ test('corridorFloorCells: every cell the sampled arc passes through is collected
 });
 
 test('corridorPathLatLon spacing stays cell-sized as speed rises', () => {
-  const fast = corridorPathLatLon({ ...TURNING_COAST, speedMps: 25, turnRateDps: 0 });
+  const fast = corridorPathLatLon({
+    ...TURNING_COAST,
+    speedMps: 25,
+    turnRateDps: 0
+  });
   for (let i = 1; i < fast.length; i++) {
     const dM = Math.hypot(
       (fast[i].lat - fast[i - 1].lat) * 111320,
@@ -460,7 +674,11 @@ test('corridorPathLatLon spacing stays cell-sized as speed rises', () => {
 });
 
 test('corridorPathLatLon truncates a very long arc instead of thinning it', () => {
-  const path = corridorPathLatLon({ ...TURNING_COAST, speedMps: 120, lookaheadSec: 60 });
+  const path = corridorPathLatLon({
+    ...TURNING_COAST,
+    speedMps: 120,
+    lookaheadSec: 60
+  });
   const end = path[path.length - 1];
   const lenM = Math.hypot(
     (end.lat - TURNING_COAST.displayLat) * 111320,
@@ -477,9 +695,19 @@ test('corridorPathLatLon truncates a very long arc instead of thinning it', () =
 
 test('allocateCorridorCells: warm cells are emitted but never charged', () => {
   const warm = new Set(['30,-97.66']);
-  const cells = [{ lat: 30, lon: -97.66 }, { lat: 30.001, lon: -97.66 }];
+  const cells = [{
+    lat: 30,
+    lon: -97.66
+  }, {
+    lat: 30.001,
+    lon: -97.66
+  }];
   const got = allocateCorridorCells(
-    [{ cells, cold: 1, speedMps: 5 }], new Set(), 1, 4, 0,
+    [{
+      cells,
+      cold: 1,
+      speedMps: 5
+    }], new Set(), 1, 4, 0,
     (c) => warm.has(`${c.lat},${c.lon}`),
   );
   assert.equal(got.length, 2, 'the warm cell still reaches the mesh sampler');
@@ -488,8 +716,25 @@ test('allocateCorridorCells: warm cells are emitted but never charged', () => {
 
 test('allocateCorridorCells: a warm near-cell cannot eat the budget every poll', () => {
   const warm = new Set(['30,-97.66']);
-  const hogWarmPrefix = { cells: [{ lat: 30, lon: -97.66 }, { lat: 30.001, lon: -97.66 }], cold: 1, speedMps: 5 };
-  const other = { cells: [{ lat: 45, lon: -97.66 }], cold: 1, speedMps: 5 };
+  const hogWarmPrefix = {
+    cells: [{
+      lat: 30,
+      lon: -97.66
+    }, {
+      lat: 30.001,
+      lon: -97.66
+    }],
+    cold: 1,
+    speedMps: 5
+  };
+  const other = {
+    cells: [{
+      lat: 45,
+      lon: -97.66
+    }],
+    cold: 1,
+    speedMps: 5
+  };
   const got = allocateCorridorCells(
     [hogWarmPrefix, other], new Set(), 2, 1, 0,
     (c) => warm.has(`${c.lat},${c.lon}`),
@@ -509,9 +754,13 @@ test('allocateCorridorCells: 80 movers are served within the bound the policy im
   const boundPolls = Math.ceil(COUNT / BUDGET);
   const movers = [];
   for (let i = 0; i < COUNT; i++) {
-    movers.push(Array.from(
-      { length: CELLS_EACH },
-      (_, k) => ({ lat: +(40 + i + k * 0.001).toFixed(3), lon: -97.66 }),
+    movers.push(Array.from({
+        length: CELLS_EACH
+      },
+      (_, k) => ({
+        lat: +(40 + i + k * 0.001).toFixed(3),
+        lon: -97.66
+      }),
     ));
   }
   const warmed = new Set();
@@ -548,9 +797,13 @@ test('allocateCorridorCells: every mover reaches its FULL corridor in bounded po
   const boundPolls = Math.ceil((COUNT * CELLS_EACH) / BUDGET);
   const movers = [];
   for (let i = 0; i < COUNT; i++) {
-    movers.push(Array.from(
-      { length: CELLS_EACH },
-      (_, k) => ({ lat: +(40 + i + k * 0.001).toFixed(3), lon: -97.66 }),
+    movers.push(Array.from({
+        length: CELLS_EACH
+      },
+      (_, k) => ({
+        lat: +(40 + i + k * 0.001).toFixed(3),
+        lon: -97.66
+      }),
     ));
   }
   const warmed = new Set();
@@ -588,7 +841,10 @@ test('neighborFloorM leans to the LOWEST resolved neighbour', () => {
   reportMeshFloorCell(30.2, -97.659, 145);
   // Flat-ish ground: the neighbours are within metres and the choice barely
   // matters. It matters at a structure edge, which the next case covers.
-  assert.equal(neighborFloorM({ lat: 30.2, lon: -97.66 }), 141);
+  assert.equal(neighborFloorM({
+    lat: 30.2,
+    lon: -97.66
+  }), 141);
 });
 
 test('neighborFloorM takes the apron, not the roof, at a structure edge', () => {
@@ -598,31 +854,49 @@ test('neighborFloorM takes the apron, not the roof, at a structure edge', () => 
   reportMeshFloorCell(30.199, -97.66, 205); // the terminal roof next door
   // A parked contact is on the apron; it is never on the roof. Leaning high
   // here is what put planes in midair at gates during the owner playtest.
-  assert.equal(neighborFloorM({ lat: 30.2, lon: -97.66 }), 120);
+  assert.equal(neighborFloorM({
+    lat: 30.2,
+    lon: -97.66
+  }), 120);
 });
 
 test('neighborFloorM refuses a LONE neighbour — one reading cannot be checked', () => {
   _clearMeshFloorCellsForTest();
   setMeshFloorPreferred(true);
   reportMeshFloorCell(30.199, -97.66, 205); // could be a roof; nothing to compare it to
-  assert.equal(neighborFloorM({ lat: 30.2, lon: -97.66 }), null,
+  assert.equal(neighborFloorM({
+      lat: 30.2,
+      lon: -97.66
+    }), null,
     'refusing leaves the contact unclamped, which is inert — borrowing floats it permanently');
   // A second reading makes the pair comparable, and the low one is the ground.
   reportMeshFloorCell(30.201, -97.66, 120);
-  assert.equal(neighborFloorM({ lat: 30.2, lon: -97.66 }), 120);
+  assert.equal(neighborFloorM({
+    lat: 30.2,
+    lon: -97.66
+  }), 120);
 });
 
 test('neighborFloorM is null when nothing around the cell has resolved', () => {
   _clearMeshFloorCellsForTest();
   setMeshFloorPreferred(true);
-  assert.equal(neighborFloorM({ lat: 30.2, lon: -97.66 }), null);
+  assert.equal(neighborFloorM({
+    lat: 30.2,
+    lon: -97.66
+  }), null);
   assert.equal(neighborFloorM(null), null);
-  assert.equal(neighborFloorM({ lat: Number.NaN, lon: -97.66 }), null);
+  assert.equal(neighborFloorM({
+    lat: Number.NaN,
+    lon: -97.66
+  }), null);
 });
 
 test('neighborFloorM never counts the cell itself — it exists because that one is cold', () => {
   _clearMeshFloorCellsForTest();
   setMeshFloorPreferred(true);
   reportMeshFloorCell(30.2, -97.66, 500);
-  assert.equal(neighborFloorM({ lat: 30.2, lon: -97.66 }), null);
+  assert.equal(neighborFloorM({
+    lat: 30.2,
+    lon: -97.66
+  }), null);
 });
