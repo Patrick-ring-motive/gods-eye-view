@@ -10,5 +10,7 @@ export function createController({
       controller.abort();
     flightState._activeUpdateControllers.clear();
   }
-  return { _abortActiveUpdates };
+  return {
+    _abortActiveUpdates
+  };
 }
