@@ -10,7 +10,9 @@ import {
   limitCourseStep,
   corridorPathLatLon,
 } from '../../data/motionModel.js';
-import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
+import {
+  CLASS_SCALE_2D
+} from '../../data/aircraftClass.js';
 import {
   modelVisualAnchor,
   modelAnchorWorld,
@@ -53,7 +55,9 @@ export function createMotion({
     corridorFloorCells,
     allocateCorridorCells,
   } = services.groundFloor;
-  const { trackedModelScaleForPixelCap } = services.camera;
+  const {
+    trackedModelScaleForPixelCap
+  } = services.camera;
   const {
     nearFarScalarValueAtDistance,
     clearFocusTarget,
@@ -133,9 +137,9 @@ export function createMotion({
       flightState._drCourseHold =
         flightState._drSpeedMps < COURSE_HOLD_SPEED_MPS;
       flightState._drExtrapolating = false;
-      return position
-        ? Cesium.Cartesian3.clone(position, result || new Cesium.Cartesian3())
-        : null;
+      return position ?
+        Cesium.Cartesian3.clone(position, result || new Cesium.Cartesian3()) :
+        null;
     }
     const history = flightState._positionHistory.get(icao24);
     if (!history || history.length === 0) {
@@ -165,9 +169,9 @@ export function createMotion({
       ) {
         const span = Cesium.JulianDate.secondsDifference(b.time, a.time);
         const t =
-          span > 0
-            ? Cesium.JulianDate.secondsDifference(renderTime, a.time) / span
-            : 1.0;
+          span > 0 ?
+          Cesium.JulianDate.secondsDifference(renderTime, a.time) / span :
+          1.0;
         // Course of the DISPLAYED motion. The chord is only trustworthy when the
         // segment covers real ground (at hover its direction is GPS jitter; on a
         // slow tight turn it STEPS the whole per-segment turn at each boundary),
@@ -187,9 +191,9 @@ export function createMotion({
         const chordCourse =
           w > 0 ? courseBetweenCartesians(a.position, b.position) : null;
         flightState._drCourseDeg =
-          chordCourse != null
-            ? lerpAngleDeg(trackCourse, chordCourse, w)
-            : trackCourse;
+          chordCourse != null ?
+          lerpAngleDeg(trackCourse, chordCourse, w) :
+          trackCourse;
         flightState._drSpeedMps = segSpeed;
         flightState._drCourseHold = segSpeed < COURSE_HOLD_SPEED_MPS;
         flightState._drExtrapolating = false;
@@ -233,9 +237,9 @@ export function createMotion({
     const coastLimitSec = staleCoastLimitSeconds({
       // `epochMs` is captured once when the poll is normalized. Avoid allocating
       // a Date per aircraft on every 12 Hz fleet tick.
-      fixEpochMs: Number.isFinite(newest.epochMs)
-        ? newest.epochMs
-        : Cesium.JulianDate.toDate(newest.time).getTime(),
+      fixEpochMs: Number.isFinite(newest.epochMs) ?
+        newest.epochMs :
+        Cesium.JulianDate.toDate(newest.time).getTime(),
       lastContactEpochMs: info?.lastContactEpochMs,
       // Permit one minute of contact grace but cap any cached-feed drift at
       // five minutes. Source backoff is exposed separately as a STALE cue.
@@ -263,12 +267,12 @@ export function createMotion({
    */
 
   function _extrapolateFix(fix, info, dt, out, turnRateDps = 0) {
-    const speed = Number.isFinite(fix.velocity)
-      ? fix.velocity
-      : (info && info.velocity) || 0;
-    const heading = Number.isFinite(fix.track)
-      ? fix.track
-      : (info && info.true_track) || 0;
+    const speed = Number.isFinite(fix.velocity) ?
+      fix.velocity :
+      (info && info.velocity) || 0;
+    const heading = Number.isFinite(fix.track) ?
+      fix.track :
+      (info && info.true_track) || 0;
     flightState._drSpeedMps = speed;
     flightState._drCourseHold = speed < COURSE_HOLD_SPEED_MPS;
     flightState._drExtrapolating = true;
@@ -472,9 +476,9 @@ export function createMotion({
 
   function _trackedDisplayCached() {
     return flightState._drReconcileValid &&
-      flightState._drReconcileIcao === flightState._trackedIcao
-      ? flightState._cachedDRPosition
-      : null;
+      flightState._drReconcileIcao === flightState._trackedIcao ?
+      flightState._cachedDRPosition :
+      null;
   }
 
   /**
@@ -504,9 +508,9 @@ export function createMotion({
       return modelVisualAnchor(
         flightState._trackedModel.modelMatrix,
         spec.visualCenterNative,
-        Number.isFinite(flightState._trackedModel.computedScale)
-          ? flightState._trackedModel.computedScale
-          : spec.scale,
+        Number.isFinite(flightState._trackedModel.computedScale) ?
+        flightState._trackedModel.computedScale :
+        spec.scale,
         flightState._trackedVisualPos,
       );
     }
@@ -546,9 +550,9 @@ export function createMotion({
     const spec = parts.rendering._modelSpec(
       flightState._flightData.get(flightState._trackedIcao)?.klass,
     );
-    const scale = Number.isFinite(flightState._trackedModel.computedScale)
-      ? flightState._trackedModel.computedScale
-      : spec.scale;
+    const scale = Number.isFinite(flightState._trackedModel.computedScale) ?
+      flightState._trackedModel.computedScale :
+      spec.scale;
     return spec.nativeRadiusM * scale;
   }
 
@@ -592,21 +596,21 @@ export function createMotion({
       flightState._cachedDRCourse != null;
     const raw = cacheValid ? flightState._cachedDRCourse : fallback;
     const nowMs = Date.now();
-    const dt = flightState._trackedCourseMs
-      ? Math.min(
-          COURSE_SLEW_DT_MAX_SEC,
-          (nowMs - flightState._trackedCourseMs) / 1000,
-        )
-      : 0;
+    const dt = flightState._trackedCourseMs ?
+      Math.min(
+        COURSE_SLEW_DT_MAX_SEC,
+        (nowMs - flightState._trackedCourseMs) / 1000,
+      ) :
+      0;
     flightState._trackedCourseMs = nowMs;
     const prev = flightState._displayCourse.get(flightState._trackedIcao);
     // Hover hold: at near-zero displayed speed both the chord and the reported
     // track are noise — keep the last stable nose direction instead of chasing.
     if (cacheValid && flightState._cachedDRHold && prev != null) return prev;
     const cap = courseSlewCapDps(
-      cacheValid
-        ? flightState._cachedDRSpeedMps
-        : ((info && info.velocity) ?? NaN),
+      cacheValid ?
+      flightState._cachedDRSpeedMps :
+      ((info && info.velocity) ?? NaN),
       COURSE_MAX_DPS,
     );
     const course = limitCourseStep(prev, raw, cap, dt);
@@ -1037,13 +1041,13 @@ export function createMotion({
       if (!dr) continue;
       // Read the sibling scratches IMMEDIATELY, before any other _deadReckon call.
       const extrapolating = flightState._drExtrapolating;
-      const speedMps = Number.isFinite(flightState._drSpeedMps)
-        ? flightState._drSpeedMps
-        : info.velocity || 0;
+      const speedMps = Number.isFinite(flightState._drSpeedMps) ?
+        flightState._drSpeedMps :
+        info.velocity || 0;
       const courseDeg =
-        flightState._drCourseDeg != null
-          ? flightState._drCourseDeg
-          : info.true_track || 0;
+        flightState._drCourseDeg != null ?
+        flightState._drCourseDeg :
+        info.true_track || 0;
       const c = Cesium.Cartographic.fromCartesian(
         dr,
         Cesium.Ellipsoid.WGS84,
@@ -1070,16 +1074,20 @@ export function createMotion({
       for (const cell of cells) {
         if (cachedGroundFloor(cell.lat, cell.lon) == null) cold += 1;
       }
-      candidates.push({ cells, cold, speedMps });
+      candidates.push({
+        cells,
+        cold,
+        speedMps
+      });
     }
     flightState._corridorEpoch += 1;
     for (const cell of allocateCorridorCells(
-      candidates,
-      seen,
-      DISPLAY_CORRIDOR_CELL_BUDGET,
-      DISPLAY_CORRIDOR_FAIR_SHARE,
-      flightState._corridorEpoch,
-    )) {
+        candidates,
+        seen,
+        DISPLAY_CORRIDOR_CELL_BUDGET,
+        DISPLAY_CORRIDOR_FAIR_SHARE,
+        flightState._corridorEpoch,
+      )) {
       out.push(cell);
     }
   }
