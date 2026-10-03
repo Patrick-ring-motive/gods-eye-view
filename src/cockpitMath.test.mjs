@@ -176,10 +176,24 @@ test('HUD rail layout centers between intersecting upper and lower obstacles', (
     baseTop: 280,
     baseBottom: 940,
     gap: 10,
-    obstacles: [
-      { left: 40, right: 240, top: 320, bottom: 460 },
-      { left: 300, right: 1000, top: 780, bottom: 930 },
-      { left: 900, right: 1100, top: 300, bottom: 700 },
+    obstacles: [{
+        left: 40,
+        right: 240,
+        top: 320,
+        bottom: 460
+      },
+      {
+        left: 300,
+        right: 1000,
+        top: 780,
+        bottom: 930
+      },
+      {
+        left: 900,
+        right: 1100,
+        top: 300,
+        bottom: 700
+      },
     ],
   }), {
     top: 520,
@@ -198,7 +212,12 @@ test('HUD rail layout constrains an oversized panel to the safe corridor', () =>
     laneRight: 340,
     baseTop: 250,
     baseBottom: 700,
-    obstacles: [{ left: 0, right: 350, top: 500, bottom: 760 }],
+    obstacles: [{
+      left: 0,
+      right: 350,
+      top: 500,
+      bottom: 760
+    }],
   });
   assert.equal(layout.top, 250);
   assert.equal(layout.maxHeight, 238);
@@ -235,17 +254,25 @@ function contextSnapshot(subject, extra = {}) {
     evaluatedAt: 1_700_000_000_000,
     radiusM: 250_000,
     cohorts: [],
-    navigation: { canPrevious: true, canNext: true },
+    navigation: {
+      canPrevious: true,
+      canNext: true
+    },
     ...extra,
   };
 }
 
 test('Contact panel hides only when there is no snapshot at all', () => {
-  const readout = resolveCockpitContextReadout({ snapshot: null, info: TRACKED_INFO });
+  const readout = resolveCockpitContextReadout({
+    snapshot: null,
+    info: TRACKED_INFO
+  });
   assert.equal(readout.visible, false);
   assert.equal(readout.mode, 'standby');
   assert.equal(
-    resolveCockpitContextReadout({ info: TRACKED_INFO }).visible,
+    resolveCockpitContextReadout({
+      info: TRACKED_INFO
+    }).visible,
     false,
     'a missing snapshot argument is the same standby case',
   );
@@ -255,11 +282,22 @@ test('Contact panel survives NEXT onto a vessel or installation subject', () => 
   // The panel owns the NEXT button. Hiding it because the subject is not the
   // tracked aircraft strands the operator with no way back (owner hit this on
   // camera: "click next... whole left panel disappears").
-  for (const subject of [
-    { layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT' },
-    { layerId: 'military-installations', id: 'fort-hood', label: 'FORT CAVAZOS' },
-    { layerId: 'military', id: 'ae01ce', label: 'RCH451' },
-  ]) {
+  for (const subject of [{
+        layerId: 'ais-live-vessels',
+        id: '353136000',
+        label: 'MAERSK DETROIT'
+      },
+      {
+        layerId: 'military-installations',
+        id: 'fort-hood',
+        label: 'FORT CAVAZOS'
+      },
+      {
+        layerId: 'military',
+        id: 'ae01ce',
+        label: 'RCH451'
+      },
+    ]) {
     const readout = resolveCockpitContextReadout({
       snapshot: contextSnapshot(subject),
       info: TRACKED_INFO,
@@ -272,7 +310,11 @@ test('Contact panel survives NEXT onto a vessel or installation subject', () => 
 
 test('a foreign subject dashes the aircraft-relative fields and keeps the rest live', () => {
   const readout = resolveCockpitContextReadout({
-    snapshot: contextSnapshot({ layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT' }),
+    snapshot: contextSnapshot({
+      layerId: 'ais-live-vessels',
+      id: '353136000',
+      label: 'MAERSK DETROIT'
+    }),
     info: TRACKED_INFO,
   });
   assert.equal(readout.visible, true);
@@ -286,7 +328,11 @@ test('a foreign subject dashes the aircraft-relative fields and keeps the rest l
 
 test('the tracked aircraft as subject keeps every field in its own frame', () => {
   const readout = resolveCockpitContextReadout({
-    snapshot: contextSnapshot({ layerId: 'flights', id: 'aaa077', label: 'SWA1234' }),
+    snapshot: contextSnapshot({
+      layerId: 'flights',
+      id: 'aaa077',
+      label: 'SWA1234'
+    }),
     info: TRACKED_INFO,
   });
   assert.equal(readout.visible, true);
@@ -297,12 +343,21 @@ test('the tracked aircraft as subject keeps every field in its own frame', () =>
 });
 
 test('a fast-culled subject keeps the panel up as CONTACT LOST instead of collapsing it', () => {
-  for (const subject of [
-    { layerId: 'flights', id: 'aaa077', label: 'SWA1234' },
-    { layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT' },
-  ]) {
+  for (const subject of [{
+        layerId: 'flights',
+        id: 'aaa077',
+        label: 'SWA1234'
+      },
+      {
+        layerId: 'ais-live-vessels',
+        id: '353136000',
+        label: 'MAERSK DETROIT'
+      },
+    ]) {
     const readout = resolveCockpitContextReadout({
-      snapshot: contextSnapshot(subject, { subjectPresent: false }),
+      snapshot: contextSnapshot(subject, {
+        subjectPresent: false
+      }),
       info: TRACKED_INFO,
     });
     assert.equal(readout.visible, true, 'a lost contact must not take the panel down');
@@ -313,54 +368,100 @@ test('a fast-culled subject keeps the panel up as CONTACT LOST instead of collap
 
 test('an explicitly present subject is never reported lost', () => {
   const present = resolveCockpitContextReadout({
-    snapshot: contextSnapshot({ layerId: 'flights', id: 'aaa077' }, { subjectPresent: true }),
+    snapshot: contextSnapshot({
+      layerId: 'flights',
+      id: 'aaa077'
+    }, {
+      subjectPresent: true
+    }),
     info: TRACKED_INFO,
   });
   assert.equal(present.contactLost, false);
   assert.equal(present.mode, 'tracked');
   // Snapshots from before the presence field existed must not read as lost.
   const legacy = resolveCockpitContextReadout({
-    snapshot: contextSnapshot({ layerId: 'flights', id: 'aaa077' }),
+    snapshot: contextSnapshot({
+      layerId: 'flights',
+      id: 'aaa077'
+    }),
     info: TRACKED_INFO,
   });
   assert.equal(legacy.contactLost, false);
 });
 
 test('the tracked flight layer is resolved by normalized tracked identity', () => {
-  const civilian = { icao24: 'aaa077', callsign: 'SWA1234' };
-  const military = { icao24: 'ae01ce', callsign: 'RCH451' };
+  const civilian = {
+    icao24: 'aaa077',
+    callsign: 'SWA1234'
+  };
+  const military = {
+    icao24: 'ae01ce',
+    callsign: 'RCH451'
+  };
   // Both layers describe a tracked aircraft during a cross-layer handoff;
   // civilian-first precedence would hand the cockpit the wrong aircraft.
   assert.equal(
-    resolveTrackedAircraftInfo({ civilian, military, trackedId: 'military:ae01ce' }).layerId,
+    resolveTrackedAircraftInfo({
+      civilian,
+      military,
+      trackedId: 'military:ae01ce'
+    }).layerId,
     'military',
   );
   assert.equal(
-    resolveTrackedAircraftInfo({ civilian, military, trackedId: 'military:ae01ce' }).icao24,
+    resolveTrackedAircraftInfo({
+      civilian,
+      military,
+      trackedId: 'military:ae01ce'
+    }).icao24,
     'ae01ce',
   );
   assert.equal(
-    resolveTrackedAircraftInfo({ civilian, military, trackedId: 'flights:aaa077' }).layerId,
+    resolveTrackedAircraftInfo({
+      civilian,
+      military,
+      trackedId: 'flights:aaa077'
+    }).layerId,
     'flights',
   );
   // Case-insensitive: layers stamp lowercase hex, callers may not.
   assert.equal(
-    resolveTrackedAircraftInfo({ civilian, military, trackedId: 'MILITARY:AE01CE' }).layerId,
+    resolveTrackedAircraftInfo({
+      civilian,
+      military,
+      trackedId: 'MILITARY:AE01CE'
+    }).layerId,
     'military',
   );
 });
 
 test('tracked-identity resolution falls back to layer precedence', () => {
-  const civilian = { icao24: 'aaa077' };
-  const military = { icao24: 'ae01ce' };
+  const civilian = {
+    icao24: 'aaa077'
+  };
+  const military = {
+    icao24: 'ae01ce'
+  };
   // No stamped identity (or one that matches neither layer) keeps the historic
   // civilian-first order so tracking paths without gevTrackedId still work.
-  assert.equal(resolveTrackedAircraftInfo({ civilian, military }).layerId, 'flights');
+  assert.equal(resolveTrackedAircraftInfo({
+    civilian,
+    military
+  }).layerId, 'flights');
   assert.equal(
-    resolveTrackedAircraftInfo({ civilian, military, trackedId: 'satellites:25544' }).layerId,
+    resolveTrackedAircraftInfo({
+      civilian,
+      military,
+      trackedId: 'satellites:25544'
+    }).layerId,
     'flights',
   );
-  assert.equal(resolveTrackedAircraftInfo({ military, trackedId: '' }).layerId, 'military');
-  assert.equal(resolveTrackedAircraftInfo({ trackedId: 'flights:aaa077' }), null);
+  assert.equal(resolveTrackedAircraftInfo({
+    military,
+    trackedId: ''
+  }).layerId, 'military');
+  assert.equal(resolveTrackedAircraftInfo({
+    trackedId: 'flights:aaa077'
+  }), null);
   assert.equal(resolveTrackedAircraftInfo(), null);
 });
