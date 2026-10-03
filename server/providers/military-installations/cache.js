@@ -6,8 +6,12 @@ import {
   MILITARY_INSTALLATION_MAX_CACHE,
 } from './constants.js';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
-import { promises as fsp } from 'node:fs';
+import {
+  createHash
+} from 'node:crypto';
+import {
+  promises as fsp
+} from 'node:fs';
 
 const _militaryInstallationCache = new Map();
 
@@ -39,12 +43,24 @@ async function resolveMilitaryInstallationTier({
 }) {
   const cached = memoryCache.get(cacheKey);
   if (cached && now - cached.cachedAt <= cacheMs)
-    return { source: 'HIT', entry: cached };
-  if (inFlight.has(cacheKey)) return { source: 'UPSTREAM', entry: null };
+    return {
+      source: 'HIT',
+      entry: cached
+    };
+  if (inFlight.has(cacheKey)) return {
+    source: 'UPSTREAM',
+    entry: null
+  };
   const disk = await readDisk();
-  return disk
-    ? { source: 'DISK', entry: disk }
-    : { source: 'UPSTREAM', entry: null };
+  return disk ?
+    {
+      source: 'DISK',
+      entry: disk
+    } :
+    {
+      source: 'UPSTREAM',
+      entry: null
+    };
 }
 
 /**
@@ -62,9 +78,9 @@ async function resolveMilitaryInstallationTier({
 function migrateMilitaryInstallationEntry(entry) {
   if (!entry?.payload || typeof entry.payload.saturated === 'boolean')
     return entry;
-  const elements = Array.isArray(entry.payload.elements)
-    ? entry.payload.elements
-    : [];
+  const elements = Array.isArray(entry.payload.elements) ?
+    entry.payload.elements :
+    [];
   return {
     ...entry,
     payload: {
@@ -137,7 +153,9 @@ async function writeMilitaryInstallationDisk(
   // Same directory, so the rename is atomic on POSIX rather than a cross-device copy.
   const temp = `${target}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
   try {
-    await fsp.mkdir(dir, { recursive: true });
+    await fsp.mkdir(dir, {
+      recursive: true
+    });
     await fsp.writeFile(temp, JSON.stringify(entry));
     await fsp.rename(temp, target);
     return true;
@@ -146,7 +164,9 @@ async function writeMilitaryInstallationDisk(
       '[Installations Proxy] disk cache write failed:',
       err?.message || err,
     );
-    await fsp.rm(temp, { force: true }).catch(() => {});
+    await fsp.rm(temp, {
+      force: true
+    }).catch(() => {});
     return false;
   }
 }
