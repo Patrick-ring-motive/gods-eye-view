@@ -1,5 +1,9 @@
-import { tilesForBounds } from '../../data/tomtomTiles.js';
-import { decodeFlowTile } from './flowDecode.js';
+import {
+  tilesForBounds
+} from '../../data/tomtomTiles.js';
+import {
+  decodeFlowTile
+} from './flowDecode.js';
 /** Own one decoded flow cache and its session counters. */
 export function createFlowTileSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
@@ -44,14 +48,21 @@ export function createFlowTileSource({
    * @returns {Promise<Array<{coords:number[][], trafficLevel:number, roadType:string, closure:boolean}>>}
    *   Flat array of flow segments across all covering tiles.
    */
-  async function fetchFlowForBounds(bounds, { signal, zoom = 12 } = {}) {
+  async function fetchFlowForBounds(bounds, {
+    signal,
+    zoom = 12
+  } = {}) {
     signal?.throwIfAborted();
     const tiles = tilesForBounds(bounds, zoom);
     if (tiles.length === 0) return [];
     const now = Date.now();
 
     const results = await Promise.allSettled(
-      tiles.map(async ({ z, x, y }) => {
+      tiles.map(async ({
+        z,
+        x,
+        y
+      }) => {
         const key = `${z}/${x}/${y}`;
         const cached = _decodeCache.get(key);
         if (cached && now - cached.at < DECODE_CACHE_TTL_MS)
@@ -64,7 +75,10 @@ export function createFlowTileSource({
         if (!res.ok) throw new Error(`flow tile ${key}: HTTP ${res.status}`);
         const segments = decodeFlowTile(await res.arrayBuffer(), z, x, y);
         signal?.throwIfAborted();
-        cacheSet(key, { at: Date.now(), segments });
+        cacheSet(key, {
+          at: Date.now(),
+          segments
+        });
         return segments;
       }),
     );
@@ -72,9 +86,9 @@ export function createFlowTileSource({
     signal?.throwIfAborted();
     const fulfilled = results.filter((r) => r.status === 'fulfilled');
     if (fulfilled.length === 0) {
-      throw results[0].reason instanceof Error
-        ? results[0].reason
-        : new Error('flow fetch failed');
+      throw results[0].reason instanceof Error ?
+        results[0].reason :
+        new Error('flow fetch failed');
     }
     return fulfilled.flatMap((r) => r.value);
   }
@@ -85,7 +99,9 @@ export function createFlowTileSource({
    *   this session (decode-cache hits excluded).
    */
   function getFlowSessionStats() {
-    return { tilesFetched: _tilesFetched };
+    return {
+      tilesFetched: _tilesFetched
+    };
   }
 
   /** Clear the decode cache (tests + layer teardown). Session stats persist. */
@@ -93,5 +109,9 @@ export function createFlowTileSource({
     _decodeCache.clear();
   }
 
-  return { fetchFlowForBounds, getFlowSessionStats, resetFlowTileCache };
+  return {
+    fetchFlowForBounds,
+    getFlowSessionStats,
+    resetFlowTileCache
+  };
 }
