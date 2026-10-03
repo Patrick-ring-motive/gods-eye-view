@@ -169,8 +169,7 @@ export function createWorldAnnotationRenderer(viewer) {
                 alpha: 0.95
               }),
               dashLength: 24
-            }) :
-            new Cesium.PolylineGlowMaterialProperty({
+            }) : new Cesium.PolylineGlowMaterialProperty({
               glowPower: 0.35,
               color: liveColor(anno, base, {
                 alpha: 1
@@ -481,7 +480,8 @@ function sampleGroundOutside(scene, ring) {
         if (Number.isFinite(h) && h > -430 && h < 9000) samples.push(h);
       }
     } catch {
-      /* tile not ready */ }
+      /* tile not ready */
+    }
   }
   if (!samples.length) return null;
   samples.sort((a, b) => a - b);
