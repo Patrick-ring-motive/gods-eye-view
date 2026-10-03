@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Deterministic QA for the detection overlay's bounded two-lane label pipeline.
  *
@@ -74,8 +75,13 @@ function findChromeExecutable() {
 }
 
 const results = [];
+
 function record(name, ok, detail) {
-  results.push({ name, ok, detail });
+  results.push({
+    name,
+    ok,
+    detail
+  });
   const tag = ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  [${tag}] ${name}${detail ? ` — ${detail}` : ''}`);
 }
@@ -128,21 +134,21 @@ function analyzeMembership(samples) {
     }
   }
 
-  const churnPctPerSec = exposure > 0
-    ? replacements / exposure * 100
-    : 0;
+  const churnPctPerSec = exposure > 0 ?
+    replacements / exposure * 100 :
+    0;
   return {
     churnPctPerSec,
     showHideShow,
     replacements,
     exposure,
     transitions: Math.max(0, samples.length - 1),
-    minimumPopulation: samples.length
-      ? Math.min(...samples.map((sample) => sample.labeledKeys.length))
-      : 0,
-    maximumPopulation: samples.length
-      ? Math.max(...samples.map((sample) => sample.labeledKeys.length))
-      : 0,
+    minimumPopulation: samples.length ?
+      Math.min(...samples.map((sample) => sample.labeledKeys.length)) :
+      0,
+    maximumPopulation: samples.length ?
+      Math.max(...samples.map((sample) => sample.labeledKeys.length)) :
+      0,
   };
 }
 
@@ -167,10 +173,10 @@ async function waitForConclusiveSamples(page, {
         normalFrameCount: matchingFrames.length,
       };
     });
-    if (state.elapsedMs >= minimumElapsedMs
-        && state.solveCount >= minimumSolves
-        && state.solveSpanMs >= minimumSolveSpanMs
-        && state.normalFrameCount >= minimumNormalFrames) return state;
+    if (state.elapsedMs >= minimumElapsedMs &&
+      state.solveCount >= minimumSolves &&
+      state.solveSpanMs >= minimumSolveSpanMs &&
+      state.normalFrameCount >= minimumNormalFrames) return state;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return null;
@@ -178,19 +184,25 @@ async function waitForConclusiveSamples(page, {
 
 async function waitForSettledSyntheticField(page) {
   await page.waitForFunction(
-    ({ observationCount, settledSolveCount, minHeight, maxHeight }) => {
+    ({
+      observationCount,
+      settledSolveCount,
+      minHeight,
+      maxHeight
+    }) => {
       const solves = window.__LABEL_QA?.solve || [];
       if (solves.length < settledSolveCount) return false;
       return solves.slice(-settledSolveCount).every((sample) => (
-        sample.observationCount === observationCount
-        && sample.labeledKeys.length > 0
-        && sample.selectedCount === sample.labeledKeys.length
-        && sample.cameraHeight >= minHeight
-        && sample.cameraHeight <= maxHeight
+        sample.observationCount === observationCount &&
+        sample.labeledKeys.length > 0 &&
+        sample.selectedCount === sample.labeledKeys.length &&
+        sample.cameraHeight >= minHeight &&
+        sample.cameraHeight <= maxHeight
       ));
-    },
-    { timeout: SAMPLE_TIMEOUT_MS, polling: 100 },
-    {
+    }, {
+      timeout: SAMPLE_TIMEOUT_MS,
+      polling: 100
+    }, {
       observationCount: OBSERVATION_COUNT,
       settledSolveCount: SETTLED_SOLVE_COUNT,
       minHeight: GLOBAL_CAMERA_MIN_HEIGHT_M,
@@ -213,11 +225,15 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(SHOT_DIR, { recursive: true });
+  fs.mkdirSync(SHOT_DIR, {
+    recursive: true
+  });
   const executablePath = findChromeExecutable();
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(executablePath ? { executablePath } : {}),
+    ...(executablePath ? {
+      executablePath
+    } : {}),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -235,7 +251,11 @@ async function main() {
   const failedResponses = [];
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+    await page.setViewport({
+      width: 1280,
+      height: 800,
+      deviceScaleFactor: 1
+    });
     page.on('console', (message) => {
       if (message.type() !== 'error') return;
       const text = message.text();
@@ -255,24 +275,33 @@ async function main() {
       localStorage.setItem(storageKey, 'WEIGHTED');
       const realFetch = window.fetch.bind(window);
       window.fetch = (input, init) => {
-        const requestUrl = typeof input === 'string' || input instanceof URL
-          ? String(input)
-          : input?.url;
+        const requestUrl = typeof input === 'string' || input instanceof URL ?
+          String(input) :
+          input?.url;
         const url = new URL(requestUrl, window.location.href);
         if (url.origin === appOrigin && url.pathname === '/api/openai/hud-summary') {
-          return Promise.resolve(new Response(JSON.stringify({ summary: 'QA globe ready' }), {
+          return Promise.resolve(new Response(JSON.stringify({
+            summary: 'QA globe ready'
+          }), {
             status: 200,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json'
+            },
           }));
         }
         return realFetch(input, init);
       };
     }, STORAGE_KEY, APP_ORIGIN);
 
-    await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.styleManager,
-      { timeout: 60000, polling: 100 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.styleManager, {
+        timeout: 60000,
+        polling: 100
+      },
     );
 
     // flyToAustin schedules its 600 m arrival 500 ms after initialization.
@@ -286,9 +315,19 @@ async function main() {
       const restored = manager.getDetectionState();
       manager._syncDetectionUiFromEngine();
       const storedAfterPassiveSync = localStorage.getItem(storageKey);
-      const off = manager.setDetection({ enabled: false, densityPct: 25 });
-      const restoredFromOff = manager.setDetection({ enabled: true });
-      return { restored, storedAfterPassiveSync, off, restoredFromOff };
+      const off = manager.setDetection({
+        enabled: false,
+        densityPct: 25
+      });
+      const restoredFromOff = manager.setDetection({
+        enabled: true
+      });
+      return {
+        restored,
+        storedAfterPassiveSync,
+        off,
+        restoredFromOff
+      };
     }, STORAGE_KEY);
 
     record(
@@ -298,18 +337,29 @@ async function main() {
     );
     record(
       'density update while OFF restores the matching profile',
-      stateChecks.off.detectionMode === 'OFF'
-        && stateChecks.off.densityPct === 25
-        && stateChecks.restoredFromOff.detectionMode === 'SPARSE'
-        && stateChecks.restoredFromOff.densityPct === 25,
+      stateChecks.off.detectionMode === 'OFF' &&
+      stateChecks.off.densityPct === 25 &&
+      stateChecks.restoredFromOff.detectionMode === 'SPARSE' &&
+      stateChecks.restoredFromOff.densityPct === 25,
       `OFF=${stateChecks.off.densityPct}%, restore=${stateChecks.restoredFromOff.detectionMode}/${stateChecks.restoredFromOff.densityPct}%`,
     );
 
-    const injected = await page.evaluate(({ fieldCounts, normalCounts }) => {
-      const { viewer, dataManager, styleManager } = window.__godsEyeView;
+    const injected = await page.evaluate(({
+      fieldCounts,
+      normalCounts
+    }) => {
+      const {
+        viewer,
+        dataManager,
+        styleManager
+      } = window.__godsEyeView;
       viewer.camera.cancelFlight();
       const Cartesian3 = viewer.camera.position.constructor;
-      const field = { flights: [], military: [], satellites: [] };
+      const field = {
+        flights: [],
+        military: [],
+        satellites: []
+      };
       const layerIds = Object.keys(field);
       const goldenAngle = Math.PI * (3 - Math.sqrt(5));
 
@@ -341,7 +391,11 @@ async function main() {
 
       viewer.camera.setView({
         destination: Cartesian3.fromDegrees(-97, 30, 25000000),
-        orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+        orientation: {
+          heading: 0,
+          pitch: -Math.PI / 2,
+          roll: 0
+        },
       });
       styleManager.setDetection({
         enabled: true,
@@ -406,7 +460,10 @@ async function main() {
       };
       requestAnimationFrame(sample);
       return Object.fromEntries(layerIds.map((layerId) => [layerId, field[layerId].length]));
-    }, { fieldCounts: FIELD_COUNTS, normalCounts: NORMAL_COUNTS });
+    }, {
+      fieldCounts: FIELD_COUNTS,
+      normalCounts: NORMAL_COUNTS
+    });
 
     record(
       'deterministic field contains exactly 12,000 observations',
@@ -456,8 +513,10 @@ async function main() {
     });
 
     await page.waitForFunction(
-      () => window.__godsEyeView.styleManager.getDetectionDiagnostics()?.observationCount === 5200,
-      { timeout: SAMPLE_TIMEOUT_MS, polling: 100 },
+      () => window.__godsEyeView.styleManager.getDetectionDiagnostics()?.observationCount === 5200, {
+        timeout: SAMPLE_TIMEOUT_MS,
+        polling: 100
+      },
     );
     await page.evaluate(() => {
       const viewer = window.__godsEyeView.viewer;
@@ -484,11 +543,11 @@ async function main() {
 
     const solveSamples = syntheticSamples.solve;
     const steadySolveSamples = solveSamples.filter((sample) => (
-      sample.observationCount === OBSERVATION_COUNT
-      && sample.labeledKeys.length > 0
-      && sample.selectedCount === sample.labeledKeys.length
-      && sample.cameraHeight >= GLOBAL_CAMERA_MIN_HEIGHT_M
-      && sample.cameraHeight <= GLOBAL_CAMERA_MAX_HEIGHT_M
+      sample.observationCount === OBSERVATION_COUNT &&
+      sample.labeledKeys.length > 0 &&
+      sample.selectedCount === sample.labeledKeys.length &&
+      sample.cameraHeight >= GLOBAL_CAMERA_MIN_HEIGHT_M &&
+      sample.cameraHeight <= GLOBAL_CAMERA_MAX_HEIGHT_M
     ));
     const normalFieldFrames = normalSamples.frames.filter(
       (sample) => sample.observationCount === 5200,
@@ -507,8 +566,8 @@ async function main() {
     const throttles = normalSamples.frames.map((sample) => sample.throttleSkipCount).filter(Number.isFinite);
     const throttleDelta = throttles.length ? Math.max(...throttles) - Math.min(...throttles) : 0;
     const normalPlacementOverflow = normalFieldFrames.filter(
-      (sample) => sample.placementBuildCount > sample.selectedCount + sample.fadingCount
-        + (sample.didSolve ? sample.cohortCount : 0),
+      (sample) => sample.placementBuildCount > sample.selectedCount + sample.fadingCount +
+      (sample.didSolve ? sample.cohortCount : 0),
     );
     const solvePlacementOverflow = solveSamples.filter((sample) => {
       const cohort = Object.values(sample.cohortByLayer).reduce((sum, count) => sum + count, 0);
@@ -523,10 +582,10 @@ async function main() {
 
     record(
       'sampling is conclusive across the pathological and normal fields',
-      Boolean(syntheticSampling && normalSampling)
-        && solveSamples.length >= MIN_SYNTHETIC_SOLVES
-        && syntheticSampling.solveSpanMs >= MIN_SYNTHETIC_SPAN_MS
-        && normalFieldFrames.length >= MIN_NORMAL_FRAMES,
+      Boolean(syntheticSampling && normalSampling) &&
+      solveSamples.length >= MIN_SYNTHETIC_SOLVES &&
+      syntheticSampling.solveSpanMs >= MIN_SYNTHETIC_SPAN_MS &&
+      normalFieldFrames.length >= MIN_NORMAL_FRAMES,
       `synthetic solves=${solveSamples.length}, span=${syntheticSampling?.solveSpanMs?.toFixed(0) || 0}ms; normal frames=${normalFieldFrames.length}`,
     );
 
