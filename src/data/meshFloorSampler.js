@@ -72,7 +72,8 @@ function _visibleTilesetLoaded(scene) {
       }
     }
   } catch {
-    /* mid-teardown */ }
+    /* mid-teardown */
+  }
   return false;
 }
 
