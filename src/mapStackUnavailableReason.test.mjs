@@ -21,6 +21,10 @@ test('a configured but failed photoreal route does not ask for another key', () 
 
 test('controller credential detection accepts ion without a browser global', () => {
   const hasCredentials = MapStackController.prototype._hasPhotorealCredentials;
-  assert.equal(hasCredentials.call({ cesiumToken: 'configured' }), true);
-  assert.equal(hasCredentials.call({ cesiumToken: '   ' }), false);
+  assert.equal(hasCredentials.call({
+    cesiumToken: 'configured'
+  }), true);
+  assert.equal(hasCredentials.call({
+    cesiumToken: '   '
+  }), false);
 });
