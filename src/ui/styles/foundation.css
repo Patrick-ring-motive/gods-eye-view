@@ -39,8 +39,7 @@
 /* Keyboard focus is an app-wide state and must survive selected/active button
    skins. Individual controls can choose an inset/outset offset, but no local
    `outline: none` rule may erase the ring. */
-:where(
-  button,
+:where(button,
   a[href],
   input,
   select,
@@ -63,8 +62,7 @@
   [role='switch'],
   [role='tab'],
   [role='textbox'],
-  [role='treeitem']
-):focus-visible {
+  [role='treeitem']):focus-visible {
   outline: 2px solid var(--text-primary) !important;
   outline-offset: 2px;
 }
@@ -288,12 +286,14 @@ body.cockpit-mode #cockpit-cloud-effects.active {
   color: rgba(232, 234, 237, 0.55);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
+
 #cesium-credits .cesium-credit-logoContainer,
 #cesium-credits .cesium-credit-textContainer,
 #cesium-credits .cesium-credit-expand-link {
   display: inline-block;
   vertical-align: middle;
 }
+
 #cesium-credits a,
 #cesium-credits .cesium-credit-expand-link {
   color: rgba(232, 234, 237, 0.7);
@@ -301,19 +301,16 @@ body.cockpit-mode #cockpit-cloud-effects.active {
 
 /* Keep the ALPR source overflow reachable even after its brief on-map credit
    collapses. Wrap whole entries only while the optional layer is on. */
-body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
-  #cesium-credits {
+body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active) #cesium-credits {
   white-space: normal;
 }
-body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
-  #cesium-credits
-  .cesium-credit-wrapper {
+
+body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active) #cesium-credits .cesium-credit-wrapper {
   display: inline-block !important;
   white-space: nowrap;
 }
-body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
-  #cesium-credits
-  .cesium-credit-expand-link {
+
+body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active) #cesium-credits .cesium-credit-expand-link {
   /* Keep the complete link at the left edge, clear of the Power Up button. */
   display: block !important;
 }
@@ -334,7 +331,7 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
   overflow: hidden;
 }
 
-.cesium-credit-lightbox > ul {
+.cesium-credit-lightbox>ul {
   flex: 1;
   min-height: 0;
   margin: 0;
@@ -348,7 +345,7 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
   white-space: normal;
 }
 
-.cesium-credit-lightbox > ul > li {
+.cesium-credit-lightbox>ul>li {
   padding-bottom: 5px;
   overflow-wrap: anywhere;
 }
@@ -362,6 +359,7 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
     margin: 0 !important;
   }
 }
+
 /* Clean-view / recording: the Google + Cesium attribution MUST stay visible.
    Google Maps Platform ToS and Cesium's terms require the credit whenever the
    content is displayed — and these are exactly the modes used to record demos
@@ -564,11 +562,13 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
 }
 
 @keyframes title-radio-broadcast {
+
   0%,
   100% {
     opacity: calc(var(--radio-broadcast-opacity) * 0.55);
     transform: translateX(-50%) scale(0.94);
   }
+
   50% {
     opacity: var(--radio-broadcast-opacity);
     transform: translateX(-50%) scale(1);
@@ -576,6 +576,7 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   #title-bar.radio-broadcasting .title-logo::before,
   #title-bar.radio-broadcasting .title-logo::after {
     animation: none;
@@ -588,8 +589,8 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
   pointer-events: none;
 }
 
-.brand-logo > img,
-.brand-logo > svg {
+.brand-logo>img,
+.brand-logo>svg {
   display: block;
   width: 100%;
   height: 100%;
