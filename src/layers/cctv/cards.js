@@ -9,8 +9,13 @@ import {
   applyFrameResult,
 } from '../../data/cctvCards.js';
 import * as Cesium from 'cesium';
-import { horizonOccluder } from '../../data/iconOrientation.js';
-import { selectCctvLod, applyEvictionGrace } from '../../data/cctvLod.js';
+import {
+  horizonOccluder
+} from '../../data/iconOrientation.js';
+import {
+  selectCctvLod,
+  applyEvictionGrace
+} from '../../data/cctvLod.js';
 import {
   CCTV_OVERLAY_SOURCE_OPTIONS,
   CARD_VIEW_MARGIN,
@@ -19,7 +24,12 @@ import {
   CARD_FETCH_TICK_MS,
 } from './policy.js';
 
-export function createCards({ state: layerState, services, parts, source }) {
+export function createCards({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Configures optional CCTV card presentation without changing card density.
    * The active-camera thumbnail defaults OFF, preserving the shipped behavior
@@ -37,7 +47,9 @@ export function createCards({ state: layerState, services, parts, source }) {
     if (layerState._enabled) pushAmbientCardEntries();
     layerState._viewer?.scene?.requestRender?.();
 
-    return { activeCameraCardEnabled: layerState._activeCameraCardEnabled };
+    return {
+      activeCameraCardEnabled: layerState._activeCameraCardEnabled
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -119,7 +131,10 @@ export function createCards({ state: layerState, services, parts, source }) {
           inView = true;
           sx = screen.x;
           sy = screen.y;
-          screenById.set(id, { sx, sy });
+          screenById.set(id, {
+            sx,
+            sy
+          });
         }
       }
       candidates.push({
@@ -144,7 +159,10 @@ export function createCards({ state: layerState, services, parts, source }) {
     // Item C: passing the viewport dims + per-candidate screen anchors routes
     // the budget fill through the screen-distribution grid, so periphery
     // cells hold cards instead of everything clustering at screen center.
-    const { cardIds, budgets } = selectCctvLod(candidates, {
+    const {
+      cardIds,
+      budgets
+    } = selectCctvLod(candidates, {
       cameraHeightM: carto?.height,
       incumbentIds: layerState._cardIds,
       viewW: width,
@@ -156,23 +174,24 @@ export function createCards({ state: layerState, services, parts, source }) {
     // regression). During the initial load the budget holds at the low tier;
     // full density arrives the moment the drain completes (which triggers its
     // own refreshAmbientCards pass).
-    const cardLimit = layerState._geoLoading
-      ? Math.min(budgets.cardLimit, CCTV_AMBIENT_CARD_DRAIN_CAP)
-      : budgets.cardLimit;
+    const cardLimit = layerState._geoLoading ?
+      Math.min(budgets.cardLimit, CCTV_AMBIENT_CARD_DRAIN_CAP) :
+      budgets.cardLimit;
     const decluttered = declutterCctvCards(
       cardIds
-        .filter((id) => screenById.has(id))
-        .slice(0, cardLimit)
-        .map((id, index) => ({
-          id,
-          ...screenById.get(id),
-          // Priority carrier, not kilometers: declutter sorts ascending on
-          // this field, and the selection's order (distribution + incumbency)
-          // must survive — a periphery cell-winner must not be re-outranked
-          // by central proximity when two anchors contest the min separation.
-          distanceKm: index,
-        })),
-      { limit: cardLimit },
+      .filter((id) => screenById.has(id))
+      .slice(0, cardLimit)
+      .map((id, index) => ({
+        id,
+        ...screenById.get(id),
+        // Priority carrier, not kilometers: declutter sorts ascending on
+        // this field, and the selection's order (distribution + incumbency)
+        // must survive — a periphery cell-winner must not be re-outranked
+        // by central proximity when two anchors contest the min separation.
+        distanceKm: index,
+      })), {
+        limit: cardLimit
+      },
     );
     // Owner finding 2: grace must never apply to the active camera — drop any
     // lingering grace entry and keep it out of the retained-card baseline.
@@ -221,7 +240,10 @@ export function createCards({ state: layerState, services, parts, source }) {
   function pushAmbientCardEntries() {
     const entries = [];
     let rank = 0;
-    const push = (id, { pinned = false, active = false } = {}) => {
+    const push = (id, {
+      pinned = false,
+      active = false
+    } = {}) => {
       const record = layerState._recordById.get(id);
       if (!record?.position) return;
       entries.push(
@@ -238,16 +260,22 @@ export function createCards({ state: layerState, services, parts, source }) {
       );
     };
     for (const id of layerState._cardIds)
-      push(id, { pinned: id === layerState._hoverCardId });
+      push(id, {
+        pinned: id === layerState._hoverCardId
+      });
     if (
       layerState._hoverCardId &&
       !layerState._cardIds.has(layerState._hoverCardId) &&
       layerState._hoverCardId !== layerState._activeCameraId
     ) {
-      push(layerState._hoverCardId, { pinned: true });
+      push(layerState._hoverCardId, {
+        pinned: true
+      });
     }
     if (layerState._activeCameraCardEnabled && layerState._activeCameraId) {
-      push(layerState._activeCameraId, { active: true });
+      push(layerState._activeCameraId, {
+        active: true
+      });
     }
     layerState._cctvOverlayHost.setEntries(
       CCTV_OVERLAY_SOURCE_ID,
@@ -274,8 +302,9 @@ export function createCards({ state: layerState, services, parts, source }) {
   function fetchCardFrame(
     record,
     slot,
-    refreshMs,
-    { userGesture = false } = {},
+    refreshMs, {
+      userGesture = false
+    } = {},
   ) {
     if (typeof document !== 'undefined' && document.hidden && !userGesture)
       return;
@@ -288,9 +317,9 @@ export function createCards({ state: layerState, services, parts, source }) {
       // NOTE: cold-fill bursts legitimately push this to ~250 ms — read it
       // together with the ambientCards.fetchMode telemetry.
       layerState._cardMinFetchSpacingMs =
-        layerState._cardMinFetchSpacingMs == null
-          ? spacing
-          : Math.min(layerState._cardMinFetchSpacingMs, spacing);
+        layerState._cardMinFetchSpacingMs == null ?
+        spacing :
+        Math.min(layerState._cardMinFetchSpacingMs, spacing);
     }
     layerState._cardLastFetchAt = now;
     layerState._cardFetchCount += 1;
@@ -323,7 +352,10 @@ export function createCards({ state: layerState, services, parts, source }) {
       }
       Object.assign(
         slot,
-        applyFrameResult(slot, { ok: !!frame, frame }, Date.now()),
+        applyFrameResult(slot, {
+          ok: !!frame,
+          frame
+        }, Date.now()),
       );
       layerState._viewer?.scene?.requestRender?.();
     };
@@ -379,6 +411,7 @@ export function createCards({ state: layerState, services, parts, source }) {
     layerState._cardLastFetchAt = 0;
     layerState._cardMinFetchSpacingMs = null;
   }
+
   function handleVisibilityChange() {
     if (!document.hidden) return;
     for (const image of layerState._cardFetchImages) {
