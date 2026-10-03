@@ -7,9 +7,7 @@ const browser = await puppeteer.launch({
   headless: true,
   args: [
     '--no-sandbox',
-    ...(process.platform === 'darwin' ?
-      ['--use-angle=metal', '--enable-gpu'] :
-      ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu'] : ['--use-gl=angle', '--use-angle=swiftshader']),
   ],
 });
 const page = await browser.newPage();
