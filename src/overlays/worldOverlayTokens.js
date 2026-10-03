@@ -71,7 +71,10 @@ export const CARD_PLATE_ALPHA = 0.82;
  * That is the same mechanism the tracked card uses, and the reason it survives
  * every style — see `PLATE_ALPHA_BAND` in the tests.
  */
-export const DETECTION_PLATE_BAND = Object.freeze({ min: 0.5, max: 0.62 });
+export const DETECTION_PLATE_BAND = Object.freeze({
+  min: 0.5,
+  max: 0.62
+});
 
 /**
  * What survives of a callout plate when SKY, not ground, is behind the label.
@@ -114,8 +117,15 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.08) saturate(1.04)',
     scanline: 0.085,
     tiers: {
-      civil: '#ffd27a', military: '#ff8a3c', sea: '#ffc06a', space: '#ffe0a0', vehicle: '#d0a060',
-      veh_jam: '#ff3b30', veh_slow: '#ffb300', veh_free: '#00ff66', veh_nodata: '#c9c9c9',
+      civil: '#ffd27a',
+      military: '#ff8a3c',
+      sea: '#ffc06a',
+      space: '#ffe0a0',
+      vehicle: '#d0a060',
+      veh_jam: '#ff3b30',
+      veh_slow: '#ffb300',
+      veh_free: '#00ff66',
+      veh_nodata: '#c9c9c9',
     },
   },
   surveillance: {
@@ -131,8 +141,15 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.12) saturate(1.12)',
     scanline: 0.09,
     tiers: {
-      civil: '#8fe89a', military: '#ff5a47', sea: '#a6f0c0', space: '#9fe8ff', vehicle: '#ffc24a',
-      veh_jam: '#ff4538', veh_slow: '#ffc24a', veh_free: '#45d8ff', veh_nodata: '#dcdcdc',
+      civil: '#8fe89a',
+      military: '#ff5a47',
+      sea: '#a6f0c0',
+      space: '#9fe8ff',
+      vehicle: '#ffc24a',
+      veh_jam: '#ff4538',
+      veh_slow: '#ffc24a',
+      veh_free: '#45d8ff',
+      veh_nodata: '#dcdcdc',
     },
   },
   thermal: {
@@ -148,8 +165,15 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.1) saturate(1.08)',
     scanline: 0.04,
     tiers: {
-      civil: '#ffffff', military: '#ff7a5c', sea: '#ffd0b0', space: '#d0e0ff', vehicle: '#ffcf9f',
-      veh_jam: '#ff4538', veh_slow: '#ffc24a', veh_free: '#2ecc71', veh_nodata: '#d8d8d8',
+      civil: '#ffffff',
+      military: '#ff7a5c',
+      sea: '#ffd0b0',
+      space: '#d0e0ff',
+      vehicle: '#ffcf9f',
+      veh_jam: '#ff4538',
+      veh_slow: '#ffc24a',
+      veh_free: '#2ecc71',
+      veh_nodata: '#d8d8d8',
     },
   },
   _default: {
@@ -165,8 +189,15 @@ export const DETECTION_THEME_MAP = Object.freeze({
     filter: 'contrast(1.05) saturate(1.05)',
     scanline: 0.05,
     tiers: {
-      civil: '#22e0ff', military: '#ffb347', sea: '#3fe0c8', space: '#bda4ff', vehicle: '#8fa6b4',
-      veh_jam: '#e05252', veh_slow: '#f0b23e', veh_free: '#2ecc71', veh_nodata: '#c9c9c9',
+      civil: '#22e0ff',
+      military: '#ffb347',
+      sea: '#3fe0c8',
+      space: '#bda4ff',
+      vehicle: '#8fa6b4',
+      veh_jam: '#e05252',
+      veh_slow: '#f0b23e',
+      veh_free: '#2ecc71',
+      veh_nodata: '#c9c9c9',
     },
   },
 });
