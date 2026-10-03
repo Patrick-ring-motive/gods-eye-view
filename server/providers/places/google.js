@@ -167,8 +167,7 @@ export function googlePlacesContextProxy({
           JSON.stringify({
             places,
             error: response.ok ?
-              null :
-              data.error?.message || 'Google Places request failed',
+              null : data.error?.message || 'Google Places request failed',
           }),
         );
       } catch (error) {
@@ -303,8 +302,7 @@ export function googlePlacesContextProxy({
           JSON.stringify({
             places,
             error: response.ok ?
-              null :
-              data.error?.message || 'Google Places request failed',
+              null : data.error?.message || 'Google Places request failed',
           }),
         );
       } catch (error) {
