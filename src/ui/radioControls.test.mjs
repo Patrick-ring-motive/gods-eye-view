@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { RadioControls } from './radioControls.js';
+import {
+  test
+} from 'node:test';
+import {
+  RadioControls
+} from './radioControls.js';
 
 class Element extends EventTarget {
   constructor() {
@@ -32,7 +36,10 @@ class Element extends EventTarget {
 }
 
 function fixture() {
-  const prior = { document: globalThis.document, window: globalThis.window };
+  const prior = {
+    document: globalThis.document,
+    window: globalThis.window
+  };
   const document = new EventTarget();
   document.getElementById = () => null;
   globalThis.document = document;
@@ -106,7 +113,9 @@ test('Radio listeners and subscriptions are revoked once before tuning teardown'
     f.controls._setCockpitDisclosure('display', true);
     f.next.dispatchEvent(new Event('click'));
     f.document.dispatchEvent(new Event('gev:radio-selected'));
-    f.subscribers[0]({ enabled: true });
+    f.subscribers[0]({
+      enabled: true
+    });
     f.controls.connect();
     assert.deepEqual(f.calls, snapshot);
     assert.deepEqual(f.calls.slice(-2), ['unsubscribe', 'endTuning']);
