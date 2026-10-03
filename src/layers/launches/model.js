@@ -30,14 +30,12 @@ export function createModel({
         operator: payload.operator?.name || null,
         destination: flight.destination || payload.destination || null,
         amount: Number.isFinite(Number(flight.amount)) ?
-          Number(flight.amount) :
-          1,
+          Number(flight.amount) : 1,
         massKg: (typeof payload.mass === 'number' ||
             (typeof payload.mass === 'string' && payload.mass.trim() !== '')) &&
           Number.isFinite(Number(payload.mass)) &&
           Number(payload.mass) >= 0 ?
-          Number(payload.mass) :
-          null,
+          Number(payload.mass) : null,
       };
     });
   }
@@ -86,11 +84,9 @@ export function createModel({
   function normalizeRecoveryStages(launch, payloads) {
     const rocket = launch.rocket || {};
     const launcherStages = Array.isArray(rocket.launcher_stage) ?
-      rocket.launcher_stage :
-      [];
+      rocket.launcher_stage : [];
     const spacecraftStages = Array.isArray(rocket.spacecraft_stage) ?
-      rocket.spacecraft_stage :
-      [];
+      rocket.spacecraft_stage : [];
     const stages = [
       ...launcherStages.map((stage, index) =>
         normalizeLanding(
@@ -197,8 +193,7 @@ export function createModel({
           name: launch.name || 'Unnamed launch',
           status: launch.status?.name || 'Unknown',
           launchTime: Number.isFinite(date) ?
-            new Date(date).toISOString() :
-            null,
+            new Date(date).toISOString() : null,
           launchSite: pad.name || location.name || 'Unknown launch site',
           lat: Number.isFinite(lat) ? lat : null,
           lon: Number.isFinite(lon) ? lon : null,
@@ -219,8 +214,7 @@ export function createModel({
               offsetSeconds: parts.policyHelpers.parseMissionDurationSeconds(
                 event.relative_time || event.relativeTime,
               ),
-            })) :
-            [],
+            })) : [],
           orbit: launch.mission?.orbit || launch.orbit || null,
           source: 'Launch Library 2',
           inWindow: Number.isFinite(date) && date >= cutoff && date <= now.getTime(),
