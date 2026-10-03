@@ -6,7 +6,10 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
 
   const methods = {
     init(viewer) {
@@ -168,5 +171,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
