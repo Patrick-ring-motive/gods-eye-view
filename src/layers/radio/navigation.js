@@ -50,12 +50,12 @@ export function createNavigation({
     const targetLat = Number(station?.lat);
     const targetLon = Number(station?.lon);
     const height = Math.max(1, Number(cameraState.height) || 1);
-    const heading = Number.isFinite(cameraState.heading)
-      ? cameraState.heading
-      : 0;
-    const pitch = Number.isFinite(cameraState.pitch)
-      ? cameraState.pitch
-      : -Math.PI / 2;
+    const heading = Number.isFinite(cameraState.heading) ?
+      cameraState.heading :
+      0;
+    const pitch = Number.isFinite(cameraState.pitch) ?
+      cameraState.pitch :
+      -Math.PI / 2;
     const roll = Number.isFinite(cameraState.roll) ? cameraState.roll : 0;
     if (!Number.isFinite(targetLat) || !Number.isFinite(targetLon)) return null;
 
@@ -64,26 +64,26 @@ export function createNavigation({
       Math.max(0.08, Math.abs(Math.min(-0.001, pitch))),
     );
     const groundOffsetM =
-      downAngle > Math.PI / 2 - 1e-6
-        ? 0
-        : Math.min(2_000_000, height / Math.max(0.08, Math.tan(downAngle)));
+      downAngle > Math.PI / 2 - 1e-6 ?
+      0 :
+      Math.min(2_000_000, height / Math.max(0.08, Math.tan(downAngle)));
     const angularDistance = groundOffsetM / 6_378_137;
     const targetLatRad = (targetLat * Math.PI) / 180;
     const cameraBearing = heading + Math.PI;
     const cameraLatRad = Math.asin(
       Math.sin(targetLatRad) * Math.cos(angularDistance) +
-        Math.cos(targetLatRad) *
-          Math.sin(angularDistance) *
-          Math.cos(cameraBearing),
+      Math.cos(targetLatRad) *
+      Math.sin(angularDistance) *
+      Math.cos(cameraBearing),
     );
     const cameraLonRad =
       (targetLon * Math.PI) / 180 +
       Math.atan2(
         Math.sin(cameraBearing) *
-          Math.sin(angularDistance) *
-          Math.cos(targetLatRad),
+        Math.sin(angularDistance) *
+        Math.cos(targetLatRad),
         Math.cos(angularDistance) -
-          Math.sin(targetLatRad) * Math.sin(cameraLatRad),
+        Math.sin(targetLatRad) * Math.sin(cameraLatRad),
       );
     const cameraLon = (((cameraLonRad * 180) / Math.PI + 540) % 360) - 180;
     return {
@@ -130,9 +130,9 @@ export function createNavigation({
 
   function radioGlobeRecenterHeight(currentHeight, fullGlobeCapable) {
     if (!Number.isFinite(currentHeight) || currentHeight < 0) return null;
-    return fullGlobeCapable
-      ? Math.min(currentHeight, RADIO_GLOBE_RECENTER_MAX_HEIGHT_M)
-      : currentHeight;
+    return fullGlobeCapable ?
+      Math.min(currentHeight, RADIO_GLOBE_RECENTER_MAX_HEIGHT_M) :
+      currentHeight;
   }
 
   function radioCameraState(camera = layerState._viewer?.camera) {
@@ -168,8 +168,7 @@ export function createNavigation({
     let fullGlobeCapable = false;
     if (geometry) {
       if (!radioGlobeNeedsRecentering(geometry)) return null;
-      fullGlobeCapable = isFullGlobeInsideKeyhole(
-        {
+      fullGlobeCapable = isFullGlobeInsideKeyhole({
           ...geometry,
           earthCenterX: geometry.keyholeCenterX,
           earthCenterY: geometry.keyholeCenterY,
@@ -278,8 +277,7 @@ export function createNavigation({
     if (!plan) return false;
     navigation.phase = 'focusing';
     return startRadioCameraFlight(
-      navigation,
-      {
+      navigation, {
         destination: Cesium.Cartesian3.fromDegrees(
           plan.lon,
           plan.lat,
@@ -312,8 +310,7 @@ export function createNavigation({
       phase: 'idle',
       recentered: false,
       recenterPlan,
-      cameraState:
-        recenterPlan?.cameraState || cameraState || radioCameraState(),
+      cameraState: recenterPlan?.cameraState || cameraState || radioCameraState(),
       target: null,
       duration: 0.35,
     };
@@ -337,8 +334,7 @@ export function createNavigation({
       activeNavigation.phase = 'recentering';
       const recenterDuration = Math.min(0.9, Math.max(0.65, duration));
       return startRadioCameraFlight(
-        activeNavigation,
-        {
+        activeNavigation, {
           destination: activeNavigation.recenterPlan.destination,
           orientation: {
             heading: activeNavigation.cameraState.heading,
