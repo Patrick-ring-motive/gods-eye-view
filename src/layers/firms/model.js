@@ -19,7 +19,9 @@ export function createModel({
   config,
   feed,
 }) {
-  const { fireAnchorHeight } = services.anchors;
+  const {
+    fireAnchorHeight
+  } = services.anchors;
 
   /**
    * Map one internal fire record (firmsAdapt.js shape) to a plain JSON-safe
@@ -45,8 +47,7 @@ export function createModel({
       frp: num(fire?.frp),
       confidence: num(fire?.confidence), // normalized 0..1 (firmsAdapt.normalizeConfidence)
       satellite: text(fire?.satellite) || text(fire?.sensor),
-      acqTime:
-        Number.isFinite(fire?.acqMs) && fire.acqMs > 0 ? fire.acqMs : null, // epoch ms; 0 = unparseable → null
+      acqTime: Number.isFinite(fire?.acqMs) && fire.acqMs > 0 ? fire.acqMs : null, // epoch ms; 0 = unparseable → null
     };
   }
 
