@@ -1,11 +1,15 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { isPickedWorldPosition } from './scenePick.js';
+import {
+  isPickedWorldPosition
+} from './scenePick.js';
 
-const describe = (position) => (position
-  ? `(${position.x}, ${position.y}, ${position.z})`
-  : String(position));
+const describe = (position) => (position ?
+  `(${position.x}, ${position.y}, ${position.z})` :
+  String(position));
 
 test('a degenerate depth pick is rejected before it reaches Cesium', () => {
   // These are the shapes `scene.pickPosition()` can produce when the depth read
@@ -96,10 +100,10 @@ test('the guard rejects each way Cesium mishandles a degenerate pick', () => {
 
   // 1. Non-finite components throw — the uncaught DeveloperError on the demo path.
   for (const position of [
-    new Cesium.Cartesian3(Number.NaN, Number.NaN, Number.NaN),
-    new Cesium.Cartesian3(Number.POSITIVE_INFINITY, 0, 0),
-    new Cesium.Cartesian3(1, Number.NaN, 1),
-  ]) {
+      new Cesium.Cartesian3(Number.NaN, Number.NaN, Number.NaN),
+      new Cesium.Cartesian3(Number.POSITIVE_INFINITY, 0, 0),
+      new Cesium.Cartesian3(1, Number.NaN, 1),
+    ]) {
     assert.throws(
       () => Cesium.Cartographic.fromCartesian(position),
       /normalized result is not a number/,
