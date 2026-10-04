@@ -13,7 +13,12 @@ import {
   REPLAY_INITIAL_RANGE_M,
 } from './policy.js';
 
-export function createReplay({ state: layerState, services, parts, source }) {
+export function createReplay({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Rotate an upright screen-space rocket so its nose follows a projected path.
    * @param {{x: number, y: number}} from Current screen point.
@@ -77,7 +82,7 @@ export function createReplay({ state: layerState, services, parts, source }) {
         .slice(1)
         .reduce(
           (total, point, index) =>
-            total + Cesium.Cartesian3.distance(ascentPath[index], point),
+          total + Cesium.Cartesian3.distance(ascentPath[index], point),
           0,
         );
       realAscentSeconds = Math.max(180, pathLength / 9000);
@@ -141,32 +146,32 @@ export function createReplay({ state: layerState, services, parts, source }) {
     const preCountdownActive =
       preCountdownDuration > 0 && realSecondsSinceStart < -preCountdownDuration;
     const countdownActive = realSecondsSinceStart < 0 && !preCountdownActive;
-    const countdownSeconds = countdownActive
-      ? Math.ceil(-realSecondsSinceStart)
-      : 0;
+    const countdownSeconds = countdownActive ?
+      Math.ceil(-realSecondsSinceStart) :
+      0;
     const elapsedSinceStart = Math.max(
       0,
       realSecondsSinceStart * normalizeReplaySpeed(speed),
     );
-    const elapsed = loop
-      ? elapsedSinceStart % animationDurationSec
-      : Math.min(elapsedSinceStart, Math.max(0, animationDurationSec - 1e-6));
+    const elapsed = loop ?
+      elapsedSinceStart % animationDurationSec :
+      Math.min(elapsedSinceStart, Math.max(0, animationDurationSec - 1e-6));
     const insertionOffsetSec = parts.paths.orbitInsertionOffsetSeconds(launch);
     const ascending = elapsed < ascentDurationSec;
-    const phaseProgress = ascending
-      ? elapsed / ascentDurationSec
-      : (elapsed - ascentDurationSec) / orbitDurationSec;
+    const phaseProgress = ascending ?
+      elapsed / ascentDurationSec :
+      (elapsed - ascentDurationSec) / orbitDurationSec;
     const missionOffsetSec =
-      insertionOffsetSec === null
-        ? null
-        : ascending
-          ? phaseProgress * insertionOffsetSec
-          : insertionOffsetSec + phaseProgress * orbitPeriodSec;
+      insertionOffsetSec === null ?
+      null :
+      ascending ?
+      phaseProgress * insertionOffsetSec :
+      insertionOffsetSec + phaseProgress * orbitPeriodSec;
     const launchEpoch = Date.parse(launch.launchTime);
     const eventTime =
-      Number.isFinite(launchEpoch) && missionOffsetSec !== null
-        ? new Date(launchEpoch + missionOffsetSec * 1000)
-        : null;
+      Number.isFinite(launchEpoch) && missionOffsetSec !== null ?
+      new Date(launchEpoch + missionOffsetSec * 1000) :
+      null;
     return {
       ascending,
       phaseProgress,
@@ -220,9 +225,9 @@ export function createReplay({ state: layerState, services, parts, source }) {
           'aria-label',
           layerState._replayPaused ? 'Resume replay' : 'Pause replay',
         );
-        toggleButton.title = layerState._replayPaused
-          ? 'Resume replay'
-          : 'Pause replay';
+        toggleButton.title = layerState._replayPaused ?
+          'Resume replay' :
+          'Pause replay';
       }
     }
   }
@@ -232,15 +237,15 @@ export function createReplay({ state: layerState, services, parts, source }) {
       '[data-mission-replay-transport]',
     );
     if (!transport || !layerState._replayCameraLaunchId) return;
-    const phase = state.countdownActive
-      ? `T minus ${state.countdownSeconds}`
-      : state.preCountdownActive
-        ? 'Preparing launch site'
-        : state.elapsedSinceStart < 1
-          ? 'Liftoff'
-          : state.ascending
-            ? 'Ascent replay'
-            : 'Orbit replay';
+    const phase = state.countdownActive ?
+      `T minus ${state.countdownSeconds}` :
+      state.preCountdownActive ?
+      'Preparing launch site' :
+      state.elapsedSinceStart < 1 ?
+      'Liftoff' :
+      state.ascending ?
+      'Ascent replay' :
+      'Orbit replay';
     transport.setAttribute(
       'aria-label',
       `${phase}${layerState._replayPaused ? ', paused' : ''}`,
@@ -274,9 +279,9 @@ export function createReplay({ state: layerState, services, parts, source }) {
       return;
     }
     const now =
-      layerState._replayPaused && Number.isFinite(layerState._replayPausedAtMs)
-        ? layerState._replayPausedAtMs
-        : Date.now();
+      layerState._replayPaused && Number.isFinite(layerState._replayPausedAtMs) ?
+      layerState._replayPausedAtMs :
+      Date.now();
     for (const [launchId, startedAt] of layerState._animationStarts) {
       if (!Number.isFinite(startedAt)) continue;
       const elapsedMissionMs = (now - startedAt) * previousSpeed;
@@ -385,7 +390,7 @@ export function createReplay({ state: layerState, services, parts, source }) {
     layerState._animationStarts.set(
       launchId,
       Date.now() +
-        (REPLAY_TILE_SETTLE_DELAY_SEC + REPLAY_COUNTDOWN_DURATION_SEC) * 1000,
+      (REPLAY_TILE_SETTLE_DELAY_SEC + REPLAY_COUNTDOWN_DURATION_SEC) * 1000,
     );
     let cameraReady = false;
     let lastCameraUpdateMs = null;
@@ -403,9 +408,9 @@ export function createReplay({ state: layerState, services, parts, source }) {
         const state = track.beginReplayFrame();
         syncReplayCountdownButton(state);
         if (!cameraReady) return;
-        const path = state.ascending
-          ? track.ascentPath
-          : track.animatedOrbitPath;
+        const path = state.ascending ?
+          track.ascentPath :
+          track.animatedOrbitPath;
         const position = parts.paths.samplePath(path, state.phaseProgress);
         if (!position) return;
         const pathHeading = parts.camera.cameraHeadingForPath(
@@ -413,23 +418,23 @@ export function createReplay({ state: layerState, services, parts, source }) {
           state.phaseProgress,
           track.lastCameraHeading,
         );
-        const orbitBlend = !state.ascending
-          ? Cesium.Math.clamp(
-              (Number(state.phaseProgress) || 0) /
-                REPLAY_ORBIT_PULLBACK_FRACTION,
-              0,
-              1,
-            )
-          : 0;
+        const orbitBlend = !state.ascending ?
+          Cesium.Math.clamp(
+            (Number(state.phaseProgress) || 0) /
+            REPLAY_ORBIT_PULLBACK_FRACTION,
+            0,
+            1,
+          ) :
+          0;
         const desiredHeading = parts.camera.replayChaseCameraHeading(
           pathHeading,
           orbitBlend,
         );
         if (state.ascending) track.orbitCameraWorldFrame = false;
         const nowMs = performance.now();
-        const frameDurationMs = Number.isFinite(lastCameraUpdateMs)
-          ? Cesium.Math.clamp(nowMs - lastCameraUpdateMs, 4, 50)
-          : 1000 / 60;
+        const frameDurationMs = Number.isFinite(lastCameraUpdateMs) ?
+          Cesium.Math.clamp(nowMs - lastCameraUpdateMs, 4, 50) :
+          1000 / 60;
         lastCameraUpdateMs = nowMs;
         track.lastCameraHeading = parts.camera.smoothReplayCameraHeading(
           track.lastCameraHeading,
@@ -440,24 +445,24 @@ export function createReplay({ state: layerState, services, parts, source }) {
           Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
         const altitude = Math.max(0, cartographic?.height || 0);
         const cameraView = parts.camera.replayCameraView(state, altitude);
-        const defaultOrbitTarget = !state.ascending
-          ? parts.camera.replayOrbitGlobeAnchor(position, orbitBlend)
-          : position;
-        const cameraTarget = !state.ascending
-          ? parts.camera.replayOrbitCameraTarget(
-              defaultOrbitTarget,
-              track.orbitFrameSphere?.center,
-              orbitBlend,
-            )
-          : defaultOrbitTarget;
-        const cameraRange = !state.ascending
-          ? parts.camera.replayOrbitGlobeRange(
-              cameraView.range,
-              altitude,
-              orbitBlend,
-              track.orbitFrameSphere?.radius,
-            )
-          : cameraView.range;
+        const defaultOrbitTarget = !state.ascending ?
+          parts.camera.replayOrbitGlobeAnchor(position, orbitBlend) :
+          position;
+        const cameraTarget = !state.ascending ?
+          parts.camera.replayOrbitCameraTarget(
+            defaultOrbitTarget,
+            track.orbitFrameSphere?.center,
+            orbitBlend,
+          ) :
+          defaultOrbitTarget;
+        const cameraRange = !state.ascending ?
+          parts.camera.replayOrbitGlobeRange(
+            cameraView.range,
+            altitude,
+            orbitBlend,
+            track.orbitFrameSphere?.radius,
+          ) :
+          cameraView.range;
         if (state.ascending) {
           layerState._viewer.camera.lookAt(
             cameraTarget,
@@ -478,9 +483,9 @@ export function createReplay({ state: layerState, services, parts, source }) {
           );
           const tangentPosition = parts.paths.samplePath(
             path,
-            tangentProgress > state.phaseProgress
-              ? tangentProgress
-              : Math.max(0, state.phaseProgress - tangentStep),
+            tangentProgress > state.phaseProgress ?
+            tangentProgress :
+            Math.max(0, state.phaseProgress - tangentStep),
           );
           const orbitPose = parts.camera.replayOrbitCameraPose(
             position,
@@ -514,8 +519,7 @@ export function createReplay({ state: layerState, services, parts, source }) {
       });
 
     layerState._viewer.camera.flyToBoundingSphere(
-      new Cesium.BoundingSphere(track.ascentPath[0], 0),
-      {
+      new Cesium.BoundingSphere(track.ascentPath[0], 0), {
         offset: new Cesium.HeadingPitchRange(
           initialHeading,
           Cesium.Math.toRadians(-20),
