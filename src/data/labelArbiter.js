@@ -16,9 +16,9 @@ function clampInt(value, min, max) {
 }
 
 function demandEntries(demandByLayer) {
-  const entries = demandByLayer instanceof Map
-    ? Array.from(demandByLayer.entries())
-    : Object.entries(demandByLayer || {});
+  const entries = demandByLayer instanceof Map ?
+    Array.from(demandByLayer.entries()) :
+    Object.entries(demandByLayer || {});
   return entries
     .map(([layerId, demand]) => [String(layerId), Math.max(0, Math.floor(Number(demand) || 0))])
     .filter(([, demand]) => demand > 0)
@@ -123,9 +123,9 @@ function allocateLayerQuotasInto(
       entry.fraction = exact - Math.floor(exact);
     }
     remaining -= apportioned;
-    remainders.sort((a, b) => b.fraction - a.fraction
-      || b.weight - a.weight
-      || a.layerId.localeCompare(b.layerId));
+    remainders.sort((a, b) => b.fraction - a.fraction ||
+      b.weight - a.weight ||
+      a.layerId.localeCompare(b.layerId));
     for (let i = 0; i < idCount && remaining > 0; i++) {
       const entry = remainders[i];
       const current = quotas.get(entry.layerId) || 0;
@@ -180,7 +180,11 @@ export function allocateLayerQuotas(demandByLayer, capacity, strategy = ALLOCATI
 
   const weighted = entries.map(([layerId, count]) => {
     const semanticWeight = Math.max(0.05, Number(layerWeights[layerId]) || 1);
-    return { layerId, count, weight: Math.sqrt(count) * semanticWeight };
+    return {
+      layerId,
+      count,
+      weight: Math.sqrt(count) * semanticWeight
+    };
   });
   const priorityOrder = weighted
     .slice()
@@ -203,7 +207,11 @@ export function allocateLayerQuotas(demandByLayer, capacity, strategy = ALLOCATI
       const whole = Math.min(room, Math.floor(exact));
       quotas.set(entry.layerId, (quotas.get(entry.layerId) || 0) + whole);
       apportioned += whole;
-      remainders.push({ layerId: entry.layerId, fraction: exact - Math.floor(exact), weight: entry.weight });
+      remainders.push({
+        layerId: entry.layerId,
+        fraction: exact - Math.floor(exact),
+        weight: entry.weight
+      });
     }
     remaining -= apportioned;
     remainders.sort((a, b) => b.fraction - a.fraction || b.weight - a.weight || a.layerId.localeCompare(b.layerId));
@@ -220,20 +228,20 @@ export function allocateLayerQuotas(demandByLayer, capacity, strategy = ALLOCATI
 }
 
 function rectIsFinite(rect) {
-  return rect
-    && Number.isFinite(rect.x)
-    && Number.isFinite(rect.y)
-    && Number.isFinite(rect.w)
-    && Number.isFinite(rect.h)
-    && rect.w > 0
-    && rect.h > 0;
+  return rect &&
+    Number.isFinite(rect.x) &&
+    Number.isFinite(rect.y) &&
+    Number.isFinite(rect.w) &&
+    Number.isFinite(rect.h) &&
+    rect.w > 0 &&
+    rect.h > 0;
 }
 
 function overlaps(a, b, padding = 4) {
-  return a.x < b.x + b.w + padding
-    && a.x + a.w + padding > b.x
-    && a.y < b.y + b.h + padding
-    && a.y + a.h + padding > b.y;
+  return a.x < b.x + b.w + padding &&
+    a.x + a.w + padding > b.x &&
+    a.y < b.y + b.h + padding &&
+    a.y + a.h + padding > b.y;
 }
 
 const CELL_ORIGIN = 8192;
@@ -304,7 +312,11 @@ class SpatialHash {
         const key = this._cellKey(x, y);
         let bucket = this.cells.get(key);
         if (!bucket) {
-          bucket = { generation: this.generation, count: 0, rects: [] };
+          bucket = {
+            generation: this.generation,
+            count: 0,
+            rects: []
+          };
           this.cells.set(key, bucket);
         } else if (bucket.generation !== this.generation) {
           bucket.generation = this.generation;
@@ -529,10 +541,10 @@ class SpatialCandidateQueue {
           const rectY = placementYs[rectIndex];
           const rectW = placementWs[rectIndex];
           const rectH = placementHs[rectIndex];
-          if (rectX < anchorRectX + anchorRectW + 4
-            && rectX + rectW + 4 > anchorRectX
-            && rectY < anchorRectY + anchorRectH + 4
-            && rectY + rectH + 4 > anchorRectY) freeMask &= ~bit;
+          if (rectX < anchorRectX + anchorRectW + 4 &&
+            rectX + rectW + 4 > anchorRectX &&
+            rectY < anchorRectY + anchorRectH + 4 &&
+            rectY + rectH + 4 > anchorRectY) freeMask &= ~bit;
         }
         placementMasks[i] = freeMask;
         if (freeMask === 0 && this._dismissBlockedKey(i)) continue;
@@ -795,7 +807,10 @@ export class LabelArbiter {
       candidateList[candidateCount++] = candidate;
       let bucket = byLayer.get(candidate.layerId);
       if (!bucket) {
-        bucket = { list: [], count: 0 };
+        bucket = {
+          list: [],
+          count: 0
+        };
         byLayer.set(candidate.layerId, bucket);
       }
       bucket.list[bucket.count++] = candidate;
@@ -1057,9 +1072,9 @@ export class LabelArbiter {
    * A caller-owned output array enables allocation-free per-frame rendering.
    */
   renderEntries(currentCandidates, now = Date.now(), out = []) {
-    const current = currentCandidates instanceof Map
-      ? currentCandidates
-      : new Map((currentCandidates || []).map((candidate) => [candidate.key, candidate]));
+    const current = currentCandidates instanceof Map ?
+      currentCandidates :
+      new Map((currentCandidates || []).map((candidate) => [candidate.key, candidate]));
     const states = this._refreshStateList();
     let outIndex = 0;
     for (let i = 0; i < states.length; i++) {
@@ -1095,7 +1110,10 @@ export class LabelArbiter {
    * The grouped layer/source representation lets the render lane test live
    * membership without allocating composite keys for every losing source.
    */
-  liveIdentities({ includeFading = true, now = Date.now() } = {}) {
+  liveIdentities({
+    includeFading = true,
+    now = Date.now()
+  } = {}) {
     const grouped = new Map();
     for (const state of this.states.values()) {
       if (!state.selected) {
@@ -1111,7 +1129,9 @@ export class LabelArbiter {
   }
 
   diagnostics() {
-    return this.lastDiagnostics ? { ...this.lastDiagnostics } : null;
+    return this.lastDiagnostics ? {
+      ...this.lastDiagnostics
+    } : null;
   }
 }
 
@@ -1122,4 +1142,7 @@ export const LABEL_ARBITER_TIMING = Object.freeze({
   cooldownMs: COOLDOWN_MS,
 });
 
-export { ALLOCATION_ELASTIC, ALLOCATION_WEIGHTED };
+export {
+  ALLOCATION_ELASTIC,
+  ALLOCATION_WEIGHTED
+};
