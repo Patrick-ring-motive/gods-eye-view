@@ -23,7 +23,9 @@ test('cohort cap follows min(256, max(64, 4 × quota))', () => {
 });
 
 test('12k contender population stays bounded and registration-order independent', () => {
-  const items = Array.from({ length: 12000 }, (_, index) => observation(index));
+  const items = Array.from({
+    length: 12000
+  }, (_, index) => observation(index));
   const forward = new BoundedCohort();
   const reverse = new BoundedCohort();
   for (const item of items) forward.consider(item);
