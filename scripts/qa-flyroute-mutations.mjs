@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Are the fly_route pins actually load-bearing?
  *
@@ -12,18 +13,21 @@
  *
  * Restores the file on exit, including on failure.
  */
-import { execFileSync } from 'node:child_process';
+import {
+  execFileSync
+} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = path.join(ROOT, 'src', 'cameraVerbs.js');
 const TESTS = 'src/routeCinematics.test.mjs';
 
 /** @type {Array<{defect: string, from: string, to: string}>} */
-const MUTATIONS = [
-  {
+const MUTATIONS = [{
     defect: 'interrupt leaves the horizon tilted (round-1 behaviour)',
     from: 'const leveled = wasRoute && !tracking ? levelCameraRoll() : false;',
     to: 'const leveled = false;',
@@ -127,7 +131,12 @@ const missed = [];
 process.on('exit', () => fs.writeFileSync(SOURCE, original));
 
 console.log(`\nfly_route pin strength — ${MUTATIONS.length} individual reverts\n`);
-for (const { defect, from, to } of MUTATIONS) {
+for (const {
+    defect,
+    from,
+    to
+  }
+  of MUTATIONS) {
   if (!original.includes(from)) {
     missed.push(`${defect} (ANCHOR MISSING — the mutation no longer applies)`);
     console.log(`  \x1b[31mSTALE\x1b[0m ${defect}`);
@@ -137,7 +146,11 @@ for (const { defect, from, to } of MUTATIONS) {
   let red = false;
   let by = '';
   try {
-    execFileSync('node', ['--test', TESTS], { cwd: ROOT, encoding: 'utf8', stdio: 'pipe' });
+    execFileSync('node', ['--test', TESTS], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: 'pipe'
+    });
   } catch (error) {
     red = true;
     const failed = String(error.stdout || '').split('\n')
