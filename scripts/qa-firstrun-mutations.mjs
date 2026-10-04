@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Are the first-run launcher's pins actually load-bearing?
  *
@@ -19,10 +20,14 @@
  * iteration — enough that a dev server survives, but expect it to restart. If
  * you are mid-QA on a live server, run this before or after, not during.
  */
-import { execFileSync } from 'node:child_process';
+import {
+  execFileSync
+} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TESTS = ['src/firstRunExperience.test.mjs', 'src/standalone/startupChrome.test.mjs'];
@@ -482,7 +487,13 @@ let caught = 0;
 const missed = [];
 
 console.log(`\nFirst-run launcher pin strength — ${MUTATIONS.length} individual reverts\n`);
-for (const { defect, file, from, to } of MUTATIONS) {
+for (const {
+    defect,
+    file,
+    from,
+    to
+  }
+  of MUTATIONS) {
   const original = originals.get(file);
   if (!original.includes(from)) {
     missed.push(`${defect} (ANCHOR MISSING — the mutation no longer applies)`);
@@ -493,7 +504,11 @@ for (const { defect, file, from, to } of MUTATIONS) {
   let red = false;
   let by = '';
   try {
-    execFileSync('node', ['--test', ...TESTS], { cwd: ROOT, encoding: 'utf8', stdio: 'pipe' });
+    execFileSync('node', ['--test', ...TESTS], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: 'pipe'
+    });
   } catch (error) {
     red = true;
     const failed = String(error.stdout || '').split('\n')
