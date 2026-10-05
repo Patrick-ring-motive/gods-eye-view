@@ -1,8 +1,18 @@
-import { createHash } from 'node:crypto';
-import { createRequire } from 'node:module';
-import { createAisStreamAdapter } from '../../../src/data/aisStreamAdapter.js';
-import { parseSilenceTimeoutEnv } from '../../../src/data/aisWatchdog.js';
-import { clampInt } from '../common/query.js';
+import {
+  createHash
+} from 'node:crypto';
+import {
+  createRequire
+} from 'node:module';
+import {
+  createAisStreamAdapter
+} from '../../../src/data/aisStreamAdapter.js';
+import {
+  parseSilenceTimeoutEnv
+} from '../../../src/data/aisWatchdog.js';
+import {
+  clampInt
+} from '../common/query.js';
 import {
   AISSTREAM_CACHE_MAX,
   AISSTREAM_STALE_MS,
@@ -228,10 +238,9 @@ function aisWatchdogPolicy() {
   const reportMs =
     override.kind === 'timeout' ? override.value : AISSTREAM_SILENCE_REPORT_MS;
   _aisWatchdogPolicy = {
-    silenceWatch:
-      override.kind === 'off'
-        ? false
-        : override.kind === 'timeout' || !customSubscription,
+    silenceWatch: override.kind === 'off' ?
+      false :
+      override.kind === 'timeout' || !customSubscription,
     reportMs,
     recycleMs: Math.round(reportMs * AISSTREAM_RECYCLE_RATIO),
     // Overridable so the watchdog can be exercised end-to-end against a local
@@ -313,9 +322,9 @@ function aisStreamStatusSnapshot() {
   if (snapshot) return snapshot;
   return {
     status: process.env.AISSTREAM_API_KEY ? 'idle' : 'missing-key',
-    error: process.env.AISSTREAM_API_KEY
-      ? null
-      : 'AISSTREAM_API_KEY is not set',
+    error: process.env.AISSTREAM_API_KEY ?
+      null :
+      'AISSTREAM_API_KEY is not set',
     lastMessageAt: null,
     silentForMs: null,
     reconnectAttempt: 0,
