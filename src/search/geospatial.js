@@ -33,14 +33,19 @@ export function createGeospatialServices({
     );
     signal.throwIfAborted();
     if (!capabilities[name]) return null;
-    const result = await providers[name](...args, { ...options, signal });
+    const result = await providers[name](...args, {
+      ...options,
+      signal
+    });
     signal.throwIfAborted();
     return result;
   }
   return {
     capabilities,
     signal: lifetime,
-    attribution: Object.freeze({ ...providers.attribution }),
+    attribution: Object.freeze({
+      ...providers.attribution
+    }),
     reverseGeocode(latitude, longitude, options) {
       if (!validCoordinate([longitude, latitude])) return Promise.resolve(null);
       return invoke('reverseGeocode', [latitude, longitude], options);
@@ -52,8 +57,7 @@ export function createGeospatialServices({
       )
         return [];
       return (
-        (await invoke('textSearch', [String(query).trim(), point], options)) ||
-        []
+        (await invoke('textSearch', [String(query).trim(), point], options)) || []
       );
     },
     async nearby(point, options) {
@@ -82,7 +86,11 @@ export function createGeospatialServices({
         result.durationS < 0
       )
         return null;
-      return { ...result, ok: true, profile };
+      return {
+        ...result,
+        ok: true,
+        profile
+      };
     },
   };
 }
