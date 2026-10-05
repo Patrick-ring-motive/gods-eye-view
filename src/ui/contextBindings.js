@@ -1,4 +1,6 @@
-import { shouldExpandGlobalContextPanel } from '../rightRailPolicy.js';
+import {
+  shouldExpandGlobalContextPanel
+} from '../rightRailPolicy.js';
 
 export function _initGlobalContextPanel() {
   const contextTabs = [
@@ -16,7 +18,9 @@ export function _initGlobalContextPanel() {
       else if (event.key === 'End') nextIndex = contextTabs.length - 1;
       if (nextIndex === null) return;
       event.preventDefault();
-      contextTabs[nextIndex].focus({ preventScroll: true });
+      contextTabs[nextIndex].focus({
+        preventScroll: true
+      });
       contextTabs[nextIndex].click();
     }),
   );
@@ -31,7 +35,9 @@ export function _initGlobalContextPanel() {
     this._claimContextVisualAuthority();
     void this._runUserFacingContextAction(
       (notificationToken) =>
-        this._selectContextMode(nextMode, { notificationToken }),
+      this._selectContextMode(nextMode, {
+        notificationToken
+      }),
       'Contacts could not complete the requested transition; try again',
     ).then((succeeded) => {
       if (
@@ -60,7 +66,9 @@ export function _initGlobalContextPanel() {
     this._claimContextVisualAuthority();
     void this._runUserFacingContextAction(
       (notificationToken) =>
-        this._selectContextMode(nextMode, { notificationToken }),
+      this._selectContextMode(nextMode, {
+        notificationToken
+      }),
       'Space Missions could not complete the requested transition; try again',
     ).then((succeeded) => {
       if (
@@ -90,8 +98,7 @@ export function _initGlobalContextPanel() {
     void this._runUserFacingContextAction(async (notificationToken) => {
       const enabled = await this._dataManager.setEnabled(
         'military-installations',
-        true,
-        {
+        true, {
           origin: 'user',
           notificationToken,
         },
@@ -107,9 +114,9 @@ export function _initGlobalContextPanel() {
       const stats = this.installations.getStats?.();
       this.showToast(
         stats?.statusMessage ||
-          (stats?.status === 'zoom-in'
-            ? 'Zoom in to search mapped installations'
-            : 'Nearby installations refreshed'),
+        (stats?.status === 'zoom-in' ?
+          'Zoom in to search mapped installations' :
+          'Nearby installations refreshed'),
       );
       return true;
     }, 'Nearby installations could not be refreshed; try again').finally(() => {
