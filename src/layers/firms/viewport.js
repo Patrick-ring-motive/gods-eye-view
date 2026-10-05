@@ -13,7 +13,9 @@ export function createViewport({
   config,
   feed,
 }) {
-  const { governorRequestRender } = services.render;
+  const {
+    governorRequestRender
+  } = services.render;
 
   /**
    * Ambient labels are placed via screen-space projection, so they need a
@@ -185,9 +187,9 @@ export function createViewport({
         // nothing, a moving one pays one ≤maxDetections show-flip walk at
         // ~1.5 Hz.
         const rebuilt =
-          layerState._fires.length && !layerState._loading
-            ? components.rendering.renderCurrentLod(false)
-            : false;
+          layerState._fires.length && !layerState._loading ?
+          components.rendering.renderCurrentLod(false) :
+          false;
         if (!rebuilt) components.rendering.refreshHorizonCulling();
       });
   }
