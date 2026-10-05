@@ -1,5 +1,7 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 /** Resolve defaultSourceRoot for ESM context. */
 const defaultSourceRoot = path.resolve(
@@ -7,4 +9,6 @@ const defaultSourceRoot = path.resolve(
   '../../..',
 );
 
-export { defaultSourceRoot };
+export {
+  defaultSourceRoot
+};
