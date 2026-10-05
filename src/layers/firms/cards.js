@@ -3,7 +3,10 @@ import {
   FIRMS_OVERLAY_SOURCE_ID,
   FIRMS_AMBIENT_COHORT_LIMIT,
 } from '../../data/firmsLabels.js';
-import { MAX_AMBIENT_LABELS, LABEL_VIEW_MARGIN_PX } from './policy.js';
+import {
+  MAX_AMBIENT_LABELS,
+  LABEL_VIEW_MARGIN_PX
+} from './policy.js';
 
 export function createCards({
   layerState,
@@ -12,7 +15,9 @@ export function createCards({
   config,
   feed,
 }) {
-  const { overlayHost } = config;
+  const {
+    overlayHost
+  } = config;
 
   /**
    * Rebuild the card entries for the shared world-overlay host: the
@@ -66,7 +71,10 @@ export function createCards({
           components.model.fireCullPosition(layerState._selectedFire),
         )
       ) {
-        accepted.push({ x: screen.x, y: screen.y });
+        accepted.push({
+          x: screen.x,
+          y: screen.y
+        });
       }
     }
 
@@ -96,11 +104,14 @@ export function createCards({
       )
         continue;
       if (!components.model.screenSeparated(accepted, screen)) continue;
-      accepted.push({ x: screen.x, y: screen.y });
+      accepted.push({
+        x: screen.x,
+        y: screen.y
+      });
       ambientCount += 1;
-      const card = candidate.fire
-        ? components.model.buildFireCard(candidate, now)
-        : components.model.buildCellCard(candidate, now);
+      const card = candidate.fire ?
+        components.model.buildFireCard(candidate, now) :
+        components.model.buildCellCard(candidate, now);
       if (candidate.fire) layerState._fireByCardId.set(card.id, candidate.fire);
       entries.push(card);
     }
@@ -123,13 +134,14 @@ export function createCards({
             return true;
           },
         };
-      }),
-      {
+      }), {
         cohortLimit: FIRMS_AMBIENT_COHORT_LIMIT,
         collisionCapacity: FIRMS_AMBIENT_COHORT_LIMIT,
         moving: false,
       },
     );
   }
-  return { rebuildAmbientLabels };
+  return {
+    rebuildAmbientLabels
+  };
 }
