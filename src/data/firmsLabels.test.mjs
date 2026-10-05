@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import {
   accentForSeverity,
   FIRMS_AMBIENT_COHORT_LIMIT,
