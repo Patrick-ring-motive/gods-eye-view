@@ -1,15 +1,33 @@
-import { expandApplicationHtml } from '../build/application-html.js';
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
-import { _selectContextMode } from './ui/contextTransactions.js';
-import { _syncContextModeButtons } from './ui/contextPresentation.js';
-import { _initGlobalContextPanel } from './ui/contextBindings.js';
-import { clearSelectedLayers } from './ui/contextActions.js';
-import { readFileSync as readRadioSource } from 'node:fs';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
+import {
+  _selectContextMode
+} from './ui/contextTransactions.js';
+import {
+  _syncContextModeButtons
+} from './ui/contextPresentation.js';
+import {
+  _initGlobalContextPanel
+} from './ui/contextBindings.js';
+import {
+  clearSelectedLayers
+} from './ui/contextActions.js';
+import {
+  readFileSync as readRadioSource
+} from 'node:fs';
 const radioBindings = readRadioSource(new URL('./ui/radioBindings.js', import.meta.url), 'utf8');
 const radioPresentation = readRadioSource(new URL('./ui/radioPresentation.js', import.meta.url), 'utf8');
 const radioControlsSource = readRadioSource(new URL('./ui/radioControls.js', import.meta.url), 'utf8');
-import { readFileSync } from 'node:fs';
-import { test } from 'node:test';
+import {
+  readFileSync
+} from 'node:fs';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 
 const html = expandApplicationHtml(readFileSync(new URL('../index.html', import.meta.url), 'utf8'));
@@ -40,9 +58,15 @@ test('Context transition state preserves focus and Tab availability until settle
     const button = {
       attrs,
       tabIndex: -1,
-      classList: { toggle() {} },
-      setAttribute(name, value) { attrs.set(name, String(value)); },
-      get disabled() { return disabled; },
+      classList: {
+        toggle() {}
+      },
+      setAttribute(name, value) {
+        attrs.set(name, String(value));
+      },
+      get disabled() {
+        return disabled;
+      },
       set disabled(value) {
         disabled = Boolean(value);
         // Model the browser behavior that exposed this regression: native
@@ -56,12 +80,23 @@ test('Context transition state preserves focus and Tab availability until settle
   };
   const contacts = makeButton();
   const missions = makeButton();
-  const panel = { classList: { toggle() {} }, setAttribute() {} };
+  const panel = {
+    classList: {
+      toggle() {}
+    },
+    setAttribute() {}
+  };
   const priorDocument = globalThis.document;
-  globalThis.document = { activeElement: missions, getElementById: () => panel };
+  globalThis.document = {
+    activeElement: missions,
+    getElementById: () => panel
+  };
   const owner = {
     _globalContextPanel: panel,
-    actions: { syncDetection() {}, scheduleLayout() {} },
+    actions: {
+      syncDetection() {},
+      scheduleLayout() {}
+    },
     _contextMode: null,
     _contextModeChanging: true,
     _globalContextFlightsBtn: contacts,
@@ -69,7 +104,9 @@ test('Context transition state preserves focus and Tab availability until settle
     _contextModeStandby: {},
     _contextFlightsView: {},
     _contextMissionsView: {},
-    cockpitView: { syncEntry() {} },
+    cockpitView: {
+      syncEntry() {}
+    },
     _syncContactsDetection() {},
     _scheduleRightPanelLayout() {},
   };
@@ -120,8 +157,8 @@ test('Context tablist retains Left, Right, Home, and End keyboard navigation', (
 test('Context tabs draw a visible keyboard-focus outline including active tabs', () => {
   const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
   const focusRule = rules.find(([, selector, body]) => (
-    selector.trim().endsWith('.context-mode-button:focus-visible')
-      && /outline:\s*2px solid var\(--text-primary\)/.test(body)
+    selector.trim().endsWith('.context-mode-button:focus-visible') &&
+    /outline:\s*2px solid var\(--text-primary\)/.test(body)
   ));
   assert.ok(focusRule, 'Context focus-visible rule must draw a two-pixel outline');
   assert.match(focusRule[2], /outline-offset:\s*-3px/);
