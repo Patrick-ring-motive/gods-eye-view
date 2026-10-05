@@ -1,11 +1,29 @@
-import { _handleContextLayerChange } from './ui/contextLayerChanges.js';
-import { connectContextManager } from './ui/contextSubscriptions.js';
-import { _restoreContextSession, _restoreContextSessionAfterLayerSettles } from './ui/contextSession.js';
-import { _selectContextMode, _clearLayersOutsideContextMode } from './ui/contextTransactions.js';
-import { _initGlobalContextPanel } from './ui/contextBindings.js';
-import { setContextMode as contextModeAction } from './ui/contextActions.js';
-import { ContextControls } from './ui/contextControls.js';
-import { readFileSync as readRadioSource } from 'node:fs';
+import {
+  _handleContextLayerChange
+} from './ui/contextLayerChanges.js';
+import {
+  connectContextManager
+} from './ui/contextSubscriptions.js';
+import {
+  _restoreContextSession,
+  _restoreContextSessionAfterLayerSettles
+} from './ui/contextSession.js';
+import {
+  _selectContextMode,
+  _clearLayersOutsideContextMode
+} from './ui/contextTransactions.js';
+import {
+  _initGlobalContextPanel
+} from './ui/contextBindings.js';
+import {
+  setContextMode as contextModeAction
+} from './ui/contextActions.js';
+import {
+  ContextControls
+} from './ui/contextControls.js';
+import {
+  readFileSync as readRadioSource
+} from 'node:fs';
 const radioBindings = readRadioSource(new URL('./ui/radioBindings.js', import.meta.url), 'utf8');
 const radioPresentation = readRadioSource(new URL('./ui/radioPresentation.js', import.meta.url), 'utf8');
 const radioControlsSource = readRadioSource(new URL('./ui/radioControls.js', import.meta.url), 'utf8');
@@ -18,10 +36,16 @@ const radioControlsSource = readRadioSource(new URL('./ui/radioControls.js', imp
 //  - a failed Space Missions START from the chip route cleared siblings with
 //    no rollback;
 //  - the right-rail entry ignored the activation result entirely.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import {
+  readFileSync
+} from 'node:fs';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const src = readFileSync(fileURLToPath(new URL('./ui/applicationShell.js', import.meta.url)), 'utf8');
 
