@@ -1,4 +1,6 @@
-import { isOverpassBoundaryQuery } from './query.js';
+import {
+  isOverpassBoundaryQuery
+} from './query.js';
 import {
   OVERPASS_BOUNDARY_DISK_TTL_MS,
   OVERPASS_DISK_TTL_MS,
@@ -7,18 +9,24 @@ import {
   OVERPASS_CACHE_MAX_ENTRIES,
 } from './constants.js';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
-import { promises as fsp } from 'node:fs';
-import { overpassPayloadIsData } from './transport.js';
+import {
+  createHash
+} from 'node:crypto';
+import {
+  promises as fsp
+} from 'node:fs';
+import {
+  overpassPayloadIsData
+} from './transport.js';
 
 /** @type {Map<string,{status:number,body:string,contentType:string,endpoint:string,cachedAt:number}>} */
 const _overpassCache = new Map();
 
 /** Disk TTL for a query: boundary geometry keeps for a month, the rest 7 days. */
 function overpassDiskTtlMs(cacheKey) {
-  return isOverpassBoundaryQuery(cacheKey)
-    ? OVERPASS_BOUNDARY_DISK_TTL_MS
-    : OVERPASS_DISK_TTL_MS;
+  return isOverpassBoundaryQuery(cacheKey) ?
+    OVERPASS_BOUNDARY_DISK_TTL_MS :
+    OVERPASS_DISK_TTL_MS;
 }
 
 /** Normalized Overpass query -> stable disk-cache file path. */
@@ -57,7 +65,9 @@ async function readOverpassDisk(cacheKey, maxAgeMs) {
 /** Fire-and-forget disk write for a successful Overpass payload. */
 function writeOverpassDisk(cacheKey, payload) {
   fsp
-    .mkdir(OVERPASS_DISK_DIR, { recursive: true })
+    .mkdir(OVERPASS_DISK_DIR, {
+      recursive: true
+    })
     .then(() =>
       fsp.writeFile(overpassDiskPath(cacheKey), JSON.stringify(payload)),
     )
@@ -96,25 +106,40 @@ async function resolveOverpassPreflight({
 }) {
   const cached = memoryCache.get(cacheKey);
   if (overpassPayloadIsData(cached) && now - cached.cachedAt <= cacheMs)
-    return { source: 'HIT', payload: cached };
+    return {
+      source: 'HIT',
+      payload: cached
+    };
 
   const pending = inFlight.get(cacheKey);
-  if (pending) return { source: 'INFLIGHT', payload: await pending };
+  if (pending) return {
+    source: 'INFLIGHT',
+    payload: await pending
+  };
 
   const disk = await readDisk();
-  if (overpassPayloadIsData(disk)) return { source: 'DISK', payload: disk };
+  if (overpassPayloadIsData(disk)) return {
+    source: 'DISK',
+    payload: disk
+  };
 
-  return allowUpstream()
-    ? { source: 'UPSTREAM', payload: null }
-    : { source: 'RATE_LIMITED', payload: null };
+  return allowUpstream() ?
+    {
+      source: 'UPSTREAM',
+      payload: null
+    } :
+    {
+      source: 'RATE_LIMITED',
+      payload: null
+    };
 }
 
 /** Return only last-good Overpass data, regardless of its age. */
 async function readStaleOverpass(cacheKey) {
   const cached = _overpassCache.get(cacheKey);
-  return overpassPayloadIsData(cached)
-    ? cached
-    : readOverpassDisk(cacheKey, Infinity);
+  return overpassPayloadIsData(cached) ?
+    cached :
+    readOverpassDisk(cacheKey, Infinity);
 }
 
 /** Evict oldest Overpass cache entries until size is within the cap. */
