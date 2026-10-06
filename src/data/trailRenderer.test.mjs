@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { createTrail } from './trailRenderer.js';
+import {
+  createTrail
+} from './trailRenderer.js';
 
 test('trail visibility can change without discarding its accumulated geometry', () => {
   const added = [];
@@ -18,7 +20,9 @@ test('trail visibility can change without discarding its accumulated geometry', 
       },
     },
   };
-  const trail = createTrail(viewer, { color: '#ffffff' });
+  const trail = createTrail(viewer, {
+    color: '#ffffff'
+  });
   const positions = [
     new Cesium.Cartesian3(1, 2, 3),
     new Cesium.Cartesian3(4, 5, 6),
