@@ -1,5 +1,9 @@
-import { fetchRegionalJson } from './http.js';
-import { normalizeRegionalPlace } from '../../../src/data/regionalModel.js';
+import {
+  fetchRegionalJson
+} from './http.js';
+import {
+  normalizeRegionalPlace
+} from '../../../src/data/regionalModel.js';
 
 /** Construct the serialized Nominatim adapter with a trusted endpoint. */
 export function createRegionalPlaceProvider({
@@ -25,8 +29,7 @@ export function createRegionalPlaceProvider({
       });
       const payload = await requestJson(`${endpoint}?${params}`, {
         headers: {
-          'User-Agent':
-            'GodsEyeView/0.1 (+https://github.com/bilawalsidhu/gods-eye-view)',
+          'User-Agent': 'GodsEyeView/0.1 (+https://github.com/bilawalsidhu/gods-eye-view)',
           Referer: 'https://github.com/bilawalsidhu/gods-eye-view',
         },
       });
