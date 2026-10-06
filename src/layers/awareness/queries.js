@@ -24,8 +24,7 @@ export function createQueries({
     const enabling = lifecycle?.lifecycleState === 'enabling';
     const moduleStats =
       layerState.dataManager?.layers?.get(layerId)?.module?.getStats?.() || {};
-    const stats = enabling ?
-      {
+    const stats = enabling ? {
         ...moduleStats,
         loading: true,
         status: 'loading'
@@ -116,8 +115,7 @@ export function createQueries({
       source,
     );
     if (summary.count === null)
-      return source.stats?.statusMessage ?
-        {
+      return source.stats?.statusMessage ? {
           ...summary,
           reason: source.stats.statusMessage
         } :
@@ -125,8 +123,7 @@ export function createQueries({
     return {
       ...summary,
       reason: summary.count ?
-        'mapped matches from the loaded viewport' :
-        'viewport feed is not a complete 250 km survey',
+        'mapped matches from the loaded viewport' : 'viewport feed is not a complete 250 km survey',
     };
   }
 
