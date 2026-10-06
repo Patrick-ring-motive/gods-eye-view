@@ -8,10 +8,30 @@ import {
 } from './cockpitVisionPolicy.js';
 
 const createStages = () => ({
-  noir: { uniforms: { intensity: 0.72, contrast: 1.3 } },
-  retro: { uniforms: { intensity: 0.18, gain: 0.4 } },
-  surveillance: { uniforms: { intensity: 0, grain: 0.6 } },
-  thermal: { uniforms: { intensity: 0, heat: 0.8 } },
+  noir: {
+    uniforms: {
+      intensity: 0.72,
+      contrast: 1.3
+    }
+  },
+  retro: {
+    uniforms: {
+      intensity: 0.18,
+      gain: 0.4
+    }
+  },
+  surveillance: {
+    uniforms: {
+      intensity: 0,
+      grain: 0.6
+    }
+  },
+  thermal: {
+    uniforms: {
+      intensity: 0,
+      heat: 0.8
+    }
+  },
 });
 
 test('Cockpit vision order exposes inherited, CRT, NVG, FLIR, and NOIR modes', () => {
@@ -23,11 +43,24 @@ test('Cockpit vision order exposes inherited, CRT, NVG, FLIR, and NOIR modes', (
 test('Cockpit settles pending map crossfades before a temporary preset takes ownership', () => {
   const stages = createStages();
   const transitions = new Map([
-    ['noir', { from: 0, to: 1, start: 10 }],
-    ['retro', { from: 1, to: 0, start: 10 }],
+    ['noir', {
+      from: 0,
+      to: 1,
+      start: 10
+    }],
+    ['retro', {
+      from: 1,
+      to: 0,
+      start: 10
+    }],
   ]);
   const restore = captureCockpitVisionBaseline(stages, transitions);
-  assert.deepEqual(restore, { noir: 1, retro: 0, surveillance: 0, thermal: 0 });
+  assert.deepEqual(restore, {
+    noir: 1,
+    retro: 0,
+    surveillance: 0,
+    thermal: 0
+  });
   assert.equal(transitions.size, 0);
   applyCockpitVisionStageIntensities(stages, 'nvg', restore);
   assert.equal(stages.surveillance.uniforms.intensity, 1);
