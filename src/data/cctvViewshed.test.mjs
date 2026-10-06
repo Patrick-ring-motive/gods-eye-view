@@ -10,7 +10,9 @@
 //     its 5 vertices are exactly the caller's frustumCartesians positions and
 //     its 18 indices only reference those 5 vertices (4 side faces + 2 cap
 //     triangles) — no independent geometry recompute anywhere.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
 import {
@@ -43,7 +45,9 @@ test('cameraHue: deterministic golden-angle spacing in [0, 360)', () => {
 // separately assert CONSECUTIVE indices (the likeliest co-visible neighbors)
 // stay far apart.
 test('cameraHue: first 20 indices pairwise separated by >= 12 degrees', () => {
-  const hues = Array.from({ length: 20 }, (_, i) => cameraHue(i));
+  const hues = Array.from({
+    length: 20
+  }, (_, i) => cameraHue(i));
   for (let i = 0; i < hues.length; i++) {
     for (let j = i + 1; j < hues.length; j++) {
       const delta = circularDeltaDeg(hues[i], hues[j]);
@@ -85,7 +89,10 @@ function positionsFixture() {
 
 test('frustumVolumeGeometryData: 5 vertices are exactly the input Cartesians', () => {
   const positions = positionsFixture();
-  const { positions: flat, indices } = frustumVolumeGeometryData(positions);
+  const {
+    positions: flat,
+    indices
+  } = frustumVolumeGeometryData(positions);
   assert.equal(flat.length, 15);
   assert.equal(indices.length, 18);
   const order = [positions.mount, positions.tl, positions.tr, positions.br, positions.bl];
@@ -97,7 +104,9 @@ test('frustumVolumeGeometryData: 5 vertices are exactly the input Cartesians', (
 });
 
 test('frustumVolumeGeometryData: indices form 4 side faces + 2 cap triangles over the 5 vertices', () => {
-  const { indices } = frustumVolumeGeometryData(positionsFixture());
+  const {
+    indices
+  } = frustumVolumeGeometryData(positionsFixture());
   const counts = new Map();
   for (const idx of indices) {
     assert.ok(idx >= 0 && idx <= 4, `index ${idx} out of vertex range`);
@@ -123,6 +132,8 @@ test('frustumVolumeGeometryData: no NaN for a tight (probe-clamped) pyramid', ()
     br: new Cesium.Cartesian3(12, -1, -1),
     bl: new Cesium.Cartesian3(12, 1, -1),
   };
-  const { positions: flat } = frustumVolumeGeometryData(near);
+  const {
+    positions: flat
+  } = frustumVolumeGeometryData(near);
   for (const v of flat) assert.ok(Number.isFinite(v));
 });
