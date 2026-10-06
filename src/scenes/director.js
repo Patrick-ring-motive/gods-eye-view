@@ -12,11 +12,20 @@
  * State is persisted to localStorage and can be exported/imported as JSON.
  */
 
-import { createStateChannel } from '../app/stateChannel.js';
-import { SceneControls } from '../ui/scenes.js';
+import {
+  createStateChannel
+} from '../app/stateChannel.js';
+import {
+  SceneControls
+} from '../ui/scenes.js';
 import * as Cesium from 'cesium';
-import { SCENE_RECIPES } from './recipes.js';
-import { sceneLayerPlan, sceneRequiresContextModeExit } from './scenePolicy.js';
+import {
+  SCENE_RECIPES
+} from './recipes.js';
+import {
+  sceneLayerPlan,
+  sceneRequiresContextModeExit
+} from './scenePolicy.js';
 import {
   BLOOM_INTENSITY_DEFAULT,
   BLOOM_SCALE_VERSION,
@@ -63,7 +72,9 @@ function normalizeLayerEntry(entry) {
       params: entry.params && typeof entry.params === 'object' ? deepClone(entry.params) : undefined,
     };
   }
-  return { enabled: !!entry };
+  return {
+    enabled: !!entry
+  };
 }
 
 /**
@@ -75,17 +86,20 @@ function normalizeLayerEntry(entry) {
  * @param {number} [options.fallbackIntensity] - Default intensity if not stored
  * @returns {{ enabled: boolean, intensity: number, version: number }}
  */
-function normalizeBloomState(rawBloom = {}, { projectVersion = PROJECT_VERSION, fallbackIntensity = 50 } = {}) {
+function normalizeBloomState(rawBloom = {}, {
+  projectVersion = PROJECT_VERSION,
+  fallbackIntensity = 50
+} = {}) {
   // Determine which bloom scale the stored value was encoded under.
   // Older projects (version < PROJECT_VERSION) used scale version 1.
   const explicitVersion = Number(rawBloom.version);
-  const bloomVersion = Number.isFinite(explicitVersion)
-    ? explicitVersion
-    : (projectVersion >= PROJECT_VERSION ? BLOOM_SCALE_VERSION : 1);
+  const bloomVersion = Number.isFinite(explicitVersion) ?
+    explicitVersion :
+    (projectVersion >= PROJECT_VERSION ? BLOOM_SCALE_VERSION : 1);
 
-  const rawIntensity = Number.isFinite(Number(rawBloom.intensity))
-    ? Number(rawBloom.intensity)
-    : fallbackIntensity;
+  const rawIntensity = Number.isFinite(Number(rawBloom.intensity)) ?
+    Number(rawBloom.intensity) :
+    fallbackIntensity;
 
   return {
     enabled: !!rawBloom.enabled,
@@ -104,9 +118,9 @@ function normalizeBloomState(rawBloom = {}, { projectVersion = PROJECT_VERSION, 
 function recipeToScene(recipe) {
   const post = recipe.post || {};
   const ui = recipe.ui || {};
-  const styleParams = post.styleParams && typeof post.styleParams === 'object'
-    ? deepClone(post.styleParams)
-    : {};
+  const styleParams = post.styleParams && typeof post.styleParams === 'object' ?
+    deepClone(post.styleParams) :
+    {};
 
   // Normalize layer targets from the recipe into canonical form
   const layers = {};
@@ -138,9 +152,9 @@ function recipeToScene(recipe) {
       style: recipe.style || 'normal',
       bloom: {
         enabled: typeof post.bloom === 'number' ? post.bloom > 0 : !!post.bloom,
-        intensity: typeof post.bloom === 'number'
-          ? decodeBloomIntensity(post.bloom, 1)
-          : BLOOM_INTENSITY_DEFAULT,
+        intensity: typeof post.bloom === 'number' ?
+          decodeBloomIntensity(post.bloom, 1) :
+          BLOOM_INTENSITY_DEFAULT,
         version: BLOOM_SCALE_VERSION,
       },
       sharpen: {
@@ -190,7 +204,9 @@ function createDefaultProject() {
  * @param {number} [options.projectVersion] - Schema version of the enclosing project
  * @returns {Object} Fully normalized shot
  */
-function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } = {}) {
+function normalizeShot(rawShot, index = 0, {
+  projectVersion = PROJECT_VERSION
+} = {}) {
   const camera = rawShot?.camera || {};
   const visual = rawShot?.visual || {};
   const bloom = visual.bloom || {};
@@ -213,7 +229,10 @@ function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } 
     },
     visual: {
       style: visual.style || 'normal',
-      bloom: normalizeBloomState(bloom, { projectVersion, fallbackIntensity: 50 }),
+      bloom: normalizeBloomState(bloom, {
+        projectVersion,
+        fallbackIntensity: 50
+      }),
       sharpen: {
         enabled: !!sharpen.enabled,
         intensity: Math.max(0, Math.min(100, Number.isFinite(Number(sharpen.intensity)) ? Number(sharpen.intensity) : 65)),
@@ -242,15 +261,17 @@ function normalizeShot(rawShot, index = 0, { projectVersion = PROJECT_VERSION } 
  */
 function normalizeProject(rawProject) {
   if (!rawProject || typeof rawProject !== 'object') return createDefaultProject();
-  const projectVersion = Number.isFinite(Number(rawProject.version))
-    ? Number(rawProject.version)
-    : 1;
+  const projectVersion = Number.isFinite(Number(rawProject.version)) ?
+    Number(rawProject.version) :
+    1;
 
   const scenesRaw = Array.isArray(rawProject.scenes) ? rawProject.scenes : [];
   const scenes = scenesRaw
     .map((scene, sceneIdx) => {
       const shotsRaw = Array.isArray(scene?.shots) ? scene.shots : [];
-      const shots = shotsRaw.map((shot, shotIdx) => normalizeShot(shot, shotIdx, { projectVersion }));
+      const shots = shotsRaw.map((shot, shotIdx) => normalizeShot(shot, shotIdx, {
+        projectVersion
+      }));
       return {
         id: scene?.id || uid('scene'),
         title: scene?.title || `Scene ${sceneIdx + 1}`,
@@ -316,11 +337,20 @@ export class SceneDirector {
     this._selectedSceneId = this._project.scenes[0]?.id || null;
     this._selectedShotId = this._project.scenes[0]?.shots[0]?.id || null;
 
-    this._presentation = { status: 'Ready', progress: 0, runtime: '', playbackActive: false, keyboardEnabled: false };
-    this._state = createStateChannel(() => ({ ...this.getPlaybackStatus(), ...this._presentation, hasRun: !!this._lastRunJson }));
+    this._presentation = {
+      status: 'Ready',
+      progress: 0,
+      runtime: '',
+      playbackActive: false,
+      keyboardEnabled: false
+    };
+    this._state = createStateChannel(() => ({
+      ...this.getPlaybackStatus(),
+      ...this._presentation,
+      hasRun: !!this._lastRunJson
+    }));
     this._initUI();
   }
-
 
   _trackWork(promise) {
     this._pendingWork ||= new Set();
@@ -391,17 +421,28 @@ export class SceneDirector {
           toast.classList.remove('visible');
         }, 2600);
       }
-    } catch { /* toast is best-effort */ }
+    } catch {
+      /* toast is best-effort */ }
   }
 
   /** Immutable playback snapshots and completed editing actions. */
-  subscribe(listener, options) { return this._state.subscribe(listener, options); }
+  subscribe(listener, options) {
+    return this._state.subscribe(listener, options);
+  }
 
-  _publish(change) { this._state?.publish(change); }
+  _publish(change) {
+    this._state?.publish(change);
+  }
 
   _shotOutcome(type, scene, shot, index = scene.shots.indexOf(shot)) {
     if (type === 'shot-loaded') this._presentation.status = `Loaded: ${scene.title} / ${shot.title}`;
-    this._publish({ type, sceneId: scene.id, sceneTitle: scene.title, shot, index });
+    this._publish({
+      type,
+      sceneId: scene.id,
+      sceneTitle: scene.title,
+      shot,
+      index
+    });
   }
 
   /**
@@ -424,9 +465,17 @@ export class SceneDirector {
           this._selectedShotId = this._getSelectedScene()?.shots[0]?.id || null;
           this._renderShotList();
         },
-        selectShot: (id) => { this._selectedShotId = id; this._publish({ type: 'selection-changed' }); },
+        selectShot: (id) => {
+          this._selectedShotId = id;
+          this._publish({
+            type: 'selection-changed'
+          });
+        },
         renameShot: (sceneId, shotId, title) => {
-          const { scene, shot } = this._getShot(sceneId, shotId);
+          const {
+            scene,
+            shot
+          } = this._getShot(sceneId, shotId);
           if (!shot) return;
           shot.title = title.trim() || shot.title;
           this._saveProject();
@@ -453,7 +502,9 @@ export class SceneDirector {
     if (!this._project.scenes.some((scene) => scene.id === this._selectedSceneId)) {
       this._selectedSceneId = this._project.scenes[0]?.id || null;
     }
-    this._publish({ type: 'scene-options-changed' });
+    this._publish({
+      type: 'scene-options-changed'
+    });
   }
 
   /**
@@ -466,7 +517,9 @@ export class SceneDirector {
     if (scene?.shots.length && !scene.shots.some((shot) => shot.id === this._selectedShotId)) {
       this._selectedShotId = scene.shots[0].id;
     }
-    this._publish({ type: 'shots-changed' });
+    this._publish({
+      type: 'shots-changed'
+    });
   }
 
   /**
@@ -486,7 +539,10 @@ export class SceneDirector {
   _getShot(sceneId, shotId) {
     const scene = this._project.scenes.find((item) => item.id === sceneId);
     const shot = scene?.shots.find((item) => item.id === shotId);
-    return { scene, shot };
+    return {
+      scene,
+      shot
+    };
   }
 
   /** Append a named empty scene after the controls accept the creation prompt. */
@@ -503,7 +559,10 @@ export class SceneDirector {
     this._selectedSceneId = scene.id;
     this._selectedShotId = null;
     this._saveProject();
-    this._publish({ type: 'scene-created', scene });
+    this._publish({
+      type: 'scene-created',
+      scene
+    });
   }
 
   /** Delete the currently selected scene after user confirmation. Resets to defaults if empty. */
@@ -520,7 +579,10 @@ export class SceneDirector {
     this._selectedSceneId = this._project.scenes[0]?.id || null;
     this._selectedShotId = this._project.scenes[0]?.shots[0]?.id || null;
     this._saveProject();
-    this._publish({ type: 'scene-deleted', scene });
+    this._publish({
+      type: 'scene-deleted',
+      scene
+    });
   }
 
   /**
@@ -533,7 +595,9 @@ export class SceneDirector {
       const params = this.dataManager.getLayerParams(layer.id);
       layers[layer.id] = {
         enabled: !!layer.enabled,
-        ...(params ? { params } : {}),
+        ...(params ? {
+          params
+        } : {}),
       };
     }
     return layers;
@@ -602,7 +666,10 @@ export class SceneDirector {
    * @param {string} shotId
    */
   deleteShot(sceneId, shotId) {
-    const { scene, shot } = this._getShot(sceneId, shotId);
+    const {
+      scene,
+      shot
+    } = this._getShot(sceneId, shotId);
     if (!scene || !shot) return;
 
     const index = scene.shots.indexOf(shot);
@@ -628,13 +695,21 @@ export class SceneDirector {
    * @param {number} [options.flyDuration=2.2] - Camera flight duration in seconds
    */
   loadShot(sceneId, shotId, options) {
-    if (this._destroyed) return Promise.resolve({ started: false, reason: 'destroyed' });
+    if (this._destroyed) return Promise.resolve({
+      started: false,
+      reason: 'destroyed'
+    });
     return this._trackWork(this._loadShot(sceneId, shotId, options));
   }
 
-  async _loadShot(sceneId, shotId, { flyDuration = 2.2 } = {}) {
+  async _loadShot(sceneId, shotId, {
+    flyDuration = 2.2
+  } = {}) {
     if (this._running) return;
-    const { scene, shot } = this._getShot(sceneId, shotId);
+    const {
+      scene,
+      shot
+    } = this._getShot(sceneId, shotId);
     if (!scene || !shot) return;
 
     if (!this._claimCameraOwnership()) return;
@@ -652,7 +727,9 @@ export class SceneDirector {
     this._renderSceneSelect();
     this._renderShotList();
 
-    await this.styleManager.applyVisualState(shot.visual, { isCurrent: () => !token.cancelled });
+    await this.styleManager.applyVisualState(shot.visual, {
+      isCurrent: () => !token.cancelled
+    });
     if (token.cancelled) return;
     await this._applyLayerStates(shot.layers || {}, token);
     if (token.cancelled) return;
@@ -708,14 +785,16 @@ export class SceneDirector {
    * @param {string} startSceneId - Scene to begin playback from
    * @returns {Array<{ scene: Object, shot: Object }>}
    */
-  _buildPlaybackQueue(startSceneId, { single = false } = {}) {
+  _buildPlaybackQueue(startSceneId, {
+    single = false
+  } = {}) {
     if (!this._project.scenes.length) return [];
 
     // Rotate the scene list so startSceneId comes first
     const startIdx = Math.max(0, this._project.scenes.findIndex((scene) => scene.id === startSceneId));
-    const ordered = single
-      ? this._project.scenes.slice(startIdx, startIdx + 1)
-      : [
+    const ordered = single ?
+      this._project.scenes.slice(startIdx, startIdx + 1) :
+      [
         ...this._project.scenes.slice(startIdx),
         ...this._project.scenes.slice(0, startIdx),
       ];
@@ -724,7 +803,10 @@ export class SceneDirector {
     const queue = [];
     for (const scene of ordered) {
       for (const shot of scene.shots) {
-        queue.push({ scene, shot });
+        queue.push({
+          scene,
+          shot
+        });
       }
     }
     return queue;
@@ -750,10 +832,14 @@ export class SceneDirector {
   findSceneByQuery(query) {
     const q = String(query ?? '').trim().toLowerCase();
     if (!q) return null;
-    const scene = this._project.scenes.find((item) => item.id === query)
-      || this._project.scenes.find((item) => item.title.toLowerCase() === q)
-      || this._project.scenes.find((item) => item.title.toLowerCase().includes(q));
-    return scene ? { id: scene.id, title: scene.title, shots: scene.shots.length } : null;
+    const scene = this._project.scenes.find((item) => item.id === query) ||
+      this._project.scenes.find((item) => item.title.toLowerCase() === q) ||
+      this._project.scenes.find((item) => item.title.toLowerCase().includes(q));
+    return scene ? {
+      id: scene.id,
+      title: scene.title,
+      shots: scene.shots.length
+    } : null;
   }
 
   /**
@@ -792,17 +878,30 @@ export class SceneDirector {
    * @returns {Promise<{started: boolean, reason?: string, shots?: number}>}
    */
   startScene(sceneId, options) {
-    if (this._destroyed) return Promise.resolve({ started: false, reason: 'destroyed' });
+    if (this._destroyed) return Promise.resolve({
+      started: false,
+      reason: 'destroyed'
+    });
     return this._trackWork(this._startScene(sceneId, options));
   }
 
-  async _startScene(sceneId, { single = false } = {}) {
-    if (this._running) return { started: false, reason: 'already-running' };
+  async _startScene(sceneId, {
+    single = false
+  } = {}) {
+    if (this._running) return {
+      started: false,
+      reason: 'already-running'
+    };
 
-    const queue = this._buildPlaybackQueue(sceneId || this._selectedSceneId || this._project.scenes[0]?.id, { single });
+    const queue = this._buildPlaybackQueue(sceneId || this._selectedSceneId || this._project.scenes[0]?.id, {
+      single
+    });
     if (!queue.length) {
       this._updateStatus('No shots to run');
-      return { started: false, reason: 'no-shots' };
+      return {
+        started: false,
+        reason: 'no-shots'
+      };
     }
 
     // Playback owns the camera for the whole run, so claim it the way every
@@ -810,7 +909,10 @@ export class SceneDirector {
     // the tracked contact's frame while each shot flies, and the run ends with
     // trackedEntity still set half a world from where the camera actually is.
     if (!this._claimCameraOwnership()) {
-      return { started: false, reason: 'camera-unavailable' };
+      return {
+        started: false,
+        reason: 'camera-unavailable'
+      };
     }
 
     // A run supersedes any LOAD still suspended on its own awaits, so that
@@ -833,7 +935,10 @@ export class SceneDirector {
     // what actually stops in-flight manager work when STOP arrives — the
     // boolean alone only stops the NEXT step.
     this._runAbort = new AbortController();
-    this._runToken = { cancelled: false, signal: this._runAbort.signal };
+    this._runToken = {
+      cancelled: false,
+      signal: this._runAbort.signal
+    };
     const token = this._runToken;
     this.styleManager.setRecordingMode(true, {
       hidePanels: true,
@@ -857,14 +962,19 @@ export class SceneDirector {
     };
 
     this._startProgressTicker(estimatedDurationSec || 1);
-    this._logEvent('scene_run_start', { count: queue.length });
+    this._logEvent('scene_run_start', {
+      count: queue.length
+    });
     this._setPlaybackKeyboardEnabled(true);
 
     try {
       // Main shot sequencing loop
       for (let idx = 0; idx < queue.length; idx++) {
         if (token.cancelled) break;
-        const { scene, shot } = queue[idx];
+        const {
+          scene,
+          shot
+        } = queue[idx];
 
         // Update UI selection to track the active shot
         this._selectedSceneId = scene.id;
@@ -917,7 +1027,9 @@ export class SceneDirector {
       }
     } catch (error) {
       this._updateStatus(`Error: ${error.message || 'run failed'}`);
-      this._logEvent('scene_run_error', { message: error.message || 'unknown error' });
+      this._logEvent('scene_run_error', {
+        message: error.message || 'unknown error'
+      });
     } finally {
       this._finishRun();
     }
@@ -962,7 +1074,9 @@ export class SceneDirector {
     this._runAbort?.abort();
     this.viewer.camera.cancelFlight();
     this._updateStatus(reason);
-    this._logEvent('scene_stopped', { reason });
+    this._logEvent('scene_stopped', {
+      reason
+    });
   }
 
   /** Export the entire project as a timestamped JSON file download. */
@@ -971,7 +1085,9 @@ export class SceneDirector {
     const fileName = `scene-presets-${stamp}.json`;
     const payload = JSON.stringify(this._project, null, 2);
     // Trigger a browser download via a temporary anchor element
-    const blob = new Blob([payload], { type: 'application/json' });
+    const blob = new Blob([payload], {
+      type: 'application/json'
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -981,7 +1097,10 @@ export class SceneDirector {
     link.remove();
     URL.revokeObjectURL(url);
     this._presentation.status = 'Project exported';
-    this._publish({ type: 'project-exported', project: this._project });
+    this._publish({
+      type: 'project-exported',
+      project: this._project
+    });
   }
 
   /**
@@ -998,7 +1117,10 @@ export class SceneDirector {
       this._selectedSceneId = this._project.scenes[0]?.id || null;
       this._selectedShotId = this._project.scenes[0]?.shots[0]?.id || null;
       this._saveProject();
-      this._publish({ type: 'project-imported', project: this._project });
+      this._publish({
+        type: 'project-imported',
+        project: this._project
+      });
       this._updateStatus(`Imported ${file.name}`);
     } catch {
       this._updateStatus('Import failed (invalid JSON)');
@@ -1010,7 +1132,9 @@ export class SceneDirector {
     if (!this._lastRunJson) return;
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
     const fileName = `scene-run-${stamp}.json`;
-    const blob = new Blob([this._lastRunJson], { type: 'application/json' });
+    const blob = new Blob([this._lastRunJson], {
+      type: 'application/json'
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -1053,7 +1177,11 @@ export class SceneDirector {
   async _applyLayerStates(targetStates, token = null) {
     const applied = [];
     const refused = [];
-    const abort = () => ({ applied, refused, cancelled: true });
+    const abort = () => ({
+      applied,
+      refused,
+      cancelled: true
+    });
     if (token?.cancelled) return abort();
 
     // Deliberately NOT aborted: leaving an isolating mode IS the restore to
@@ -1065,8 +1193,15 @@ export class SceneDirector {
 
     const signal = token?.signal;
     const registered = new Set(this.dataManager.getAll().map((layer) => layer.id));
-    for (const { id, enabled, params } of sceneLayerPlan(targetStates, registered)) {
-      const settled = await this.dataManager.setEnabled(id, enabled, signal ? { signal } : undefined);
+    for (const {
+        id,
+        enabled,
+        params
+      }
+      of sceneLayerPlan(targetStates, registered)) {
+      const settled = await this.dataManager.setEnabled(id, enabled, signal ? {
+        signal
+      } : undefined);
       if (token?.cancelled) return abort();
       if (settled === false) {
         refused.push(id);
@@ -1081,9 +1216,15 @@ export class SceneDirector {
 
     if (refused.length) {
       this._updateStatus(`Layers refused: ${refused.join(', ')}`);
-      this._logEvent('shot_layers_refused', { layerIds: [...refused] });
+      this._logEvent('shot_layers_refused', {
+        layerIds: [...refused]
+      });
     }
-    return { applied, refused, cancelled: false };
+    return {
+      applied,
+      refused,
+      cancelled: false
+    };
   }
 
   /**
@@ -1117,10 +1258,15 @@ export class SceneDirector {
     if (result && result.ok === false) {
       console.warn(`[Scenes] Could not exit ${mode}:`, result.error || 'unknown reason');
       this._updateStatus(`Could not exit ${mode} — scene layers may be refused`);
-      this._logEvent('context_mode_exit_failed', { mode, error: result.error || null });
+      this._logEvent('context_mode_exit_failed', {
+        mode,
+        error: result.error || null
+      });
       return false;
     }
-    this._logEvent('context_mode_exited', { mode });
+    this._logEvent('context_mode_exited', {
+      mode
+    });
     return true;
   }
 
@@ -1244,16 +1390,25 @@ export class SceneDirector {
    * Editing controls are disabled during a run; stop is disabled when idle.
    * @param {boolean} isRunning
    */
-  _setButtons(isRunning) { this._publish({ type: 'buttons-changed', running: isRunning }); }
+  _setButtons(isRunning) {
+    this._publish({
+      type: 'buttons-changed',
+      running: isRunning
+    });
+  }
 
   _setPlaybackActive(active) {
     this._presentation.playbackActive = active;
-    this._publish({ type: 'playback-presentation' });
+    this._publish({
+      type: 'playback-presentation'
+    });
   }
 
   _setPlaybackKeyboardEnabled(enabled) {
     this._presentation.keyboardEnabled = enabled;
-    this._publish({ type: 'playback-keyboard' });
+    this._publish({
+      type: 'playback-keyboard'
+    });
   }
 
   /**
@@ -1262,7 +1417,9 @@ export class SceneDirector {
    */
   _setProgress(progress) {
     this._presentation.progress = progress;
-    this._publish({ type: 'progress-changed' });
+    this._publish({
+      type: 'progress-changed'
+    });
   }
 
   /**
@@ -1271,7 +1428,9 @@ export class SceneDirector {
    */
   _updateStatus(text) {
     this._presentation.status = text;
-    this._publish({ type: 'status-changed' });
+    this._publish({
+      type: 'status-changed'
+    });
   }
 
   /**
@@ -1280,7 +1439,9 @@ export class SceneDirector {
    */
   _updateRuntime(text) {
     this._presentation.runtime = text;
-    this._publish({ type: 'runtime-changed' });
+    this._publish({
+      type: 'runtime-changed'
+    });
   }
 
   /**
@@ -1290,7 +1451,11 @@ export class SceneDirector {
    */
   _logEvent(type, payload) {
     if (!this._activeRun) return;
-    this._publish({ type: 'run-event', event: type, detail: payload || null });
+    this._publish({
+      type: 'run-event',
+      event: type,
+      detail: payload || null
+    });
     this._activeRun.events.push({
       t: new Date().toISOString(),
       type,
