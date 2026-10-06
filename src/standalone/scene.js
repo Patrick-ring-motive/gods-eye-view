@@ -1,1 +1,4 @@
-export { createApplicationScene as createStandaloneScene } from '../app/scene.js';
+export {
+  createApplicationScene as createStandaloneScene
+}
+from '../app/scene.js';
