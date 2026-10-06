@@ -1,16 +1,27 @@
-import { expandApplicationHtml } from '../../build/application-html.js';
-import { readStylesheet } from '../testSupport/readStylesheet.mjs';
+import {
+  expandApplicationHtml
+} from '../../build/application-html.js';
+import {
+  readStylesheet
+} from '../testSupport/readStylesheet.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
 import {
   getKeyholeGeometry,
   keyholeLabelAlphaFromGeometry,
   setKeyholeFadeTuning,
 } from '../celestialRing.js';
-import { createCctvThumbnailOverlayEntry, createFrameSlot } from '../data/cctvCards.js';
-import { combinedOverlayAlpha } from './worldOverlayDraw.js';
+import {
+  createCctvThumbnailOverlayEntry,
+  createFrameSlot
+} from '../data/cctvCards.js';
+import {
+  combinedOverlayAlpha
+} from './worldOverlayDraw.js';
 import {
   AMBIENT_CARD_COLLISION_CAPACITY,
   WORLD_OVERLAY_OCCLUDER_SELECTORS,
@@ -59,30 +70,82 @@ function mockContext(target, trace) {
     calls,
     font: '',
     globalAlpha: 1,
-    get strokeStyle() { return strokeStyle; },
-    set strokeStyle(value) { strokeStyle = value; record('strokeStyle', value); },
-    get lineWidth() { return lineWidth; },
-    set lineWidth(value) { lineWidth = value; record('lineWidth', value); },
-    measureText(text) { return { width: String(text).length * 6 }; },
-    setTransform(...args) { record('setTransform', ...args); },
-    clearRect(...args) { record('clearRect', ...args); },
-    save() { record('save'); },
-    restore() { record('restore'); },
-    translate(...args) { record('translate', ...args); },
-    scale(...args) { record('scale', ...args); },
-    beginPath() { record('beginPath'); },
-    rect(...args) { record('rect', ...args); },
-    clip(...args) { record('clip', ...args); },
-    roundRect(...args) { record('roundRect', ...args); },
-    moveTo(...args) { record('moveTo', ...args); },
-    lineTo(...args) { record('lineTo', ...args); },
-    arcTo(...args) { record('arcTo', ...args); },
-    closePath() { record('closePath'); },
-    fill() { record('fill'); },
-    stroke() { record('stroke'); },
-    fillRect(...args) { record('fillRect', ...args); },
-    fillText(...args) { record('fillText', ...args); },
-    drawImage(...args) { record('drawImage', ...args); },
+    get strokeStyle() {
+      return strokeStyle;
+    },
+    set strokeStyle(value) {
+      strokeStyle = value;
+      record('strokeStyle', value);
+    },
+    get lineWidth() {
+      return lineWidth;
+    },
+    set lineWidth(value) {
+      lineWidth = value;
+      record('lineWidth', value);
+    },
+    measureText(text) {
+      return {
+        width: String(text).length * 6
+      };
+    },
+    setTransform(...args) {
+      record('setTransform', ...args);
+    },
+    clearRect(...args) {
+      record('clearRect', ...args);
+    },
+    save() {
+      record('save');
+    },
+    restore() {
+      record('restore');
+    },
+    translate(...args) {
+      record('translate', ...args);
+    },
+    scale(...args) {
+      record('scale', ...args);
+    },
+    beginPath() {
+      record('beginPath');
+    },
+    rect(...args) {
+      record('rect', ...args);
+    },
+    clip(...args) {
+      record('clip', ...args);
+    },
+    roundRect(...args) {
+      record('roundRect', ...args);
+    },
+    moveTo(...args) {
+      record('moveTo', ...args);
+    },
+    lineTo(...args) {
+      record('lineTo', ...args);
+    },
+    arcTo(...args) {
+      record('arcTo', ...args);
+    },
+    closePath() {
+      record('closePath');
+    },
+    fill() {
+      record('fill');
+    },
+    stroke() {
+      record('stroke');
+    },
+    fillRect(...args) {
+      record('fillRect', ...args);
+    },
+    fillText(...args) {
+      record('fillText', ...args);
+    },
+    drawImage(...args) {
+      record('drawImage', ...args);
+    },
   };
 }
 
@@ -97,13 +160,23 @@ function installMockEnvironment({
   const paintTrace = [];
   const ctx = mockContext('shared', paintTrace);
   const detectionCtx = mockContext('detection', paintTrace);
-  const layoutReads = { canvasWidth: 0, canvasHeight: 0, boundingClientRect: 0 };
-  const selectorQueries = { matches: 0, querySelector: 0, querySelectorAll: 0 };
+  const layoutReads = {
+    canvasWidth: 0,
+    canvasHeight: 0,
+    boundingClientRect: 0
+  };
+  const selectorQueries = {
+    matches: 0,
+    querySelector: 0,
+    querySelectorAll: 0
+  };
   const originalPerformance = Object.getOwnPropertyDescriptor(globalThis, 'performance');
   let currentTime = 0;
   Object.defineProperty(globalThis, 'performance', {
     configurable: true,
-    value: { now: () => currentTime },
+    value: {
+      now: () => currentTime
+    },
   });
 
   class MockElement {
@@ -121,7 +194,12 @@ function installMockEnvironment({
       this.height = 0;
       this.clientWidth = width;
       this.clientHeight = height;
-      this._rect = { left: 0, top: 0, width, height };
+      this._rect = {
+        left: 0,
+        top: 0,
+        width,
+        height
+      };
     }
 
     appendChild(child) {
@@ -152,7 +230,9 @@ function installMockEnvironment({
     }
 
     click() {
-      for (const listener of [...(this._listeners.get('click') || [])]) listener({ target: this });
+      for (const listener of [...(this._listeners.get('click') || [])]) listener({
+        target: this
+      });
     }
 
     replaceChildren(...children) {
@@ -222,14 +302,24 @@ function installMockEnvironment({
   const body = new MockElement('body');
   body.classList = {
     values: new Set(),
-    contains(name) { return this.values.has(name); },
-    add(name) { this.values.add(name); },
-    remove(name) { this.values.delete(name); },
+    contains(name) {
+      return this.values.has(name);
+    },
+    add(name) {
+      this.values.add(name);
+    },
+    remove(name) {
+      this.values.delete(name);
+    },
   };
   const document = {
     body,
-    createElement(tagName) { return new MockElement(tagName); },
-    getElementById(id) { return byId.get(id) || null; },
+    createElement(tagName) {
+      return new MockElement(tagName);
+    },
+    getElementById(id) {
+      return byId.get(id) || null;
+    },
     querySelector(selector) {
       selectorQueries.querySelector++;
       return this.querySelectorAll(selector)[0] || null;
@@ -257,11 +347,15 @@ function installMockEnvironment({
       if (!listenerMap.has(name)) listenerMap.set(name, new Set());
       listenerMap.get(name).add(listener);
     },
-    removeEventListener(name, listener) { listenerMap.get(name)?.delete(listener); },
+    removeEventListener(name, listener) {
+      listenerMap.get(name)?.delete(listener);
+    },
     dispatch(name, event = {}) {
       for (const listener of [...(listenerMap.get(name) || [])]) listener(event);
     },
-    listenerCount(name) { return listenerMap.get(name)?.size || 0; },
+    listenerCount(name) {
+      return listenerMap.get(name)?.size || 0;
+    },
     getComputedStyle(element) {
       const style = element?.style || {};
       return {
@@ -281,9 +375,15 @@ function installMockEnvironment({
   const resizeObservers = [];
   const mutationObservers = [];
   globalThis.ResizeObserver = class {
-    constructor(callback) { this.callback = callback; this.disconnected = false; resizeObservers.push(this); }
+    constructor(callback) {
+      this.callback = callback;
+      this.disconnected = false;
+      resizeObservers.push(this);
+    }
     observe() {}
-    disconnect() { this.disconnected = true; }
+    disconnect() {
+      this.disconnected = true;
+    }
   };
   globalThis.MutationObserver = class {
     constructor(callback) {
@@ -293,8 +393,15 @@ function installMockEnvironment({
       mutationObservers.push(this);
     }
 
-    observe(target, options) { this.observations.push({ target, options }); }
-    disconnect() { this.disconnected = true; }
+    observe(target, options) {
+      this.observations.push({
+        target,
+        options
+      });
+    }
+    disconnect() {
+      this.disconnected = true;
+    }
   };
   globalThis.document = document;
   globalThis.window = window;
@@ -353,12 +460,22 @@ function installMockEnvironment({
   const viewerCanvas = {};
   Object.defineProperties(viewerCanvas, {
     clientWidth: {
-      get() { layoutReads.canvasWidth++; return viewerCanvasWidth; },
-      set(value) { viewerCanvasWidth = value; },
+      get() {
+        layoutReads.canvasWidth++;
+        return viewerCanvasWidth;
+      },
+      set(value) {
+        viewerCanvasWidth = value;
+      },
     },
     clientHeight: {
-      get() { layoutReads.canvasHeight++; return viewerCanvasHeight; },
-      set(value) { viewerCanvasHeight = value; },
+      get() {
+        layoutReads.canvasHeight++;
+        return viewerCanvasHeight;
+      },
+      set(value) {
+        viewerCanvasHeight = value;
+      },
     },
   });
   const viewer = {
@@ -366,15 +483,21 @@ function installMockEnvironment({
     canvas: viewerCanvas,
     camera: {
       positionWC: new Cesium.Cartesian3(0, 0, 10_000_000),
-      positionCartographic: { height: 1000 },
+      positionCartographic: {
+        height: 1000
+      },
       viewMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY),
-      frustum: { projectionMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY) },
+      frustum: {
+        projectionMatrix: Cesium.Matrix4.clone(Cesium.Matrix4.IDENTITY)
+      },
       moveEnd,
     },
     scene: {
       postRender,
       requestRenderCount: 0,
-      requestRender() { this.requestRenderCount++; },
+      requestRender() {
+        this.requestRenderCount++;
+      },
     },
   };
 
@@ -391,7 +514,9 @@ function installMockEnvironment({
     mutationObservers,
     layoutReads,
     selectorQueries,
-    advanceTime(ms) { currentTime += ms; },
+    advanceTime(ms) {
+      currentTime += ms;
+    },
     cleanup() {
       destroyWorldOverlay();
       delete globalThis.document;
@@ -533,17 +658,17 @@ function formsStackingContext(declarations = {}) {
   const zIndex = declarations['z-index'] || 'auto';
   const opacity = declarations.opacity === undefined ? 1 : Number(declarations.opacity);
   const isSet = (name) => declarations[name] !== undefined && declarations[name] !== 'none';
-  return (position === 'fixed' || position === 'sticky')
-    || (position !== 'static' && zIndex !== 'auto')
-    || declarations.isolation === 'isolate'
-    || isSet('filter')
-    || isSet('backdrop-filter')
-    || isSet('transform')
-    || isSet('perspective')
-    || isSet('will-change')
-    || isSet('contain')
-    || (declarations['mix-blend-mode'] !== undefined && declarations['mix-blend-mode'] !== 'normal')
-    || (Number.isFinite(opacity) && opacity < 1);
+  return (position === 'fixed' || position === 'sticky') ||
+    (position !== 'static' && zIndex !== 'auto') ||
+    declarations.isolation === 'isolate' ||
+    isSet('filter') ||
+    isSet('backdrop-filter') ||
+    isSet('transform') ||
+    isSet('perspective') ||
+    isSet('will-change') ||
+    isSet('contain') ||
+    (declarations['mix-blend-mode'] !== undefined && declarations['mix-blend-mode'] !== 'normal') ||
+    (Number.isFinite(opacity) && opacity < 1);
 }
 
 test('no ancestor isolates the detection surface, so `screen` reaches the scene', () => {
@@ -583,7 +708,11 @@ test('no ancestor isolates the detection surface, so `screen` reaches the scene'
 });
 
 test('canvas backing store tracks CSS size and live DPR', () => {
-  const env = installMockEnvironment({ width: 400, height: 300, dpr: 2 });
+  const env = installMockEnvironment({
+    width: 400,
+    height: 300,
+    dpr: 2
+  });
   initWorldOverlay(env.viewer);
   let canvas = env.document.getElementById('world-overlay-canvas');
   let detectionSurface = env.document.getElementById('world-overlay-detection-surface');
@@ -609,15 +738,26 @@ test('canvas backing store tracks CSS size and live DPR', () => {
 });
 
 test('shared fade tuning reaches a host-painted card on the next rendered frame', () => {
-  const env = installMockEnvironment({ width: 400, height: 300, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 400,
+    height: 300,
+    dpr: 1
+  });
   const paintedAlphas = [];
   Object.defineProperty(env.ctx, 'globalAlpha', {
     configurable: true,
-    get() { return paintedAlphas.at(-1) ?? 1; },
-    set(value) { paintedAlphas.push(value); },
+    get() {
+      return paintedAlphas.at(-1) ?? 1;
+    },
+    set(value) {
+      paintedAlphas.push(value);
+    },
   });
   try {
-    setKeyholeFadeTuning({ fadeRatio: 0.16, outsideOpacity: 0.05 });
+    setKeyholeFadeTuning({
+      fadeRatio: 0.16,
+      outsideOpacity: 0.05
+    });
     initWorldOverlay(env.viewer);
     setOverlayEntries('fade-host', [selectedEntry('CARD', {
       position: new Cesium.Cartesian3(0.85, 0, 0),
@@ -628,31 +768,62 @@ test('shared fade tuning reaches a host-painted card on the next rendered frame'
     env.postRender.raise();
     const firstAlpha = paintedAlphas.at(-1);
 
-    setKeyholeFadeTuning({ fadeRatio: 0.4, outsideOpacity: 0.05 });
+    setKeyholeFadeTuning({
+      fadeRatio: 0.4,
+      outsideOpacity: 0.05
+    });
     env.postRender.raise();
     const nextAlpha = paintedAlphas.at(-1);
 
     assert.ok(firstAlpha > 0 && firstAlpha < 1, `expected feathered first alpha, got ${firstAlpha}`);
     assert.ok(nextAlpha > firstAlpha, `${firstAlpha} should change on the next frame, got ${nextAlpha}`);
   } finally {
-    setKeyholeFadeTuning({ fadeRatio: 0.16, outsideOpacity: 0.05 });
+    setKeyholeFadeTuning({
+      fadeRatio: 0.16,
+      outsideOpacity: 0.05
+    });
     env.cleanup();
   }
 });
 
 test('inlined host alpha binding matches combinedOverlayAlpha across channel ranges', () => {
-  const env = installMockEnvironment({ width: 400, height: 300, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 400,
+    height: 300,
+    dpr: 1
+  });
   const paintedAlphas = [];
   Object.defineProperty(env.ctx, 'globalAlpha', {
     configurable: true,
-    get() { return paintedAlphas.at(-1) ?? 1; },
-    set(value) { paintedAlphas.push(value); },
+    get() {
+      return paintedAlphas.at(-1) ?? 1;
+    },
+    set(value) {
+      paintedAlphas.push(value);
+    },
   });
   initWorldOverlay(env.viewer);
-  const cases = [
-    { source: 1, entry: 0.9, temporal: 0.8, distance: 0.25, altitude: 0.25 },
-    { source: 0.8, entry: 0.75, temporal: 0.7, distance: 0.5, altitude: 0.5 },
-    { source: 0.5, entry: 0.5, temporal: 0.4, distance: 0.75, altitude: 0.75 },
+  const cases = [{
+      source: 1,
+      entry: 0.9,
+      temporal: 0.8,
+      distance: 0.25,
+      altitude: 0.25
+    },
+    {
+      source: 0.8,
+      entry: 0.75,
+      temporal: 0.7,
+      distance: 0.5,
+      altitude: 0.5
+    },
+    {
+      source: 0.5,
+      entry: 0.5,
+      temporal: 0.4,
+      distance: 0.75,
+      altitude: 0.75
+    },
   ];
   try {
     for (let index = 0; index < cases.length; index++) {
@@ -672,7 +843,11 @@ test('inlined host alpha binding matches combinedOverlayAlpha across channel ran
         distanceFadeStartRatio: 0,
         altitudeFadeStart: 7500,
         altitudeFadeEnd: 9500,
-      }], { alpha: channels.source, cohortLimit: 1, collisionCapacity: 0 });
+      }], {
+        alpha: channels.source,
+        cohortLimit: 1,
+        collisionCapacity: 0
+      });
       paintedAlphas.length = 0;
       env.postRender.raise();
       const expected = combinedOverlayAlpha({
@@ -693,7 +868,11 @@ test('inlined host alpha binding matches combinedOverlayAlpha across channel ran
 });
 
 test('a host dormant since init holds no canvas backing store', () => {
-  const env = installMockEnvironment({ width: 1600, height: 900, dpr: 2 });
+  const env = installMockEnvironment({
+    width: 1600,
+    height: 900,
+    dpr: 2
+  });
   initWorldOverlay(env.viewer);
   const canvas = env.document.getElementById('world-overlay-canvas');
   const detectionSurface = env.document.getElementById('world-overlay-detection-surface');
@@ -735,7 +914,9 @@ test('empty postRender stays inert through production mutation, resize, and cloc
   initWorldOverlay(env.viewer);
   env.postRender.raise();
   const settledCallCount = env.ctx.calls.length;
-  const settledLayoutReads = { ...env.layoutReads };
+  const settledLayoutReads = {
+    ...env.layoutReads
+  };
   for (let frame = 0; frame < 6; frame++) {
     env.advanceTime(250);
     for (const observer of env.mutationObservers) observer.callback();
@@ -752,7 +933,9 @@ test('empty postRender stays inert through production mutation, resize, and cloc
 test('HUD mutations defer occluder selector scans until overlay paint work exists', () => {
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
-  const settledQueries = { ...env.selectorQueries };
+  const settledQueries = {
+    ...env.selectorQueries
+  };
   const hudMutation = {
     type: 'childList',
     target: env.document.body,
@@ -771,9 +954,24 @@ test('HUD mutations defer occluder selector scans until overlay paint work exist
 
 test('ticking chrome churn (text swaps, non-chrome nodes) never invalidates a live host', () => {
   const env = installMockEnvironment({
-    occluders: [
-      { selector: '.hud-top-left', rect: { left: 0, top: 0, width: 140, height: 44 } },
-      { id: 'traffic-sync-chip', rect: { left: 200, top: 0, width: 90, height: 24 } },
+    occluders: [{
+        selector: '.hud-top-left',
+        rect: {
+          left: 0,
+          top: 0,
+          width: 140,
+          height: 44
+        }
+      },
+      {
+        id: 'traffic-sync-chip',
+        rect: {
+          left: 200,
+          top: 0,
+          width: 90,
+          height: 24
+        }
+      },
     ],
   });
   initWorldOverlay(env.viewer);
@@ -783,7 +981,9 @@ test('ticking chrome churn (text swaps, non-chrome nodes) never invalidates a li
   // A HUD clock tick: `textContent = ...` swaps TEXT nodes deep inside chrome.
   // (Built before the settled counters: the mock's querySelector delegates to
   // querySelectorAll, and this fixture lookup must not pollute the baseline.)
-  const textNode = { nodeType: 3 };
+  const textNode = {
+    nodeType: 3
+  };
   const clockTick = {
     type: 'childList',
     target: env.document.querySelector('.hud-top-left'),
@@ -814,9 +1014,15 @@ test('ticking chrome churn (text swaps, non-chrome nodes) never invalidates a li
 
 test('genuine chrome changes still invalidate: add, remove, and own-attribute flips', () => {
   const env = installMockEnvironment({
-    occluders: [
-      { id: 'pp-toggles', rect: { left: 300, top: 40, width: 60, height: 200 } },
-    ],
+    occluders: [{
+      id: 'pp-toggles',
+      rect: {
+        left: 300,
+        top: 40,
+        width: 60,
+        height: 200
+      }
+    }, ],
   });
   initWorldOverlay(env.viewer);
   setOverlayEntries('chrome-changes', [selectedEntry('live-entry')]);
@@ -839,14 +1045,20 @@ test('genuine chrome changes still invalidate: add, remove, and own-attribute fl
   wrapper.appendChild(awareness);
   renders = env.viewer.scene.requestRenderCount;
   observer.callback([{
-    type: 'childList', target: env.document.body, addedNodes: [wrapper], removedNodes: [],
+    type: 'childList',
+    target: env.document.body,
+    addedNodes: [wrapper],
+    removedNodes: [],
   }]);
   assert.equal(env.viewer.scene.requestRenderCount, renders + 1, 'added chrome invalidates');
 
   // Chrome disappearing: a removed node that IS inventory chrome.
   renders = env.viewer.scene.requestRenderCount;
   observer.callback([{
-    type: 'childList', target: env.document.body, addedNodes: [], removedNodes: [awareness],
+    type: 'childList',
+    target: env.document.body,
+    addedNodes: [],
+    removedNodes: [awareness],
   }]);
   assert.equal(env.viewer.scene.requestRenderCount, renders + 1, 'removed chrome invalidates');
   env.cleanup();
@@ -854,9 +1066,15 @@ test('genuine chrome changes still invalidate: add, remove, and own-attribute fl
 
 test('chrome observers scope: body is childList discovery; occluder attributes are element-only', () => {
   const env = installMockEnvironment({
-    occluders: [
-      { selector: '.hud-top-left', rect: { left: 0, top: 0, width: 140, height: 44 } },
-    ],
+    occluders: [{
+      selector: '.hud-top-left',
+      rect: {
+        left: 0,
+        top: 0,
+        width: 140,
+        height: 44
+      }
+    }, ],
   });
   initWorldOverlay(env.viewer);
   setOverlayEntries('observer-scope', [selectedEntry('live-entry')]);
@@ -865,26 +1083,43 @@ test('chrome observers scope: body is childList discovery; occluder attributes a
   // Chrome discovered LATE goes through the refresh-time observe site too.
   const late = env.document.createElement('div');
   late.id = 'military-awareness-panel';
-  late._rect = { left: 10, top: 10, width: 100, height: 80 };
+  late._rect = {
+    left: 10,
+    top: 10,
+    width: 100,
+    height: 80
+  };
   Object.assign(late.style, shippedStacking('#military-awareness-panel'));
   env.document.body.appendChild(late);
   env.mutationObservers[0].callback([{
-    type: 'childList', target: env.document.body, addedNodes: [late], removedNodes: [],
+    type: 'childList',
+    target: env.document.body,
+    addedNodes: [late],
+    removedNodes: [],
   }]);
   env.advanceTime(150);
   env.postRender.raise();
 
   const observations = env.mutationObservers.flatMap((observer) => observer.observations);
-  const bodyObservations = observations.filter(({ target }) => target === env.document.body);
-  const chromeObservations = observations.filter(({ target }) => target !== env.document.body);
+  const bodyObservations = observations.filter(({
+    target
+  }) => target === env.document.body);
+  const chromeObservations = observations.filter(({
+    target
+  }) => target !== env.document.body);
   assert.equal(bodyObservations.length, 1, 'body is observed exactly once');
   assert.equal(bodyObservations[0].options.childList, true);
   assert.equal(bodyObservations[0].options.subtree, true);
   assert.notEqual(bodyObservations[0].options.attributes, true, 'body carries no attribute churn');
-  const chromeTargets = new Set(chromeObservations.map(({ target }) => target));
+  const chromeTargets = new Set(chromeObservations.map(({
+    target
+  }) => target));
   assert.ok(chromeTargets.has(late), 'late chrome is attribute-observed after discovery');
   assert.ok(chromeObservations.length >= 2, 'both observe sites covered (init-time and refresh-time)');
-  for (const { options } of chromeObservations) {
+  for (const {
+      options
+    }
+    of chromeObservations) {
     assert.equal(options.attributes, true);
     for (const name of ['class', 'style', 'hidden']) {
       assert.ok(options.attributeFilter.includes(name), `attributeFilter carries ${name}`);
@@ -899,8 +1134,8 @@ test('projection records never retain keys for entries that are no longer live',
   const originalSet = Map.prototype.set;
   let recordMap = null;
   Map.prototype.set = function captureProjectionRecordMap(key, value) {
-    if (typeof key === 'string' && key.includes('\u0000')
-      && value?.key === key && value?.candidate?._record === value) {
+    if (typeof key === 'string' && key.includes('\u0000') &&
+      value?.key === key && value?.candidate?._record === value) {
       recordMap = this;
     }
     return originalSet.call(this, key, value);
@@ -910,7 +1145,9 @@ test('projection records never retain keys for entries that are no longer live',
   try {
     initWorldOverlay(env.viewer);
     for (let batch = 0; batch < 4; batch++) {
-      const entries = Array.from({ length: 320 }, (_, index) => (
+      const entries = Array.from({
+        length: 320
+      }, (_, index) => (
         selectedEntry(`batch-${batch}-${index}`, {
           selected: false,
           protected: false,
@@ -923,7 +1160,10 @@ test('projection records never retain keys for entries that are no longer live',
           assert.ok(liveKeys.has(key), `stale projection record: ${key}`);
         }
       };
-      setOverlayEntries('churn', entries, { cohortLimit: 8, collisionCapacity: 4 });
+      setOverlayEntries('churn', entries, {
+        cohortLimit: 8,
+        collisionCapacity: 4
+      });
       env.postRender.raise();
       assert.ok(recordMap);
       assert.ok(recordMap.size < getWorldOverlayDiagnostics().entryCount);
@@ -946,7 +1186,9 @@ test('the per-domain candidate index stays bounded while identities churn', () =
   initWorldOverlay(env.viewer);
   const COHORT = 40;
   const BATCHES = 60;
-  const batchEntries = (batch) => Array.from({ length: COHORT }, (_, index) => (
+  const batchEntries = (batch) => Array.from({
+    length: COHORT
+  }, (_, index) => (
     selectedEntry(`batch-${batch}-${index}`, {
       selected: false,
       protected: false,
@@ -996,21 +1238,42 @@ test('entry normalization validates required fields and source lifecycle is stab
   assert.equal(normalized.horizonCull, true);
   assert.equal(normalized.accessibilityLabel, 'Focus fire detection 42');
   assert.equal(normalized.activate, activate);
-  assert.throws(() => normalizeOverlayEntry('', { id: 'a', position: position() }), /sourceId/);
-  assert.throws(() => normalizeOverlayEntry('fires', { id: '', position: position() }), /entry.id/);
-  assert.throws(() => normalizeOverlayEntry('fires', { id: 'a', position: null }), /position/);
-  assert.throws(() => normalizeOverlayEntry('fires', { id: 'a', position: position(), variant: 'table' }), /variant/);
+  assert.throws(() => normalizeOverlayEntry('', {
+    id: 'a',
+    position: position()
+  }), /sourceId/);
+  assert.throws(() => normalizeOverlayEntry('fires', {
+    id: '',
+    position: position()
+  }), /entry.id/);
+  assert.throws(() => normalizeOverlayEntry('fires', {
+    id: 'a',
+    position: null
+  }), /position/);
+  assert.throws(() => normalizeOverlayEntry('fires', {
+    id: 'a',
+    position: position(),
+    variant: 'table'
+  }), /variant/);
 
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
   setOverlayEntries('fires', [normalized]);
-  upsertOverlayEntry('fires', { id: 'b', position: position(), variant: 'card' });
-  assert.deepEqual(getWorldOverlayDiagnostics().entriesBySource, { fires: 2 });
+  upsertOverlayEntry('fires', {
+    id: 'b',
+    position: position(),
+    variant: 'card'
+  });
+  assert.deepEqual(getWorldOverlayDiagnostics().entriesBySource, {
+    fires: 2
+  });
   assert.equal(removeOverlayEntry('fires', 'a'), true);
   assert.equal(removeOverlayEntry('fires', 'missing'), false);
   setOverlaySourceVisible('fires', false);
   assert.equal(clearOverlaySource('fires'), true);
-  assert.deepEqual(getWorldOverlayDiagnostics().entriesBySource, { fires: 0 });
+  assert.deepEqual(getWorldOverlayDiagnostics().entriesBySource, {
+    fires: 0
+  });
   env.cleanup();
 });
 
@@ -1058,33 +1321,59 @@ test('accessible actions announce only accepted focus and expose selected state'
 
 test('viewport and horizon culling obey explicit policy inputs', () => {
   const point = position();
-  const hiddenOccluder = { isPointVisible: () => false };
-  assert.equal(isOverlayPointVisible(
-    { horizonCull: true, viewportPadding: 0 },
-    point,
-    { x: 50, y: 50 },
-    { width: 100, height: 100 },
+  const hiddenOccluder = {
+    isPointVisible: () => false
+  };
+  assert.equal(isOverlayPointVisible({
+      horizonCull: true,
+      viewportPadding: 0
+    },
+    point, {
+      x: 50,
+      y: 50
+    }, {
+      width: 100,
+      height: 100
+    },
     hiddenOccluder,
   ), false);
-  assert.equal(isOverlayPointVisible(
-    { horizonCull: false, viewportPadding: 0 },
-    point,
-    { x: 50, y: 50 },
-    { width: 100, height: 100 },
+  assert.equal(isOverlayPointVisible({
+      horizonCull: false,
+      viewportPadding: 0
+    },
+    point, {
+      x: 50,
+      y: 50
+    }, {
+      width: 100,
+      height: 100
+    },
     hiddenOccluder,
   ), true);
-  assert.equal(isOverlayPointVisible(
-    { horizonCull: false, viewportPadding: 5 },
-    point,
-    { x: -6, y: 50 },
-    { width: 100, height: 100 },
+  assert.equal(isOverlayPointVisible({
+      horizonCull: false,
+      viewportPadding: 5
+    },
+    point, {
+      x: -6,
+      y: 50
+    }, {
+      width: 100,
+      height: 100
+    },
     hiddenOccluder,
   ), false);
-  assert.equal(isOverlayPointVisible(
-    { horizonCull: false, viewportPadding: 5 },
-    point,
-    { x: -5, y: 105 },
-    { width: 100, height: 100 },
+  assert.equal(isOverlayPointVisible({
+      horizonCull: false,
+      viewportPadding: 5
+    },
+    point, {
+      x: -5,
+      y: 105
+    }, {
+      width: 100,
+      height: 100
+    },
     hiddenOccluder,
   ), true);
 });
@@ -1102,13 +1391,34 @@ test('paint lanes are deterministic across all seven binding lanes', () => {
     'tracked',
   ], 'the exported lane array order is the binding contract');
   const laneEntries = [
-    selectedEntry('DETECTION', { variant: 'label', paintLane: 'detection' }),
-    selectedEntry('LABEL', { variant: 'label', paintLane: 'ambient-label' }),
-    selectedEntry('TRACK', { variant: 'track', paintLane: 'ambient-track' }),
-    selectedEntry('CARD', { variant: 'card', paintLane: 'ambient-card' }),
-    selectedEntry('THUMBNAIL', { variant: 'thumbnail', paintLane: 'thumbnail' }),
-    selectedEntry('SELECTED', { variant: 'selected', paintLane: 'selected' }),
-    selectedEntry('TRACKED', { variant: 'tracked', paintLane: 'tracked' }),
+    selectedEntry('DETECTION', {
+      variant: 'label',
+      paintLane: 'detection'
+    }),
+    selectedEntry('LABEL', {
+      variant: 'label',
+      paintLane: 'ambient-label'
+    }),
+    selectedEntry('TRACK', {
+      variant: 'track',
+      paintLane: 'ambient-track'
+    }),
+    selectedEntry('CARD', {
+      variant: 'card',
+      paintLane: 'ambient-card'
+    }),
+    selectedEntry('THUMBNAIL', {
+      variant: 'thumbnail',
+      paintLane: 'thumbnail'
+    }),
+    selectedEntry('SELECTED', {
+      variant: 'selected',
+      paintLane: 'selected'
+    }),
+    selectedEntry('TRACKED', {
+      variant: 'tracked',
+      paintLane: 'tracked'
+    }),
   ].reverse();
   setOverlayEntries('lanes', laneEntries);
   env.postRender.raise();
@@ -1133,7 +1443,12 @@ test('custom detection lane receives the shared host frame and paints below ordi
     width: 400,
     height: 300,
     dpr: 2,
-    occluderRect: { left: 10, top: 20, width: 80, height: 40 },
+    occluderRect: {
+      left: 10,
+      top: 20,
+      width: 80,
+      height: 40
+    },
   });
   initWorldOverlay(env.viewer);
   let capturedFrame = null;
@@ -1142,7 +1457,11 @@ test('custom detection lane receives the shared host frame and paints below ordi
     capturedFrame = frame;
     paintCount++;
     frame.ctx.fillText('CUSTOM-DETECTION', 20, 20);
-  }, { id: 'detection', active: true, target: 'detection' });
+  }, {
+    id: 'detection',
+    active: true,
+    target: 'detection'
+  });
   setOverlayEntries('cards', [selectedEntry('HOST-CARD', {
     variant: 'label',
     paintLane: 'ambient-label',
@@ -1164,8 +1483,8 @@ test('custom detection lane receives the shared host frame and paints below ordi
   assert.ok(capturedFrame.uiRectCount > 0);
 
   const paintOrder = env.paintTrace
-    .filter(([, name, value]) => name === 'fillText'
-      && (value === 'CUSTOM-DETECTION' || value === 'HOST-CARD'))
+    .filter(([, name, value]) => name === 'fillText' &&
+      (value === 'CUSTOM-DETECTION' || value === 'HOST-CARD'))
     .map(([, , value]) => value);
   assert.deepEqual(paintOrder, ['CUSTOM-DETECTION', 'HOST-CARD']);
   assert.ok(env.detectionCtx.calls.some(([name]) => name === 'clearRect'),
@@ -1175,7 +1494,13 @@ test('custom detection lane receives the shared host frame and paints below ordi
   // exact legacy helper result at the center, all four edges, and two corners.
   const legacy = getKeyholeGeometry(400, 300);
   const points = [
-    [200, 150], [0, 150], [400, 150], [200, 0], [200, 300], [0, 0], [400, 300],
+    [200, 150],
+    [0, 150],
+    [400, 150],
+    [200, 0],
+    [200, 300],
+    [0, 0],
+    [400, 300],
   ];
   assert.deepEqual(
     points.map(([x, y]) => keyholeLabelAlphaFromGeometry(x, y, capturedFrame.keyhole)),
@@ -1198,14 +1523,22 @@ test('custom-lane painter state is bracketed by host save/restore', () => {
   // A painter that leaks a clip or alpha must not corrupt later frames: the
   // host wraps every custom-lane painter in save/try/finally-restore. Pin the
   // bracketing structurally (the mock ctx records call order, not state).
-  const env = installMockEnvironment({ width: 400, height: 300, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 400,
+    height: 300,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
   const lane = registerWorldOverlayPaintLane('detection', (frame) => {
     frame.ctx.beginPath();
     frame.ctx.rect(0, 0, 1, 1);
     frame.ctx.clip();
     frame.ctx.fillText('H5-MARKER', 1, 1);
-  }, { id: 'detection', active: true, target: 'detection' });
+  }, {
+    id: 'detection',
+    active: true,
+    target: 'detection'
+  });
   env.postRender.raise();
   const calls = env.detectionCtx.calls;
   const marker = calls.findIndex(([name, text]) => name === 'fillText' && text === 'H5-MARKER');
@@ -1229,8 +1562,14 @@ test('custom lanes without the detection target paint on the shared canvas', () 
   initWorldOverlay(env.viewer);
   let target = null;
   registerWorldOverlayPaintLane('ambient-label', (frame) => {
-    target = { surface: frame.surface, ctx: frame.ctx };
-  }, { id: 'shared-custom', active: true });
+    target = {
+      surface: frame.surface,
+      ctx: frame.ctx
+    };
+  }, {
+    id: 'shared-custom',
+    active: true
+  });
   env.postRender.raise();
   assert.equal(target.surface, env.document.getElementById('world-overlay-canvas'));
   assert.equal(target.ctx, env.ctx);
@@ -1256,8 +1595,18 @@ function rectsIntersect(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-function inflatedRect({ left, top, width, height }, padding = 6) {
-  return { x: left - padding, y: top - padding, w: width + padding * 2, h: height + padding * 2 };
+function inflatedRect({
+  left,
+  top,
+  width,
+  height
+}, padding = 6) {
+  return {
+    x: left - padding,
+    y: top - padding,
+    w: width + padding * 2,
+    h: height + padding * 2
+  };
 }
 
 test('UI exclusions stay per-rect: overlapping chrome never merges into a bounding union', () => {
@@ -1266,24 +1615,53 @@ test('UI exclusions stay per-rect: overlapping chrome never merges into a boundi
   // union is what produced the moving oversized voids and the size jumps as
   // panels expanded. An entry anchored in that empty region must be unaffected.
   const chrome = {
-    left: { left: 0, top: 0, width: 60, height: 220 },
-    bottom: { left: 40, top: 200, width: 200, height: 60 },
+    left: {
+      left: 0,
+      top: 0,
+      width: 60,
+      height: 220
+    },
+    bottom: {
+      left: 40,
+      top: 200,
+      width: 200,
+      height: 60
+    },
   };
   const env = installMockEnvironment({
     width: 400,
     height: 300,
     dpr: 1,
-    occluders: [
-      { id: 'left-panel-stack', rect: chrome.left },
-      { id: 'command-dock', rect: chrome.bottom },
+    occluders: [{
+        id: 'left-panel-stack',
+        rect: chrome.left
+      },
+      {
+        id: 'command-dock',
+        rect: chrome.bottom
+      },
     ],
   });
   initWorldOverlay(env.viewer);
   let uiRects = null;
   registerWorldOverlayPaintLane('detection', (frame) => {
     uiRects = frame.uiRects.slice(0, frame.uiRectCount)
-      .map(({ x, y, w, h }) => ({ x, y, w, h }));
-  }, { id: 'detection', active: true, target: 'detection' });
+      .map(({
+        x,
+        y,
+        w,
+        h
+      }) => ({
+        x,
+        y,
+        w,
+        h
+      }));
+  }, {
+    id: 'detection',
+    active: true,
+    target: 'detection'
+  });
   // Anchored just clear of the left panel, close enough that its default
   // above-the-anchor placement would collide with it.
   setOverlayEntries('ambient', [selectedEntry('CLEAR-OF-BOTH', {
@@ -1292,9 +1670,18 @@ test('UI exclusions stay per-rect: overlapping chrome never merges into a boundi
   env.postRender.raise();
 
   // Mechanism: two elements, two rectangles, each its own inflated box.
-  assert.deepEqual(uiRects, [
-    { x: -6, y: -6, w: 72, h: 232 },
-    { x: 34, y: 194, w: 212, h: 72 },
+  assert.deepEqual(uiRects, [{
+      x: -6,
+      y: -6,
+      w: 72,
+      h: 232
+    },
+    {
+      x: 34,
+      y: 194,
+      w: 212,
+      h: 72
+    },
   ], 'each occluder keeps its own rectangle');
 
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 1);
@@ -1308,7 +1695,12 @@ test('UI exclusions stay per-rect: overlapping chrome never merges into a boundi
   // box spanning x -6..246, y -6..266. Inside that union NO placement is clear,
   // so the card would have fallen back to its colliding default — which is why
   // asserting the card sits inside the union keeps this test honest.
-  assert.equal(rectsIntersect(painted, { x: -6, y: -6, w: 252, h: 272 }), true,
+  assert.equal(rectsIntersect(painted, {
+      x: -6,
+      y: -6,
+      w: 252,
+      h: 272
+    }), true,
     'the card sits inside the union the old coalescer would have produced');
   env.cleanup();
 });
@@ -1318,24 +1710,56 @@ test('UI exclusions ignore chrome the user cannot see', () => {
     width: 400,
     height: 300,
     dpr: 1,
-    occluders: [
-      { id: 'left-panel-stack', rect: { left: 0, top: 0, width: 400, height: 300 }, hidden: true },
+    occluders: [{
+        id: 'left-panel-stack',
+        rect: {
+          left: 0,
+          top: 0,
+          width: 400,
+          height: 300
+        },
+        hidden: true
+      },
       {
         id: 'command-dock',
-        rect: { left: 0, top: 0, width: 400, height: 300 },
-        style: { display: 'none' },
+        rect: {
+          left: 0,
+          top: 0,
+          width: 400,
+          height: 300
+        },
+        style: {
+          display: 'none'
+        },
       },
       {
         id: 'right-context-rail',
-        rect: { left: 0, top: 0, width: 400, height: 300 },
-        style: { visibility: 'hidden' },
+        rect: {
+          left: 0,
+          top: 0,
+          width: 400,
+          height: 300
+        },
+        style: {
+          visibility: 'hidden'
+        },
       },
-      { id: 'pp-toggles', rect: { left: 0, top: 0, width: 0, height: 0 } },
+      {
+        id: 'pp-toggles',
+        rect: {
+          left: 0,
+          top: 0,
+          width: 0,
+          height: 0
+        }
+      },
     ],
   });
   initWorldOverlay(env.viewer);
   let uiRectCount = -1;
-  registerWorldOverlayPaintLane('detection', (frame) => { uiRectCount = frame.uiRectCount; }, {
+  registerWorldOverlayPaintLane('detection', (frame) => {
+    uiRectCount = frame.uiRectCount;
+  }, {
     id: 'detection',
     active: true,
     target: 'detection',
@@ -1358,14 +1782,23 @@ test('chrome that fills the viewport suppresses neither cards nor the detection 
     width: 400,
     height: 300,
     dpr: 1,
-    occluderRect: { left: 0, top: 0, width: 400, height: 300 },
+    occluderRect: {
+      left: 0,
+      top: 0,
+      width: 400,
+      height: 300
+    },
   });
   initWorldOverlay(env.viewer);
   let detectionPaints = 0;
   registerWorldOverlayPaintLane('detection', (frame) => {
     detectionPaints++;
     frame.ctx.fillText('DETECTION-ALIVE', 10, 10);
-  }, { id: 'detection', active: true, target: 'detection' });
+  }, {
+    id: 'detection',
+    active: true,
+    target: 'detection'
+  });
   setOverlayEntries('blocked', [selectedEntry('behind-ui')]);
   env.postRender.raise();
 
@@ -1376,7 +1809,10 @@ test('chrome that fills the viewport suppresses neither cards nor the detection 
     env.detectionCtx.calls.some(([name, text]) => name === 'fillText' && text === 'DETECTION-ALIVE'),
     'detection paints its full field',
   );
-  for (const [surface, calls] of [['shared', env.ctx.calls], ['detection', env.detectionCtx.calls]]) {
+  for (const [surface, calls] of [
+      ['shared', env.ctx.calls],
+      ['detection', env.detectionCtx.calls]
+    ]) {
     assert.equal(calls.some(([name]) => name === 'clip'), false,
       `the host applies no UI clip to the ${surface} surface`);
   }
@@ -1398,25 +1834,44 @@ test('a placement is only ever kept under chrome that composites ABOVE the host'
   assert.ok(panelZ > hostTopZ, `#left-panel-stack (${panelZ}) must stack above the host`);
 
   const paintedUnder = (occluders) => {
-    const env = installMockEnvironment({ width: 400, height: 300, dpr: 1, occluders });
+    const env = installMockEnvironment({
+      width: 400,
+      height: 300,
+      dpr: 1,
+      occluders
+    });
     initWorldOverlay(env.viewer);
     setOverlayEntries('ambient', [selectedEntry('CONTACT')]);
     env.postRender.raise();
-    const { paintedCount } = getWorldOverlayDiagnostics();
+    const {
+      paintedCount
+    } = getWorldOverlayDiagnostics();
     env.cleanup();
     return paintedCount;
   };
 
-  const viewport = { left: 0, top: 0, width: 400, height: 300 };
+  const viewport = {
+    left: 0,
+    top: 0,
+    width: 400,
+    height: 300
+  };
   // Above the host: unplaceable is still safe, so the card is kept and the panel
   // simply covers it — the behaviour that fixed the cockpit blackout.
-  assert.equal(paintedUnder([{ id: 'left-panel-stack', rect: viewport }]), 1,
+  assert.equal(paintedUnder([{
+      id: 'left-panel-stack',
+      rect: viewport
+    }]), 1,
     'chrome above the host keeps the soft preference');
   // Below the host: no placement may overlap it, so the entry is vetoed instead
   // of painting over HUD text. `.hud-top-left` is nested in #intel-hud, so this
   // also proves the classifier walks the ancestor chain rather than reading the
   // element's own (auto) z-index.
-  assert.equal(paintedUnder([{ selector: '.hud-top-left', parent: '#intel-hud', rect: viewport }]), 0,
+  assert.equal(paintedUnder([{
+      selector: '.hud-top-left',
+      parent: '#intel-hud',
+      rect: viewport
+    }]), 0,
     'chrome below the host keeps an absolute veto');
 });
 
@@ -1430,17 +1885,59 @@ test('cockpit keeps its cards and its detection lane, and hides only the tracked
     width: 400,
     height: 300,
     dpr: 1,
-    occluders: [
-      { id: 'cockpit-context', rect: { left: 12, top: 174, width: 112, height: 114 } },
-      { id: 'cockpit-signal-stream', rect: { left: 276, top: 174, width: 112, height: 114 } },
+    occluders: [{
+        id: 'cockpit-context',
+        rect: {
+          left: 12,
+          top: 174,
+          width: 112,
+          height: 114
+        }
+      },
+      {
+        id: 'cockpit-signal-stream',
+        rect: {
+          left: 276,
+          top: 174,
+          width: 112,
+          height: 114
+        }
+      },
       // The dropped line art, at the geometry that used to swallow the screen:
       // a viewport-wide topline and a keyhole-tall rim on each side. Present in
       // the DOM, absent from the inventory, therefore inert. Under the old
       // 12-selector list these three coalesced with everything else into one
       // near-fullscreen rectangle.
-      { selector: '.cockpit-topline', inInventory: false, rect: { left: 13, top: 4, width: 374, height: 26 } },
-      { selector: '.cockpit-altitude-rim', inInventory: false, rect: { left: 253, top: 0, width: 57, height: 299 } },
-      { selector: '.cockpit-roll-arc', inInventory: false, rect: { left: 88, top: 2, width: 224, height: 32 } },
+      {
+        selector: '.cockpit-topline',
+        inInventory: false,
+        rect: {
+          left: 13,
+          top: 4,
+          width: 374,
+          height: 26
+        }
+      },
+      {
+        selector: '.cockpit-altitude-rim',
+        inInventory: false,
+        rect: {
+          left: 253,
+          top: 0,
+          width: 57,
+          height: 299
+        }
+      },
+      {
+        selector: '.cockpit-roll-arc',
+        inInventory: false,
+        rect: {
+          left: 88,
+          top: 2,
+          width: 224,
+          height: 32
+        }
+      },
     ],
   });
   initWorldOverlay(env.viewer);
@@ -1455,12 +1952,22 @@ test('cockpit keeps its cards and its detection lane, and hides only the tracked
     target: 'detection',
   });
   setOverlayEntries('vessels', [
-    selectedEntry('VESSEL-A', { position: positionAtScreen(200, 90) }),
-    selectedEntry('VESSEL-B', { position: positionAtScreen(120, 130) }),
+    selectedEntry('VESSEL-A', {
+      position: positionAtScreen(200, 90)
+    }),
+    selectedEntry('VESSEL-B', {
+      position: positionAtScreen(120, 130)
+    }),
   ]);
-  setOverlayEntries('trackedReadout', [selectedEntry('TRACKED')], { hideInCockpit: true });
+  setOverlayEntries('trackedReadout', [selectedEntry('TRACKED')], {
+    hideInCockpit: true
+  });
 
-  env.window.dispatch('gev:cockpit-mode-changed', { detail: { active: true } });
+  env.window.dispatch('gev:cockpit-mode-changed', {
+    detail: {
+      active: true
+    }
+  });
   env.postRender.raise();
 
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 2,
@@ -1488,7 +1995,11 @@ test('opt-in anchor separation thins a co-located cohort before the arbiter sees
   // therefore the exact observable.
   const anchors = [500, 540, 580, 620, 660, 700];
   const project = (separation) => {
-    const env = installMockEnvironment({ width: 400, height: 800, dpr: 1 });
+    const env = installMockEnvironment({
+      width: 400,
+      height: 800,
+      dpr: 1
+    });
     initWorldOverlay(env.viewer);
     setOverlayEntries('cctv', anchors.map((y, index) => selectedEntry(`cam-${index}`, {
       position: positionAtScreen(200, y, 400, 800),
@@ -1497,9 +2008,14 @@ test('opt-in anchor separation thins a co-located cohort before the arbiter sees
       priority: 100 - index,
       collisionGroup: 'ambient-card',
       minAnchorSeparationPx: separation,
-    })), { collisionCapacity: 16, cohortLimit: 16 });
+    })), {
+      collisionCapacity: 16,
+      cohortLimit: 16
+    });
     env.postRender.raise();
-    const { projectedCount } = getWorldOverlayDiagnostics();
+    const {
+      projectedCount
+    } = getWorldOverlayDiagnostics();
     env.cleanup();
     return projectedCount;
   };
@@ -1531,15 +2047,24 @@ test('position getters snapshot once per frame and cockpit-gated sources disappe
   let getterCalls = 0;
   initWorldOverlay(env.viewer);
   setOverlayEntries('tracked', [selectedEntry('flight', {
-    position: () => { getterCalls++; return position(); },
+    position: () => {
+      getterCalls++;
+      return position();
+    },
     interactive: true,
-  })], { hideInCockpit: true });
+  })], {
+    hideInCockpit: true
+  });
   env.postRender.raise();
   assert.equal(getterCalls, 1);
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 1);
   env.postRender.raise();
   assert.equal(getterCalls, 2);
-  env.window.dispatch('gev:cockpit-mode-changed', { detail: { active: true } });
+  env.window.dispatch('gev:cockpit-mode-changed', {
+    detail: {
+      active: true
+    }
+  });
   env.postRender.raise();
   assert.equal(getterCalls, 2);
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 0);
@@ -1548,7 +2073,9 @@ test('position getters snapshot once per frame and cockpit-gated sources disappe
 });
 
 test('bounded per-source cohorts feed the domain arbiter without universal selection', () => {
-  const normalized = Array.from({ length: 10 }, (_, index) => normalizeOverlayEntry('bulk', {
+  const normalized = Array.from({
+    length: 10
+  }, (_, index) => normalizeOverlayEntry('bulk', {
     id: `item-${index}`,
     position: position(),
     priority: index,
@@ -1566,7 +2093,10 @@ test('bounded per-source cohorts feed the domain arbiter without universal selec
 
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
-  setOverlayEntries('bulk', normalized, { cohortLimit: 3, collisionCapacity: 2 });
+  setOverlayEntries('bulk', normalized, {
+    cohortLimit: 3,
+    collisionCapacity: 2
+  });
   env.postRender.raise();
   const diagnostics = getWorldOverlayDiagnostics();
   assert.equal(diagnostics.entryCount, 10);
@@ -1576,9 +2106,15 @@ test('bounded per-source cohorts feed the domain arbiter without universal selec
 });
 
 test('FIRMS and vessels enlarge the ambient-card lane under an explicit aggregate budget', () => {
-  const env = installMockEnvironment({ width: 1600, height: 900, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 1600,
+    height: 900,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
-  const makeEntries = (sourceOffset, count = 200) => Array.from({ length: count }, (_, index) => {
+  const makeEntries = (sourceOffset, count = 200) => Array.from({
+    length: count
+  }, (_, index) => {
     const slot = index % 160;
     const column = slot % 16;
     const row = Math.floor(slot / 16);
@@ -1636,8 +2172,16 @@ test('paint rectangles publish from a pool and topmost interactive lookup wins',
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
   setOverlayEntries('hits', [
-    selectedEntry('under', { interactive: true, zIndex: 1, collisionGroup: 'under' }),
-    selectedEntry('over', { interactive: true, zIndex: 2, collisionGroup: 'over' }),
+    selectedEntry('under', {
+      interactive: true,
+      zIndex: 1,
+      collisionGroup: 'under'
+    }),
+    selectedEntry('over', {
+      interactive: true,
+      zIndex: 2,
+      collisionGroup: 'over'
+    }),
   ]);
   env.postRender.raise();
   const under = getOverlayPaintRect('hits', 'under');
@@ -1658,7 +2202,11 @@ test('paint rectangles publish from a pool and topmost interactive lookup wins',
 });
 
 test('CCTV stable frame slots gate ambient chrome and wire the exact host hit rectangle', () => {
-  const env = installMockEnvironment({ width: 500, height: 400, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 500,
+    height: 400,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
   const slot = createFrameSlot();
   const entry = createCctvThumbnailOverlayEntry({
@@ -1677,9 +2225,13 @@ test('CCTV stable frame slots gate ambient chrome and wire the exact host hit re
   });
   env.postRender.raise();
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 0, 'no ambient placeholder before frame one');
-  assert.equal(hitTestWorldOverlay(250, 150, { sourceId: 'cctv' }), null);
+  assert.equal(hitTestWorldOverlay(250, 150, {
+    sourceId: 'cctv'
+  }), null);
 
-  const firstFrame = { name: 'frame-one' };
+  const firstFrame = {
+    name: 'frame-one'
+  };
   slot.frame = firstFrame;
   slot.stamp = 1;
   env.advanceTime(130);
@@ -1688,13 +2240,23 @@ test('CCTV stable frame slots gate ambient chrome and wire the exact host hit re
   env.postRender.raise();
   const rect = getOverlayPaintRect('cctv', 'cam-a');
   assert.ok(rect);
-  assert.deepEqual({ w: rect.w, h: rect.h }, { w: 104, h: 77 });
-  const hit = hitTestWorldOverlay(rect.x + 1, rect.y + 1, { sourceId: 'cctv' });
+  assert.deepEqual({
+    w: rect.w,
+    h: rect.h
+  }, {
+    w: 104,
+    h: 77
+  });
+  const hit = hitTestWorldOverlay(rect.x + 1, rect.y + 1, {
+    sourceId: 'cctv'
+  });
   assert.equal(hit?.entryId, 'cam-a');
   assert.equal(hit?.entry.interactive, true);
   assert.ok(env.ctx.calls.some((call) => call[0] === 'drawImage' && call[1] === firstFrame));
 
-  const secondFrame = { name: 'frame-two' };
+  const secondFrame = {
+    name: 'frame-two'
+  };
   slot.frame = secondFrame;
   slot.stamp = 2;
   env.advanceTime(16);
@@ -1707,13 +2269,22 @@ test('CCTV stable frame slots gate ambient chrome and wire the exact host hit re
 });
 
 test('pinned CCTV chrome may paint before frame one while ordinary safe-top policy still yields', () => {
-  const env = installMockEnvironment({ width: 500, height: 400, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 500,
+    height: 400,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
   const ambient = createCctvThumbnailOverlayEntry({
     id: 'ambient-top',
     position: new Cesium.Cartesian3(0, 0.9, 0),
     title: 'AMBIENT',
-    frameSlot: { frame: { id: 'ready' }, stamp: 1 },
+    frameSlot: {
+      frame: {
+        id: 'ready'
+      },
+      stamp: 1
+    },
   });
   ambient.horizonCull = false;
   ambient.maxDistance = Number.POSITIVE_INFINITY;
@@ -1726,7 +2297,10 @@ test('pinned CCTV chrome may paint before frame one while ordinary safe-top poli
   });
   pinned.horizonCull = false;
   pinned.maxDistance = Number.POSITIVE_INFINITY;
-  setOverlayEntries('cctv', [ambient, pinned], { cohortLimit: 40, collisionCapacity: 40 });
+  setOverlayEntries('cctv', [ambient, pinned], {
+    cohortLimit: 40,
+    collisionCapacity: 40
+  });
   env.postRender.raise();
   assert.equal(getOverlayPaintRect('cctv', 'ambient-top'), null, 'ambient anchor yields to top HUD band');
   assert.ok(getOverlayPaintRect('cctv', 'pinned-top'), 'explicit hover pin paints chrome immediately');
@@ -1737,13 +2311,22 @@ test('safe-top yield culls an uncontested ambient entry at projection, with a be
   // Non-vacuous form of the yield guard: the entry above the band has no
   // pinned neighbor to arbiter-collide with, so only the projection gate can
   // null it; the below-band twin proves the paint path itself is live.
-  const env = installMockEnvironment({ width: 500, height: 400, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 500,
+    height: 400,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
   const above = createCctvThumbnailOverlayEntry({
     id: 'yield-above',
     position: new Cesium.Cartesian3(-0.5, 0.9, 0),
     title: 'ABOVE',
-    frameSlot: { frame: { id: 'ready' }, stamp: 1 },
+    frameSlot: {
+      frame: {
+        id: 'ready'
+      },
+      stamp: 1
+    },
   });
   above.horizonCull = false;
   above.maxDistance = Number.POSITIVE_INFINITY;
@@ -1751,11 +2334,19 @@ test('safe-top yield culls an uncontested ambient entry at projection, with a be
     id: 'yield-below',
     position: new Cesium.Cartesian3(0.5, 0, 0),
     title: 'BELOW',
-    frameSlot: { frame: { id: 'ready' }, stamp: 1 },
+    frameSlot: {
+      frame: {
+        id: 'ready'
+      },
+      stamp: 1
+    },
   });
   below.horizonCull = false;
   below.maxDistance = Number.POSITIVE_INFINITY;
-  setOverlayEntries('cctv', [above, below], { cohortLimit: 40, collisionCapacity: 40 });
+  setOverlayEntries('cctv', [above, below], {
+    cohortLimit: 40,
+    collisionCapacity: 40
+  });
   env.postRender.raise();
   env.advanceTime(130);
   env.postRender.raise();
@@ -1769,19 +2360,32 @@ test('safe-top yield culls an uncontested ambient entry at projection, with a be
 });
 
 test('CCTV host binding preserves the smoothstep scale and 0.45/0.35 fade curve', () => {
-  const env = installMockEnvironment({ width: 500, height: 400, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 500,
+    height: 400,
+    dpr: 1
+  });
   const paintedAlphas = [];
   Object.defineProperty(env.ctx, 'globalAlpha', {
     configurable: true,
-    get() { return paintedAlphas.at(-1) ?? 1; },
-    set(value) { paintedAlphas.push(value); },
+    get() {
+      return paintedAlphas.at(-1) ?? 1;
+    },
+    set(value) {
+      paintedAlphas.push(value);
+    },
   });
   initWorldOverlay(env.viewer);
   const entry = createCctvThumbnailOverlayEntry({
     id: 'altitude-curve',
     position: position(),
     title: 'ALTITUDE',
-    frameSlot: { frame: { ready: true }, stamp: 1 },
+    frameSlot: {
+      frame: {
+        ready: true
+      },
+      stamp: 1
+    },
     active: true,
   });
   entry.horizonCull = false;
@@ -1795,12 +2399,26 @@ test('CCTV host binding preserves the smoothstep scale and 0.45/0.35 fade curve'
     endValue: 0.35,
     smoothToMid: true,
   });
-  setOverlayEntries('cctv-altitude', [entry], { cohortLimit: 1, collisionCapacity: 0 });
+  setOverlayEntries('cctv-altitude', [entry], {
+    cohortLimit: 1,
+    collisionCapacity: 0
+  });
 
-  const cases = [
-    { altitude: 2850, scale: 0.9140625, alpha: 1 },
-    { altitude: 6000, scale: 0.45, alpha: 1 },
-    { altitude: 9490, scale: 0.35028571428571426, alpha: 0.005 },
+  const cases = [{
+      altitude: 2850,
+      scale: 0.9140625,
+      alpha: 1
+    },
+    {
+      altitude: 6000,
+      scale: 0.45,
+      alpha: 1
+    },
+    {
+      altitude: 9490,
+      scale: 0.35028571428571426,
+      alpha: 0.005
+    },
   ];
   try {
     for (const expected of cases) {
@@ -1820,14 +2438,23 @@ test('CCTV host binding preserves the smoothstep scale and 0.45/0.35 fade curve'
 });
 
 test('CCTV leader remains one CSS pixel at the 0.35 altitude scale point', () => {
-  const env = installMockEnvironment({ width: 500, height: 400, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 500,
+    height: 400,
+    dpr: 1
+  });
   env.viewer.camera.positionCartographic.height = 9500;
   initWorldOverlay(env.viewer);
   const entry = createCctvThumbnailOverlayEntry({
     id: 'scaled-leader',
     position: position(),
     title: 'SCALED',
-    frameSlot: { frame: { ready: true }, stamp: 1 },
+    frameSlot: {
+      frame: {
+        ready: true
+      },
+      stamp: 1
+    },
     active: true,
   });
   entry.horizonCull = false;
@@ -1835,7 +2462,10 @@ test('CCTV leader remains one CSS pixel at the 0.35 altitude scale point', () =>
   entry.edgeFade = 'none';
   entry.altitudeFadeStart = Number.POSITIVE_INFINITY;
   entry.altitudeFadeEnd = Number.POSITIVE_INFINITY;
-  setOverlayEntries('cctv-scaled-leader', [entry], { cohortLimit: 1, collisionCapacity: 0 });
+  setOverlayEntries('cctv-scaled-leader', [entry], {
+    cohortLimit: 1,
+    collisionCapacity: 0
+  });
   env.postRender.raise();
 
   const scale = env.ctx.calls.find(([name]) => name === 'scale')?.[1];
@@ -1847,9 +2477,18 @@ test('CCTV leader remains one CSS pixel at the 0.35 altitude scale point', () =>
 });
 
 test('active CCTV thumbnail is protected outside the ambient quota and excludes ambient footprint', () => {
-  const env = installMockEnvironment({ width: 800, height: 600, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 800,
+    height: 600,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
-  const readySlot = () => ({ frame: { ready: true }, stamp: 1 });
+  const readySlot = () => ({
+    frame: {
+      ready: true
+    },
+    stamp: 1
+  });
   const active = createCctvThumbnailOverlayEntry({
     id: 'active',
     position: position(),
@@ -1867,24 +2506,34 @@ test('active CCTV thumbnail is protected outside the ambient quota and excludes 
   });
   ambient.horizonCull = false;
   ambient.maxDistance = Number.POSITIVE_INFINITY;
-  setOverlayEntries('cctv-active', [active], { cohortLimit: 1, collisionCapacity: 0 });
-  setOverlayEntries('cctv-ambient', [ambient], { cohortLimit: 1, collisionCapacity: 1 });
+  setOverlayEntries('cctv-active', [active], {
+    cohortLimit: 1,
+    collisionCapacity: 0
+  });
+  setOverlayEntries('cctv-ambient', [ambient], {
+    cohortLimit: 1,
+    collisionCapacity: 1
+  });
   env.postRender.raise();
   const activeRect = getOverlayPaintRect('cctv-active', 'active');
   const ambientRect = getOverlayPaintRect('cctv-ambient', 'ambient');
   assert.ok(activeRect, 'active card bypasses a zero ambient quota');
   if (ambientRect) {
-    const intersects = ambientRect.x < activeRect.x + activeRect.w
-      && ambientRect.x + ambientRect.w > activeRect.x
-      && ambientRect.y < activeRect.y + activeRect.h
-      && ambientRect.y + ambientRect.h > activeRect.y;
+    const intersects = ambientRect.x < activeRect.x + activeRect.w &&
+      ambientRect.x + ambientRect.w > activeRect.x &&
+      ambientRect.y < activeRect.y + activeRect.h &&
+      ambientRect.y + ambientRect.h > activeRect.y;
     assert.equal(intersects, false, 'ambient placement yields to the active protected footprint');
   }
   env.cleanup();
 });
 
 test('protected tracked entry bypasses ambient quota and excludes its paint footprint', () => {
-  const env = installMockEnvironment({ width: 800, height: 600, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 800,
+    height: 600,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
   const position = new Cesium.Cartesian3(0, 0, 0);
   setOverlayEntries('ambient-source', [{
@@ -1897,7 +2546,10 @@ test('protected tracked entry bypasses ambient quota and excludes its paint foot
     verticalOnly: true,
     horizonCull: false,
     edgeFade: 'none',
-  }], { cohortLimit: 1, collisionCapacity: 1 });
+  }], {
+    cohortLimit: 1,
+    collisionCapacity: 1
+  });
   setOverlayEntries('tracked', [{
     id: 'flights:test',
     position,
@@ -1911,23 +2563,30 @@ test('protected tracked entry bypasses ambient quota and excludes its paint foot
     verticalOnly: true,
     horizonCull: false,
     edgeFade: 'none',
-  }], { cohortLimit: 1, collisionCapacity: 0 });
+  }], {
+    cohortLimit: 1,
+    collisionCapacity: 0
+  });
   env.postRender.raise();
   const trackedRect = getOverlayPaintRect('tracked', 'flights:test');
   const ambientRect = getOverlayPaintRect('ambient-source', 'ambient');
   assert.ok(trackedRect, 'protected tracked card paints with a zero ambient quota');
   if (ambientRect) {
-    const intersects = ambientRect.x < trackedRect.x + trackedRect.w
-      && ambientRect.x + ambientRect.w > trackedRect.x
-      && ambientRect.y < trackedRect.y + trackedRect.h
-      && ambientRect.y + ambientRect.h > trackedRect.y;
+    const intersects = ambientRect.x < trackedRect.x + trackedRect.w &&
+      ambientRect.x + ambientRect.w > trackedRect.x &&
+      ambientRect.y < trackedRect.y + trackedRect.h &&
+      ambientRect.y + ambientRect.h > trackedRect.y;
     assert.equal(intersects, false, 'ambient placement avoids the protected tracked rectangle');
   }
   env.cleanup();
 });
 
 test('three clustered protected cards fall back to the least-overlapping placement', () => {
-  const env = installMockEnvironment({ width: 800, height: 600, dpr: 1 });
+  const env = installMockEnvironment({
+    width: 800,
+    height: 600,
+    dpr: 1
+  });
   initWorldOverlay(env.viewer);
   const anchor = new Cesium.Cartesian3(0, 0, 0);
   setOverlayEntries('protected-cluster', [
@@ -1952,14 +2611,17 @@ test('three clustered protected cards fall back to the least-overlapping placeme
       collisionGroup: 'protected-cluster',
       verticalOnly: true,
     }),
-  ], { cohortLimit: 3, collisionCapacity: 0 });
+  ], {
+    cohortLimit: 3,
+    collisionCapacity: 0
+  });
   env.postRender.raise();
 
   const first = getOverlayPaintRect('protected-cluster', 'wide-first');
   const second = getOverlayPaintRect('protected-cluster', 'short-second');
   const third = getOverlayPaintRect('protected-cluster', 'medium-third');
-  const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x))
-    * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) *
+    Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
   assert.ok(first && second && third);
   assert.equal(overlapArea(first, second), 0, 'the two-entry separation remains intact');
   assert.equal(overlapArea(first, third), 0, 'the third card no longer stacks on placements[0]');
@@ -1998,7 +2660,9 @@ test('destroy empties paint pools and releases pooled record and entry payloads'
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
   setOverlayEntries('pool-release', [selectedEntry('payload', {
-    metadata: { retainedProbe: new Uint8Array(1024) },
+    metadata: {
+      retainedProbe: new Uint8Array(1024)
+    },
   })]);
   env.postRender.raise();
   const firstRect = getOverlayPaintRect('pool-release', 'payload');
@@ -2028,7 +2692,9 @@ function togglablePosition(box) {
 test('a candidate that is not projected this frame stops painting immediately', () => {
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
-  const box = { hidden: false };
+  const box = {
+    hidden: false
+  };
   setOverlayEntries('stamp', [selectedEntry('ambient', {
     selected: false,
     protected: false,
@@ -2055,11 +2721,21 @@ test('a candidate that is not projected this frame stops painting immediately', 
 test('published paint rectangles are scoped to the publishing key and frame', () => {
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
-  const first = { hidden: false };
-  const second = { hidden: false };
+  const first = {
+    hidden: false
+  };
+  const second = {
+    hidden: false
+  };
   setOverlayEntries('rects', [
-    selectedEntry('aaa', { interactive: true, position: togglablePosition(first) }),
-    selectedEntry('bbb', { interactive: true, position: togglablePosition(second) }),
+    selectedEntry('aaa', {
+      interactive: true,
+      position: togglablePosition(first)
+    }),
+    selectedEntry('bbb', {
+      interactive: true,
+      position: togglablePosition(second)
+    }),
   ]);
   env.postRender.raise();
   const rectA = getOverlayPaintRect('rects', 'aaa');
@@ -2090,7 +2766,9 @@ test('published paint rectangles are scoped to the publishing key and frame', ()
 test('every exported entry point is inert after destroy', () => {
   const env = installMockEnvironment();
   initWorldOverlay(env.viewer);
-  setOverlayEntries('post-destroy', [selectedEntry('live', { interactive: true })]);
+  setOverlayEntries('post-destroy', [selectedEntry('live', {
+    interactive: true
+  })]);
   env.postRender.raise();
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 1);
 
@@ -2099,7 +2777,10 @@ test('every exported entry point is inert after destroy', () => {
 
   assert.doesNotThrow(() => setOverlayEntries('post-destroy', [selectedEntry('zombie')]));
   assert.doesNotThrow(() => setOverlayEntries('post-destroy', 'not-an-array'));
-  assert.doesNotThrow(() => upsertOverlayEntry('post-destroy', { id: 'zombie-2', position: position() }));
+  assert.doesNotThrow(() => upsertOverlayEntry('post-destroy', {
+    id: 'zombie-2',
+    position: position()
+  }));
   assert.equal(removeOverlayEntry('post-destroy', 'live'), false);
   assert.equal(clearOverlaySource('post-destroy'), false);
   assert.doesNotThrow(() => setOverlaySourceVisible('post-destroy', false));
@@ -2125,7 +2806,9 @@ test('every exported entry point is inert after destroy', () => {
 
   // A later init still produces a fully working host.
   initWorldOverlay(env.viewer);
-  setOverlayEntries('post-destroy', [selectedEntry('revived', { interactive: true })]);
+  setOverlayEntries('post-destroy', [selectedEntry('revived', {
+    interactive: true
+  })]);
   env.postRender.raise();
   assert.equal(getWorldOverlayDiagnostics().paintedCount, 1);
   assert.equal(hitTestWorldOverlay(200, 120).entryId, 'revived');
