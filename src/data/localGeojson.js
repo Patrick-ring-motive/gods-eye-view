@@ -1,4 +1,6 @@
-import { governorRequestRender } from '../renderGovernor.js';
+import {
+  governorRequestRender
+} from '../renderGovernor.js';
 import {
   clearSelectedEntityContextForLayer,
   registerEntityContext,
@@ -35,8 +37,8 @@ export const localGeoJsonServices = Object.freeze({
 export function createLocalGeoJsonLayer(options) {
   return createLayer(options, {
     ...localGeoJsonServices,
-    overlayHost: options.overlayHost === undefined
-      ? localGeoJsonServices.overlayHost : options.overlayHost,
+    overlayHost: options.overlayHost === undefined ?
+      localGeoJsonServices.overlayHost : options.overlayHost,
   });
 }
 
