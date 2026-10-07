@@ -17,8 +17,8 @@ function safeHttpUrl(value) {
 export function normalizeRegionalPlace(payload) {
   const address = payload?.address || {};
   const locality = cleanText(
-    address.city || address.town || address.village || address.municipality
-      || address.hamlet || address.county,
+    address.city || address.town || address.village || address.municipality ||
+    address.hamlet || address.county,
     90,
   );
   const region = cleanText(address.state || address.region || address.county, 90);
@@ -49,9 +49,9 @@ export function normalizeRegionalArticles(payload, limit = MAX_ARTICLES) {
     seen.add(signature);
     const rawDate = cleanText(row?.seendate, 32);
     const compactDate = /^(\d{8})T(\d{6})Z$/.exec(rawDate);
-    const publishedAt = compactDate
-      ? `${compactDate[1].slice(0, 4)}-${compactDate[1].slice(4, 6)}-${compactDate[1].slice(6, 8)}T${compactDate[2].slice(0, 2)}:${compactDate[2].slice(2, 4)}:${compactDate[2].slice(4, 6)}Z`
-      : Number.isNaN(Date.parse(rawDate)) ? null : new Date(rawDate).toISOString();
+    const publishedAt = compactDate ?
+      `${compactDate[1].slice(0, 4)}-${compactDate[1].slice(4, 6)}-${compactDate[1].slice(6, 8)}T${compactDate[2].slice(0, 2)}:${compactDate[2].slice(2, 4)}:${compactDate[2].slice(4, 6)}Z` :
+      Number.isNaN(Date.parse(rawDate)) ? null : new Date(rawDate).toISOString();
     articles.push({
       title,
       url,
@@ -74,9 +74,9 @@ export function normalizeRegionalWeather(payload) {
   };
   // Open-Meteo reports zone-naive timestamps ("2026-08-17T00:15") that are UTC,
   // but JS parses zoneless date-times as LOCAL — pin them to UTC explicitly.
-  const observedRaw = typeof current.time === 'string' && !/(?:[zZ]|[+-]\d\d:?\d\d)$/.test(current.time)
-    ? `${current.time}Z`
-    : current.time;
+  const observedRaw = typeof current.time === 'string' && !/(?:[zZ]|[+-]\d\d:?\d\d)$/.test(current.time) ?
+    `${current.time}Z` :
+    current.time;
   return {
     observedAt: Number.isNaN(Date.parse(observedRaw)) ? null : new Date(observedRaw).toISOString(),
     temperatureC: numberOrNull(current.temperature_2m),
@@ -116,7 +116,7 @@ export function regionalDistanceM(from, to) {
   const phi2 = to.latitude * Math.PI / 180;
   const deltaPhi = (to.latitude - from.latitude) * Math.PI / 180;
   const deltaLambda = (to.longitude - from.longitude) * Math.PI / 180;
-  const a = Math.sin(deltaPhi / 2) ** 2
-    + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
+  const a = Math.sin(deltaPhi / 2) ** 2 +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2;
   return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
