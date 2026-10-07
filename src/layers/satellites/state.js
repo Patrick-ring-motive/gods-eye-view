@@ -1,8 +1,14 @@
 import * as Cesium from 'cesium';
 
-export function createState({ services }) {
-  const { setOverlayEntries, setOverlaySourceVisible, clearOverlaySource } =
-    services.overlays;
+export function createState({
+  services
+}) {
+  const {
+    setOverlayEntries,
+    setOverlaySourceVisible,
+    clearOverlaySource
+  } =
+  services.overlays;
   const state = {};
 
   state.DEFAULT_OVERLAY_HOST = Object.freeze({
@@ -88,7 +94,11 @@ export function createState({ services }) {
 
   // Runtime params (DataLayerManager.setLayerParams path)
 
-  state._params = { catalog: 'core', showPoints: true, showOrbits: true };
+  state._params = {
+    catalog: 'core',
+    showPoints: true,
+    showOrbits: true
+  };
   // 'core' | 'dense'
 
   state._denseIds = [];
@@ -120,7 +130,10 @@ export function createState({ services }) {
 
   state._catalogRevision = 0;
 
-  state._classTallyCache = { revision: -1, counts: null };
+  state._classTallyCache = {
+    revision: -1,
+    counts: null
+  };
 
   /** @type {(() => void)|null} Manager callback: "this layer's row controls changed". */
 
