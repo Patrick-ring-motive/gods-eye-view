@@ -1,4 +1,7 @@
-import { DEPENDENCIES, AIRCRAFT_DEPENDENCIES } from './policy.js';
+import {
+  DEPENDENCIES,
+  AIRCRAFT_DEPENDENCIES
+} from './policy.js';
 
 export function createDependencies({
   state: layerState,
