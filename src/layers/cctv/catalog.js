@@ -1,7 +1,17 @@
-import { CAMERA_SEEDS, SOURCE_ENDPOINT } from './policy.js';
+import {
+  CAMERA_SEEDS,
+  SOURCE_ENDPOINT
+} from './policy.js';
 
-export function createCatalog({ state: layerState, services, parts, source }) {
-  const { CITY_POIS } = services.locations;
+export function createCatalog({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    CITY_POIS
+  } = services.locations;
 
   /**
    * Builds the initial camera catalog from CAMERA_SEEDS definitions.
@@ -16,7 +26,10 @@ export function createCatalog({ state: layerState, services, parts, source }) {
       const city = CITY_POIS[seed.cityId];
       const poi = city?.pois?.[seed.poiIndex];
       if (!city || !poi) continue;
-      const { latOffset, lonOffset } = parts.model.offsetDegrees(
+      const {
+        latOffset,
+        lonOffset
+      } = parts.model.offsetDegrees(
         poi.lat,
         seed.offsetNorthM || 0,
         seed.offsetEastM || 0,
@@ -40,8 +53,7 @@ export function createCatalog({ state: layerState, services, parts, source }) {
         rangeM: parts.model.clamp(seed.rangeM ?? 700, 260, 1800),
         mountHeightM: parts.model.clamp(seed.elevationM ?? 22, 8, 80),
         groundElevationM: Number(city.groundElevation) || 0,
-        absoluteHeightM:
-          (Number(city.groundElevation) || 0) +
+        absoluteHeightM: (Number(city.groundElevation) || 0) +
           parts.model.clamp(seed.elevationM ?? 22, 8, 80),
         pitchDeg: parts.model.clamp(seed.pitchDeg ?? -17, -40, -4),
       };
@@ -83,7 +95,9 @@ export function createCatalog({ state: layerState, services, parts, source }) {
   async function loadCameraSources() {
     try {
       const signal = layerState._sourceAbort?.signal;
-      const data = await source.getCatalog({ signal });
+      const data = await source.getCatalog({
+        signal
+      });
       signal?.throwIfAborted();
       if (!Array.isArray(data?.sources)) return [];
       return data.sources;
@@ -127,9 +141,9 @@ export function createCatalog({ state: layerState, services, parts, source }) {
 
       const sourceHeading = parts.model.safeNumber(source.headingDeg, NaN);
       const headingDeg = parts.model.normalizeHeading(
-        Number.isFinite(sourceHeading)
-          ? sourceHeading
-          : (seed?.headingDeg ?? parts.model.headingFromId(id)),
+        Number.isFinite(sourceHeading) ?
+        sourceHeading :
+        (seed?.headingDeg ?? parts.model.headingFromId(id)),
       );
       const fovDeg = parts.model.clamp(
         parts.model.safeNumber(source.fovDeg, seed?.fovDeg ?? 74),
@@ -180,8 +194,8 @@ export function createCatalog({ state: layerState, services, parts, source }) {
         ),
         sourceKind: String(
           source.sourceKind ||
-            source.kind ||
-            (source.url ? 'configured' : 'seed'),
+          source.kind ||
+          (source.url ? 'configured' : 'seed'),
         ).toLowerCase(),
         feedType,
         feedConfigured: typeof source.url === 'string' && !!source.url.trim(),
@@ -199,10 +213,9 @@ export function createCatalog({ state: layerState, services, parts, source }) {
         credit: String(source.credit || ''),
         code: String(source.code || ''),
         // Shipped precompute (see server/providers/cctv/groundHeights.js).
-        groundHeights:
-          source.groundHeights && typeof source.groundHeights === 'object'
-            ? source.groundHeights
-            : null,
+        groundHeights: source.groundHeights && typeof source.groundHeights === 'object' ?
+          source.groundHeights :
+          null,
         poseSource,
       };
       parts.model.ensureCameraPose(camera);
