@@ -1,9 +1,21 @@
-import { createState } from './state.js';
-import { createLifecycle } from './lifecycle.js';
-import { defaultSweepClock } from './policy.js';
-import { createRendering } from './rendering.js';
-import { createIngestion } from './ingestion.js';
-import { createInteraction } from './interaction.js';
+import {
+  createState
+} from './state.js';
+import {
+  createLifecycle
+} from './lifecycle.js';
+import {
+  defaultSweepClock
+} from './policy.js';
+import {
+  createRendering
+} from './rendering.js';
+import {
+  createIngestion
+} from './ingestion.js';
+import {
+  createInteraction
+} from './interaction.js';
 export function createSubmarineCableLayer({
   source,
   overlayHost,
@@ -15,7 +27,10 @@ export function createSubmarineCableLayer({
     throw new TypeError(
       'A cable source with a label and fetch(signal) is required',
     );
-  const state = createState({ overlayHost, sweepClock });
+  const state = createState({
+    overlayHost,
+    sweepClock
+  });
   const parts = {};
   const context = {
     state,
@@ -36,12 +51,14 @@ export {
   createCableOverlayPublisher,
   createCableReferenceSweepGate,
   updateCableReferenceStem,
-} from './overlay.js';
+}
+from './overlay.js';
 export {
   cableClassificationTypeForStack,
   cableClassificationTypeForScene,
   applyTranslucentMarkerBlend,
-} from './surface.js';
+}
+from './surface.js';
 export {
   CABLE_REFERENCE_LABEL_WINNER_CAP,
   CABLE_OVERLAY_SOURCE_ID,
@@ -50,4 +67,5 @@ export {
   CABLE_SWEEP_MOTION_PROBE_INTERVAL_MS,
   CABLE_SWEEP_MOTION_EPSILON_M,
   CABLE_LABEL_DEPTH_DECISION,
-} from './policy.js';
+}
+from './policy.js';
