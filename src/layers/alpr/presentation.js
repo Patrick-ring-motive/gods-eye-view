@@ -7,10 +7,19 @@ import {
   ALPR_COLOR,
   CREDIT_DISPLAY_MS,
 } from './policy.js';
-import { boxContains, destinationPointDeg } from './model.js';
+import {
+  boxContains,
+  destinationPointDeg
+} from './model.js';
 
-export function createAlprPresentation({ state, services, source }) {
-  const { governorRequestRender } = services.render;
+export function createAlprPresentation({
+  state,
+  services,
+  source
+}) {
+  const {
+    governorRequestRender
+  } = services.render;
   const {
     clearSelectedEntityContextForLayer,
     getSelectedEntityContext,
@@ -19,7 +28,9 @@ export function createAlprPresentation({ state, services, source }) {
     selectEntityContext,
   } = services.context;
 
-  const { cachedGroundFloor } = services.groundFloor;
+  const {
+    cachedGroundFloor
+  } = services.groundFloor;
 
   function markerColor() {
     return Cesium.Color.fromCssColorString(ALPR_COLOR);
@@ -77,7 +88,12 @@ export function createAlprPresentation({ state, services, source }) {
       east - west > MAX_VIEWPORT_DEGREES
     )
       return null;
-    return { south, west, north, east };
+    return {
+      south,
+      west,
+      north,
+      east
+    };
   }
 
   function clearRendered() {
@@ -104,18 +120,18 @@ export function createAlprPresentation({ state, services, source }) {
   function renderRecords() {
     const selectedContext = getSelectedEntityContext();
     const box = viewportBox(state.viewer);
-    const visible = box
-      ? state.records
-          .filter((record) =>
-            boxContains(box, {
-              south: record.latitude,
-              north: record.latitude,
-              west: record.longitude,
-              east: record.longitude,
-            }),
-          )
-          .slice(0, MAX_RENDERED)
-      : [];
+    const visible = box ?
+      state.records
+      .filter((record) =>
+        boxContains(box, {
+          south: record.latitude,
+          north: record.latitude,
+          west: record.longitude,
+          east: record.longitude,
+        }),
+      )
+      .slice(0, MAX_RENDERED) :
+      [];
     // A refresh may retain its own selection, never reclaim one cleared or
     // replaced by an aircraft, another layer, or a voice action.
     if (
@@ -131,7 +147,9 @@ export function createAlprPresentation({ state, services, source }) {
     for (const entity of [...state.dataSource.entities.values]) {
       if (!visibleIds.has(entity.id)) state.dataSource.entities.remove(entity);
     }
-    removeEntityContextsForLayer(LAYER_ID, { retainIds: visibleIds });
+    removeEntityContextsForLayer(LAYER_ID, {
+      retainIds: visibleIds
+    });
     for (const record of visible) {
       const existing = state.dataSource.entities.getById(record.id);
       if (existing?.gevAlprRecord === record) {
@@ -217,8 +235,7 @@ export function createAlprPresentation({ state, services, source }) {
         layerId: LAYER_ID,
         dataSource: state.dataSource,
         layerName: 'ALPR Cameras',
-        source:
-          source.attribution?.description || source.label || 'Camera source',
+        source: source.attribution?.description || source.label || 'Camera source',
         label: 'ALPR camera',
         latitude: record.latitude,
         longitude: record.longitude,
@@ -235,9 +252,9 @@ export function createAlprPresentation({ state, services, source }) {
         },
       });
     }
-    const selectedEntity = state.selectedId
-      ? state.dataSource.entities.getById(state.selectedId)
-      : null;
+    const selectedEntity = state.selectedId ?
+      state.dataSource.entities.getById(state.selectedId) :
+      null;
     if (!selectedEntity) state.selectedId = null;
     updateSelectedAnchor();
     // Start only when mapped data is actually displayed, not while an upstream
@@ -313,9 +330,9 @@ export function createAlprPresentation({ state, services, source }) {
   }
 
   function clearSelection() {
-    const entity = state.selectedId
-      ? state.dataSource?.entities.getById(state.selectedId)
-      : null;
+    const entity = state.selectedId ?
+      state.dataSource?.entities.getById(state.selectedId) :
+      null;
     const record = state.recordById.get(state.selectedId);
     if (entity && record) {
       entity.point.pixelSize = 8;
