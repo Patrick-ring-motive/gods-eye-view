@@ -3,7 +3,12 @@ import {
   cableClassificationTypeForStack,
 } from './surface.js';
 
-export function createLifecycle({ state, parts, source, mapStackEventTarget }) {
+export function createLifecycle({
+  state,
+  parts,
+  source,
+  mapStackEventTarget
+}) {
   return {
     id: 'telegeography-submarine-cables',
     name: 'Submarine Cables',
@@ -20,9 +25,9 @@ export function createLifecycle({ state, parts, source, mapStackEventTarget }) {
       if (!state._mapStackListener && mapStackEventTarget?.addEventListener) {
         state._mapStackListener = (event) => {
           parts.rendering.applyCableClassification(
-            event?.detail?.activeId
-              ? cableClassificationTypeForStack(event.detail.activeId)
-              : cableClassificationTypeForScene(state._viewer?.scene),
+            event?.detail?.activeId ?
+            cableClassificationTypeForStack(event.detail.activeId) :
+            cableClassificationTypeForScene(state._viewer?.scene),
           );
         };
         mapStackEventTarget.addEventListener(
