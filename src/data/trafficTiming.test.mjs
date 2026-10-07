@@ -197,13 +197,11 @@ test('traffic timing pairs real ordering to the scheduling change and guards re-
       headers: {
         get: () => null
       },
-      json: async () => (String(url).includes('/api/tomtom/status') ?
-        {
-          hasKey: false
-        } :
-        {
-          elements: []
-        }),
+      json: async () => (String(url).includes('/api/tomtom/status') ? {
+        hasKey: false
+      } : {
+        elements: []
+      }),
     });
     globalThis.setTimeout = (callback, delay) => {
       const id = ++timerId;
