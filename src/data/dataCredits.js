@@ -29,36 +29,31 @@ export const DATA_CREDITS = [
   // ── Live sources ────────────────────────────────────────────────
   {
     key: 'opensky',
-    html:
-      'Flights: OpenSky Network — Schäfer et al., ' +
+    html: 'Flights: OpenSky Network — Schäfer et al., ' +
       '“Bringing Up OpenSky”, IPSN 2014 · ' +
       '<a href="https://opensky-network.org" target="_blank" rel="noopener">opensky-network.org</a> ' +
       '(non-commercial)',
   },
   {
     key: 'adsblol',
-    html:
-      'Military flights, aircraft traces &amp; bounded regional flight fallback: ' +
+    html: 'Military flights, aircraft traces &amp; bounded regional flight fallback: ' +
       '<a href="https://adsb.lol" target="_blank" rel="noopener">adsb.lol</a> ' +
       '(ODbL 1.0)',
   },
   {
     key: 'aisstream',
-    html:
-      'Live vessels (AIS): ' +
+    html: 'Live vessels (AIS): ' +
       '<a href="https://aisstream.io" target="_blank" rel="noopener">AISStream.io</a>',
   },
   {
     key: 'celestrak',
-    html:
-      'Satellites (TLEs): CelesTrak ' +
+    html: 'Satellites (TLEs): CelesTrak ' +
       '(<a href="https://celestrak.org" target="_blank" rel="noopener">celestrak.org</a>), ' +
       'Dr. T.S. Kelso',
   },
   {
     key: 'launch-library-2',
-    html:
-      'Space mission launch, payload &amp; recovery metadata: ' +
+    html: 'Space mission launch, payload &amp; recovery metadata: ' +
       '<a href="https://ll.thespacedevs.com/docs/" target="_blank" rel="noopener">Launch Library 2 — The Space Devs</a> ' +
       '(API documentation and rate limits)',
   },
@@ -68,98 +63,84 @@ export const DATA_CREDITS = [
   },
   {
     key: 'overpass',
-    html:
-      'Road geometry (traffic): ' +
+    html: 'Road geometry (traffic): ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       '(ODbL 1.0)',
   },
   {
     key: 'photon-geocoder',
-    html:
-      'Keyless place search: ' +
+    html: 'Keyless place search: ' +
       '<a href="https://photon.komoot.io" target="_blank" rel="noopener">Photon</a> (komoot) over ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       '(ODbL 1.0)',
   },
   {
     key: 'alpr-osm',
-    html:
-      'ALPR camera locations (automatic license plate readers): ' +
+    html: 'ALPR camera locations (automatic license plate readers): ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       '(<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>); ' +
       'community mapping includes <a href="https://deflock.org" target="_blank" rel="noopener">DeFlock</a>',
   },
   {
     key: 'military-installations-osm',
-    html:
-      'Mapped installation context: ' +
+    html: 'Mapped installation context: ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       '(ODbL 1.0; incomplete mapped context)',
   },
   {
     key: 'cockpit-place-osm',
-    html:
-      'Cockpit place context: ' +
+    html: 'Cockpit place context: ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       'via Nominatim (ODbL 1.0)',
   },
   {
     key: 'open-meteo',
-    html:
-      'Cockpit current conditions: ' +
+    html: 'Cockpit current conditions: ' +
       '<a href="https://open-meteo.com/en/licence" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a> ' +
       '(CC BY 4.0)',
   },
   {
     key: 'google-news-rss',
-    html:
-      'Cockpit regional headlines: ' +
+    html: 'Cockpit regional headlines: ' +
       '<a href="https://policies.google.com/terms" target="_blank" rel="noopener">Google News RSS</a> ' +
       '(location-matched article links; publisher terms apply)',
   },
   {
     key: 'gdelt',
-    html:
-      'Cockpit regional headlines: ' +
+    html: 'Cockpit regional headlines: ' +
       '<a href="https://www.gdeltproject.org/about.html" target="_blank" rel="noopener">GDELT Project</a> ' +
       '(location-matched article links; publisher terms apply)',
   },
   {
     key: 'austin-cctv',
-    html:
-      'CCTV cameras &amp; frames: City of Austin, TX — ' +
+    html: 'CCTV cameras &amp; frames: City of Austin, TX — ' +
       '<a href="https://data.austintexas.gov" target="_blank" rel="noopener">data.austintexas.gov</a>',
   },
   {
     key: 'txdot-cctv',
-    html:
-      'CCTV cameras &amp; frames (Texas): ' +
+    html: 'CCTV cameras &amp; frames (Texas): ' +
       '<a href="https://its.txdot.gov/" target="_blank" rel="noopener">Texas Department of Transportation</a> (courtesy)',
   },
   {
     key: 'caltrans-cctv',
-    html:
-      'CCTV cameras &amp; frames (California): Caltrans — ' +
+    html: 'CCTV cameras &amp; frames (California): Caltrans — ' +
       '<a href="https://cwwp2.dot.ca.gov/" target="_blank" rel="noopener">cwwp2.dot.ca.gov</a>',
   },
   {
     key: 'tfl-cctv',
-    html:
-      'CCTV cameras &amp; frames (London): ' +
+    html: 'CCTV cameras &amp; frames (London): ' +
       '<a href="https://tfl.gov.uk/info-for/open-data-users/" target="_blank" rel="noopener">Powered by TfL Open Data</a>. ' +
       'Contains OS data © Crown copyright and database rights.',
   },
   {
     key: 'ontario-511-cctv',
-    html:
-      'CCTV cameras &amp; frames (Ontario): ' +
+    html: 'CCTV cameras &amp; frames (Ontario): ' +
       '<a href="https://511on.ca/" target="_blank" rel="noopener">Ontario 511</a> ' +
       '(<a href="https://www.ontario.ca/page/open-government-licence-ontario" target="_blank" rel="noopener">Open Government Licence - Ontario</a>)',
   },
   {
     key: 'fintraffic-cctv',
-    html:
-      'CCTV cameras &amp; frames (Finland): Fintraffic / ' +
+    html: 'CCTV cameras &amp; frames (Finland): Fintraffic / ' +
       '<a href="https://www.digitraffic.fi/en/" target="_blank" rel="noopener">digitraffic.fi</a>, ' +
       'license CC BY 4.0',
   },
@@ -169,45 +150,39 @@ export const DATA_CREDITS = [
   },
   {
     key: 'radio-browser',
-    html:
-      'Internet-radio station directory: ' +
+    html: 'Internet-radio station directory: ' +
       '<a href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser</a> ' +
       '(public domain; audio delivered directly by each broadcaster)',
   },
   {
     key: 'reearth-terrain',
-    html:
-      'Terrain (keyless globe stacks): ' +
+    html: 'Terrain (keyless globe stacks): ' +
       '<a href="https://terrain.reearth.land" target="_blank" rel="noopener">Re:Earth Terrain</a> / ' +
       'Mapterhorn (CC BY 4.0) / EGM2008 (NGA)',
   },
   // ── Bundled snapshots ───────────────────────────────────────────
   {
     key: 'datacenters',
-    html:
-      'Datacenters: ' +
+    html: 'Datacenters: ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       '(ODbL 1.0)',
   },
   {
     key: 'dams',
-    html:
-      'Dams: ' +
+    html: 'Dams: ' +
       '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
       '(ODbL 1.0) + Open Infrastructure Map',
   },
   {
     key: 'firms',
-    html:
-      'Active fires: NASA FIRMS — we acknowledge the use of data and/or imagery ' +
+    html: 'Active fires: NASA FIRMS — we acknowledge the use of data and/or imagery ' +
       'from NASA’s Fire Information for Resource Management System ' +
       '(<a href="https://earthdata.nasa.gov/firms" target="_blank" rel="noopener">earthdata.nasa.gov/firms</a>), ' +
       'part of NASA’s Earth Observing System Data and Information System (EOSDIS)',
   },
   {
     key: 'drivebc-cctv',
-    html:
-      'CCTV cameras &amp; frames (British Columbia): ' +
+    html: 'CCTV cameras &amp; frames (British Columbia): ' +
       '<a href="https://www.drivebc.ca/" target="_blank" rel="noopener">DriveBC</a>. ' +
       'Contains information licensed under the ' +
       '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc" target="_blank" rel="noopener">Open Government Licence – British Columbia</a>. ' +
@@ -215,33 +190,28 @@ export const DATA_CREDITS = [
   },
   {
     key: 'tallinn-cctv',
-    html:
-      'CCTV cameras &amp; frames (Tallinn): City of Tallinn — ' +
+    html: 'CCTV cameras &amp; frames (Tallinn): City of Tallinn — ' +
       '<a href="https://ristmikud.tallinn.ee/" target="_blank" rel="noopener">ristmikud.tallinn.ee</a> (courtesy)',
   },
   {
     key: 'tarktee-cctv',
-    html:
-      'CCTV cameras &amp; frames (Estonia road weather): Transpordiamet / Tarktee — ' +
+    html: 'CCTV cameras &amp; frames (Estonia road weather): Transpordiamet / Tarktee — ' +
       '<a href="https://tarktee.transpordiamet.ee/" target="_blank" rel="noopener">tarktee.transpordiamet.ee</a> (courtesy)',
   },
   {
     key: 'warendorf-cctv',
-    html:
-      'Webcam (Warendorf): <a href="https://www.warendorf.de/" target="_blank" rel="noopener">Stadt Warendorf</a> (courtesy); ' +
+    html: 'Webcam (Warendorf): <a href="https://www.warendorf.de/" target="_blank" rel="noopener">Stadt Warendorf</a> (courtesy); ' +
       'camera poses derived from OpenStreetMap geometry, © OpenStreetMap contributors (ODbL)',
   },
   {
     key: 'nsw-cctv',
-    html:
-      'CCTV cameras &amp; frames (New South Wales): ' +
+    html: 'CCTV cameras &amp; frames (New South Wales): ' +
       '<a href="https://www.livetraffic.com/" target="_blank" rel="noopener">Live Traffic NSW</a> — Transport for NSW ' +
       '(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)',
   },
   {
     key: 'telegeography',
-    html:
-      'Submarine cables: © TeleGeography — ' +
+    html: 'Submarine cables: © TeleGeography — ' +
       '<a href="https://www.submarinecablemap.com" target="_blank" rel="noopener">submarinecablemap.com</a> ' +
       '(CC BY-NC-SA 3.0 — NonCommercial)',
   },
@@ -257,8 +227,7 @@ export const DATA_CREDITS = [
  */
 export const TOMTOM_CREDIT = {
   key: 'tomtom',
-  html:
-    'Traffic flow data © ' +
+  html: 'Traffic flow data © ' +
     '<a href="https://www.tomtom.com" target="_blank" rel="noopener">TomTom</a>',
 };
 
@@ -266,8 +235,7 @@ export const TOMTOM_CREDIT = {
  * domain — no attribution required; credited as a courtesy). */
 export const NATURAL_EARTH_CREDIT = {
   key: 'natural-earth',
-  html:
-    'Physical region boundaries from ' +
+  html: 'Physical region boundaries from ' +
     '<a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (public domain)',
 };
 
@@ -305,7 +273,10 @@ export function registerDataCredits(viewer, credits = DATA_CREDITS) {
   if (!creditDisplay || typeof creditDisplay.addStaticCredit !== 'function') {
     return;
   }
-  for (const { html } of credits) {
+  for (const {
+      html
+    }
+    of credits) {
     // showOnScreen=false → lives in the expandable "Data attribution" popover,
     // not the on-globe credit line.
     creditDisplay.addStaticCredit(new Cesium.Credit(html, false));
