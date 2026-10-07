@@ -13,7 +13,12 @@ import {
   REPLAY_ORBIT_FRAME_CENTER_BLEND,
 } from './policy.js';
 
-export function createCamera({ state: layerState, services, parts, source }) {
+export function createCamera({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function cameraHeadingForPath(path, progress, fallback = Math.PI) {
     if (!path?.length) return fallback;
     const current = parts.paths.samplePath(path, progress);
@@ -66,11 +71,11 @@ export function createCamera({ state: layerState, services, parts, source }) {
     const blend = Cesium.Math.clamp(Number(orbitBlend) || 0, 0, 1);
     return Cesium.Math.zeroToTwoPi(
       pathHeading +
-        Cesium.Math.lerp(
-          REPLAY_ASCENT_CAMERA_OFFSET_RAD,
-          REPLAY_ORBIT_CAMERA_OFFSET_RAD,
-          blend,
-        ),
+      Cesium.Math.lerp(
+        REPLAY_ASCENT_CAMERA_OFFSET_RAD,
+        REPLAY_ORBIT_CAMERA_OFFSET_RAD,
+        blend,
+      ),
     );
   }
 
@@ -111,8 +116,8 @@ export function createCamera({ state: layerState, services, parts, source }) {
     const blend = Cesium.Math.clamp(
       (Math.log(Math.max(range, MISSION_CLOSE_VIEW_RANGE_M)) -
         Math.log(MISSION_CLOSE_VIEW_RANGE_M)) /
-        (Math.log(MISSION_GLOBE_VIEW_RANGE_M) -
-          Math.log(MISSION_CLOSE_VIEW_RANGE_M)),
+      (Math.log(MISSION_GLOBE_VIEW_RANGE_M) -
+        Math.log(MISSION_CLOSE_VIEW_RANGE_M)),
       0,
       1,
     );
@@ -161,7 +166,10 @@ export function createCamera({ state: layerState, services, parts, source }) {
       contextBlend,
     );
     if (state?.ascending) {
-      return { range: ascentRange, pitch: ascentPitch };
+      return {
+        range: ascentRange,
+        pitch: ascentPitch
+      };
     }
     const rawBlend = Cesium.Math.clamp(
       (Number(state?.phaseProgress) || 0) / REPLAY_ORBIT_PULLBACK_FRACTION,
@@ -307,7 +315,11 @@ export function createCamera({ state: layerState, services, parts, source }) {
       ),
       new Cesium.Cartesian3(),
     );
-    return { destination, direction, up };
+    return {
+      destination,
+      direction,
+      up
+    };
   }
 
   /**
