@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CELESTIAL_PLANE_EPSILON,
@@ -41,14 +43,20 @@ test('visible globe uses the smaller exit clearance for hysteresis', () => {
 
 test('off-center globe containment includes center offset', () => {
   const centered = geometry(30, 0);
-  const shifted = { ...centered, earthCenterX: centered.earthCenterX + 20 };
+  const shifted = {
+    ...centered,
+    earthCenterX: centered.earthCenterX + 20
+  };
   assert.equal(isFullGlobeInsideKeyhole(centered, false), true);
   assert.equal(isFullGlobeInsideKeyhole(shifted, false), false);
 });
 
 test('invalid or clipped Earth discs are rejected', () => {
   assert.equal(isFullGlobeInsideKeyhole(null, false), false);
-  assert.equal(isFullGlobeInsideKeyhole({ ...geometry(30), earthRadius: -1 }, false), false);
+  assert.equal(isFullGlobeInsideKeyhole({
+    ...geometry(30),
+    earthRadius: -1
+  }, false), false);
   assert.equal(isFullGlobeInsideKeyhole(geometry(-2), true), false);
 });
 
@@ -110,7 +118,10 @@ test('shared keyhole geometry is centered and height-derived', () => {
 });
 
 test('label alpha stays opaque inside and fades monotonically outside', () => {
-  setKeyholeFadeTuning({ fadeRatio: 0.16, outsideOpacity: 0 });
+  setKeyholeFadeTuning({
+    fadeRatio: 0.16,
+    outsideOpacity: 0
+  });
   const geometry = getKeyholeGeometry(1200, 800);
   const y = geometry.centerY;
   assert.equal(keyholeLabelAlpha(geometry.centerX, y, 1200, 800), 1);
@@ -134,16 +145,25 @@ test('label alpha stays opaque inside and fades monotonically outside', () => {
 });
 
 test('fade tuning scales with keyhole radius and supports outside opacity', () => {
-  setKeyholeFadeTuning({ fadeRatio: 0.2, outsideOpacity: 0.3 });
+  setKeyholeFadeTuning({
+    fadeRatio: 0.2,
+    outsideOpacity: 0.3
+  });
   const small = getKeyholeGeometry(800, 600);
   const large = getKeyholeGeometry(1600, 1200);
   assert.equal(large.featherPx, small.featherPx * 2);
-  assert.deepEqual(getKeyholeFadeTuning(), { fadeRatio: 0.2, outsideOpacity: 0.3 });
+  assert.deepEqual(getKeyholeFadeTuning(), {
+    fadeRatio: 0.2,
+    outsideOpacity: 0.3
+  });
   assert.equal(keyholeLabelAlpha(
     small.centerX + small.radius + small.featherPx,
     small.centerY,
     800,
     600,
   ), 0.3);
-  setKeyholeFadeTuning({ fadeRatio: 0.16, outsideOpacity: 0.05 });
+  setKeyholeFadeTuning({
+    fadeRatio: 0.16,
+    outsideOpacity: 0.05
+  });
 });
