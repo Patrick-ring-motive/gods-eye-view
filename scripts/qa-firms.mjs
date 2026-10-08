@@ -69,7 +69,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* ignore */ }
+      /* ignore */
+    }
   }
   return null;
 }
@@ -225,7 +226,8 @@ async function setView(page, lon, lat, height) {
     try {
       gev.viewer.camera.cancelFlight();
     } catch {
-      /* no flight active */ }
+      /* no flight active */
+    }
     gev.viewer.camera.setView({
       destination: ell.cartographicToCartesian({
         longitude: lo * d2r,
@@ -350,18 +352,16 @@ async function main() {
         req.respond({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(interceptMode === 'keyless' ?
-            {
-              hasKey: false
-            } :
-            {
-              hasKey: true,
-              lastFetch: Date.now() - 7200000,
-              count: 3,
-              stale: true,
-              ttlMs: 1800000,
-              transactions: null
-            }),
+          body: JSON.stringify(interceptMode === 'keyless' ? {
+            hasKey: false
+          } : {
+            hasKey: true,
+            lastFetch: Date.now() - 7200000,
+            count: 3,
+            stale: true,
+            ttlMs: 1800000,
+            transactions: null
+          }),
         });
         return;
       }
@@ -386,7 +386,8 @@ async function main() {
       try {
         req.continue();
       } catch {
-        /* already handled */ }
+        /* already handled */
+      }
     });
 
     // ── (i) LIVE feed ────────────────────────────────────────────────────────
