@@ -10,8 +10,7 @@ import {
 export function _handleContextLayerChange(change) {
   if (this.destroyed) return;
   if (
-    change?.layerId === 'radio' &&
-    [
+    change?.layerId === 'radio' && [
       'visibility-transition',
       'visibility',
       'visibility-cancelled',
@@ -71,8 +70,7 @@ export function _handleContextLayerChange(change) {
     return;
   }
   if (
-    change?.layerId === 'rocket-launches' &&
-    ['visibility', 'visibility-blocked', 'visibility-failed'].includes(
+    change?.layerId === 'rocket-launches' && ['visibility', 'visibility-blocked', 'visibility-failed'].includes(
       change.type,
     )
   ) {
@@ -84,7 +82,7 @@ export function _handleContextLayerChange(change) {
     ) {
       this.showToast(
         change.reason ||
-          'That layer is unavailable in the current Context mode',
+        'That layer is unavailable in the current Context mode',
       );
     }
     this._syncContextModeButtons();
@@ -96,8 +94,7 @@ export function _handleContextLayerChange(change) {
     // cleared by the visibility guard. Wait outside the synchronous manager
     // notification for this queue to settle, then reconcile the complete
     // snapshot, including an uncertain failed shell.
-    const needsDeferredShellRestore =
-      ['military-awareness', 'rocket-launches'].includes(change.layerId) &&
+    const needsDeferredShellRestore = ['military-awareness', 'rocket-launches'].includes(change.layerId) &&
       change.enabled &&
       this._contextSessionSnapshot &&
       !this._contextModeChanging;
@@ -151,7 +148,9 @@ export function _handleContextLayerChange(change) {
   ) {
     void this._trackContextLayerReaction(
       this._runUserFacingContextAction((notificationToken) =>
-        this._deactivateContextForLayerChange({ notificationToken }),
+        this._deactivateContextForLayerChange({
+          notificationToken
+        }),
       ),
     );
     return;
@@ -161,17 +160,19 @@ export function _handleContextLayerChange(change) {
       // The coordinator remains manager-addressable for restoration and
       // programmatic routes, but Contacts is selected only from the
       // dedicated right-side Global Context chooser.
-      this._contextMode = change.enabled
-        ? null
-        : this._contextMode === 'flights'
-          ? null
-          : this._contextMode;
+      this._contextMode = change.enabled ?
+        null :
+        this._contextMode === 'flights' ?
+        null :
+        this._contextMode;
       if (change.enabled) {
         this._syncContextModeButtons();
       } else if (this._contextSessionSnapshot) {
         void this._trackContextLayerReaction(
           this._runUserFacingContextAction((notificationToken) =>
-            this._deactivateContextForLayerChange({ notificationToken }),
+            this._deactivateContextForLayerChange({
+              notificationToken
+            }),
           ),
         );
       }
@@ -181,23 +182,24 @@ export function _handleContextLayerChange(change) {
         this._contextMode === 'space-missions' ||
         effectiveContextMode === 'space-missions';
       if (!ownsContextEntry) return;
-      this._contextMode = change.enabled
-        ? 'space-missions'
-        : this._contextMode === 'space-missions'
-          ? null
-          : this._contextMode;
+      this._contextMode = change.enabled ?
+        'space-missions' :
+        this._contextMode === 'space-missions' ?
+        null :
+        this._contextMode;
       if (change.enabled) {
         this._syncContextModeButtons();
       } else if (this._contextSessionSnapshot) {
         void this._trackContextLayerReaction(
           this._runUserFacingContextAction((notificationToken) =>
-            this._deactivateContextForLayerChange({ notificationToken }),
+            this._deactivateContextForLayerChange({
+              notificationToken
+            }),
           ),
         );
       }
     } else if (
-      this._contextMode === 'flights' &&
-      [
+      this._contextMode === 'flights' && [
         'flights',
         'military',
         'ais-live-vessels',
@@ -207,7 +209,9 @@ export function _handleContextLayerChange(change) {
     ) {
       void this._trackContextLayerReaction(
         this._runUserFacingContextAction((notificationToken) =>
-          this._deactivateContextForLayerChange({ notificationToken }),
+          this._deactivateContextForLayerChange({
+            notificationToken
+          }),
         ),
       );
     }
@@ -221,7 +225,9 @@ export function _handleContextLayerChange(change) {
       militaryEnabled: !!this._dataManager?.isEnabled('military'),
     })
   ) {
-    this.cockpitView.exit({ restoreTracking: false });
+    this.cockpitView.exit({
+      restoreTracking: false
+    });
   }
   this._syncContextModeButtons();
 }
