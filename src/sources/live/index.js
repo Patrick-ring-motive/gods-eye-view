@@ -1,4 +1,7 @@
-export { LiveSourceError } from './contract.js';
+export {
+  LiveSourceError
+}
+from './contract.js';
 export {
   normalizeOpenSkyAircraft,
   normalizeReadsbAircraft,
@@ -6,14 +9,17 @@ export {
   openSkySnapshot,
   readsbSnapshot,
   readsbIdentities,
-} from './aircraft.js';
+}
+from './aircraft.js';
 export {
   normalizeVesselObservation,
   normalizeVesselTrack,
   vesselSnapshot,
-} from './vessels.js';
+}
+from './vessels.js';
 export {
   createOpenSkySource,
   createAdsbLolSource,
   createAisStreamSource,
-} from './standalone.js';
+}
+from './standalone.js';
