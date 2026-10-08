@@ -1,4 +1,9 @@
-export function createModel({ state: layerState, services, parts, source }) {
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Coerce a GBFS boolean field to a native boolean.
    * GBFS feeds are inconsistent — some use booleans, others use 0/1 or strings.
