@@ -3,7 +3,9 @@ export function createFirmsSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
 } = {}) {
   return {
-    async getSnapshot({ signal } = {}) {
+    async getSnapshot({
+      signal
+    } = {}) {
       signal?.throwIfAborted();
       const response = await fetchImpl('/api/firms', {
         signal,
@@ -18,7 +20,9 @@ export function createFirmsSource({
       signal?.throwIfAborted();
       if (!response.ok) {
         if (response.status === 503 && payload?.error === 'no_key')
-          return { keyRequired: true };
+          return {
+            keyRequired: true
+          };
         throw new Error(`FIRMS HTTP ${response.status}`);
       }
       if (!Array.isArray(payload?.fires))
