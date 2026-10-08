@@ -81,7 +81,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* fall through to Puppeteer's cache */ }
+      /* fall through to Puppeteer's cache */
+    }
   }
   return null;
 }
