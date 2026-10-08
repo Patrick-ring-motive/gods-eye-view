@@ -77,7 +77,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import {
   computeFrustumGeometry,
   FRUSTUM_GROUND_CLEARANCE_M,
@@ -126,14 +128,19 @@ function findChromeExecutable() {
 }
 
 const results = [];
+
 function record(name, ok, detail) {
-  results.push({ name, ok, detail });
+  results.push({
+    name,
+    ok,
+    detail
+  });
   const tag =
-    ok === null
-      ? '\x1b[33mINCONCLUSIVE\x1b[0m'
-      : ok
-        ? '\x1b[32mPASS\x1b[0m'
-        : '\x1b[31mFAIL\x1b[0m';
+    ok === null ?
+    '\x1b[33mINCONCLUSIVE\x1b[0m' :
+    ok ?
+    '\x1b[32mPASS\x1b[0m' :
+    '\x1b[31mFAIL\x1b[0m';
   console.log(`  [${tag}] ${name}${detail ? `  — ${detail}` : ''}`);
 }
 
@@ -147,14 +154,18 @@ async function positionPointerForGizmoDrag(page, point, frameCount = 3) {
   await page.evaluate(() => {
     window.__godsEyeView.dataManager.layers
       .get('cctv')
-      .module.setParams({ calibrationMode: false });
+      .module.setParams({
+        calibrationMode: false
+      });
   });
   await page.mouse.move(point.x, point.y);
   return page.evaluate(async (count) => {
     const gev = window.__godsEyeView;
     gev.dataManager.layers
       .get('cctv')
-      .module.setParams({ calibrationMode: true });
+      .module.setParams({
+        calibrationMode: true
+      });
     const scene = gev.viewer.scene;
     let rendered = 0;
     return new Promise((resolve) => {
@@ -292,8 +303,9 @@ function waitForTilesLoaded(page, timeoutMs = 15000) {
           }
         }
         return true; // no tileset in the scene — nothing to wait for
+      }, {
+        timeout: timeoutMs
       },
-      { timeout: timeoutMs },
     )
     .then(() => true)
     .catch(() => false);
@@ -338,7 +350,11 @@ function findSafeCalibrationPatch(basePose, groundAltM) {
       geom.corners.bl.alt,
     );
     if (minAlt > clampFloor + 3) {
-      return { pitchDeg: pitchOffset, fovDeg: fovOffset, rangeScale };
+      return {
+        pitchDeg: pitchOffset,
+        fovDeg: fovOffset,
+        rangeScale
+      };
     }
   }
   return null;
@@ -350,7 +366,9 @@ async function main() {
   console.log(`  Mode    : ${HEADFUL ? 'headful' : 'headless'}\n`);
 
   try {
-    const res = await fetch(APP_URL, { method: 'GET' });
+    const res = await fetch(APP_URL, {
+      method: 'GET'
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch (e) {
     console.error(
@@ -359,12 +377,16 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  fs.mkdirSync(SHOTS_DIR, {
+    recursive: true
+  });
 
   const chromeExecutable = findChromeExecutable();
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(chromeExecutable ? { executablePath: chromeExecutable } : {}),
+    ...(chromeExecutable ? {
+      executablePath: chromeExecutable
+    } : {}),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -382,7 +404,10 @@ async function main() {
 
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800 });
+    await page.setViewport({
+      width: 1280,
+      height: 800
+    });
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
         const t = msg.text();
@@ -396,13 +421,17 @@ async function main() {
       }
     });
     console.log('Loading app...');
-    await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
       () =>
-        window.__godsEyeView &&
-        window.__godsEyeView.viewer &&
-        window.__godsEyeView.dataManager,
-      { timeout: 60000 },
+      window.__godsEyeView &&
+      window.__godsEyeView.viewer &&
+      window.__godsEyeView.dataManager, {
+        timeout: 60000
+      },
     );
     // Let the initial fly-to Austin and first tiles settle.
     await sleep(4000);
@@ -424,7 +453,10 @@ async function main() {
       ) {
         return false;
       }
-      window.__qaCounters = { pickFromRay: 0, sampleHeight: 0 };
+      window.__qaCounters = {
+        pickFromRay: 0,
+        sampleHeight: 0
+      };
       const origPick = scene.pickFromRay.bind(scene);
       scene.pickFromRay = (...args) => {
         window.__qaCounters.pickFromRay += 1;
@@ -445,7 +477,9 @@ async function main() {
     }
 
     const readCounters = () =>
-      page.evaluate(() => ({ ...window.__qaCounters }));
+      page.evaluate(() => ({
+        ...window.__qaCounters
+      }));
 
     console.log('Enabling CCTV layer...');
     const c0 = await readCounters();
@@ -463,15 +497,15 @@ async function main() {
     // times out spuriously at the 250-camera default (2026-07-04).
     const camCount = await page.evaluate(
       () =>
-        window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-          .count,
+      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+      .count,
     );
     // ~800ms per real ground sample measured under SwiftShader (each
     // scene.sampleHeight forces tile loads at the probe point) — real GPU is
     // far faster, so this is a headless-CI ceiling, not an app expectation.
-    const drainBudgetMs = HEADFUL
-      ? Math.max(30000, camCount * 800 + 30000)
-      : Math.min(120000, Math.max(30000, camCount * 800 + 30000));
+    const drainBudgetMs = HEADFUL ?
+      Math.max(30000, camCount * 800 + 30000) :
+      Math.min(120000, Math.max(30000, camCount * 800 + 30000));
     console.log(
       `Waiting for geometry-load queue to drain (N=${camCount}, budget ${Math.round(drainBudgetMs / 1000)}s)...`,
     );
@@ -482,19 +516,20 @@ async function main() {
             window.__godsEyeView.dataManager.layers.get('cctv').module;
           const ui = mod.getUIState();
           return ui.loading && ui.loading.active === false;
+        }, {
+          timeout: drainBudgetMs
         },
-        { timeout: drainBudgetMs },
       )
       .then(() => true)
       .catch(() => false);
     record(
       `geometry-load queue drains within ${Math.round(drainBudgetMs / 1000)}s (N=${camCount})`,
       drained ? true : HEADFUL ? false : null,
-      drained
-        ? 'loading.active === false'
-        : HEADFUL
-          ? 'timed out waiting for drain on the real-GPU sign-off path'
-          : 'headless GL geometry sampling did not settle; current headful evidence is required',
+      drained ?
+      'loading.active === false' :
+      HEADFUL ?
+      'timed out waiting for drain on the real-GPU sign-off path' :
+      'headless GL geometry sampling did not settle; current headful evidence is required',
     );
 
     const cAfterDrain = await readCounters();
@@ -516,20 +551,22 @@ async function main() {
     console.log('Activating a camera (focusNearest)...');
     const activeIdBeforeActivation = await page.evaluate(
       () =>
-        window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-          .activeCameraId,
+      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+      .activeCameraId,
     );
     const cBeforeActivate = await readCounters();
     await page.evaluate(() => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.focusNearest({ durationSec: 0.1 });
+      mod.focusNearest({
+        durationSec: 0.1
+      });
     });
     await sleep(500); // let the activation's synchronous work (probe + geometry rewrite) land
     const cAfterActivate = await readCounters();
     const activeId = await page.evaluate(
       () =>
-        window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
-          .activeCameraId,
+      window.__godsEyeView.dataManager.layers.get('cctv').module.getUIState()
+      .activeCameraId,
     );
 
     const pickDeltaActivation =
@@ -551,7 +588,9 @@ async function main() {
     await page.evaluate((id) => {
       window.__godsEyeView.dataManager.layers
         .get('cctv')
-        .module.setParams({ selectedCameraId: id });
+        .module.setParams({
+          selectedCameraId: id
+        });
     }, activeId);
     await sleep(400);
     const cAfterReselect = await readCounters();
@@ -562,7 +601,7 @@ async function main() {
     record(
       're-selecting the active camera is a no-op (no probe, no geometry rewrite)',
       cAfterReselect.pickFromRay - cAfterActivate.pickFromRay === 0 &&
-        geomBeforeReselect === geomAfterReselect,
+      geomBeforeReselect === geomAfterReselect,
       `probeΔ=${cAfterReselect.pickFromRay - cAfterActivate.pickFromRay}, geometryChanged=${geomBeforeReselect !== geomAfterReselect}`,
     );
 
@@ -581,8 +620,9 @@ async function main() {
     if (tilesSeenLoaded) {
       sampleFloorOk = await page
         .waitForFunction(
-          (base) => window.__qaCounters.sampleHeight - base >= 1,
-          { timeout: 30000 },
+          (base) => window.__qaCounters.sampleHeight - base >= 1, {
+            timeout: 30000
+          },
           c0.sampleHeight,
         )
         .then(() => true)
@@ -592,9 +632,9 @@ async function main() {
     record(
       '>=1 real ground sample once tilesLoaded observed (one-shot snap completed)',
       tilesSeenLoaded ? sampleFloorOk : null,
-      tilesSeenLoaded
-        ? `total real samples since enable=${cFloor.sampleHeight - c0.sampleHeight}`
-        : 'tilesLoaded never observed within 45s — floor not assessable this run',
+      tilesSeenLoaded ?
+      `total real samples since enable=${cFloor.sampleHeight - c0.sampleHeight}` :
+      'tilesLoaded never observed within 45s — floor not assessable this run',
     );
 
     // Let the completion pass finish before the steady-state window: require
@@ -649,9 +689,9 @@ async function main() {
     record(
       'sampleHeight stays flat during 15s steady-state idle',
       completionPassQuiet ? sampleDuringIdle === 0 : null,
-      completionPassQuiet
-        ? `Δ=${sampleDuringIdle}`
-        : `one-shot floor completion did not become quiet under this GL stack; observed tail Δ=${sampleDuringIdle}`,
+      completionPassQuiet ?
+      `Δ=${sampleDuringIdle}` :
+      `one-shot floor completion did not become quiet under this GL stack; observed tail Δ=${sampleDuringIdle}`,
     );
 
     // -----------------------------------------------------------------------
@@ -663,7 +703,12 @@ async function main() {
     await page.evaluate((camId) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
       mod.setParams({
-        calibration: { cameraId: camId, patch: { headingDeg: 30 } },
+        calibration: {
+          cameraId: camId,
+          patch: {
+            headingDeg: 30
+          }
+        },
       });
     }, activeId);
     await sleep(500);
@@ -673,9 +718,9 @@ async function main() {
     record(
       'sampleHeight stays flat after a heading-only calibration edit',
       completionPassQuiet ? sampleDeltaCal === 0 : null,
-      completionPassQuiet
-        ? `Δ=${sampleDeltaCal}`
-        : `one-shot floor completion was still unresolved; observed tail Δ=${sampleDeltaCal}`,
+      completionPassQuiet ?
+      `Δ=${sampleDeltaCal}` :
+      `one-shot floor completion was still unresolved; observed tail Δ=${sampleDeltaCal}`,
     );
     record(
       'pickFromRay does not fire on a calibration patch (activation-only)',
@@ -687,7 +732,12 @@ async function main() {
     // observe the record's steady, unpatched frustum.
     await page.evaluate((camId) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ calibration: { cameraId: camId, reset: true } });
+      mod.setParams({
+        calibration: {
+          cameraId: camId,
+          reset: true
+        }
+      });
     }, activeId);
     await sleep(300);
 
@@ -720,8 +770,8 @@ async function main() {
       'all 5 frustum polyline entities exist for the active camera',
       allPolylinesPresent,
       Object.keys(geomInfo.poly)
-        .map((k) => `${k}=${geomInfo.poly[k] ? 'ok' : 'MISSING'}`)
-        .join(', '),
+      .map((k) => `${k}=${geomInfo.poly[k] ? 'ok' : 'MISSING'}`)
+      .join(', '),
     );
     record(
       'plane + plane-label entities exist for the active camera',
@@ -744,15 +794,15 @@ async function main() {
     const basePose = activeCameraForPatch.basePose;
     const groundAltMForPatch =
       activeCameraForPatch.elevationM - activeCameraForPatch.mountHeightM;
-    const safePatch = basePose
-      ? findSafeCalibrationPatch(basePose, groundAltMForPatch)
-      : null;
+    const safePatch = basePose ?
+      findSafeCalibrationPatch(basePose, groundAltMForPatch) :
+      null;
     record(
       'found a calibration patch that clears the ground clamp (test setup, not an app assertion)',
       safePatch !== null,
-      safePatch
-        ? JSON.stringify(safePatch)
-        : 'no legal offset combination cleared the clamp — corner-coincidence check below will run against the (possibly clamped) base pose',
+      safePatch ?
+      JSON.stringify(safePatch) :
+      'no legal offset combination cleared the clamp — corner-coincidence check below will run against the (possibly clamped) base pose',
     );
 
     // updateRecordGeometry's B9c guard now recomputes PURELY from the cached
@@ -767,35 +817,45 @@ async function main() {
     let geomForCorners = geomInfo;
     let patchGeometryApplied = !safePatch;
     if (safePatch) {
-      const dimsBefore = geomInfo.plane
-        ? JSON.stringify(geomInfo.plane.dimensions)
-        : null;
+      const dimsBefore = geomInfo.plane ?
+        JSON.stringify(geomInfo.plane.dimensions) :
+        null;
       for (let attempt = 0; attempt < 3 && !patchGeometryApplied; attempt++) {
         await waitForTilesLoaded(page, 15000);
         await page.evaluate(
-          ({ camId, patch }) => {
+          ({
+            camId,
+            patch
+          }) => {
             const mod =
               window.__godsEyeView.dataManager.layers.get('cctv').module;
-            mod.setParams({ calibration: { cameraId: camId, patch } });
+            mod.setParams({
+              calibration: {
+                cameraId: camId,
+                patch
+              }
+            });
+          }, {
+            camId: activeId,
+            patch: safePatch
           },
-          { camId: activeId, patch: safePatch },
         );
         await sleep(400);
         geomForCorners = await page.evaluate(
           `(function(camId){ ${SERIALIZE_GEOM_SRC} return serializeGeom(camId); })(${JSON.stringify(activeId)})`,
         );
-        const dimsAfter = geomForCorners.plane
-          ? JSON.stringify(geomForCorners.plane.dimensions)
-          : null;
+        const dimsAfter = geomForCorners.plane ?
+          JSON.stringify(geomForCorners.plane.dimensions) :
+          null;
         patchGeometryApplied = !!dimsAfter && dimsAfter !== dimsBefore;
       }
     }
     record(
       'calibration patch geometry landed (test setup, not an app assertion)',
       patchGeometryApplied,
-      patchGeometryApplied
-        ? 'plane dimensions changed vs pre-patch'
-        : 'plane dimensions never changed — tiles kept flipping mid-stream; corner-coincidence check below may be running against a stale pose',
+      patchGeometryApplied ?
+      'plane dimensions changed vs pre-patch' :
+      'plane dimensions never changed — tiles kept flipping mid-stream; corner-coincidence check below may be running against a stale pose',
     );
 
     let cornerEps = null;
@@ -816,7 +876,10 @@ async function main() {
         }
         const dist = (a, b) =>
           Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-        const { poly, plane } = geom;
+        const {
+          poly,
+          plane
+        } = geom;
         const center = plane.position;
         const halfW = plane.dimensions[0] / 2;
         const halfH = plane.dimensions[1] / 2;
@@ -853,9 +916,9 @@ async function main() {
         };
       }, geomForCorners);
       const maxEps = Math.max(...Object.values(cornerEps));
-      const epsLabel = safePatch
-        ? 'plane corners coincide with wireframe corner-ray endpoints (ε < 0.5m, ground-clamp-cleared pose)'
-        : 'plane corners coincide with wireframe corner-ray endpoints (ε < 0.5m)';
+      const epsLabel = safePatch ?
+        'plane corners coincide with wireframe corner-ray endpoints (ε < 0.5m, ground-clamp-cleared pose)' :
+        'plane corners coincide with wireframe corner-ray endpoints (ε < 0.5m)';
       record(
         epsLabel,
         maxEps < 0.5,
@@ -875,7 +938,12 @@ async function main() {
     if (safePatch) {
       await page.evaluate((camId) => {
         const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-        mod.setParams({ calibration: { cameraId: camId, reset: true } });
+        mod.setParams({
+          calibration: {
+            cameraId: camId,
+            reset: true
+          }
+        });
       }, activeId);
       await sleep(300);
     }
@@ -896,9 +964,9 @@ async function main() {
     record(
       'geometry is byte-stable over 30s idle (no per-frame/timer resample)',
       geomStable,
-      geomStable
-        ? 'identical serialization'
-        : 'serialization CHANGED — see harness output above',
+      geomStable ?
+      'identical serialization' :
+      'serialization CHANGED — see harness output above',
     );
     if (!geomStable) {
       console.log('  before:', JSON.stringify(geomBefore30s));
@@ -934,7 +1002,12 @@ async function main() {
     await page.evaluate((camId) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
       mod.setParams({
-        calibration: { cameraId: camId, patch: { headingDeg: 30 } },
+        calibration: {
+          cameraId: camId,
+          patch: {
+            headingDeg: 30
+          }
+        },
       });
     }, activeId);
     await sleep(300);
@@ -956,9 +1029,9 @@ async function main() {
     record(
       'patch does NOT write the v2 store (save-gated)',
       afterPatch.stored === false,
-      afterPatch.stored
-        ? 'entry written on patch — save-gating broken'
-        : 'store untouched',
+      afterPatch.stored ?
+      'entry written on patch — save-gating broken' :
+      'store untouched',
     );
     record(
       'patch marks the camera calDirty (EDITED chip)',
@@ -973,7 +1046,12 @@ async function main() {
 
     await page.evaluate((camId) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ calibration: { cameraId: camId, save: true } });
+      mod.setParams({
+        calibration: {
+          cameraId: camId,
+          save: true
+        }
+      });
     }, activeId);
     await sleep(200);
 
@@ -989,15 +1067,18 @@ async function main() {
         storeEntry.source === 'manual' &&
         Number.isFinite(storeEntry.savedAt)
       ),
-      storeEntry
-        ? `source=${storeEntry.source} savedAt=${storeEntry.savedAt}`
-        : 'no entry written',
+      storeEntry ?
+      `source=${storeEntry.source} savedAt=${storeEntry.savedAt}` :
+      'no entry written',
     );
 
     const afterSave = await page.evaluate((camId) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
       const cam = mod.getUIState().cameras.find((c) => c.id === camId);
-      return { calBadge: cam?.calBadge, calDirty: cam?.calDirty };
+      return {
+        calBadge: cam?.calBadge,
+        calDirty: cam?.calDirty
+      };
     }, activeId);
     record(
       'calBadge flips to calibrated after SAVE (and dirty clears)',
@@ -1023,7 +1104,12 @@ async function main() {
     // Reset: entry removed, base geometry restored, badge back to raw-prior.
     await page.evaluate((camId) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ calibration: { cameraId: camId, reset: true } });
+      mod.setParams({
+        calibration: {
+          cameraId: camId,
+          reset: true
+        }
+      });
     }, activeId);
     await sleep(300);
 
@@ -1079,9 +1165,9 @@ async function main() {
       const mat = planeEnt?.plane?.material;
       const image = mat?.image;
       const resolved =
-        image && typeof image.getValue === 'function'
-          ? image.getValue(time)
-          : image;
+        image && typeof image.getValue === 'function' ?
+        image.getValue(time) :
+        image;
       return {
         hasMaterial: !!mat,
         hasImage: !!resolved,
@@ -1122,8 +1208,7 @@ async function main() {
     const panelImgSrc = await page.evaluate(
       () => document.getElementById('cctv-frame')?.getAttribute('src') || null,
     );
-    const sameFamily =
-      !!panelImgSrc &&
+    const sameFamily = !!panelImgSrc &&
       panelImgSrc.includes(`/api/cctv/frame/${encodeURIComponent(activeId)}`);
     record(
       'panel <img> and plane share the same /api/cctv/frame/<id> URL family',
@@ -1143,8 +1228,10 @@ async function main() {
       const scene = viewer.scene;
       const canvas = scene.canvas;
       const rect = canvas.getBoundingClientRect();
-      const { hitTestWorldOverlay } =
-        await import('/src/overlays/worldOverlay.js');
+      const {
+        hitTestWorldOverlay
+      } =
+      await import('/src/overlays/worldOverlay.js');
       const candidates = [
         [0.55, 0.72],
         [0.45, 0.72],
@@ -1158,22 +1245,32 @@ async function main() {
         const direct = picked?.id?.id ?? picked?.id;
         if (direct !== undefined && direct !== null) return String(direct);
         const primitive = picked?.primitive?.id?.id ?? picked?.primitive?.id;
-        return primitive === undefined || primitive === null
-          ? null
-          : String(primitive);
+        return primitive === undefined || primitive === null ?
+          null :
+          String(primitive);
       };
       for (const [fx, fy] of candidates) {
         const x = Math.round(canvas.clientWidth * fx);
         const y = Math.round(canvas.clientHeight * fy);
-        const picked = scene.pick({ x, y });
-        const card = hitTestWorldOverlay(x, y, { sourceId: 'cctv' });
+        const picked = scene.pick({
+          x,
+          y
+        });
+        const card = hitTestWorldOverlay(x, y, {
+          sourceId: 'cctv'
+        });
         const top = document.elementFromPoint(rect.left + x, rect.top + y);
         if (
           resolveId(picked) === null &&
           !card &&
           (top === canvas || canvas.contains(top))
         ) {
-          return { x: rect.left + x, y: rect.top + y, canvasX: x, canvasY: y };
+          return {
+            x: rect.left + x,
+            y: rect.top + y,
+            canvasX: x,
+            canvasY: y
+          };
         }
       }
       return null;
@@ -1181,9 +1278,9 @@ async function main() {
     record(
       'true-empty canvas target is available (no scene owner or CCTV card)',
       !!emptyClickPoint,
-      emptyClickPoint
-        ? `canvas=(${emptyClickPoint.canvasX},${emptyClickPoint.canvasY})`
-        : 'no clean canvas point found',
+      emptyClickPoint ?
+      `canvas=(${emptyClickPoint.canvasX},${emptyClickPoint.canvasY})` :
+      'no clean canvas point found',
     );
 
     const clickEvidenceSetup = await page.evaluate(() => {
@@ -1207,8 +1304,9 @@ async function main() {
           viewer.camera.rightWC.y,
           viewer.camera.rightWC.z,
         ],
-        transform: Array.from(
-          { length: 16 },
+        transform: Array.from({
+            length: 16
+          },
           (_, i) => viewer.camera.transform[i],
         ),
         heading: viewer.camera.heading,
@@ -1228,12 +1326,12 @@ async function main() {
         return (
           vectorKeys.every(
             (key) =>
-              Array.isArray(a?.[key]) &&
-              Array.isArray(b?.[key]) &&
-              a[key].length === b[key].length &&
-              a[key].every(
-                (value, index) => Math.abs(value - b[key][index]) <= epsilon,
-              ),
+            Array.isArray(a?.[key]) &&
+            Array.isArray(b?.[key]) &&
+            a[key].length === b[key].length &&
+            a[key].every(
+              (value, index) => Math.abs(value - b[key][index]) <= epsilon,
+            ),
           ) &&
           scalarKeys.every((key) => Math.abs(a?.[key] - b?.[key]) <= epsilon) &&
           a?.trackedId === b?.trackedId
@@ -1280,14 +1378,18 @@ async function main() {
       await page.evaluate(() => {
         window.__godsEyeView.dataManager.layers
           .get('cctv')
-          .module.setParams({ calibrationMode: true });
+          .module.setParams({
+            calibrationMode: true
+          });
       });
       await page.mouse.click(emptyClickPoint.x, emptyClickPoint.y);
       await sleep(250);
       const adjustClick = await page.evaluate(() => {
         const evidence = window.__qaCctvClickEvidence;
         const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-        mod.setParams({ calibrationMode: false });
+        mod.setParams({
+          calibrationMode: false
+        });
         evidence.siblingBaselineTransitions = evidence.activeTransitions.length;
         return {
           activeId: mod.getUIState().activeCameraId,
@@ -1302,8 +1404,8 @@ async function main() {
       record(
         'ADJUST-mode true-empty canvas click preserves active camera',
         adjustClick.activeId === clickEvidenceSetup.activeId &&
-          adjustClick.focusEvents === 0 &&
-          adjustClick.poseSame,
+        adjustClick.focusEvents === 0 &&
+        adjustClick.poseSame,
         `active=${adjustClick.activeId} focus=${adjustClick.focusEvents} poseSame=${adjustClick.poseSame}`,
       );
     } else {
@@ -1378,8 +1480,7 @@ async function main() {
       return {
         x: rect.left + emptyPoint.canvasX,
         y: rect.top + emptyPoint.canvasY,
-        pickedId:
-          typeof pickedId === 'string' ? pickedId : (pickedId?.id ?? null),
+        pickedId: typeof pickedId === 'string' ? pickedId : (pickedId?.id ?? null),
         ownerId: owner.id,
         ownsExactObject: picked?.id === owner,
         projectionDelta: Math.hypot(
@@ -1390,13 +1491,13 @@ async function main() {
     }, emptyClickPoint);
     record(
       'sibling test object owns its canvas pick',
-      siblingTarget
-        ? siblingTarget.pickedId === 'qa-cctv-sibling-owner' &&
-            siblingTarget.ownsExactObject
-        : null,
-      siblingTarget
-        ? `picked=${siblingTarget.pickedId} exactOwner=${siblingTarget.ownsExactObject} projectionΔ=${siblingTarget.projectionDelta}`
-        : 'no previously verified empty canvas ray was available',
+      siblingTarget ?
+      siblingTarget.pickedId === 'qa-cctv-sibling-owner' &&
+      siblingTarget.ownsExactObject :
+      null,
+      siblingTarget ?
+      `picked=${siblingTarget.pickedId} exactOwner=${siblingTarget.ownsExactObject} projectionΔ=${siblingTarget.projectionDelta}` :
+      'no previously verified empty canvas ray was available',
     );
     if (
       siblingTarget?.pickedId === 'qa-cctv-sibling-owner' &&
@@ -1427,12 +1528,12 @@ async function main() {
     record(
       'sibling canvas click passes through without CCTV selection or deselection',
       siblingTarget?.pickedId === 'qa-cctv-sibling-owner' &&
-        siblingTarget.ownsExactObject
-        ? siblingClick.activeId === clickEvidenceSetup.activeId &&
-            siblingClick.transitions === siblingClick.baselineTransitions &&
-            siblingClick.focusEvents === 0 &&
-            siblingClick.poseSame
-        : null,
+      siblingTarget.ownsExactObject ?
+      siblingClick.activeId === clickEvidenceSetup.activeId &&
+      siblingClick.transitions === siblingClick.baselineTransitions &&
+      siblingClick.focusEvents === 0 &&
+      siblingClick.poseSame :
+      null,
       `active=${siblingClick.activeId} transitions=${siblingClick.transitions - siblingClick.baselineTransitions} focus=${siblingClick.focusEvents} poseSame=${siblingClick.poseSame}`,
     );
 
@@ -1461,19 +1562,19 @@ async function main() {
     record(
       'real true-empty canvas click publishes one active-to-null transition',
       !!emptyClickPoint &&
-        firstEmptyClick.activeId === null &&
-        firstEmptyClick.enabled === true &&
-        firstEmptyClick.transitions ===
-          firstEmptyClick.baselineTransitions + 1 &&
-        firstEmptyClick.lastTransition?.[0] === clickEvidenceSetup.activeId &&
-        firstEmptyClick.lastTransition?.[1] === null,
+      firstEmptyClick.activeId === null &&
+      firstEmptyClick.enabled === true &&
+      firstEmptyClick.transitions ===
+      firstEmptyClick.baselineTransitions + 1 &&
+      firstEmptyClick.lastTransition?.[0] === clickEvidenceSetup.activeId &&
+      firstEmptyClick.lastTransition?.[1] === null,
       `active=${firstEmptyClick.activeId} enabled=${firstEmptyClick.enabled} transitions=${firstEmptyClick.transitions - firstEmptyClick.baselineTransitions}`,
     );
     record(
       'real true-empty deselection preserves pose/tracking and emits no focus request',
       !!emptyClickPoint &&
-        firstEmptyClick.poseSame &&
-        firstEmptyClick.focusEvents === 0,
+      firstEmptyClick.poseSame &&
+      firstEmptyClick.focusEvents === 0,
       `poseSame=${firstEmptyClick.poseSame} focus=${firstEmptyClick.focusEvents}`,
     );
 
@@ -1498,10 +1599,10 @@ async function main() {
     record(
       'repeat true-empty canvas click is null-idempotent',
       !!emptyClickPoint &&
-        repeatEmptyClick.activeId === null &&
-        repeatEmptyClick.transitions ===
-          repeatEmptyClick.baselineTransitions + 1 &&
-        repeatEmptyClick.focusEvents === 0,
+      repeatEmptyClick.activeId === null &&
+      repeatEmptyClick.transitions ===
+      repeatEmptyClick.baselineTransitions + 1 &&
+      repeatEmptyClick.focusEvents === 0,
       `active=${repeatEmptyClick.activeId} transitions=${repeatEmptyClick.transitions - repeatEmptyClick.baselineTransitions} focus=${repeatEmptyClick.focusEvents}`,
     );
 
@@ -1537,7 +1638,9 @@ async function main() {
     const cBeforeViewshed = await readCounters();
     const modeAfterSet = await page.evaluate(() => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ coverageMode: 'viewshed' });
+      mod.setParams({
+        coverageMode: 'viewshed'
+      });
       return mod.getUIState().coverageMode;
     });
     await sleep(400);
@@ -1558,11 +1661,18 @@ async function main() {
     // showCoverage=true → 'on' (wireframes, still 0 volumes).
     const compat = await page.evaluate(() => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ showCoverage: false });
+      mod.setParams({
+        showCoverage: false
+      });
       const off = mod.getUIState().coverageMode;
-      mod.setParams({ showCoverage: true });
+      mod.setParams({
+        showCoverage: true
+      });
       const on = mod.getUIState().coverageMode;
-      return { off, on };
+      return {
+        off,
+        on
+      };
     });
     await sleep(200);
     const volumesInOnMode = await countVolumes();
@@ -1582,7 +1692,9 @@ async function main() {
     // over 8s proves nothing recreated them.
     await page.evaluate(() => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ coverageMode: 'viewshed' });
+      mod.setParams({
+        coverageMode: 'viewshed'
+      });
     });
     await sleep(400);
     await page.evaluate(() => {
@@ -1603,7 +1715,11 @@ async function main() {
       const before = window.__qaViewshedRefs || [];
       const sameCount = now.length === before.length;
       const sameIdentity = sameCount && before.every((p) => now.includes(p));
-      return { sameCount, sameIdentity, count: now.length };
+      return {
+        sameCount,
+        sameIdentity,
+        count: now.length
+      };
     });
     const cAfterViewshed = await readCounters();
     const lateFloorSamples =
@@ -1611,22 +1727,24 @@ async function main() {
     record(
       'viewshed volumes idle-stable over 8s (same primitives, no churn)',
       lateFloorSamples > 0 ? null : viewshedIdle.sameIdentity,
-      lateFloorSamples > 0
-        ? `late one-shot floor completion sampled ${lateFloorSamples} cells and legitimately rebuilt geometry`
-        : `count=${viewshedIdle.count} sameCount=${viewshedIdle.sameCount} sameIdentity=${viewshedIdle.sameIdentity}`,
+      lateFloorSamples > 0 ?
+      `late one-shot floor completion sampled ${lateFloorSamples} cells and legitimately rebuilt geometry` :
+      `count=${viewshedIdle.count} sameCount=${viewshedIdle.sameCount} sameIdentity=${viewshedIdle.sameIdentity}`,
     );
     record(
       'raycast counters flat across viewshed cycling + idle',
-      lateFloorSamples > 0
-        ? null
-        : cAfterViewshed.pickFromRay === cBeforeViewshed.pickFromRay,
-      lateFloorSamples > 0
-        ? `late one-shot floor completion: ΔsampleHeight=${lateFloorSamples}; ΔpickFromRay=${cAfterViewshed.pickFromRay - cBeforeViewshed.pickFromRay}`
-        : `ΔpickFromRay=${cAfterViewshed.pickFromRay - cBeforeViewshed.pickFromRay} ΔsampleHeight=0`,
+      lateFloorSamples > 0 ?
+      null :
+      cAfterViewshed.pickFromRay === cBeforeViewshed.pickFromRay,
+      lateFloorSamples > 0 ?
+      `late one-shot floor completion: ΔsampleHeight=${lateFloorSamples}; ΔpickFromRay=${cAfterViewshed.pickFromRay - cBeforeViewshed.pickFromRay}` :
+      `ΔpickFromRay=${cAfterViewshed.pickFromRay - cBeforeViewshed.pickFromRay} ΔsampleHeight=0`,
     );
 
     const viewshedShot = path.join(SHOTS_DIR, 'cctv-v3-viewshed.png');
-    await page.screenshot({ path: viewshedShot });
+    await page.screenshot({
+      path: viewshedShot
+    });
     console.log(
       `  screenshot (visual review only) → ${path.relative(REPO_ROOT, viewshedShot)}`,
     );
@@ -1647,7 +1765,9 @@ async function main() {
     ];
     const gizmoStates = await page.evaluate((parts) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ calibrationMode: true });
+      mod.setParams({
+        calibrationMode: true
+      });
       const viewer = window.__godsEyeView.viewer;
       return parts.map((p) => {
         const e = viewer.entities.getById('cctv-gizmo-' + p);
@@ -1687,28 +1807,39 @@ async function main() {
       const mag = Math.hypot(dx, dy);
       if (mag < 10) return null;
       const candidates = [
-        0.12, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92,
-      ]
-        .map((t) => ({ x: a.x + dx * t, y: a.y + dy * t }))
+          0.12, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92,
+        ]
+        .map((t) => ({
+          x: a.x + dx * t,
+          y: a.y + dy * t
+        }))
         .filter((p) => p.x > 60 && p.y > 60 && p.x < w - 60 && p.y < h - 60);
       if (b.x > 60 && b.y > 60 && b.x < w - 60 && b.y < h - 60) {
-        candidates.unshift({ x: b.x, y: b.y });
+        candidates.unshift({
+          x: b.x,
+          y: b.y
+        });
       }
       if (!candidates.length) return null;
-      return { ...candidates[0], candidates, ux: dx / mag, uy: dy / mag };
+      return {
+        ...candidates[0],
+        candidates,
+        ux: dx / mag,
+        uy: dy / mag
+      };
     });
 
     const calBeforeDrag = await page.evaluate(() => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
       const cam = mod.getUIState().activeCamera;
-      return cam
-        ? {
-            calibration: cam.calibration,
-            elevationM: cam.elevationM,
-            groundResolveCount: cam.groundResolveCount,
-            groundMeshSampleRequestCount: cam.groundMeshSampleRequestCount,
-          }
-        : null;
+      return cam ?
+        {
+          calibration: cam.calibration,
+          elevationM: cam.elevationM,
+          groundResolveCount: cam.groundResolveCount,
+          groundMeshSampleRequestCount: cam.groundMeshSampleRequestCount,
+        } :
+        null;
     });
 
     const transientDragStates = [];
@@ -1725,9 +1856,9 @@ async function main() {
           const scene = window.__godsEyeView.viewer.scene;
           const partFrom = (picked) => {
             const id = picked?.id?.id ?? picked?.id;
-            return typeof id === 'string' && id.startsWith('cctv-gizmo-')
-              ? id.slice('cctv-gizmo-'.length)
-              : null;
+            return typeof id === 'string' && id.startsWith('cctv-gizmo-') ?
+              id.slice('cctv-gizmo-'.length) :
+              null;
           };
           const direct = partFrom(scene.pick(point, 14, 14));
           if (direct) return direct === 'move-east';
@@ -1749,14 +1880,13 @@ async function main() {
               const mod =
                 window.__godsEyeView.dataManager.layers.get('cctv').module;
               const cam = mod.getUIState().activeCamera;
-              return cam
-                ? {
-                    elevationM: cam.elevationM,
-                    eastOffsetM: cam.calibration?.offsetEastM,
-                    groundMeshSampleRequestCount:
-                      cam.groundMeshSampleRequestCount,
-                  }
-                : null;
+              return cam ?
+                {
+                  elevationM: cam.elevationM,
+                  eastOffsetM: cam.calibration?.offsetEastM,
+                  groundMeshSampleRequestCount: cam.groundMeshSampleRequestCount,
+                } :
+                null;
             }),
           );
         }
@@ -1793,7 +1923,10 @@ async function main() {
       if (pt) {
         try {
           const picked =
-            viewer.scene.drillPick({ x: pt.x, y: pt.y }, 6, 14, 14) || [];
+            viewer.scene.drillPick({
+              x: pt.x,
+              y: pt.y
+            }, 6, 14, 14) || [];
           pickable = picked.some((r) =>
             String(r?.id?.id ?? r?.id ?? '').startsWith('cctv-gizmo-'),
           );
@@ -1821,19 +1954,19 @@ async function main() {
       Number.isFinite(dragOutcome.eastOffsetM) &&
       Math.abs(
         dragOutcome.eastOffsetM -
-          (calBeforeDrag?.calibration?.offsetEastM ?? 0),
+        (calBeforeDrag?.calibration?.offsetEastM ?? 0),
       ) > 0.05;
     const transientElevations = transientDragStates
       .map((state) => state?.elevationM)
       .filter(Number.isFinite);
     const maxTransientElevationDelta =
-      transientElevations.length && Number.isFinite(calBeforeDrag?.elevationM)
-        ? Math.max(
-            ...transientElevations.map((height) =>
-              Math.abs(height - calBeforeDrag.elevationM),
-            ),
-          )
-        : Infinity;
+      transientElevations.length && Number.isFinite(calBeforeDrag?.elevationM) ?
+      Math.max(
+        ...transientElevations.map((height) =>
+          Math.abs(height - calBeforeDrag.elevationM),
+        ),
+      ) :
+      Infinity;
     const transientSampleDelta =
       countersBeforeRelease.sampleHeight - countersBeforeDrag.sampleHeight;
     const activeMeshRequestsBeforeRelease = transientDragStates
@@ -1841,11 +1974,11 @@ async function main() {
       .filter(Number.isFinite)
       .at(-1);
     const transientActiveMeshRequestDelta = Number.isFinite(
-      activeMeshRequestsBeforeRelease,
-    )
-      ? activeMeshRequestsBeforeRelease -
-        (calBeforeDrag?.groundMeshSampleRequestCount ?? 0)
-      : Infinity;
+        activeMeshRequestsBeforeRelease,
+      ) ?
+      activeMeshRequestsBeforeRelease -
+      (calBeforeDrag?.groundMeshSampleRequestCount ?? 0) :
+      Infinity;
     if (eastChanged) {
       record(
         'east-arrow drag changes the east offset (live, unsaved)',
@@ -1865,7 +1998,7 @@ async function main() {
       record(
         'east-arrow release resolves the committed floor exactly once',
         dragOutcome.groundResolveCount ===
-          (calBeforeDrag?.groundResolveCount ?? 0) + 1,
+        (calBeforeDrag?.groundResolveCount ?? 0) + 1,
         `ground resolutions ${calBeforeDrag?.groundResolveCount ?? 0} → ${dragOutcome.groundResolveCount}`,
       );
       record(
@@ -1875,11 +2008,11 @@ async function main() {
       );
     } else if (eastDrag) {
       const missDetail =
-        dragOutcome.pickable === false
-          ? 'drill-pick cannot see a gizmo under this GL stack'
-          : dragOutcome.ownsPick === false
-            ? 'the east arrow did not own any tested shaft pick'
-            : 'LEFT_DOWN did not begin an east-arrow drag despite the ownership precondition';
+        dragOutcome.pickable === false ?
+        'drill-pick cannot see a gizmo under this GL stack' :
+        dragOutcome.ownsPick === false ?
+        'the east arrow did not own any tested shaft pick' :
+        'LEFT_DOWN did not begin an east-arrow drag despite the ownership precondition';
       record(
         'east-arrow drag changes the east offset (live, unsaved)',
         null,
@@ -1943,8 +2076,14 @@ async function main() {
     // ADJUST off: parts hidden; leave a clean calibration for the next group.
     const gizmoOff = await page.evaluate((parts) => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
-      mod.setParams({ calibrationMode: false });
-      mod.setParams({ calibration: { reset: true } });
+      mod.setParams({
+        calibrationMode: false
+      });
+      mod.setParams({
+        calibration: {
+          reset: true
+        }
+      });
       const viewer = window.__godsEyeView.viewer;
       return parts.map((p) => {
         const e = viewer.entities.getById('cctv-gizmo-' + p);
@@ -1963,7 +2102,9 @@ async function main() {
     // -----------------------------------------------------------------------
     await sleep(1000);
     const shot = path.join(SHOTS_DIR, 'cctv-v2-active.png');
-    await page.screenshot({ path: shot });
+    await page.screenshot({
+      path: shot
+    });
     console.log(
       `  screenshot (visual review only, not a gate) → ${path.relative(REPO_ROOT, shot)}`,
     );
