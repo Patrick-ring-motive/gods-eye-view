@@ -1,4 +1,6 @@
-import { DEFAULT_AIS_RUNTIME } from './policy.js';
+import {
+  DEFAULT_AIS_RUNTIME
+} from './policy.js';
 
 export function createTesting({
   vesselState,
@@ -7,7 +9,9 @@ export function createTesting({
   layer,
   options,
 }) {
-  const { state } = vesselState;
+  const {
+    state
+  } = vesselState;
   const aisLiveVesselsLayer = layer;
 
   /**
@@ -43,24 +47,26 @@ export function createTesting({
     state.count = records.length;
     state.vesselMap = new Map(
       records
-        .filter((record) => record?.mmsi)
-        .map((record) => [record.mmsi, record]),
+      .filter((record) => record?.mmsi)
+      .map((record) => [record.mmsi, record]),
     );
     state.selectedRecord = options.selectedRecord || null;
-    state.billboardCollection = options.billboardCollection || { remove() {} };
+    state.billboardCollection = options.billboardCollection || {
+      remove() {}
+    };
     state.trail = options.trail || null;
     state.trailMmsi = options.trailMmsi || null;
-    state.trailPositions = Array.isArray(options.trailPositions)
-      ? [...options.trailPositions]
-      : [];
+    state.trailPositions = Array.isArray(options.trailPositions) ?
+      [...options.trailPositions] :
+      [];
     state.transportStatus = options.transportStatus || null;
     state.lastMessageAt = options.lastMessageAt ?? null;
-    state.rawRowCount = Number.isFinite(options.rawRowCount)
-      ? options.rawRowCount
-      : 0;
-    state.acceptedRowCount = Number.isFinite(options.acceptedRowCount)
-      ? options.acceptedRowCount
-      : records.length;
+    state.rawRowCount = Number.isFinite(options.rawRowCount) ?
+      options.rawRowCount :
+      0;
+    state.acceptedRowCount = Number.isFinite(options.acceptedRowCount) ?
+      options.acceptedRowCount :
+      records.length;
     state.firstConnectPhase = options.firstConnectPhase || 'idle';
     state.firstConnectStartedAt = options.firstConnectStartedAt ?? null;
     state.firstConnectDeadline = options.firstConnectDeadline ?? null;
@@ -114,13 +120,13 @@ export function createTesting({
 
   function _setAisRuntimeForTest(runtime = null) {
     components.lifecycle.clearFirstConnectTimer();
-    vesselState._aisRuntime = runtime
-      ? {
-          now: runtime.now,
-          setTimeout: runtime.setTimeout,
-          clearTimeout: runtime.clearTimeout,
-        }
-      : DEFAULT_AIS_RUNTIME;
+    vesselState._aisRuntime = runtime ?
+      {
+        now: runtime.now,
+        setTimeout: runtime.setTimeout,
+        clearTimeout: runtime.clearTimeout,
+      } :
+      DEFAULT_AIS_RUNTIME;
   }
 
   /** Read feed-health fields without exposing mutable production state. */
