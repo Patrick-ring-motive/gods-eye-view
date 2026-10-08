@@ -1,4 +1,9 @@
-export function createControls({ state: layerState, services, parts, source }) {
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const methods = {
     id: 'radio',
 
@@ -18,13 +23,13 @@ export function createControls({ state: layerState, services, parts, source }) {
     } = {}) {
       const settledState = enabled ? 'enabled' : 'disabled';
       const normalizedState = [
-        'enabling',
-        'enabled',
-        'disabling',
-        'disabled',
-      ].includes(lifecycleState)
-        ? lifecycleState
-        : settledState;
+          'enabling',
+          'enabled',
+          'disabling',
+          'disabled',
+        ].includes(lifecycleState) ?
+        lifecycleState :
+        settledState;
       layerState._managerLifecyclePresentation = {
         lifecycleState: normalizedState,
         enabled: Boolean(enabled),
@@ -45,9 +50,9 @@ export function createControls({ state: layerState, services, parts, source }) {
         degraded: layerState._degraded,
         loading: layerState._loading,
         error: layerState._error,
-        lastUpdate: layerState._updatedAt
-          ? Date.parse(layerState._updatedAt)
-          : null,
+        lastUpdate: layerState._updatedAt ?
+          Date.parse(layerState._updatedAt) :
+          null,
         horizonScans: layerState._horizonScanCount,
         overlayEntries: layerState._overlayDiagnostics.entryCount,
       };
@@ -55,11 +60,9 @@ export function createControls({ state: layerState, services, parts, source }) {
 
     subscribe: parts.presentation.subscribeToRadio,
 
-    subscribePlaybackControls:
-      parts.presentation.subscribeToRadioPlaybackControls,
+    subscribePlaybackControls: parts.presentation.subscribeToRadioPlaybackControls,
 
-    getAcceptedCatalogSnapshot:
-      parts.presentation.getRadioAcceptedCatalogSnapshot,
+    getAcceptedCatalogSnapshot: parts.presentation.getRadioAcceptedCatalogSnapshot,
 
     getUIState: parts.presentation.getRadioUIState,
 
@@ -74,7 +77,9 @@ export function createControls({ state: layerState, services, parts, source }) {
       clusterTexts: [...layerState._overlayDiagnostics.clusterTexts],
       clusterIds: [...layerState._overlayDiagnostics.clusterIds],
       clusterMemberships: layerState._overlayDiagnostics.clusterMemberships.map(
-        (entry) => ({ ...entry }),
+        (entry) => ({
+          ...entry
+        }),
       ),
     }),
 
@@ -115,5 +120,7 @@ export function createControls({ state: layerState, services, parts, source }) {
     setVoiceDucked: parts.volume.setRadioVoiceDucking,
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
