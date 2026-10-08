@@ -1,10 +1,14 @@
 import path from 'node:path';
-import { promises as fsp } from 'node:fs';
+import {
+  promises as fsp
+} from 'node:fs';
 import {
   readResponseTextCapped,
   coalesceProxyRequest,
 } from '../common/http.js';
-import { launchLibraryRecentUrl } from '../../../src/data/spaceProviderRequests.js';
+import {
+  launchLibraryRecentUrl
+} from '../../../src/data/spaceProviderRequests.js';
 
 export const LL2_CACHE_TTL_MS = 15 * 60_000;
 
@@ -13,7 +17,9 @@ export function launchLibraryRequestHeaders(token = process.env.LL2_API_TOKEN) {
   const normalized = String(token || '').trim();
   return {
     Accept: 'application/json',
-    ...(normalized ? { Authorization: `Token ${normalized}` } : {}),
+    ...(normalized ? {
+      Authorization: `Token ${normalized}`
+    } : {}),
   };
 }
 
@@ -50,7 +56,9 @@ export function rocketLaunchesProxy() {
 
   async function saveDiskCache(entry) {
     try {
-      await fsp.mkdir(path.dirname(cachePath), { recursive: true });
+      await fsp.mkdir(path.dirname(cachePath), {
+        recursive: true
+      });
       await fsp.writeFile(cachePath, JSON.stringify(entry), 'utf8');
     } catch (error) {
       console.warn('[launch-library-proxy] cache write failed');
@@ -82,7 +90,10 @@ export function rocketLaunchesProxy() {
     const parsed = JSON.parse(body);
     if (!Array.isArray(parsed?.results))
       throw new Error('malformed upstream response');
-    const fresh = { at: Date.now(), body };
+    const fresh = {
+      at: Date.now(),
+      body
+    };
     cache = fresh;
     void saveDiskCache(fresh);
     return fresh;
@@ -91,7 +102,9 @@ export function rocketLaunchesProxy() {
   function install(middlewares) {
     middlewares.use('/api/launches', async (req, res) => {
       if (req.method !== 'GET') {
-        send(res, 405, JSON.stringify({ error: 'Method Not Allowed' }), 'NONE');
+        send(res, 405, JSON.stringify({
+          error: 'Method Not Allowed'
+        }), 'NONE');
         return;
       }
       await loadDiskCache();
@@ -111,9 +124,9 @@ export function rocketLaunchesProxy() {
         send(res, 200, fresh.body, request.shared ? 'INFLIGHT' : 'MISS');
       } catch (error) {
         // Log only a bounded status, never upstream bodies, URLs, or credentials.
-        const status = Number.isInteger(error?.upstreamStatus)
-          ? error.upstreamStatus
-          : 502;
+        const status = Number.isInteger(error?.upstreamStatus) ?
+          error.upstreamStatus :
+          502;
         if (!request.shared)
           console.warn(
             `[launch-library-proxy] refresh failed (HTTP ${status})${stale ? ' — serving stale cache' : ''}`,
@@ -125,7 +138,9 @@ export function rocketLaunchesProxy() {
         send(
           res,
           status,
-          JSON.stringify({ error: 'Launch Library 2 unavailable' }),
+          JSON.stringify({
+            error: 'Launch Library 2 unavailable'
+          }),
           'NONE',
         );
       }
