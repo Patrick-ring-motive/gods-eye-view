@@ -37,7 +37,10 @@ export function allocateSourceCap(packs, maxCount) {
   for (const pack of packs) {
     for (const source of pack.sources) {
       if (!source?.id) continue;
-      owner.set(source.id, { pack: pack.name, source });
+      owner.set(source.id, {
+        pack: pack.name,
+        source
+      });
     }
   }
   const lanes = packs.map((pack) => ({
