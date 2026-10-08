@@ -10,7 +10,9 @@ import {
   enter,
   exit,
 } from './cockpitTrackingController.js';
-import { update } from './cockpitCamera.js';
+import {
+  update
+} from './cockpitCamera.js';
 import {
   updateHud,
   updateRoute,
@@ -19,7 +21,9 @@ import {
   cycleVisionMode,
   clearPredictiveRoute,
 } from './cockpitInstruments.js';
-import { updateContext } from './cockpitContext.js';
+import {
+  updateContext
+} from './cockpitContext.js';
 import {
   showBriefPage,
   setBriefAutoRotate,
@@ -43,13 +47,14 @@ import {
   syncContextLayout,
   syncSignalLayout,
 } from './cockpitLayout.js';
-import { onKeyDown } from './cockpitInput.js';
+import {
+  onKeyDown
+} from './cockpitInput.js';
 import * as Cesium from 'cesium';
 
 export class CockpitViewController {
   constructor(
-    viewer,
-    {
+    viewer, {
       services,
       onVisionChange = null,
       onCameraTakeover = null,
@@ -125,13 +130,13 @@ export class CockpitViewController {
     this.onEntered = onEntered;
     this.onExited = onExited;
     this.getInheritedVisionLabel =
-      typeof getInheritedVisionLabel === 'function'
-        ? getInheritedVisionLabel
-        : () => 'NORMAL';
+      typeof getInheritedVisionLabel === 'function' ?
+      getInheritedVisionLabel :
+      () => 'NORMAL';
     this.restoreTrackingFrame =
-      typeof restoreTrackingFrame === 'function'
-        ? restoreTrackingFrame
-        : () => false;
+      typeof restoreTrackingFrame === 'function' ?
+      restoreTrackingFrame :
+      () => false;
     this.isEntryAllowed =
       typeof isEntryAllowed === 'function' ? isEntryAllowed : () => true;
     this.context = document.getElementById('cockpit-context');
@@ -242,10 +247,14 @@ export class CockpitViewController {
     this._listen(this.visionCurrent, 'click', () => this.cycleVisionMode(1));
     this._listen(this.visionNext, 'click', () => this.cycleVisionMode(1));
     this._listen(this.contextPrevious, 'click', () =>
-      this.navigateContext(-1, { origin: 'user' }),
+      this.navigateContext(-1, {
+        origin: 'user'
+      }),
     );
     this._listen(this.contextNext, 'click', () =>
-      this.navigateContext(1, { origin: 'user' }),
+      this.navigateContext(1, {
+        origin: 'user'
+      }),
     );
     this._listen(this.contextToggle, 'click', () =>
       this.setContextCollapsed(!this.contextCollapsed),
@@ -256,7 +265,9 @@ export class CockpitViewController {
       this.syncWeatherToggle(enabled);
       window.dispatchEvent(
         new CustomEvent('gev:cockpit-weather-toggle', {
-          detail: { enabled },
+          detail: {
+            enabled
+          },
         }),
       );
     });
@@ -264,16 +275,22 @@ export class CockpitViewController {
       this.syncWeatherToggle(event?.detail?.enabled !== false);
     });
     this._listen(this.signalToggle, 'click', () =>
-      this.setSignalCollapsed(!this.signalCollapsed, { user: true }),
+      this.setSignalCollapsed(!this.signalCollapsed, {
+        user: true
+      }),
     );
     this._listen(this.signalList, 'click', (event) =>
       this.handleSignalClick(event),
     );
     this._listen(this.briefPrevious, 'click', () =>
-      this.showBriefPage(this.briefPageIndex - 1, { manual: true }),
+      this.showBriefPage(this.briefPageIndex - 1, {
+        manual: true
+      }),
     );
     this._listen(this.briefNext, 'click', () =>
-      this.showBriefPage(this.briefPageIndex + 1, { manual: true }),
+      this.showBriefPage(this.briefPageIndex + 1, {
+        manual: true
+      }),
     );
     this._listen(this.briefAutoToggle, 'click', () => {
       this.setBriefAutoRotate(!this.briefAutoRotateEnabled);
@@ -427,6 +444,8 @@ export class CockpitViewController {
     if (this.disposed) return;
     this.disposed = true;
     this.stop();
-    this.exit({ restoreTracking: false });
+    this.exit({
+      restoreTracking: false
+    });
   }
 }
