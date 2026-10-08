@@ -1,4 +1,7 @@
-import { makeOptInRateLimiter, clientKey } from '../common/rate-limit.js';
+import {
+  makeOptInRateLimiter,
+  clientKey
+} from '../common/rate-limit.js';
 
 // Built LAZILY on first request, NOT at module load: `.env` values are applied to process.env later
 // (the plugin config hook calls loadEnv → process.env, AFTER this module is imported), so reading
@@ -32,8 +35,13 @@ function enforceOptInRateLimit(limiter, req, res) {
   res.statusCode = 429;
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Retry-After', '5');
-  res.end(JSON.stringify({ error: 'Rate limit exceeded' }));
+  res.end(JSON.stringify({
+    error: 'Rate limit exceeded'
+  }));
   return false;
 }
 
-export { enforceOptInRateLimit, openAiRateLimiter };
+export {
+  enforceOptInRateLimit,
+  openAiRateLimiter
+};
