@@ -5,7 +5,12 @@ import {
   AWARENESS_REEVALUATE_DISTANCE_M,
 } from './policy.js';
 
-export function createModel({ state: layerState, services, parts, source }) {
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const flightsLayer = services.flights;
   const militaryFlightsLayer = services.military;
 
@@ -79,7 +84,10 @@ export function createModel({ state: layerState, services, parts, source }) {
     const refresh =
       sinceRefresh >= awarenessRefreshIntervalMs(true) &&
       (moving || settling || sinceRefresh >= awarenessRefreshIntervalMs(false));
-    return { moving, refresh };
+    return {
+      moving,
+      refresh
+    };
   }
 
   /**
@@ -145,22 +153,21 @@ export function createModel({ state: layerState, services, parts, source }) {
   function contactsWindowFromSnapshot(snapshot) {
     if (!snapshot?.subject) return null;
     const countFor = (cohortId) => {
-      const cohort = Array.isArray(snapshot.cohorts)
-        ? snapshot.cohorts.find((item) => item?.id === cohortId)
-        : null;
+      const cohort = Array.isArray(snapshot.cohorts) ?
+        snapshot.cohorts.find((item) => item?.id === cohortId) :
+        null;
       return Number.isFinite(cohort?.count) ? cohort.count : 'unknown';
     };
     const flights = countFor('flights');
     const military = countFor('military');
     return {
       centeredOn: snapshot.subject.label || snapshot.subject.id || null,
-      radiusKm: Number.isFinite(snapshot.radiusM)
-        ? Math.round(snapshot.radiusM / 1000)
-        : null,
-      aircraft:
-        Number.isFinite(flights) && Number.isFinite(military)
-          ? flights + military
-          : 'unknown',
+      radiusKm: Number.isFinite(snapshot.radiusM) ?
+        Math.round(snapshot.radiusM / 1000) :
+        null,
+      aircraft: Number.isFinite(flights) && Number.isFinite(military) ?
+        flights + military :
+        'unknown',
       flights,
       military,
       vessels: countFor('ais-live-vessels'),
@@ -171,12 +178,15 @@ export function createModel({ state: layerState, services, parts, source }) {
 
   function buildAwarenessContextSnapshot(
     results,
-    navigation = {},
-    { subjectPresent = true } = {},
+    navigation = {}, {
+      subjectPresent = true
+    } = {},
   ) {
     if (!results) return null;
     return {
-      subject: { ...results.subject },
+      subject: {
+        ...results.subject
+      },
       // Whether the subject is still reported by its source. The cockpit Contact
       // readout holds its last-known values behind a CONTACT LOST cue when this
       // is false, rather than presenting frozen geometry as a live reading.
@@ -193,7 +203,9 @@ export function createModel({ state: layerState, services, parts, source }) {
         reason: cohort.summary.reason,
         nearest: cohort.summary.nearest.slice(),
       })),
-      navigation: { ...navigation },
+      navigation: {
+        ...navigation
+      },
     };
   }
 
