@@ -15,7 +15,10 @@ export const DEFAULT_CCTV_MAX_SOURCES = 4000;
 /** Hard upper bound for CCTV_MAX_SOURCES; also sizes the health map. */
 export const CCTV_MAX_SOURCES_CEILING = 5000;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
-export const AUSTIN_DOWNTOWN = { lat: 30.2672, lon: -97.7431 };
+export const AUSTIN_DOWNTOWN = {
+  lat: 30.2672,
+  lon: -97.7431
+};
 /** Caltrans CCTV: one JSON feed per district, identical schema statewide. */
 /** TxDOT ITS: one keyless JSON catalog per district (25 districts statewide). */
 export const TXDOT_ORIGIN = 'https://its.txdot.gov';
@@ -62,12 +65,26 @@ export const DEFAULT_TXDOT_MAX_SOURCES = 500;
 /** Prioritization anchors: downtown cores of the metro districts a user can
  * select. Cameras rank by distance to the NEAREST anchor, so a widened
  * CCTV_TXDOT_DISTRICTS still ranks sensibly instead of against Austin alone. */
-export const TXDOT_ANCHORS = [
-  { lat: 30.2672, lon: -97.7431 }, // Austin
-  { lat: 29.4241, lon: -98.4936 }, // San Antonio
-  { lat: 29.7604, lon: -95.3698 }, // Houston
-  { lat: 32.7767, lon: -96.797 }, // Dallas
-  { lat: 32.7555, lon: -97.3308 }, // Fort Worth
+export const TXDOT_ANCHORS = [{
+    lat: 30.2672,
+    lon: -97.7431
+  }, // Austin
+  {
+    lat: 29.4241,
+    lon: -98.4936
+  }, // San Antonio
+  {
+    lat: 29.7604,
+    lon: -95.3698
+  }, // Houston
+  {
+    lat: 32.7767,
+    lon: -96.797
+  }, // Dallas
+  {
+    lat: 32.7555,
+    lon: -97.3308
+  }, // Fort Worth
 ];
 /** Ground-elevation priors in metres, by district. The TxDOT payload carries
  * no elevation, and on a keyless (no-tileset) stack the client's ground snap
@@ -107,30 +124,61 @@ export const CALTRANS_CCTV_URL = (district) =>
 export const DEFAULT_CALTRANS_DISTRICTS = '4,7,11,3';
 export const DEFAULT_CALTRANS_MAX_SOURCES = 300;
 /** Prioritization anchors: downtown cores of the four default metros. */
-export const CALTRANS_ANCHORS = [
-  { lat: 37.7793, lon: -122.4193 }, // San Francisco
-  { lat: 34.0537, lon: -118.2428 }, // Los Angeles
-  { lat: 32.7157, lon: -117.1611 }, // San Diego
-  { lat: 38.5816, lon: -121.4944 }, // Sacramento
+export const CALTRANS_ANCHORS = [{
+    lat: 37.7793,
+    lon: -122.4193
+  }, // San Francisco
+  {
+    lat: 34.0537,
+    lon: -118.2428
+  }, // Los Angeles
+  {
+    lat: 32.7157,
+    lon: -117.1611
+  }, // San Diego
+  {
+    lat: 38.5816,
+    lon: -121.4944
+  }, // Sacramento
 ];
 /** TfL JamCams: one keyless list endpoint; frames live on a public S3 bucket. */
 export const TFL_JAMCAM_URL = 'https://api.tfl.gov.uk/Place/Type/JamCam';
 export const TFL_IMAGE_ORIGIN =
   'https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/';
 export const DEFAULT_TFL_MAX_SOURCES = 250;
-export const LONDON_CENTER = { lat: 51.5074, lon: -0.1278 };
+export const LONDON_CENTER = {
+  lat: 51.5074,
+  lon: -0.1278
+};
 /** Ontario 511: keyless CARS/511 camera catalog; frame URLs are still images. */
 export const ONTARIO_511_CAMERAS_URL =
   'https://511on.ca/api/v2/get/cameras?format=json&lang=en';
 export const ONTARIO_511_IMAGE_ORIGIN = 'https://511on.ca/map/Cctv/';
 export const DEFAULT_ONTARIO_MAX_SOURCES = 1000;
-export const ONTARIO_ANCHORS = [
-  { lat: 43.4516, lon: -80.4925 }, // Kitchener
-  { lat: 43.6532, lon: -79.3832 }, // Toronto
-  { lat: 45.4215, lon: -75.6972 }, // Ottawa
-  { lat: 43.2557, lon: -79.8711 }, // Hamilton
-  { lat: 42.9849, lon: -81.2453 }, // London, Ontario
-  { lat: 42.3149, lon: -83.0364 }, // Windsor
+export const ONTARIO_ANCHORS = [{
+    lat: 43.4516,
+    lon: -80.4925
+  }, // Kitchener
+  {
+    lat: 43.6532,
+    lon: -79.3832
+  }, // Toronto
+  {
+    lat: 45.4215,
+    lon: -75.6972
+  }, // Ottawa
+  {
+    lat: 43.2557,
+    lon: -79.8711
+  }, // Hamilton
+  {
+    lat: 42.9849,
+    lon: -81.2453
+  }, // London, Ontario
+  {
+    lat: 42.3149,
+    lon: -83.0364
+  }, // Windsor
 ];
 /** Fintraffic road weather cameras (Digitraffic): one keyless GeoJSON list
  * covering all of Finland. Each STATION carries N presets (fixed camera views)
@@ -152,14 +200,34 @@ export const FINTRAFFIC_GROUND_ELEVATION_M = 90;
 /** Prioritization anchors: the population centres strung along Finland's main
  * road spine (vt1 Turku, vt3 Tampere, vt4 Jyväskylä–Oulu–Rovaniemi, vt5
  * Kuopio), so a cap keeps national coverage rather than just the capital. */
-export const FINLAND_ANCHORS = [
-  { lat: 60.1699, lon: 24.9384 }, // Helsinki
-  { lat: 60.4518, lon: 22.2666 }, // Turku
-  { lat: 61.4978, lon: 23.761 }, // Tampere
-  { lat: 62.2426, lon: 25.7473 }, // Jyväskylä
-  { lat: 62.8924, lon: 27.677 }, // Kuopio
-  { lat: 65.0121, lon: 25.4651 }, // Oulu
-  { lat: 66.5039, lon: 25.7294 }, // Rovaniemi
+export const FINLAND_ANCHORS = [{
+    lat: 60.1699,
+    lon: 24.9384
+  }, // Helsinki
+  {
+    lat: 60.4518,
+    lon: 22.2666
+  }, // Turku
+  {
+    lat: 61.4978,
+    lon: 23.761
+  }, // Tampere
+  {
+    lat: 62.2426,
+    lon: 25.7473
+  }, // Jyväskylä
+  {
+    lat: 62.8924,
+    lon: 27.677
+  }, // Kuopio
+  {
+    lat: 65.0121,
+    lon: 25.4651
+  }, // Oulu
+  {
+    lat: 66.5039,
+    lon: 25.7294
+  }, // Rovaniemi
 ];
 /** Global cap on total CCTV sources served by the proxy: the default per-pack
  * caps summed (Austin 250 + Caltrans 300 + TfL 250 + DriveBC 250). */
@@ -172,15 +240,23 @@ export const DRIVEBC_IMAGE_URL = (id) =>
   `https://www.drivebc.ca/images/${id}.jpg`;
 export const DEFAULT_DRIVEBC_MAX_SOURCES = 250;
 /** Prioritization anchors: downtown Vancouver and Victoria. */
-export const DRIVEBC_ANCHORS = [
-  { lat: 49.2827, lon: -123.1207 }, // Vancouver
-  { lat: 48.4284, lon: -123.3656 }, // Victoria
+export const DRIVEBC_ANCHORS = [{
+    lat: 49.2827,
+    lon: -123.1207
+  }, // Vancouver
+  {
+    lat: 48.4284,
+    lon: -123.3656
+  }, // Victoria
 ];
 /** Tallinn intersection cameras: curated catalog + public stills on ristmikud.tallinn.ee. */
 export const DEFAULT_TALLINN_SOURCE_FILE = 'config/cctv_sources.tallinn.json';
 export const DEFAULT_TALLINN_MAX_SOURCES = 255;
 export const TALLINN_IMAGE_ORIGIN = 'https://ristmikud.tallinn.ee/';
-export const TALLINN_CENTER = { lat: 59.437, lon: 24.753 };
+export const TALLINN_CENTER = {
+  lat: 59.437,
+  lon: 24.753
+};
 /** Transpordiamet / Tarktee road-weather cameras: keyless DATEX2 feeds. */
 export const TARKTEE_LOCATIONS_URL =
   'https://tarktee.transpordiamet.ee/api/v1/datex/roadCameraLocations';
@@ -188,11 +264,22 @@ export const TARKTEE_IMAGES_URL =
   'https://tarktee.transpordiamet.ee/api/v1/datex/roadCameraImages';
 export const TARKTEE_IMAGE_ORIGIN = 'https://tarktee.transpordiamet.ee/images/';
 export const DEFAULT_TARKTEE_MAX_SOURCES = 179;
-export const TARKTEE_ANCHORS = [
-  { lat: 59.437, lon: 24.753 }, // Tallinn
-  { lat: 58.378, lon: 26.729 }, // Tartu
-  { lat: 58.3859, lon: 24.4971 }, // Pärnu
-  { lat: 59.3797, lon: 28.1791 }, // Narva
+export const TARKTEE_ANCHORS = [{
+    lat: 59.437,
+    lon: 24.753
+  }, // Tallinn
+  {
+    lat: 58.378,
+    lon: 26.729
+  }, // Tartu
+  {
+    lat: 58.3859,
+    lon: 24.4971
+  }, // Pärnu
+  {
+    lat: 59.3797,
+    lon: 28.1791
+  }, // Narva
 ];
 /** Warendorf (Germany): the Marktplatz municipal webcam from a curated catalog file. */
 export const DEFAULT_WARENDORF_SOURCE_FILE =
@@ -206,7 +293,10 @@ export const NSW_CAMERAS_URL =
   'https://data.livetraffic.com/cameras/traffic-cam.json';
 export const NSW_IMAGE_ORIGIN = 'https://webcams.transport.nsw.gov.au/';
 export const DEFAULT_NSW_MAX_SOURCES = 250;
-export const SYDNEY_CENTER = { lat: -33.8688, lon: 151.2093 };
+export const SYDNEY_CENTER = {
+  lat: -33.8688,
+  lon: 151.2093
+};
 /**
  * The NSW webcam host answers non-browser clients with HTTP 200 and a short
  * HTML body instead of the frame (verified 2026-09-13), so the proxy
