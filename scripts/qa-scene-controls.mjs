@@ -1,18 +1,21 @@
 #!/usr/bin/env node
+
 /** Exercise installed Scene controls and real project/playback operations. */
 import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer';
 
 const shots = path.resolve('qa-shots/scene-controls');
-fs.mkdirSync(shots, { recursive: true });
+fs.mkdirSync(shots, {
+  recursive: true
+});
 const browser = await puppeteer.launch({
   headless: true,
   args: [
     '--no-sandbox',
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
   ],
 });
 const page = await browser.newPage();
@@ -23,21 +26,27 @@ page.on('dialog', async (dialog) => {
   await dialog.accept(dialog.type() === 'prompt' ? promptValue : undefined);
 });
 let failures = 0;
+
 function check(name, ok) {
   console.log(`[${ok ? 'PASS' : 'FAIL'}] ${name}`);
   if (!ok) failures++;
 }
 try {
-  await page.setViewport({ width: 1440, height: 900 });
+  await page.setViewport({
+    width: 1440,
+    height: 900
+  });
   await page.goto(
-    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`,
-    { waitUntil: 'domcontentloaded' },
+    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`, {
+      waitUntil: 'domcontentloaded'
+    },
   );
   await page.waitForFunction(
     () =>
-      window.__godsEyeView?.sceneDirector?._controls &&
-      document.getElementById('loading-screen')?.classList.contains('hidden'),
-    { timeout: 60000 },
+    window.__godsEyeView?.sceneDirector?._controls &&
+    document.getElementById('loading-screen')?.classList.contains('hidden'), {
+      timeout: 60000
+    },
   );
   await page.evaluate(() => {
     window.__qaSceneState = [];
@@ -49,8 +58,8 @@ try {
   await page.click('#scene-new-btn');
   await page.waitForFunction(
     () =>
-      document.querySelector('#scene-select option:checked')?.textContent ===
-      'QA Scene',
+    document.querySelector('#scene-select option:checked')?.textContent ===
+    'QA Scene',
   );
   check(
     'New creates and selects a persisted empty scene',
@@ -84,22 +93,24 @@ try {
     }),
   );
   promptValue = '<b>QA shot</b>';
-  await page.click('.scene-shot-label', { count: 2 });
+  await page.click('.scene-shot-label', {
+    count: 2
+  });
   await page.waitForFunction(
     () =>
-      document.querySelector('.scene-shot-label')?.textContent ===
-      '<b>QA shot</b>',
+    document.querySelector('.scene-shot-label')?.textContent ===
+    '<b>QA shot</b>',
   );
   check(
     'Rename persists literal text without interpreting markup',
     await page.evaluate(
       () =>
-        !document.querySelector('.scene-shot-label b') &&
-        JSON.parse(
-          localStorage.getItem('godsEyeView.sceneProject.v2'),
-        ).scenes.some((scene) =>
-          scene.shots.some((shot) => shot.title === '<b>QA shot</b>'),
-        ),
+      !document.querySelector('.scene-shot-label b') &&
+      JSON.parse(
+        localStorage.getItem('godsEyeView.sceneProject.v2'),
+      ).scenes.some((scene) =>
+        scene.shots.some((shot) => shot.title === '<b>QA shot</b>'),
+      ),
     ),
   );
   await page.click('#scene-capture-btn');
@@ -118,7 +129,7 @@ try {
         director._selectedShotId === scene.shots[0].id &&
         scene.shots.length === count &&
         document.querySelector('.scene-shot-row.active .scene-shot-label')
-          .textContent === scene.shots[0].title
+        .textContent === scene.shots[0].title
       );
     }),
   );
@@ -133,8 +144,7 @@ try {
   });
   await page.click('#scene-export-btn');
   const exported = await page.evaluate(async () =>
-    JSON.parse(await window.__sceneExports[0]),
-  );
+    JSON.parse(await window.__sceneExports[0]), );
   check(
     'Export produces the current project JSON',
     exported.scenes.some(
@@ -146,56 +156,65 @@ try {
   const scene = exported.scenes.find((item) => item.title === 'QA Scene');
   scene.shots = scene.shots
     .slice(0, 1)
-    .map((shot) => ({ ...shot, durationSec: 0.4, holdSec: 10, layers: {} }));
-  const fixture = { ...exported, scenes: [scene] };
+    .map((shot) => ({
+      ...shot,
+      durationSec: 0.4,
+      holdSec: 10,
+      layers: {}
+    }));
+  const fixture = {
+    ...exported,
+    scenes: [scene]
+  };
   const projectFile = path.join(shots, 'project.json');
   fs.writeFileSync(projectFile, JSON.stringify(fixture));
   const input = await page.$('#scene-import-file');
   await input.uploadFile(projectFile);
   await page.waitForFunction(
     () =>
-      document.getElementById('scene-status').textContent ===
-      'Imported project.json',
+    document.getElementById('scene-status').textContent ===
+    'Imported project.json',
   );
   check(
     'Import replaces the project and clears the file input',
     await page.evaluate(
       () =>
-        window.__godsEyeView.sceneDirector._project.scenes.length === 1 &&
-        document.querySelectorAll('.scene-shot-row').length === 1 &&
-        document.getElementById('scene-import-file').value === '',
+      window.__godsEyeView.sceneDirector._project.scenes.length === 1 &&
+      document.querySelectorAll('.scene-shot-row').length === 1 &&
+      document.getElementById('scene-import-file').value === '',
     ),
   );
   await page.click('.scene-shot-btn');
   await page.waitForFunction(
     () =>
-      document.getElementById('scene-status').textContent.startsWith('Loaded:'),
-    { timeout: 30000 },
+    document.getElementById('scene-status').textContent.startsWith('Loaded:'), {
+      timeout: 30000
+    },
   );
   check(
     'LOAD completes the real visual and camera operation',
     await page.evaluate(
       () =>
-        !window.__godsEyeView.sceneDirector.running &&
-        document
-          .getElementById('scene-status')
-          .textContent.includes('<b>QA shot</b>'),
+      !window.__godsEyeView.sceneDirector.running &&
+      document
+      .getElementById('scene-status')
+      .textContent.includes('<b>QA shot</b>'),
     ),
   );
   await page.click('#scene-start-btn');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.sceneDirector.running &&
-      document.body.classList.contains('scene-playback-mode'),
+    window.__godsEyeView.sceneDirector.running &&
+    document.body.classList.contains('scene-playback-mode'),
   );
   check(
     'Playback enters recording presentation and disables editing',
     await page.evaluate(
       () =>
-        document.getElementById('scene-capture-btn').disabled &&
-        document.getElementById('scene-start-btn').disabled &&
-        !document.getElementById('scene-stop-btn').disabled &&
-        window.__godsEyeView.styleManager.getControlState().recording,
+      document.getElementById('scene-capture-btn').disabled &&
+      document.getElementById('scene-start-btn').disabled &&
+      !document.getElementById('scene-stop-btn').disabled &&
+      window.__godsEyeView.styleManager.getControlState().recording,
     ),
   );
   // A focused panel owns Escape to collapse one level. Release panel focus
@@ -208,17 +227,17 @@ try {
   await page.keyboard.press('Escape');
   await page.waitForFunction(
     () =>
-      !window.__godsEyeView.sceneDirector.running &&
-      !document.body.classList.contains('scene-playback-mode'),
+    !window.__godsEyeView.sceneDirector.running &&
+    !document.body.classList.contains('scene-playback-mode'),
   );
   check(
     'Escape ends playback and restores idle/recording controls',
     await page.evaluate(
       () =>
-        !document.getElementById('scene-start-btn').disabled &&
-        document.getElementById('scene-stop-btn').disabled &&
-        !document.getElementById('scene-download-btn').disabled &&
-        !window.__godsEyeView.styleManager.getControlState().recording,
+      !document.getElementById('scene-start-btn').disabled &&
+      document.getElementById('scene-stop-btn').disabled &&
+      !document.getElementById('scene-download-btn').disabled &&
+      !window.__godsEyeView.styleManager.getControlState().recording,
     ),
   );
   // Escape can also collapse the Scene accordion. Reopen it through its
@@ -229,11 +248,12 @@ try {
     )
   )
     await page.click('[data-collapse-target="scene-panel"]');
-  await page.waitForSelector('#scene-download-btn', { visible: true });
+  await page.waitForSelector('#scene-download-btn', {
+    visible: true
+  });
   await page.click('#scene-download-btn');
   const metadata = await page.evaluate(async () =>
-    JSON.parse(await window.__sceneExports.at(-1)),
-  );
+    JSON.parse(await window.__sceneExports.at(-1)), );
   check(
     'Run download contains the completed cancelled run',
     Boolean(
@@ -250,8 +270,8 @@ try {
     'The installed Stop control also completes playback cleanup',
     await page.evaluate(
       () =>
-        !document.body.classList.contains('scene-playback-mode') &&
-        !document.getElementById('scene-start-btn').disabled,
+      !document.body.classList.contains('scene-playback-mode') &&
+      !document.getElementById('scene-start-btn').disabled,
     ),
   );
   const badFile = path.join(shots, 'invalid.json');
@@ -259,21 +279,28 @@ try {
   await input.uploadFile(badFile);
   await page.waitForFunction(() =>
     document
-      .getElementById('scene-status')
-      .textContent.includes('invalid JSON'),
+    .getElementById('scene-status')
+    .textContent.includes('invalid JSON'),
   );
   check(
     'Invalid import reports failure and preserves the current project',
     await page.evaluate(
       () =>
-        window.__godsEyeView.sceneDirector._project.scenes.length === 1 &&
-        window.__godsEyeView.sceneDirector._getSelectedScene().title ===
-          'QA Scene',
+      window.__godsEyeView.sceneDirector._project.scenes.length === 1 &&
+      window.__godsEyeView.sceneDirector._getSelectedScene().title ===
+      'QA Scene',
     ),
   );
-  await page.screenshot({ path: path.join(shots, 'desktop.png') });
-  await page.setViewport({ width: 390, height: 844 });
-  await page.screenshot({ path: path.join(shots, 'narrow.png') });
+  await page.screenshot({
+    path: path.join(shots, 'desktop.png')
+  });
+  await page.setViewport({
+    width: 390,
+    height: 844
+  });
+  await page.screenshot({
+    path: path.join(shots, 'narrow.png')
+  });
   check(
     'Scene controls stay inside the narrow viewport',
     await page.$eval('#scene-select', (element) => {
@@ -281,7 +308,10 @@ try {
       return rect.width > 0 && rect.left >= 0 && rect.right <= innerWidth;
     }),
   );
-  await page.setViewport({ width: 1440, height: 900 });
+  await page.setViewport({
+    width: 1440,
+    height: 900
+  });
   await page.click('.scene-shot-danger');
   await page.waitForFunction(
     () => !!document.querySelector('.scene-shot-empty'),
@@ -290,34 +320,35 @@ try {
     'Delete shot leaves the empty-state presentation',
     await page.evaluate(
       () =>
-        window.__godsEyeView.sceneDirector._getSelectedScene().shots.length ===
-        0,
+      window.__godsEyeView.sceneDirector._getSelectedScene().shots.length ===
+      0,
     ),
   );
   await page.click('#scene-delete-btn');
   await page.waitForFunction(
     () =>
-      !window.__godsEyeView.sceneDirector._project.scenes.some(
-        (item) => item.title === 'QA Scene',
-      ),
+    !window.__godsEyeView.sceneDirector._project.scenes.some(
+      (item) => item.title === 'QA Scene',
+    ),
   );
   check(
     'Deleting the final scene restores the built-in recipes',
     await page.evaluate(
       () =>
-        window.__godsEyeView.sceneDirector._project.scenes.length > 0 &&
-        document.querySelectorAll('#scene-select option').length > 0,
+      window.__godsEyeView.sceneDirector._project.scenes.length > 0 &&
+      document.querySelectorAll('#scene-select option').length > 0,
     ),
   );
   check(
     'Scene subscriptions include current state and the completed native editing actions',
     await page.evaluate(() => {
       const seen = window.__qaSceneState;
-      const types = new Set(seen.map(({ change }) => change?.type));
+      const types = new Set(seen.map(({
+        change
+      }) => change?.type));
       return (
         seen[0].initial &&
-        Object.isFrozen(seen[0].state) &&
-        [
+        Object.isFrozen(seen[0].state) && [
           'scene-created',
           'shot-captured',
           'shot-renamed',
@@ -329,8 +360,12 @@ try {
           'run-event',
         ].every((type) => types.has(type)) &&
         seen
-          .filter(({ change }) => change?.shot)
-          .every(({ change }) => Object.isFrozen(change.shot))
+        .filter(({
+          change
+        }) => change?.shot)
+        .every(({
+          change
+        }) => Object.isFrozen(change.shot))
       );
     }),
   );
@@ -366,8 +401,7 @@ try {
       stoppedSynchronously,
       stateStopped: window.__qaSceneState.length === notificationsAtStop,
       sameProject: director._project === project,
-      noLateStatus:
-        document.getElementById('scene-status').textContent === previousStatus,
+      noLateStatus: document.getElementById('scene-status').textContent === previousStatus,
       rowsGone: !document.querySelector('.scene-shot-row'),
     };
   });
