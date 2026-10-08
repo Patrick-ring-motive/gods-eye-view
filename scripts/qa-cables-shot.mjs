@@ -50,7 +50,8 @@ try {
             origin: 'user'
           });
         } catch {
-          /* shot only */ }
+          /* shot only */
+        }
       }
     }
     await gev.dataManager.setEnabled(layerId, true, {
