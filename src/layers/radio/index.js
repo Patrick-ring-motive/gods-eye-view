@@ -1,28 +1,76 @@
-import { createCatalogModel } from './catalogModel.js';
-import { createLabels } from './labels.js';
-import { createClustering } from './clustering.js';
-import { createVolume } from './volume.js';
-import { createNavigation } from './navigation.js';
-import { createCategories } from './categories.js';
-import { createModel } from './model.js';
-import { createQueries } from './queries.js';
-import { createInteraction } from './interaction.js';
-import { createTuning } from './tuning.js';
-import { createTuningNoise } from './tuningNoise.js';
-import { createRendering } from './rendering.js';
-import { createPresentation } from './presentation.js';
-import { createPlayback } from './playback.js';
-import { createSelection } from './selection.js';
-import { createControls } from './controls.js';
-import { createLifecycle } from './lifecycle.js';
-import { createIngestion } from './ingestion.js';
-import { createState } from './state.js';
+import {
+  createCatalogModel
+} from './catalogModel.js';
+import {
+  createLabels
+} from './labels.js';
+import {
+  createClustering
+} from './clustering.js';
+import {
+  createVolume
+} from './volume.js';
+import {
+  createNavigation
+} from './navigation.js';
+import {
+  createCategories
+} from './categories.js';
+import {
+  createModel
+} from './model.js';
+import {
+  createQueries
+} from './queries.js';
+import {
+  createInteraction
+} from './interaction.js';
+import {
+  createTuning
+} from './tuning.js';
+import {
+  createTuningNoise
+} from './tuningNoise.js';
+import {
+  createRendering
+} from './rendering.js';
+import {
+  createPresentation
+} from './presentation.js';
+import {
+  createPlayback
+} from './playback.js';
+import {
+  createSelection
+} from './selection.js';
+import {
+  createControls
+} from './controls.js';
+import {
+  createLifecycle
+} from './lifecycle.js';
+import {
+  createIngestion
+} from './ingestion.js';
+import {
+  createState
+} from './state.js';
 
 /** Construct one layer with its own scene state and supplied application services. */
-export function createRadioLayer({ services, source }) {
-  const state = createState({ services });
+export function createRadioLayer({
+  services,
+  source
+}) {
+  const state = createState({
+    services
+  });
   const parts = {};
-  const context = { state, services, parts, source };
+  const context = {
+    state,
+    services,
+    parts,
+    source
+  };
   parts.catalogModel = createCatalogModel(context);
   parts.labels = createLabels(context);
   parts.clustering = createClustering(context);
@@ -41,26 +89,18 @@ export function createRadioLayer({ services, source }) {
   parts.controls = createControls(context);
   parts.lifecycle = createLifecycle(context);
   parts.ingestion = createIngestion(context);
-  return Object.assign(
-    {},
+  return Object.assign({},
     parts.controls.methods,
     parts.lifecycle.methods,
-    parts.ingestion?.methods,
-    {
+    parts.ingestion?.methods, {
       radioGlobeLabel: parts.labels.radioGlobeLabel,
-      createRadioSelectedOverlayEntry:
-        parts.labels.createRadioSelectedOverlayEntry,
-      createRadioClusterOverlayEntry:
-        parts.labels.createRadioClusterOverlayEntry,
-      createRadioSingletonOverlayEntry:
-        parts.labels.createRadioSingletonOverlayEntry,
+      createRadioSelectedOverlayEntry: parts.labels.createRadioSelectedOverlayEntry,
+      createRadioClusterOverlayEntry: parts.labels.createRadioClusterOverlayEntry,
+      createRadioSingletonOverlayEntry: parts.labels.createRadioSingletonOverlayEntry,
       radioSingletonLabelLimit: parts.clustering.radioSingletonLabelLimit,
-      selectRadioSingletonCandidates:
-        parts.clustering.selectRadioSingletonCandidates,
-      selectRadioClusterCandidates:
-        parts.clustering.selectRadioClusterCandidates,
-      reconcileRadioClusterCandidates:
-        parts.clustering.reconcileRadioClusterCandidates,
+      selectRadioSingletonCandidates: parts.clustering.selectRadioSingletonCandidates,
+      selectRadioClusterCandidates: parts.clustering.selectRadioClusterCandidates,
+      reconcileRadioClusterCandidates: parts.clustering.reconcileRadioClusterCandidates,
       radioCameraPositionChanged: parts.navigation.radioCameraPositionChanged,
       normalizeRadioTag: parts.categories.normalizeRadioTag,
       stationMatchesRadioCategory: parts.categories.stationMatchesRadioCategory,
@@ -81,20 +121,16 @@ export function createRadioLayer({ services, source }) {
       radioGlobeNeedsRecentering: parts.navigation.radioGlobeNeedsRecentering,
       radioGlobeRecenterHeight: parts.navigation.radioGlobeRecenterHeight,
       buildRadioTunerBand: parts.tuning.buildRadioTunerBand,
-      radioTuningStaticShouldPlay:
-        parts.tuningNoise.radioTuningStaticShouldPlay,
-      getRadioAcceptedCatalogSnapshot:
-        parts.presentation.getRadioAcceptedCatalogSnapshot,
+      radioTuningStaticShouldPlay: parts.tuningNoise.radioTuningStaticShouldPlay,
+      getRadioAcceptedCatalogSnapshot: parts.presentation.getRadioAcceptedCatalogSnapshot,
       radioStationResolutionMatches: parts.model.radioStationResolutionMatches,
       getRadioUIState: parts.presentation.getRadioUIState,
       subscribeToRadio: parts.presentation.subscribeToRadio,
-      subscribeToRadioPlaybackControls:
-        parts.presentation.subscribeToRadioPlaybackControls,
+      subscribeToRadioPlaybackControls: parts.presentation.subscribeToRadioPlaybackControls,
       getRadioTunerStations: parts.tuning.getRadioTunerStations,
       beginRadioTuning: parts.tuning.beginRadioTuning,
       setRadioTuningStatic: parts.tuning.setRadioTuningStatic,
-      radioCameraNavigationAllowed:
-        parts.navigation.radioCameraNavigationAllowed,
+      radioCameraNavigationAllowed: parts.navigation.radioCameraNavigationAllowed,
       previewRadioTuningStation: parts.tuning.previewRadioTuningStation,
       endRadioTuning: parts.tuning.endRadioTuning,
       cancelRadioTuning: parts.tuning.cancelRadioTuning,
@@ -113,8 +149,7 @@ export function createRadioLayer({ services, source }) {
       cycleRadioStation: parts.selection.cycleRadioStation,
       selectRequestedRadioStation: parts.selection.selectRequestedRadioStation,
       setRadioFilter: parts.selection.setRadioFilter,
-      retainRadioClusterIdentitiesForStations:
-        parts.clustering.retainRadioClusterIdentitiesForStations,
+      retainRadioClusterIdentitiesForStations: parts.clustering.retainRadioClusterIdentitiesForStations,
     },
   );
 }
@@ -129,14 +164,22 @@ export {
   RADIO_OVERLAY_SOURCE_OPTIONS,
   DEFAULT_RADIO_FILTER,
   GLOBAL_RADIO_ALTITUDE_M,
-} from './policy.js';
+}
+from './policy.js';
 
-export { createRadioSource } from './source.js';
+export {
+  createRadioSource
+}
+from './source.js';
 export {
   radioTunerSlot,
   radioTunerCommitSlot,
   radioTunerPointerPosition,
   buildRadioTunerTicks,
-} from '../../ui/radioTunerModel.js';
+}
+from '../../ui/radioTunerModel.js';
 
-export { normalizeRadioCountryInput } from '../../data/radioCountry.js';
+export {
+  normalizeRadioCountryInput
+}
+from '../../data/radioCountry.js';
