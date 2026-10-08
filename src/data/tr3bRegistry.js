@@ -101,7 +101,9 @@ export function clearTr3bRegistry() {
  * @param {{hot?: boolean}} [options] `hot` = an IR/thermal style is active.
  * @returns {string|undefined} Sprite kind for `aircraftIcon()`.
  */
-export function tr3bIconKind(id, klass, { hot = false } = {}) {
+export function tr3bIconKind(id, klass, {
+  hot = false
+} = {}) {
   if (!isTr3b(id)) return klass;
   return hot === true ? 'tr3bHot' : 'tr3b';
 }
