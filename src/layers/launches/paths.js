@@ -5,11 +5,16 @@ import {
   STAGE_REENTRY_ALTITUDE_M,
 } from './policy.js';
 
-export function createPaths({ state: layerState, services, parts, source }) {
+export function createPaths({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function orbitInsertionOffsetSeconds(launch) {
     const events = (launch.timeline || []).filter(
       (event) =>
-        Number.isFinite(event.offsetSeconds) && event.offsetSeconds >= 0,
+      Number.isFinite(event.offsetSeconds) && event.offsetSeconds >= 0,
     );
     if (!events.length) return null;
     const deployment = events.filter((event) =>
@@ -46,11 +51,11 @@ export function createPaths({ state: layerState, services, parts, source }) {
       return null;
     const orbitName = launch.orbit.name.toLowerCase();
     const altitude =
-      orbitName.includes('geostationary') || orbitName.includes('transfer')
-        ? 35786000
-        : orbitName.includes('medium')
-          ? 20200000
-          : 550000;
+      orbitName.includes('geostationary') || orbitName.includes('transfer') ?
+      35786000 :
+      orbitName.includes('medium') ?
+      20200000 :
+      550000;
     const radius = Cesium.Ellipsoid.WGS84.maximumRadius + altitude;
     const longitude = Cesium.Math.toRadians(launch.lon);
     const latitude = Cesium.Math.toRadians(launch.lat);
@@ -75,13 +80,13 @@ export function createPaths({ state: layerState, services, parts, source }) {
       launch.lat < 60 &&
       launch.lon > -140 &&
       launch.lon < -105;
-    const launchAzimuthDeg = isPolar
-      ? launch.lat >= 0
-        ? 180
-        : 0
-      : isWesternNorthAmerica
-        ? 190
-        : 90;
+    const launchAzimuthDeg = isPolar ?
+      launch.lat >= 0 ?
+      180 :
+      0 :
+      isWesternNorthAmerica ?
+      190 :
+      90;
     const launchAzimuth = Cesium.Math.toRadians(launchAzimuthDeg);
     const forward = Cesium.Cartesian3.normalize(
       Cesium.Cartesian3.add(
@@ -133,15 +138,17 @@ export function createPaths({ state: layerState, services, parts, source }) {
       ),
       new Cesium.Cartesian3(),
     );
-    return Array.from({ length: 97 }, (_, index) => {
+    return Array.from({
+      length: 97
+    }, (_, index) => {
       const angle = (index / 96) * Math.PI * 2;
       return new Cesium.Cartesian3(
         radius *
-          (Math.cos(angle) * orbitAnchor.x + Math.sin(angle) * crossTrack.x),
+        (Math.cos(angle) * orbitAnchor.x + Math.sin(angle) * crossTrack.x),
         radius *
-          (Math.cos(angle) * orbitAnchor.y + Math.sin(angle) * crossTrack.y),
+        (Math.cos(angle) * orbitAnchor.y + Math.sin(angle) * crossTrack.y),
         radius *
-          (Math.cos(angle) * orbitAnchor.z + Math.sin(angle) * crossTrack.z),
+        (Math.cos(angle) * orbitAnchor.z + Math.sin(angle) * crossTrack.z),
       );
     });
   }
@@ -176,9 +183,9 @@ export function createPaths({ state: layerState, services, parts, source }) {
     const index = Math.max(0, low - 1);
     const segmentDistance = distances[index + 1] - distances[index];
     const segmentProgress =
-      segmentDistance > 0
-        ? (targetDistance - distances[index]) / segmentDistance
-        : 0;
+      segmentDistance > 0 ?
+      (targetDistance - distances[index]) / segmentDistance :
+      0;
     return Cesium.Cartesian3.lerp(
       path[index],
       path[index + 1],
@@ -225,7 +232,9 @@ export function createPaths({ state: layerState, services, parts, source }) {
       new Cesium.Cartographic(insertion.longitude, insertion.latitude),
       ellipsoid,
     );
-    return Array.from({ length: samples + 1 }, (_, index) => {
+    return Array.from({
+      length: samples + 1
+    }, (_, index) => {
       const progress = index / samples;
       if (index === 0) return launchPosition;
       if (index === samples) return insertionPosition;
@@ -473,9 +482,9 @@ export function createPaths({ state: layerState, services, parts, source }) {
       insertionReference || controls.at(-1),
     );
     const transferEnd = orbitPath[insertionIndex];
-    const ascentPath = suppliedTrajectory.length
-      ? surfaceSafePath([...controls, transferEnd])
-      : reconstructedAscentPath(launchPosition, transferEnd);
+    const ascentPath = suppliedTrajectory.length ?
+      surfaceSafePath([...controls, transferEnd]) :
+      reconstructedAscentPath(launchPosition, transferEnd);
     blendAscentIntoOrbitTangent(ascentPath, orbitPath, insertionIndex);
     return {
       ascentPath,
@@ -486,7 +495,11 @@ export function createPaths({ state: layerState, services, parts, source }) {
 
   function landingEndpoint(stage, launch, insertionPosition) {
     if (Number.isFinite(stage.lat) && Number.isFinite(stage.lon)) {
-      return { lat: stage.lat, lon: stage.lon, accuracy: 'CONFIRMED' };
+      return {
+        lat: stage.lat,
+        lon: stage.lon,
+        accuracy: 'CONFIRMED'
+      };
     }
     const recoveryIdentity =
       `${stage.recoveryType || ''} ${stage.destination || ''}`.toLowerCase();
@@ -495,7 +508,11 @@ export function createPaths({ state: layerState, services, parts, source }) {
         recoveryIdentity,
       )
     ) {
-      return { lat: launch.lat, lon: launch.lon, accuracy: 'PAD / RTLS' };
+      return {
+        lat: launch.lat,
+        lon: launch.lon,
+        accuracy: 'PAD / RTLS'
+      };
     }
     if (!(stage.downrangeKm > 0) || !insertionPosition) return null;
     const ellipsoid = Cesium.Ellipsoid.WGS84;
@@ -510,7 +527,7 @@ export function createPaths({ state: layerState, services, parts, source }) {
     const lon1 = start.longitude;
     const lat = Math.asin(
       Math.sin(lat1) * Math.cos(angularDistance) +
-        Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing),
+      Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing),
     );
     const lon =
       lon1 +
