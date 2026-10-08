@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import {
   KEY_SETUP_APPEND_HEADER,
   KEY_SETUP_KEYS,
@@ -78,15 +80,30 @@ test('the status payload reports presence without any credential material', () =
 });
 
 test('whitespace-only env values do not count as configured', () => {
-  const status = keySetupStatus({ OPENAI_API_KEY: '   ' });
+  const status = keySetupStatus({
+    OPENAI_API_KEY: '   '
+  });
   assert.equal(status.keys.find((key) => key.id === 'openai').set, false);
 });
 
 test('subprocess success requires a clean zero exit', () => {
-  assert.equal(commandCompletedSuccessfully({ status: 0, signal: null }), true);
-  assert.equal(commandCompletedSuccessfully({ status: 1, signal: null }), false);
-  assert.equal(commandCompletedSuccessfully({ status: 0, signal: 'SIGTERM' }), false);
-  assert.equal(commandCompletedSuccessfully({ status: 0, signal: null, error: new Error('spawn failed') }), false);
+  assert.equal(commandCompletedSuccessfully({
+    status: 0,
+    signal: null
+  }), true);
+  assert.equal(commandCompletedSuccessfully({
+    status: 1,
+    signal: null
+  }), false);
+  assert.equal(commandCompletedSuccessfully({
+    status: 0,
+    signal: 'SIGTERM'
+  }), false);
+  assert.equal(commandCompletedSuccessfully({
+    status: 0,
+    signal: null,
+    error: new Error('spawn failed')
+  }), false);
   assert.equal(commandCompletedSuccessfully(null), false);
 });
 
@@ -108,31 +125,53 @@ test('Windows owner SID parsing reads only the structured user-SID CSV field', (
 test('validation accepts every registry env var and only those', () => {
   const known = knownKeySetupEnvVars();
   for (const name of known) {
-    const verdict = validateKeySetupUpdates({ [name]: 'valid-value-123' });
+    const verdict = validateKeySetupUpdates({
+      [name]: 'valid-value-123'
+    });
     assert.equal(verdict.ok, true, `${name} should validate`);
     assert.equal(verdict.updates[name], 'valid-value-123');
   }
-  assert.equal(validateKeySetupUpdates({ PATH: '/usr/bin' }).ok, false, 'PATH must be refused');
-  assert.equal(validateKeySetupUpdates({ NODE_OPTIONS: '--x' }).ok, false, 'NODE_OPTIONS must be refused');
+  assert.equal(validateKeySetupUpdates({
+    PATH: '/usr/bin'
+  }).ok, false, 'PATH must be refused');
+  assert.equal(validateKeySetupUpdates({
+    NODE_OPTIONS: '--x'
+  }).ok, false, 'NODE_OPTIONS must be refused');
 });
 
 test('validation trims, and refuses empties, newlines, spaces, and oversize values', () => {
-  const trimmed = validateKeySetupUpdates({ OPENAI_API_KEY: '  sk-abc123  ' });
+  const trimmed = validateKeySetupUpdates({
+    OPENAI_API_KEY: '  sk-abc123  '
+  });
   assert.equal(trimmed.ok, true);
   assert.equal(trimmed.updates.OPENAI_API_KEY, 'sk-abc123');
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: '' }).ok, false);
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: '   ' }).ok, false);
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: 'a\nb' }).ok, false, 'newline injection');
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: 'a b' }).ok, false, 'inner space');
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: 'kéy' }).ok, false, 'non-ASCII');
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: ''
+  }).ok, false);
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: '   '
+  }).ok, false);
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: 'a\nb'
+  }).ok, false, 'newline injection');
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: 'a b'
+  }).ok, false, 'inner space');
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: 'kéy'
+  }).ok, false, 'non-ASCII');
   assert.equal(
-    validateKeySetupUpdates({ OPENAI_API_KEY: 'x'.repeat(KEY_SETUP_VALUE_LIMIT + 1) }).ok,
+    validateKeySetupUpdates({
+      OPENAI_API_KEY: 'x'.repeat(KEY_SETUP_VALUE_LIMIT + 1)
+    }).ok,
     false,
   );
   assert.equal(validateKeySetupUpdates(null).ok, false);
   assert.equal(validateKeySetupUpdates([]).ok, false);
   assert.equal(validateKeySetupUpdates({}).ok, false);
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: 42 }).ok, false);
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: 42
+  }).ok, false);
 });
 
 test('upsert replaces the last active assignment in place', () => {
@@ -143,7 +182,9 @@ test('upsert replaces the last active assignment in place', () => {
     'OPENAI_API_KEY=old-two',
     '',
   ].join('\n');
-  const next = upsertDotenvValues(text, { OPENAI_API_KEY: 'new-key' });
+  const next = upsertDotenvValues(text, {
+    OPENAI_API_KEY: 'new-key'
+  });
   assert.equal(next, [
     '# comment stays',
     'OPENAI_API_KEY=old-one',
@@ -160,7 +201,9 @@ test('upsert uncomments a commented assignment in place, keeping file shape', ()
     '',
     'PORT=4173',
   ].join('\n');
-  const next = upsertDotenvValues(text, { FIRMS_MAP_KEY: 'firms-123' });
+  const next = upsertDotenvValues(text, {
+    FIRMS_MAP_KEY: 'firms-123'
+  });
   assert.equal(next, [
     '# Optional: NASA FIRMS live active fires.',
     'FIRMS_MAP_KEY=firms-123',
@@ -170,14 +213,18 @@ test('upsert uncomments a commented assignment in place, keeping file shape', ()
 });
 
 test('upsert appends unknown keys under one shared header, once', () => {
-  const first = upsertDotenvValues('PORT=4173\n', { OPENAI_API_KEY: 'sk-1' });
+  const first = upsertDotenvValues('PORT=4173\n', {
+    OPENAI_API_KEY: 'sk-1'
+  });
   assert.equal(first, [
     'PORT=4173',
     '',
     KEY_SETUP_APPEND_HEADER,
     'OPENAI_API_KEY=sk-1',
   ].join('\n') + '\n');
-  const second = upsertDotenvValues(first, { FIRMS_MAP_KEY: 'f-2' });
+  const second = upsertDotenvValues(first, {
+    FIRMS_MAP_KEY: 'f-2'
+  });
   assert.equal(second, [
     'PORT=4173',
     '',
@@ -189,7 +236,9 @@ test('upsert appends unknown keys under one shared header, once', () => {
 });
 
 test('upsert births a well-formed file from nothing', () => {
-  const next = upsertDotenvValues('', { GOOGLE_MAPS_API_KEY: 'AIza-x' });
+  const next = upsertDotenvValues('', {
+    GOOGLE_MAPS_API_KEY: 'AIza-x'
+  });
   assert.equal(next, `${KEY_SETUP_APPEND_HEADER}\nGOOGLE_MAPS_API_KEY=AIza-x\n`);
 });
 
@@ -199,7 +248,9 @@ test('upsert handles export-prefixed lines and never touches lookalike keys', ()
     'NOT_OPENAI_API_KEY=keep-me',
     'OPENAI_API_KEY_MINI=keep-me-too',
   ].join('\n');
-  const next = upsertDotenvValues(text, { OPENAI_API_KEY: 'new' });
+  const next = upsertDotenvValues(text, {
+    OPENAI_API_KEY: 'new'
+  });
   const lines = next.split('\n');
   assert.equal(lines[0], 'OPENAI_API_KEY=new');
   assert.equal(lines[1], 'NOT_OPENAI_API_KEY=keep-me');
@@ -207,8 +258,14 @@ test('upsert handles export-prefixed lines and never touches lookalike keys', ()
 });
 
 test('upsert is idempotent for a repeated save', () => {
-  const once = upsertDotenvValues('', { OPENAI_API_KEY: 'sk-1', FIRMS_MAP_KEY: 'f-1' });
-  const twice = upsertDotenvValues(once, { OPENAI_API_KEY: 'sk-1', FIRMS_MAP_KEY: 'f-1' });
+  const once = upsertDotenvValues('', {
+    OPENAI_API_KEY: 'sk-1',
+    FIRMS_MAP_KEY: 'f-1'
+  });
+  const twice = upsertDotenvValues(once, {
+    OPENAI_API_KEY: 'sk-1',
+    FIRMS_MAP_KEY: 'f-1'
+  });
   assert.equal(once, twice);
 });
 
@@ -237,7 +294,9 @@ test('a real .env.example round-trip: the curated file keeps its shape', () => {
 });
 
 test('the admission gate refuses every non-local shape, one assertion per refusal', async () => {
-  const { admitKeySetupRequest } = await import('./keySetupCore.mjs');
+  const {
+    admitKeySetupRequest
+  } = await import('./keySetupCore.mjs');
   const local = {
     method: 'POST',
     remoteAddress: '127.0.0.1',
@@ -247,40 +306,106 @@ test('the admission gate refuses every non-local shape, one assertion per refusa
     env: {},
   };
   assert.equal(admitKeySetupRequest(local).ok, true, 'the honest local request is admitted');
-  assert.equal(admitKeySetupRequest({ ...local, method: 'GET', contentType: undefined }).ok, true, 'local GET needs no content type');
-  assert.equal(admitKeySetupRequest({ ...local, origin: undefined }).ok, false, 'POST without Origin is refused');
-  assert.equal(admitKeySetupRequest({ ...local, method: 'GET', origin: undefined, contentType: undefined }).ok, true, 'local GET may omit Origin');
-  assert.equal(admitKeySetupRequest({ ...local, remoteAddress: '::ffff:127.0.0.1', hostHeader: '[::1]:4173', origin: 'http://[::1]:4173' }).ok, true, 'IPv6 loopback forms are local');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    method: 'GET',
+    contentType: undefined
+  }).ok, true, 'local GET needs no content type');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    origin: undefined
+  }).ok, false, 'POST without Origin is refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    method: 'GET',
+    origin: undefined,
+    contentType: undefined
+  }).ok, true, 'local GET may omit Origin');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    remoteAddress: '::ffff:127.0.0.1',
+    hostHeader: '[::1]:4173',
+    origin: 'http://[::1]:4173'
+  }).ok, true, 'IPv6 loopback forms are local');
 
   // Tunnel/LAN sharing of any kind removes the surface outright — tunnel
   // traffic arrives FROM loopback, so no socket check can carry this boundary.
-  assert.equal(admitKeySetupRequest({ ...local, env: { PINOKIO_SHARE_CLOUDFLARE: 'true' } }).ok, false, 'sharing disables the surface');
-  assert.equal(admitKeySetupRequest({ ...local, env: { PINOKIO_SHARE_LOCAL: '1' } }).ok, false, 'LAN sharing disables the surface');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    env: {
+      PINOKIO_SHARE_CLOUDFLARE: 'true'
+    }
+  }).ok, false, 'sharing disables the surface');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    env: {
+      PINOKIO_SHARE_LOCAL: '1'
+    }
+  }).ok, false, 'LAN sharing disables the surface');
   // A LAN peer reaching a wide-bound server.
-  assert.equal(admitKeySetupRequest({ ...local, remoteAddress: '192.168.1.20' }).ok, false, 'non-loopback socket refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    remoteAddress: '192.168.1.20'
+  }).ok, false, 'non-loopback socket refused');
   // Tunnel and DNS-rebinding traffic carries a foreign Host over a loopback socket.
-  assert.equal(admitKeySetupRequest({ ...local, hostHeader: 'abc.trycloudflare.com' }).ok, false, 'foreign Host refused');
-  assert.equal(admitKeySetupRequest({ ...local, hostHeader: 'workstation.local:4173' }).ok, false, 'non-localhost hostnames refused');
-  assert.equal(admitKeySetupRequest({ ...local, hostHeader: '' }).ok, false, 'missing Host refused');
-  assert.equal(admitKeySetupRequest({ ...local, hostHeader: '[::1].evil:4173' }).ok, false, 'malformed bracketed Host refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    hostHeader: 'abc.trycloudflare.com'
+  }).ok, false, 'foreign Host refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    hostHeader: 'workstation.local:4173'
+  }).ok, false, 'non-localhost hostnames refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    hostHeader: ''
+  }).ok, false, 'missing Host refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    hostHeader: '[::1].evil:4173'
+  }).ok, false, 'malformed bracketed Host refused');
   // A hostile web page POSTing at localhost carries its own Origin.
-  assert.equal(admitKeySetupRequest({ ...local, origin: 'https://evil.example' }).ok, false, 'cross-origin refused');
-  assert.equal(admitKeySetupRequest({ ...local, origin: 'not a url' }).ok, false, 'unparseable Origin refused');
-  assert.equal(admitKeySetupRequest({ ...local, origin: 'http://localhost:4174' }).ok, false, 'cross-port Origin refused');
-  assert.equal(admitKeySetupRequest({ ...local, origin: 'https://localhost:4173' }).ok, false, 'cross-scheme Origin refused');
-  assert.equal(admitKeySetupRequest({ ...local, origin: 'http://127.0.0.1:4173' }).ok, false, 'different loopback host Origin refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    origin: 'https://evil.example'
+  }).ok, false, 'cross-origin refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    origin: 'not a url'
+  }).ok, false, 'unparseable Origin refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    origin: 'http://localhost:4174'
+  }).ok, false, 'cross-port Origin refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    origin: 'https://localhost:4173'
+  }).ok, false, 'cross-scheme Origin refused');
+  assert.equal(admitKeySetupRequest({
+    ...local,
+    origin: 'http://127.0.0.1:4173'
+  }).ok, false, 'different loopback host Origin refused');
   // A simple-request POST (no JSON content type) is the CSRF write shape.
-  const noJson = admitKeySetupRequest({ ...local, contentType: 'text/plain' });
+  const noJson = admitKeySetupRequest({
+    ...local,
+    contentType: 'text/plain'
+  });
   assert.equal(noJson.ok, false, 'non-JSON POST refused');
   assert.equal(noJson.status, 415);
 });
 
 test('a null value validates as a removal; an empty string still does not', () => {
-  const removal = validateKeySetupUpdates({ OPENAI_API_KEY: null });
+  const removal = validateKeySetupUpdates({
+    OPENAI_API_KEY: null
+  });
   assert.equal(removal.ok, true);
   assert.equal(removal.updates.OPENAI_API_KEY, null);
-  assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: '' }).ok, false, 'empty is a mistake, not a removal');
-  assert.equal(validateKeySetupUpdates({ PATH: null }).ok, false, 'removal is registry-bound too');
+  assert.equal(validateKeySetupUpdates({
+    OPENAI_API_KEY: ''
+  }).ok, false, 'empty is a mistake, not a removal');
+  assert.equal(validateKeySetupUpdates({
+    PATH: null
+  }).ok, false, 'removal is registry-bound too');
 });
 
 test('removal comments the assignment back out, returning the file to template shape', () => {
@@ -289,66 +414,124 @@ test('removal comments the assignment back out, returning the file to template s
     'OPENAI_API_KEY=sk-live',
     'PORT=4173',
   ].join('\n');
-  const next = upsertDotenvValues(text, { OPENAI_API_KEY: null });
+  const next = upsertDotenvValues(text, {
+    OPENAI_API_KEY: null
+  });
   const lines = next.split('\n');
   assert.equal(lines[1], '# OPENAI_API_KEY=', 'active line commented out, not deleted');
   assert.equal(lines[2], 'PORT=4173', 'neighbors untouched');
   // Removing a key with no active assignment changes nothing.
-  assert.equal(upsertDotenvValues(next, { FIRMS_MAP_KEY: null }), next);
+  assert.equal(upsertDotenvValues(next, {
+    FIRMS_MAP_KEY: null
+  }), next);
   // The commented-out line is reusable: a later save uncomments it in place.
-  const again = upsertDotenvValues(next, { OPENAI_API_KEY: 'sk-new' });
+  const again = upsertDotenvValues(next, {
+    OPENAI_API_KEY: 'sk-new'
+  });
   assert.equal(again.split('\n')[1], 'OPENAI_API_KEY=sk-new');
 });
 
 test('the sharing gate treats a real PINOKIO_SHARE_VAR as sharing, but not the empty/sentinel normal state', async () => {
-  const { admitKeySetupRequest } = await import('./keySetupCore.mjs');
+  const {
+    admitKeySetupRequest
+  } = await import('./keySetupCore.mjs');
   const base = {
-    method: 'POST', remoteAddress: '127.0.0.1', hostHeader: 'localhost:4173',
-    origin: 'http://localhost:4173', contentType: 'application/json',
+    method: 'POST',
+    remoteAddress: '127.0.0.1',
+    hostHeader: 'localhost:4173',
+    origin: 'http://localhost:4173',
+    contentType: 'application/json',
   };
   // The ordinary launch states: unset, empty, or the explicit disabled sentinel.
-  assert.equal(admitKeySetupRequest({ ...base, env: {} }).ok, true, 'unset SHARE_VAR is normal');
-  assert.equal(admitKeySetupRequest({ ...base, env: { PINOKIO_SHARE_VAR: '' } }).ok, true, 'empty SHARE_VAR is normal');
-  assert.equal(admitKeySetupRequest({ ...base, env: { PINOKIO_SHARE_VAR: '__gev_sharing_disabled__' } }).ok, true, 'the disabled sentinel is normal');
+  assert.equal(admitKeySetupRequest({
+    ...base,
+    env: {}
+  }).ok, true, 'unset SHARE_VAR is normal');
+  assert.equal(admitKeySetupRequest({
+    ...base,
+    env: {
+      PINOKIO_SHARE_VAR: ''
+    }
+  }).ok, true, 'empty SHARE_VAR is normal');
+  assert.equal(admitKeySetupRequest({
+    ...base,
+    env: {
+      PINOKIO_SHARE_VAR: '__gev_sharing_disabled__'
+    }
+  }).ok, true, 'the disabled sentinel is normal');
   // A real tunnel var disables the surface.
-  assert.equal(admitKeySetupRequest({ ...base, env: { PINOKIO_SHARE_VAR: 'MY_TUNNEL_TOKEN' } }).ok, false, 'a real share var is sharing');
+  assert.equal(admitKeySetupRequest({
+    ...base,
+    env: {
+      PINOKIO_SHARE_VAR: 'MY_TUNNEL_TOKEN'
+    }
+  }).ok, false, 'a real share var is sharing');
 });
 
 test('the gate refuses proxied requests even from a loopback socket with local headers', async () => {
-  const { admitKeySetupRequest } = await import('./keySetupCore.mjs');
+  const {
+    admitKeySetupRequest
+  } = await import('./keySetupCore.mjs');
   const base = {
-    method: 'POST', remoteAddress: '127.0.0.1', hostHeader: 'localhost:4173',
-    origin: 'http://localhost:4173', contentType: 'application/json', env: {},
+    method: 'POST',
+    remoteAddress: '127.0.0.1',
+    hostHeader: 'localhost:4173',
+    origin: 'http://localhost:4173',
+    contentType: 'application/json',
+    env: {},
   };
   assert.equal(admitKeySetupRequest(base).ok, true, 'no proxy headers → admitted');
   for (const header of ['x-forwarded-for', 'forwarded', 'via', 'cf-connecting-ip', 'cf-ray', 'x-real-ip', 'x-forwarded-host', 'x-forwarded-port', 'x-forwarded-proto']) {
     assert.equal(
-      admitKeySetupRequest({ ...base, proxyHeaders: { [header]: 'anything' } }).ok,
+      admitKeySetupRequest({
+        ...base,
+        proxyHeaders: {
+          [header]: 'anything'
+        }
+      }).ok,
       false,
       `${header} present → refused`,
     );
   }
   // An empty forwarding header is not a proxy signal.
-  assert.equal(admitKeySetupRequest({ ...base, proxyHeaders: { 'x-forwarded-for': '' } }).ok, true);
+  assert.equal(admitKeySetupRequest({
+    ...base,
+    proxyHeaders: {
+      'x-forwarded-for': ''
+    }
+  }).ok, true);
 });
 
 test('validation rejects dotenv metacharacters that would round-trip wrong', () => {
   for (const bad of ['abc#def', 'ab"cd', "ab'cd", 'ab$cd', 'ab\\cd', 'ab`cd']) {
-    assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: bad }).ok, false, `${JSON.stringify(bad)} refused`);
+    assert.equal(validateKeySetupUpdates({
+      OPENAI_API_KEY: bad
+    }).ok, false, `${JSON.stringify(bad)} refused`);
   }
   // Real key alphabets still pass: base64url, JWT dots, hex, plus/slash.
   for (const good of ['sk-AbC0-9_x', 'eyJhbGc.eyJzdWI.QWxpY2U', 'a1b2c3d4e5f6', 'AB+cd/ef=']) {
-    assert.equal(validateKeySetupUpdates({ OPENAI_API_KEY: good }).ok, true, `${good} accepted`);
+    assert.equal(validateKeySetupUpdates({
+      OPENAI_API_KEY: good
+    }).ok, true, `${good} accepted`);
   }
 });
 
 test('server Google key remains supported without appearing in setup or its missing count', () => {
   const secret = 'server-key-fixture';
-  assert.deepEqual(validateKeySetupUpdates({ GOOGLE_MAPS_SERVER_API_KEY: secret }), {
-    ok: true, updates: { GOOGLE_MAPS_SERVER_API_KEY: secret },
+  assert.deepEqual(validateKeySetupUpdates({
+    GOOGLE_MAPS_SERVER_API_KEY: secret
+  }), {
+    ok: true,
+    updates: {
+      GOOGLE_MAPS_SERVER_API_KEY: secret
+    },
   });
-  assert.equal(validateKeySetupUpdates({ GOOGLE_MAPS_SERVER_API_KEY: null }).ok, true);
-  const status = keySetupStatus({ GOOGLE_MAPS_SERVER_API_KEY: secret });
+  assert.equal(validateKeySetupUpdates({
+    GOOGLE_MAPS_SERVER_API_KEY: null
+  }).ok, true);
+  const status = keySetupStatus({
+    GOOGLE_MAPS_SERVER_API_KEY: secret
+  });
   assert.deepEqual(status, keySetupStatus({}));
   assert.equal(status.keys.some((key) => key.id === 'google-maps-server'), false);
   assert.equal(keySetupRequirement('google-maps-server'), '');
@@ -358,7 +541,10 @@ test('server Google key remains supported without appearing in setup or its miss
   ));
   const complete = keySetupStatus(allVisibleConfigured);
   assert.equal(complete.setCount, complete.total, 'an absent server key must not leave setup incomplete');
-  assert.deepEqual(complete, keySetupStatus({ ...allVisibleConfigured, GOOGLE_MAPS_SERVER_API_KEY: secret }));
+  assert.deepEqual(complete, keySetupStatus({
+    ...allVisibleConfigured,
+    GOOGLE_MAPS_SERVER_API_KEY: secret
+  }));
   assert.ok(!JSON.stringify(status).includes('GOOGLE_MAPS_SERVER_API_KEY'));
   assert.ok(!JSON.stringify(status).includes(secret));
 });
