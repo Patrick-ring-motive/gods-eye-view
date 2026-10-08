@@ -1,14 +1,25 @@
-import { displayedKinematics } from '../../data/motionModel.js';
+import {
+  displayedKinematics
+} from '../../data/motionModel.js';
 import * as Cesium from 'cesium';
-import { isExplicitLayerStateOrigin } from '../../data/layerState.js';
-import { aircraftIncludedInNearby } from '../../data/aircraftNearbyPolicy.js';
-import { modelVisualAnchor } from '../../data/modelVisualAnchor.js';
+import {
+  isExplicitLayerStateOrigin
+} from '../../data/layerState.js';
+import {
+  aircraftIncludedInNearby
+} from '../../data/aircraftNearbyPolicy.js';
+import {
+  modelVisualAnchor
+} from '../../data/modelVisualAnchor.js';
 import {
   rankContactMatch,
   contactMatchWins,
   CONTACT_MATCH_TIER,
 } from '../../data/contactMatch.js';
-import { LANDED_ALT_MAX_FT, LANDED_SPEED_MAX_MPS } from './policy.js';
+import {
+  LANDED_ALT_MAX_FT,
+  LANDED_SPEED_MAX_MPS
+} from './policy.js';
 
 export function createQueries({
   flightState,
@@ -17,9 +28,16 @@ export function createQueries({
   layer,
   resolveAsset,
 }) {
-  const { tr3bAircraftClass, tr3bTypeLabel } = services.aircraftPresentation;
-  const { formatFlightLevel } = services.labels;
-  const { applyTrackedCameraFrame } = services.camera;
+  const {
+    tr3bAircraftClass,
+    tr3bTypeLabel
+  } = services.aircraftPresentation;
+  const {
+    formatFlightLevel
+  } = services.labels;
+  const {
+    applyTrackedCameraFrame
+  } = services.camera;
 
   /**
    * Coerce a value to a finite number, returning null if not possible.
@@ -120,12 +138,12 @@ export function createQueries({
       longitude: Cesium.Math.toDegrees(carto.longitude),
       // Keep the cockpit readout on the reported aviation altitude. Render
       // terrain height is a separate visual datum and may be below zero.
-      altitudeM: Number.isFinite(info?.altitudeM)
-        ? info.altitudeM
-        : carto.height,
-      renderAltitudeM: Number.isFinite(info?.renderAltitudeM)
-        ? info.renderAltitudeM
-        : carto.height,
+      altitudeM: Number.isFinite(info?.altitudeM) ?
+        info.altitudeM :
+        carto.height,
+      renderAltitudeM: Number.isFinite(info?.renderAltitudeM) ?
+        info.renderAltitudeM :
+        carto.height,
       onGround: info?.onGround === true,
       velocityMps: displayed.speedMps,
       track: displayed.trackDeg,
@@ -173,9 +191,9 @@ export function createQueries({
       lon: num(info?.rawLon),
       // altitudeFt is the sticky barometric/MSL aviation field — converted to
       // meters here for shape parity with the flights layer.
-      altitudeM: Number.isFinite(info?.altitudeFt)
-        ? info.altitudeFt * 0.3048
-        : null,
+      altitudeM: Number.isFinite(info?.altitudeFt) ?
+        info.altitudeFt * 0.3048 :
+        null,
       speedMps: num(info?.speedMps),
       heading: num(info?.track),
       verticalRateMps: num(info?.verticalRateMps),
@@ -223,7 +241,9 @@ export function createQueries({
      * `models3dMode` is 'proximity' (nearest MODEL_MAX in view) or 'all' (every in-view plane).
      * @param {{models3d?: boolean, models3dMode?: 'proximity'|'all', selectedMilitaryTrackingId?: string|null}} params
      */
-    setParams(params = {}, { origin = 'programmatic' } = {}) {
+    setParams(params = {}, {
+      origin = 'programmatic'
+    } = {}) {
       if (
         isExplicitLayerStateOrigin(origin) &&
         !Object.hasOwn(params, 'selectedMilitaryTrackingId')
@@ -277,7 +297,9 @@ export function createQueries({
         } else if (requested === null) {
           parts.tracking._cancelPendingTrackingRestore();
           if (flightState._trackedIcao)
-            parts.tracking._clearTracking(false, { origin });
+            parts.tracking._clearTracking(false, {
+              origin
+            });
         } else {
           const generation = ++flightState._trackingIntentGeneration;
           flightState._pendingTrackingRestore = {
@@ -286,7 +308,9 @@ export function createQueries({
             origin,
           };
           if (flightState._trackedIcao)
-            parts.tracking._clearTracking(false, { origin });
+            parts.tracking._clearTracking(false, {
+              origin
+            });
           parts.tracking._applyPendingTrackingRestore();
         }
       }
@@ -322,7 +346,9 @@ export function createQueries({
      * @param {boolean} [options.includeHidden=false] Include loaded horizon-hidden aircraft.
      * @returns {Array<Object>} Sorted array of nearby aircraft descriptors
      */
-    getNearby(center, range, maxCount = 50, { includeHidden = false } = {}) {
+    getNearby(center, range, maxCount = 50, {
+      includeHidden = false
+    } = {}) {
       if (
         !center ||
         !flightState._billboardCollection ||
@@ -330,9 +356,9 @@ export function createQueries({
       )
         return [];
 
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 50;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        50;
       const maxRange =
         Number.isFinite(range) && range > 0 ? range : Number.POSITIVE_INFINITY;
 
@@ -353,9 +379,9 @@ export function createQueries({
         )
           continue;
 
-        const trackedPos = isTracked
-          ? parts.motion._trackedDisplayCached()
-          : null; // cached, no recompute (anti-jitter)
+        const trackedPos = isTracked ?
+          parts.motion._trackedDisplayCached() :
+          null; // cached, no recompute (anti-jitter)
         const pos = trackedPos || bb.position;
         if (!pos) continue;
 
@@ -373,8 +399,8 @@ export function createQueries({
           aircraftClass: tr3bAircraftClass(
             icao24,
             String(info?.klass || info?.type || '')
-              .trim()
-              .toLowerCase() || null,
+            .trim()
+            .toLowerCase() || null,
           ),
           track: info?.track ?? null,
           // Display type — converted too, so a Contacts row can't still name the
@@ -406,9 +432,9 @@ export function createQueries({
         !flightState._billboardCollection.show
       )
         return [];
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : flightState._billboards.size;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        flightState._billboards.size;
       const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
       // Deterministic stride: evenly space selections across the billboard map
       const stride = Math.max(
@@ -451,21 +477,21 @@ export function createQueries({
         // contacts read the translation the fleet tick already wrote into their
         // modelMatrix; sprite-owned contacts keep `bb.position`, where sprite and bracket
         // are co-located anyway.
-        const spec = modelOwnsVisual
-          ? parts.rendering._modelSpec(info?.klass)
-          : null;
-        const pos = isTracked
-          ? parts.motion._trackedVisualCached() || bb.position
-          : modelOwnsVisual
-            ? modelVisualAnchor(
-                model.modelMatrix,
-                spec.visualCenterNative,
-                Number.isFinite(model.computedScale)
-                  ? model.computedScale
-                  : spec.scale,
-                object._weldPos || (object._weldPos = new Cesium.Cartesian3()),
-              )
-            : bb.position;
+        const spec = modelOwnsVisual ?
+          parts.rendering._modelSpec(info?.klass) :
+          null;
+        const pos = isTracked ?
+          parts.motion._trackedVisualCached() || bb.position :
+          modelOwnsVisual ?
+          modelVisualAnchor(
+            model.modelMatrix,
+            spec.visualCenterNative,
+            Number.isFinite(model.computedScale) ?
+            model.computedScale :
+            spec.scale,
+            object._weldPos || (object._weldPos = new Cesium.Cartesian3()),
+          ) :
+          bb.position;
         if (!pos) continue;
         object.position = pos;
         object.skipLabel = isTracked;
@@ -581,9 +607,9 @@ export function createQueries({
         flightState._billboards.size === 0
       )
         return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 500;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        500;
 
       const result = [];
       for (const [icao24, bb] of flightState._billboards) {
@@ -600,8 +626,7 @@ export function createQueries({
           id: icao24, // identity (trackById/Context resolve this)
           // Last surface still reading as the raw hex for a callsign-less
           // contact — same chain as getNearby/getDetectableObjects/getTrackedSubject.
-          label:
-            _toCleanText(info?.callsign) ||
+          label: _toCleanText(info?.callsign) ||
             _toCleanText(info?.registration) ||
             icao24,
           position: pos,
@@ -629,9 +654,9 @@ export function createQueries({
         flightState._flightData.size === 0
       )
         return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 2000;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        2000;
       const result = [];
       for (const [icao24, info] of flightState._flightData) {
         result.push(mapAnalystRecord(icao24, info));
@@ -645,7 +670,9 @@ export function createQueries({
      * @param {string} icao24 - ICAO hex identifier of the aircraft.
      * @returns {boolean} True if the aircraft exists and tracking started.
      */
-    trackById(icao24, { origin = 'programmatic' } = {}) {
+    trackById(icao24, {
+      origin = 'programmatic'
+    } = {}) {
       if (!icao24) return false;
       let id = String(icao24).trim();
       if (!flightState._billboards.has(id)) id = id.toLowerCase();
@@ -654,14 +681,18 @@ export function createQueries({
         parts.tracking._cancelPendingTrackingRestore();
       if (flightState._trackedIcao === id)
         return parts.tracking._publishTrackedSelection(id, origin);
-      parts.tracking._trackFlight(id, { origin });
+      parts.tracking._trackFlight(id, {
+        origin
+      });
       return true;
     },
 
     /** Resolve a shared Follow target only against the latest accepted refresh. */
     async resolveTrackingRestoreTarget(
-      icao24,
-      { signal = null, origin = 'share-restore' } = {},
+      icao24, {
+        signal = null,
+        origin = 'share-restore'
+      } = {},
     ) {
       if (signal?.aborted)
         return {
@@ -671,7 +702,10 @@ export function createQueries({
       const id = String(icao24 ?? '')
         .trim()
         .toLowerCase();
-      if (!id) return { status: 'missing', reason: 'invalid-target' };
+      if (!id) return {
+        status: 'missing',
+        reason: 'invalid-target'
+      };
       const outcome = flightState._lastTrackingRefreshOutcome;
       if (outcome.status !== 'accepted') {
         return {
@@ -694,22 +728,26 @@ export function createQueries({
           status: 'cancelled',
           reason: String(signal.reason || 'aborted'),
         };
-      const followed = this.trackById(id, { origin });
-      return followed
-        ? {
-            status: 'found',
-            refreshEpoch: outcome.epoch,
-            source: outcome.source,
-          }
-        : {
-            status: 'source-unavailable',
-            reason: 'target-not-renderable',
-            refreshEpoch: outcome.epoch,
-          };
+      const followed = this.trackById(id, {
+        origin
+      });
+      return followed ?
+        {
+          status: 'found',
+          refreshEpoch: outcome.epoch,
+          source: outcome.source,
+        } :
+        {
+          status: 'source-unavailable',
+          reason: 'target-not-renderable',
+          refreshEpoch: outcome.epoch,
+        };
     },
 
     /** Reapply the canonical follow frame without recreating the selected flight. */
-    refocusTrackedById(icao24, { origin = 'programmatic' } = {}) {
+    refocusTrackedById(icao24, {
+      origin = 'programmatic'
+    } = {}) {
       if (
         !icao24 ||
         flightState._cockpitContactMode ||
@@ -742,9 +780,13 @@ export function createQueries({
      * Stop tracking the currently followed aircraft (no-op if none).
      * @returns {boolean} Always true.
      */
-    stopTracking({ origin = 'programmatic' } = {}) {
+    stopTracking({
+      origin = 'programmatic'
+    } = {}) {
       parts.tracking._cancelPendingTrackingRestore();
-      parts.tracking._clearTracking(false, { origin });
+      parts.tracking._clearTracking(false, {
+        origin
+      });
       return true;
     },
 
@@ -761,7 +803,10 @@ export function createQueries({
       if (!flightState._trackedIcao) return null;
       const described = _describeFlight(flightState._trackedIcao);
       if (!described) return null;
-      const { position, ...rest } = described;
+      const {
+        position,
+        ...rest
+      } = described;
       return rest;
     },
 
@@ -790,9 +835,9 @@ export function createQueries({
      * @returns {{count: number, lastUpdate: number|null, stale: boolean, error: string|null, status: number|null, retryInSec: number}}
      */
     getStats() {
-      const retryInSec = flightState._retryAt
-        ? Math.max(0, Math.ceil((flightState._retryAt - Date.now()) / 1000))
-        : 0;
+      const retryInSec = flightState._retryAt ?
+        Math.max(0, Math.ceil((flightState._retryAt - Date.now()) / 1000)) :
+        0;
       return {
         count: flightState._count,
         lastUpdate: flightState._lastUpdate,
