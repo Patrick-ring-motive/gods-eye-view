@@ -1,9 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import {
+  mkdtemp,
+  mkdir,
+  writeFile,
+  rm
+} from 'node:fs/promises';
+import {
+  tmpdir
+} from 'node:os';
 import path from 'node:path';
-import { checkPackageBoundaries } from '../../scripts/check-package-boundaries.mjs';
+import {
+  checkPackageBoundaries
+} from '../../scripts/check-package-boundaries.mjs';
 
 async function fixture(
   t,
@@ -11,20 +20,30 @@ async function fixture(
   extraExports = {},
 ) {
   const root = await mkdtemp(path.join(tmpdir(), 'gev-boundaries-'));
-  t.after(() => rm(root, { recursive: true, force: true }));
+  t.after(() => rm(root, {
+    recursive: true,
+    force: true
+  }));
   await mkdir(path.join(root, 'scripts'));
   await writeFile(
     path.join(root, 'package.json'),
     JSON.stringify({
       name: 'boundary-fixture',
       type: 'module',
-      exports: { './feature': './entry.js', ...extraExports },
+      exports: {
+        './feature': './entry.js',
+        ...extraExports
+      },
     }),
   );
   await writeFile(
     path.join(root, 'scripts/package-boundaries.json'),
     JSON.stringify({
-      feature: { exports: ['./feature'], modules: ['entry.js'], external: [] },
+      feature: {
+        exports: ['./feature'],
+        modules: ['entry.js'],
+        external: []
+      },
     }),
   );
   await writeFile(path.join(root, 'entry.js'), entry);
@@ -37,13 +56,17 @@ test('a declared browser export builds without running app setup', async (t) => 
     path.join(root, 'vite.config.js'),
     "throw new Error('must not load app config');",
   );
-  assert.deepEqual(await checkPackageBoundaries(root), [
-    { name: 'feature', exports: 1, modules: 1 },
-  ]);
+  assert.deepEqual(await checkPackageBoundaries(root), [{
+    name: 'feature',
+    exports: 1,
+    modules: 1
+  }, ]);
 });
 
 test('an unclassified package export fails the boundary gate', async (t) => {
-  const root = await fixture(t, undefined, { './another': './another.js' });
+  const root = await fixture(t, undefined, {
+    './another': './another.js'
+  });
   await assert.rejects(
     checkPackageBoundaries(root),
     /exactly one boundary group/,
@@ -83,7 +106,11 @@ test('a Node build export must be explicitly classified and scoped', async (t) =
     JSON.stringify({
       name: 'boundary-fixture',
       type: 'module',
-      exports: { './feature': { node: './entry.js' } },
+      exports: {
+        './feature': {
+          node: './entry.js'
+        }
+      },
     }),
   );
   await writeFile(
@@ -97,9 +124,11 @@ test('a Node build export must be explicitly classified and scoped', async (t) =
       },
     }),
   );
-  assert.deepEqual(await checkPackageBoundaries(root), [
-    { name: 'feature', exports: 1, modules: 1 },
-  ]);
+  assert.deepEqual(await checkPackageBoundaries(root), [{
+    name: 'feature',
+    exports: 1,
+    modules: 1
+  }, ]);
   await writeFile(
     path.join(root, 'entry.js'),
     "import './startup.js'; export const value = 1;",
