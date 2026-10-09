@@ -11,9 +11,9 @@ export const MAX_TRACKING_CLICK_DURATION_MS = 400;
  * @returns {boolean} True when travel stays within the click limit.
  */
 export function isTrackingSelectionGesture(gesture = {}) {
-  const travelPx = Number.isFinite(gesture.travelPx)
-    ? Math.max(0, gesture.travelPx)
-    : Number.POSITIVE_INFINITY;
+  const travelPx = Number.isFinite(gesture.travelPx) ?
+    Math.max(0, gesture.travelPx) :
+    Number.POSITIVE_INFINITY;
   return travelPx <= MAX_TRACKING_CLICK_TRAVEL_PX;
 }
 
@@ -24,11 +24,11 @@ export function isTrackingSelectionGesture(gesture = {}) {
  * @returns {boolean} True when the gesture stays within both click limits.
  */
 export function isTrackingClickGesture(gesture = {}) {
-  const durationMs = Number.isFinite(gesture.durationMs)
-    ? Math.max(0, gesture.durationMs)
-    : Number.POSITIVE_INFINITY;
-  return isTrackingSelectionGesture(gesture)
-    && durationMs <= MAX_TRACKING_CLICK_DURATION_MS;
+  const durationMs = Number.isFinite(gesture.durationMs) ?
+    Math.max(0, gesture.durationMs) :
+    Number.POSITIVE_INFINITY;
+  return isTrackingSelectionGesture(gesture) &&
+    durationMs <= MAX_TRACKING_CLICK_DURATION_MS;
 }
 
 /**
@@ -59,7 +59,10 @@ export function bindTrackingClickGesture(handler, onClick, options = {}) {
         position.y - previousPosition.y,
       );
     }
-    previousPosition = { x: position.x, y: position.y };
+    previousPosition = {
+      x: position.x,
+      y: position.y
+    };
   };
 
   const finishPress = (position) => {
@@ -93,7 +96,10 @@ export function bindTrackingClickGesture(handler, onClick, options = {}) {
 
   handler.setInputAction((click) => {
     if (pressActive) finishPress(click?.position);
-    const gesture = completedGesture || { travelPx: 0, durationMs: 0 };
+    const gesture = completedGesture || {
+      travelPx: 0,
+      durationMs: 0
+    };
     completedGesture = null;
     onClick(click, gesture);
   }, eventTypes.LEFT_CLICK);
