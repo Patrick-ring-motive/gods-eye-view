@@ -10,7 +10,9 @@ export function createCards({
   layer,
   options,
 }) {
-  const { state } = vesselState;
+  const {
+    state
+  } = vesselState;
 
   function updateSelectedVesselHud(record) {
     const el = document.getElementById('hud-ais-vessel');
@@ -35,9 +37,9 @@ export function createCards({
 
   function trimHudValue(value, maxLength) {
     const text = String(value || '--').trim() || '--';
-    return text.length > maxLength
-      ? `${text.slice(0, maxLength - 3)}...`
-      : text;
+    return text.length > maxLength ?
+      `${text.slice(0, maxLength - 3)}...` :
+      text;
   }
 
   /**
