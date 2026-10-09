@@ -112,8 +112,7 @@ export function createNavigation({
     if (targetLayer && !isFlightLayer(targetLayer)) return false;
 
     const flights =
-      targetLayer === 'military' ?
-      [] :
+      targetLayer === 'military' ? [] :
       flightsLayer
       .getNearby(
         layerState.subject.position,
@@ -125,8 +124,7 @@ export function createNavigation({
       .filter((item) => aircraftClassMatchesFilter(item, aircraftClass));
 
     const military =
-      targetLayer === 'flights' ?
-      [] :
+      targetLayer === 'flights' ? [] :
       militaryFlightsLayer
       .getNearby(
         layerState.subject.position,
@@ -161,8 +159,7 @@ export function createNavigation({
     const visited = new Set(visitedKeys);
     if (targetLayer && !isFlightLayer(targetLayer)) return null;
     const candidates = [
-      ...(targetLayer === 'military' ?
-        [] :
+      ...(targetLayer === 'military' ? [] :
         flightsLayer
         .getNearby(layerState.subject.position, radiusM, 25000, {
           includeHidden: true,
@@ -173,8 +170,7 @@ export function createNavigation({
           id: String(item.icao24),
           item,
         }))),
-      ...(targetLayer === 'flights' ?
-        [] :
+      ...(targetLayer === 'flights' ? [] :
         militaryFlightsLayer
         .getNearby(layerState.subject.position, radiusM, 5000, {
           includeHidden: true,
