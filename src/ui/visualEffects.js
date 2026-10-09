@@ -1,4 +1,6 @@
-import { PostProcessStage } from 'cesium';
+import {
+  PostProcessStage
+} from 'cesium';
 import {
   bloomStrengthFromIntensity,
   clampBloomIntensity,
@@ -55,7 +57,9 @@ export class VisualEffects {
   initStyles() {
     if (this.stopped || this.stageEntries.length) return;
     for (const [name, shader] of Object.entries(STYLES)) {
-      const uniforms = { intensity: 0.0 };
+      const uniforms = {
+        intensity: 0.0
+      };
       if (shader.fragmentShader.includes('uniform float time'))
         uniforms.time = 0.0;
       for (const [name, meta] of Object.entries(shader.uniforms || {}))
@@ -101,7 +105,9 @@ export class VisualEffects {
     this.sharpenStage = this.createStage({
       name: 'godsEyeView_sharpen',
       fragmentShader: SHARPEN_SHADER,
-      uniforms: { amount: 1.3 },
+      uniforms: {
+        amount: 1.3
+      },
     });
     this.sharpenStage.enabled = false;
     this.viewer.scene.postProcessStages.add(this.sharpenStage);
@@ -169,7 +175,11 @@ export class VisualEffects {
 
   startTransition(styleName, from, to) {
     if (this.stopped) return;
-    this.transitions.set(styleName, { start: this.now(), from, to });
+    this.transitions.set(styleName, {
+      start: this.now(),
+      from,
+      to
+    });
     this.startAnimationLoop();
   }
 
