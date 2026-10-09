@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { VESSEL_OVERLAY_SOURCE_ID } from '../../data/vesselLabels.js';
+import {
+  VESSEL_OVERLAY_SOURCE_ID
+} from '../../data/vesselLabels.js';
 
 export function createSelection({
   vesselState,
@@ -8,9 +10,16 @@ export function createSelection({
   layer,
   options,
 }) {
-  const { state } = vesselState;
-  const { resolvePickId, isOwnedByOtherLayer } = services.picking;
-  const { requestWorldFocus } = services.worldFocus;
+  const {
+    state
+  } = vesselState;
+  const {
+    resolvePickId,
+    isOwnedByOtherLayer
+  } = services.picking;
+  const {
+    requestWorldFocus
+  } = services.worldFocus;
   const {
     selectEntityContext,
     registerEntityContext,
@@ -20,9 +29,9 @@ export function createSelection({
 
   function installInteraction(viewer) {
     if (state.clickHandler || !viewer) return;
-    const handler = state.interactionHandlerFactory
-      ? state.interactionHandlerFactory(viewer)
-      : new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    const handler = state.interactionHandlerFactory ?
+      state.interactionHandlerFactory(viewer) :
+      new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     bindVesselInteraction(
       viewer,
       handler,
@@ -56,19 +65,18 @@ export function createSelection({
       // Cards are painted on a pointer-events:none canvas, so the scene pick is
       // usually terrain behind the card. Resolve against the host's current
       // actionable hit rectangles before treating the click as empty space.
-      const cardHit = !record
-        ? vesselState._vesselOverlayHost.hitTest?.(
-            click.position?.x,
-            click.position?.y,
-            {
-              sourceId: VESSEL_OVERLAY_SOURCE_ID,
-            },
-          )
-        : null;
+      const cardHit = !record ?
+        vesselState._vesselOverlayHost.hitTest?.(
+          click.position?.x,
+          click.position?.y, {
+            sourceId: VESSEL_OVERLAY_SOURCE_ID,
+          },
+        ) :
+        null;
       if (!record && cardHit) {
-        const mmsi = String(cardHit.entryId || '').startsWith('vessel:')
-          ? cardHit.entryId.slice('vessel:'.length)
-          : null;
+        const mmsi = String(cardHit.entryId || '').startsWith('vessel:') ?
+          cardHit.entryId.slice('vessel:'.length) :
+          null;
         record = mmsi ? state.vesselMap.get(mmsi) || null : null;
         // A stale card id is not empty terrain and must not clear a newer
         // selection. The next paint will evict its hit rectangle.
@@ -150,7 +158,9 @@ export function createSelection({
   function selectVessel(record) {
     if (!record?.mmsi) return;
     const reuseTrail = state.trailMmsi === record.mmsi;
-    clearSelection({ preserveTrail: reuseTrail });
+    clearSelection({
+      preserveTrail: reuseTrail
+    });
     state.selectedRecord = record;
     record.missedRefreshes = 0;
     if (record.billboard) {
@@ -205,7 +215,10 @@ export function createSelection({
     }
   }
 
-  function clearSelection({ preserveTrail = false, evicted = false } = {}) {
+  function clearSelection({
+    preserveTrail = false,
+    evicted = false
+  } = {}) {
     const record = state.selectedRecord;
     if (record?.billboard) {
       record.billboard.image = components.rendering.shipIcon(record, false);
@@ -217,7 +230,9 @@ export function createSelection({
     if (record && state.enabled) components.rendering.updateVisibility(true);
     if (!preserveTrail) components.tracking.clearSelectedVesselTrail();
     try {
-      clearSelectedEntityContextForLayer('ais-live-vessels', { evicted });
+      clearSelectedEntityContextForLayer('ais-live-vessels', {
+        evicted
+      });
     } catch (error) {
       console.warn('[Data:ais-live-vessels] context clear failed', error);
     }
@@ -229,8 +244,12 @@ export function createSelection({
    *   rather than being deselected.
    */
 
-  function clearVesselInspection({ evicted = false } = {}) {
-    clearSelection({ evicted });
+  function clearVesselInspection({
+    evicted = false
+  } = {}) {
+    clearSelection({
+      evicted
+    });
     components.cards.resetSelectedVesselHud();
   }
   return {
