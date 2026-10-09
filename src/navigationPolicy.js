@@ -26,8 +26,10 @@ export const NAVIGATION_AUTHORITY_EVENT = 'gev:navigation-authority-taken';
  * @returns {boolean} Whether the announcement was dispatched.
  */
 export function announceNavigationAuthority(
-  reason,
-  { eventTarget = globalThis.window, cancelPendingSelection = true } = {},
+  reason, {
+    eventTarget = globalThis.window,
+    cancelPendingSelection = true
+  } = {},
 ) {
   if (typeof eventTarget?.dispatchEvent !== 'function') return false;
   eventTarget.dispatchEvent(new CustomEvent(NAVIGATION_AUTHORITY_EVENT, {
@@ -46,8 +48,8 @@ export function announceNavigationAuthority(
  * @returns {() => void} Idempotent disposer.
  */
 export function registerNavigationAuthorityListener(eventTarget, listener) {
-  if (!eventTarget?.addEventListener || !eventTarget?.removeEventListener
-    || typeof listener !== 'function') return () => {};
+  if (!eventTarget?.addEventListener || !eventTarget?.removeEventListener ||
+    typeof listener !== 'function') return () => {};
   eventTarget.addEventListener(NAVIGATION_AUTHORITY_EVENT, listener);
   let disposed = false;
   return () => {
@@ -65,7 +67,9 @@ export function registerNavigationAuthorityListener(eventTarget, listener) {
  * @returns {*} The callback result, when present.
  */
 export function stampInitialShareGesture(stamp) {
-  return stamp?.({ cancelPendingSelection: true });
+  return stamp?.({
+    cancelPendingSelection: true
+  });
 }
 
 /**
