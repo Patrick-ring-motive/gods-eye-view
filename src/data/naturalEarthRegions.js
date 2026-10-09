@@ -16,7 +16,9 @@
  * next lookup rather than cached (see `createRetryableLoader`).
  */
 
-import { createRetryableLoader } from './retryableLoad.js';
+import {
+  createRetryableLoader
+} from './retryableLoad.js';
 
 const EARTH_RADIUS_KM = 6371;
 const toRad = (d) => (d * Math.PI) / 180;
@@ -125,13 +127,17 @@ async function loadPackFile(base) {
   // needs to load the same files under node:test (same pattern as
   // neighborhoodPolygons.js). One path, so no node: import reaches the browser.
   const mod =
-    base === 'regions'
-      ? await import('./local_data/natural_earth/regions.json', {
-          with: { type: 'json' },
-        })
-      : await import('./local_data/natural_earth/marine.json', {
-          with: { type: 'json' },
-        });
+    base === 'regions' ?
+    await import('./local_data/natural_earth/regions.json', {
+      with: {
+        type: 'json'
+      },
+    }) :
+    await import('./local_data/natural_earth/marine.json', {
+      with: {
+        type: 'json'
+      },
+    });
   return mod.default || mod;
 }
 
@@ -185,9 +191,9 @@ const loadIndex = createRetryableLoader(async () => {
   const index = new Map();
   for (const entry of _entries) {
     for (const key of new Set([
-      normalizeName(entry.name),
-      normalizeName(entry.namealt),
-    ])) {
+        normalizeName(entry.name),
+        normalizeName(entry.namealt),
+      ])) {
       if (!key) continue;
       const list = index.get(key);
       if (list) list.push(entry);
@@ -255,7 +261,9 @@ export async function listRegions() {
 }
 
 // exported for tests
-export { normalizeName as _normalizeName };
+export {
+  normalizeName as _normalizeName
+};
 
 /**
  * Ray-cast (even-odd) point-in-ring test. Ring = [[lon,lat], …], open or
