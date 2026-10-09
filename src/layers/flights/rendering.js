@@ -9,14 +9,22 @@ import {
   visualCenterForModel,
   trailAnchorForModel,
 } from '../../data/modelVisualAnchor.js';
-import { cockpitContactDotImage } from '../../data/cockpitContactDot.js';
-import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
+import {
+  cockpitContactDotImage
+} from '../../data/cockpitContactDot.js';
+import {
+  aircraftIcon,
+  TRACKED_ICON_PX
+} from '../../data/aircraftIcons.js';
 import {
   cameraPoseSignature,
   horizonOccluder,
   screenProjectedRotation,
 } from '../../data/iconOrientation.js';
-import { limitCourseStep, courseSlewCapDps } from '../../data/motionModel.js';
+import {
+  limitCourseStep,
+  courseSlewCapDps
+} from '../../data/motionModel.js';
 import {
   MIL_TINT,
   GROUND_SCALE,
@@ -53,17 +61,27 @@ export function createRendering({
   layer,
   resolveAsset,
 }) {
-  const { isMilitaryIcao } = services.militaryRegistry;
-  const { tr3bIconKind, isTr3b } = services.aircraftPresentation;
-  const { trackedModelScaleForPixelCap } = services.camera;
+  const {
+    isMilitaryIcao
+  } = services.militaryRegistry;
+  const {
+    tr3bIconKind,
+    isTr3b
+  } = services.aircraftPresentation;
+  const {
+    trackedModelScaleForPixelCap
+  } = services.camera;
   const {
     focusNowMs,
     getFocusTarget,
     nearFarScalarValueAtDistance,
     advanceProjectedSpriteFocus,
   } = services.focus;
-  const { applyAircraftBillboardTreatment, applyAircraftModelTreatment } =
-    services.recession;
+  const {
+    applyAircraftBillboardTreatment,
+    applyAircraftModelTreatment
+  } =
+  services.recession;
 
   /** Fleet (untracked) billboard tint: amber for known-military, white otherwise.
    *  Ground traffic gets NO special tint (owner verdict 2026-07-03 field test). */
@@ -146,7 +164,9 @@ export function createRendering({
    *  conversion survive the poll reconciler and the two-tier raster swap. */
 
   const _iconKind = (icao24, klass) =>
-    tr3bIconKind(icao24, klass, { hot: flightState._irBoost });
+    tr3bIconKind(icao24, klass, {
+      hot: flightState._irBoost
+    });
 
   /** Apply the current normal/cockpit visual contract to one owned fleet billboard. */
 
@@ -226,25 +246,25 @@ export function createRendering({
     // `Math.min` on purpose: cockpit may only ever LOWER the GLB budget. Cockpit is
     // already the heaviest mode (20 Hz camera setView ahead of scene update, photoreal
     // retraversal, the cloud pass) and every model is its own draw call.
-    return flightState._cockpitContactMode
-      ? Math.min(COCKPIT_MODEL_MAX, mapCap)
-      : mapCap;
+    return flightState._cockpitContactMode ?
+      Math.min(COCKPIT_MODEL_MAX, mapCap) :
+      mapCap;
   }
 
   /** Active ADD radius (m) — new planes inside this range get a model. Mode-aware: 'all' reaches far. */
 
   function _modelAddDistM() {
-    return flightState._models3dMode === 'all'
-      ? MODEL_ALL_ADD_M
-      : MODEL_PROX_ADD_M;
+    return flightState._models3dMode === 'all' ?
+      MODEL_ALL_ADD_M :
+      MODEL_PROX_ADD_M;
   }
 
   /** Active KEEP radius (m) — a modeled plane keeps its model out to here (hysteresis vs ADD). */
 
   function _modelKeepDistM() {
-    return flightState._models3dMode === 'all'
-      ? MODEL_ALL_KEEP_M
-      : MODEL_PROX_KEEP_M;
+    return flightState._models3dMode === 'all' ?
+      MODEL_ALL_KEEP_M :
+      MODEL_PROX_KEEP_M;
   }
 
   /** World model matrix from a position + course heading (pitch/roll 0; ENU frame). Writes into
@@ -524,9 +544,9 @@ export function createRendering({
         // Launch presentation keeps the code-side tint dominant for every approved
         // model; IR boost removes the remaining diffuse hint with flat UNLIT white.
         colorBlendAmount: flightState._irBoost ? 1.0 : spec.blendAmount,
-        customShader: flightState._irBoost
-          ? flightState._IR_UNLIT_SHADER
-          : undefined,
+        customShader: flightState._irBoost ?
+          flightState._IR_UNLIT_SHADER :
+          undefined,
         id: icao24, // so scene.pick returns the icao for click-to-track
       });
     } catch {
@@ -721,23 +741,23 @@ export function createRendering({
       );
       const trackedIrBoost = flightState._irBoost;
       Cesium.Model.fromGltfAsync({
-        url: resolveAsset(trackedSpec.url),
-        asynchronous: false,
-        minimumPixelSize: TRACKED_MODEL_MIN_PX,
-        scale: trackedSpec.scale,
-        color: flightState._irBoost ? Cesium.Color.WHITE : Cesium.Color.CYAN,
-        colorBlendMode: Cesium.ColorBlendMode.MIX,
-        // The tracked aircraft uses the same dominant light tint as the fleet;
-        // IR boost removes the remaining diffuse hint with flat UNLIT white.
-        colorBlendAmount: flightState._irBoost ? 1.0 : trackedSpec.blendAmount,
-        customShader: flightState._irBoost
-          ? flightState._IR_UNLIT_SHADER
-          : undefined,
-        // Pick id (H1): without it, clicking the very plane being tracked read as
-        // EMPTY SPACE (scene.pick → primitive with no id) → an unintended
-        // deselect. With the icao, the click handler recognizes it as ours.
-        id: flightState._trackedIcao,
-      })
+          url: resolveAsset(trackedSpec.url),
+          asynchronous: false,
+          minimumPixelSize: TRACKED_MODEL_MIN_PX,
+          scale: trackedSpec.scale,
+          color: flightState._irBoost ? Cesium.Color.WHITE : Cesium.Color.CYAN,
+          colorBlendMode: Cesium.ColorBlendMode.MIX,
+          // The tracked aircraft uses the same dominant light tint as the fleet;
+          // IR boost removes the remaining diffuse hint with flat UNLIT white.
+          colorBlendAmount: flightState._irBoost ? 1.0 : trackedSpec.blendAmount,
+          customShader: flightState._irBoost ?
+            flightState._IR_UNLIT_SHADER :
+            undefined,
+          // Pick id (H1): without it, clicking the very plane being tracked read as
+          // EMPTY SPACE (scene.pick → primitive with no id) → an unintended
+          // deselect. With the icao, the click handler recognizes it as ours.
+          id: flightState._trackedIcao,
+        })
         .then((m) => {
           // Untracked / re-tracked / torn down during the load → drop it.
           if (
@@ -861,12 +881,12 @@ export function createRendering({
     // primitive rebuild needed here anymore.)
 
     if (nowMs - flightState._lastFleetTickMs < FLEET_DR_INTERVAL_MS) return;
-    const tickDtSec = flightState._lastFleetTickMs
-      ? Math.min(
-          COURSE_SLEW_DT_MAX_SEC,
-          (nowMs - flightState._lastFleetTickMs) / 1000,
-        )
-      : 0.08;
+    const tickDtSec = flightState._lastFleetTickMs ?
+      Math.min(
+        COURSE_SLEW_DT_MAX_SEC,
+        (nowMs - flightState._lastFleetTickMs) / 1000,
+      ) :
+      0.08;
     flightState._lastFleetTickMs = nowMs;
 
     _drainIrReloadQueue(); // bounded per-tick slice of any pending boost-flip reload
@@ -943,7 +963,7 @@ export function createRendering({
           icao,
           d2,
           cull.computeVisibility(flightState._scratchModelBS) !==
-            Cesium.Intersect.OUTSIDE,
+          Cesium.Intersect.OUTSIDE,
         ]);
       }
       cand.sort((a, b) => a[1] - b[1]); // nearest first
@@ -1063,17 +1083,16 @@ export function createRendering({
         flightState._cockpitContactMode &&
         flightState._cockpitNearContacts.has(icao24);
       const baseColor =
-        flightState._cockpitContactMode && !isCockpitNear
-          ? isMilitaryIcao(icao24)
-            ? MIL_TINT
-            : COCKPIT_CIVILIAN_COLOR
-          : _fleetBillboardColor(icao24);
+        flightState._cockpitContactMode && !isCockpitNear ?
+        isMilitaryIcao(icao24) ?
+        MIL_TINT :
+        COCKPIT_CIVILIAN_COLOR :
+        _fleetBillboardColor(icao24);
       const treatment = applyAircraftBillboardTreatment({
         billboard: bb,
-        baseScale:
-          flightState._cockpitContactMode && !isCockpitNear
-            ? 1
-            : _fleetBillboardScale(icao24, info?.klass),
+        baseScale: flightState._cockpitContactMode && !isCockpitNear ?
+          1 :
+          _fleetBillboardScale(icao24, info?.klass),
         baseAlpha: flightState._missingPolls.get(icao24) ? 0.45 : 1,
         baseColor,
         focusFactor: focus.factor,
@@ -1109,24 +1128,24 @@ export function createRendering({
       // The slew cap eases toward COURSE_MIN_DPS at low speed, and a hovering
       // aircraft (hold flag) keeps its previous nose direction outright.
       const rawCourse =
-        flightState._drCourseDeg != null
-          ? flightState._drCourseDeg
-          : (info && info.true_track) || 0;
+        flightState._drCourseDeg != null ?
+        flightState._drCourseDeg :
+        (info && info.true_track) || 0;
       const prevCourse = flightState._displayCourse.get(icao24);
       const course =
-        flightState._drCourseHold && prevCourse != null
-          ? prevCourse
-          : limitCourseStep(
-              prevCourse,
-              rawCourse,
-              courseSlewCapDps(
-                flightState._drSpeedMps != null
-                  ? flightState._drSpeedMps
-                  : ((info && info.velocity) ?? NaN),
-                COURSE_MAX_DPS,
-              ),
-              tickDtSec,
-            );
+        flightState._drCourseHold && prevCourse != null ?
+        prevCourse :
+        limitCourseStep(
+          prevCourse,
+          rawCourse,
+          courseSlewCapDps(
+            flightState._drSpeedMps != null ?
+            flightState._drSpeedMps :
+            ((info && info.velocity) ?? NaN),
+            COURSE_MAX_DPS,
+          ),
+          tickDtSec,
+        );
       flightState._displayCourse.set(icao24, course);
 
       // 3D model takes over from the billboard for in-view planes (modelEligible). GAP-PROOF: the
@@ -1155,9 +1174,9 @@ export function createRendering({
               // white. Boosted models also skip the recession fade: hot targets
               // stay full-strength at any range (billboards keep their normal
               // fade — full-opacity glyph walls read as overwhelming).
-              baseColor: flightState._irBoost
-                ? Cesium.Color.WHITE
-                : _modelColor(icao24),
+              baseColor: flightState._irBoost ?
+                Cesium.Color.WHITE :
+                _modelColor(icao24),
               alpha: flightState._irBoost ? 1 : treatment.alpha,
             });
           },
