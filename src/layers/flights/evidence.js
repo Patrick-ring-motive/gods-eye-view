@@ -172,8 +172,7 @@ export function createEvidence({
           Cesium.Cartesian3.distance(
             flightState._viewer.camera.positionWC,
             bb.position,
-          ) :
-          null,
+          ) : null,
       };
     });
   }
