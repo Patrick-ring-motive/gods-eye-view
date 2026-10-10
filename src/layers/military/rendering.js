@@ -482,8 +482,7 @@ export function createRendering({
         // near self-illuminated tint so planes read uniform near AND far; IR boost → flat UNLIT white (hot)
         colorBlendAmount: flightState._irBoost ? 1.0 : MODEL_COLOR_BLEND_AMOUNT,
         customShader: flightState._irBoost ?
-          flightState._IR_UNLIT_SHADER :
-          undefined,
+          flightState._IR_UNLIT_SHADER : undefined,
         id: icao24, // so scene.pick returns the icao for click-to-track
       });
     } catch {
@@ -685,8 +684,7 @@ export function createRendering({
           // near self-illuminated tint so planes read uniform near AND far; IR boost → flat UNLIT white (hot)
           colorBlendAmount: flightState._irBoost ? 1.0 : MODEL_COLOR_BLEND_AMOUNT,
           customShader: flightState._irBoost ?
-            flightState._IR_UNLIT_SHADER :
-            undefined,
+            flightState._IR_UNLIT_SHADER : undefined,
           // Pick id (H1): without it, clicking the very plane being tracked read as
           // EMPTY SPACE (scene.pick → primitive with no id) → an unintended
           // deselect. With the icao, the click handler recognizes it as ours.
@@ -998,8 +996,7 @@ export function createRendering({
       const treatment = applyAircraftBillboardTreatment({
         billboard: bb,
         baseScale: flightState._cockpitContactMode && !isCockpitNear ?
-          1 :
-          _militaryBillboardScale(icao24),
+          1 : _militaryBillboardScale(icao24),
         baseAlpha: flightState._missingPolls.get(icao24) ? 0.45 : 1,
         baseColor: MIL_ICON_COLOR,
         focusFactor: focus.factor,
@@ -1076,8 +1073,7 @@ export function createRendering({
               // models also skip the recession fade (mirror of flights.js —
               // billboards keep their normal fade, hot MODELS stay full-strength).
               baseColor: flightState._irBoost ?
-                Cesium.Color.WHITE :
-                _modelColor(icao24),
+                Cesium.Color.WHITE : _modelColor(icao24),
               alpha: flightState._irBoost ? 1 : treatment.alpha,
             });
           },
