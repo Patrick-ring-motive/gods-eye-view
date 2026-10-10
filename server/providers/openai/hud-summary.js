@@ -94,8 +94,7 @@ async function handleHudSummary(req, res) {
       JSON.stringify({
         summary: summary || null,
         error: response.ok ?
-          null :
-          data.error?.message || 'OpenAI HUD summary request failed',
+          null : data.error?.message || 'OpenAI HUD summary request failed',
       }),
     );
   } catch (error) {
