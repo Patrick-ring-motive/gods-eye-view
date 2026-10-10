@@ -1,4 +1,6 @@
-import { GUIDANCE_STATUSES } from '../loadingFeedback.js';
+import {
+  GUIDANCE_STATUSES
+} from '../loadingFeedback.js';
 const FEED_STATE_LABELS = Object.freeze({
   nominal: 'ON',
   loading: 'LOADING',
@@ -161,7 +163,9 @@ export class LayerPanel {
         } catch (error) {
           console.warn(`[Data] ${layer.id} toggle error:`, error);
         } finally {
-          const current = this.getAll().find(({ id }) => id === layer.id);
+          const current = this.getAll().find(({
+            id
+          }) => id === layer.id);
           if (!this._destroyed && current && this._generation === generation)
             this._syncToggleButton(toggle, current);
         }
@@ -203,7 +207,9 @@ export class LayerPanel {
           if (!chip || chip.disabled || !this.isEnabled(layer.id)) return;
           if (typeof chip.onClick === 'function') chip.onClick();
           else if (chip.params)
-            this.setLayerParams(layer.id, chip.params, { origin: 'user' });
+            this.setLayerParams(layer.id, chip.params, {
+              origin: 'user'
+            });
         });
         row.appendChild(controls);
         this._syncRowControls(controls, layer);
@@ -351,23 +357,23 @@ export class LayerPanel {
     const ago = stats.lastUpdate ? this._timeAgo(stats.lastUpdate) : 'never';
     if (stats.loading) {
       const loadingLabel =
-        typeof stats.loadingLabel === 'string' && stats.loadingLabel.trim()
-          ? stats.loadingLabel.trim()
-          : 'loading...';
+        typeof stats.loadingLabel === 'string' && stats.loadingLabel.trim() ?
+        stats.loadingLabel.trim() :
+        'loading...';
       return `${source} · ${loadingLabel}`;
     }
     if (feedState === 'fallback') {
       const detail =
-        typeof stats.loadingLabel === 'string' && stats.loadingLabel.trim()
-          ? stats.loadingLabel.trim()
-          : stats.coverage || ago;
+        typeof stats.loadingLabel === 'string' && stats.loadingLabel.trim() ?
+        stats.loadingLabel.trim() :
+        stats.coverage || ago;
       return `${stateLabel} · ${source} · ${detail}`;
     }
     if (feedState === 'stale') {
       const retry =
-        typeof stats.retryInSec === 'number' && stats.retryInSec > 0
-          ? ` · retrying in ${stats.retryInSec}s`
-          : '';
+        typeof stats.retryInSec === 'number' && stats.retryInSec > 0 ?
+        ` · retrying in ${stats.retryInSec}s` :
+        '';
       return `${stateLabel} · ${source} · ${ago}${retry}`;
     }
     if (typeof stats.loadingLabel === 'string' && stats.loadingLabel.trim()) {
@@ -393,24 +399,24 @@ export class LayerPanel {
         layer.enabled && !uncertain && feedState === state,
       );
     }
-    button.dataset.feedState = transitioning
-      ? layer.lifecycleState
-      : uncertain
-        ? 'uncertain'
-        : feedState;
+    button.dataset.feedState = transitioning ?
+      layer.lifecycleState :
+      uncertain ?
+      'uncertain' :
+      feedState;
     // A busy toggle remains the keyboard focus owner. `aria-disabled` plus the
     // click guard above prevents repeat activation without the focus loss caused
     // by native `disabled`.
     button.disabled = false;
     button.setAttribute('aria-disabled', String(transitioning));
     button.setAttribute('aria-busy', String(transitioning));
-    button.textContent = transitioning
-      ? layer.lifecycleState.toUpperCase()
-      : uncertain
-        ? 'UNCERTAIN'
-        : layer.enabled
-          ? FEED_STATE_LABELS[feedState]
-          : 'OFF';
+    button.textContent = transitioning ?
+      layer.lifecycleState.toUpperCase() :
+      uncertain ?
+      'UNCERTAIN' :
+      layer.enabled ?
+      FEED_STATE_LABELS[feedState] :
+      'OFF';
     button.setAttribute('aria-label', `${layer.name}: ${button.textContent}`);
   }
 
