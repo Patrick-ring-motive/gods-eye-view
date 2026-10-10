@@ -7,7 +7,12 @@ import {
   ROCKET_MISSION_AMBIENT_OVERLAY_SOURCE_OPTIONS,
 } from './policy.js';
 
-export function createOverlays({ state: layerState, services, parts, source }) {
+export function createOverlays({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Resolve whether a surface mission anchor is safely on the camera-facing
    * side of Earth. The small positive limb margin prevents labels anchored just
@@ -72,9 +77,9 @@ export function createOverlays({ state: layerState, services, parts, source }) {
       .trim()
       .split(' | ')[0];
     const compact = text.split(' — ')[0].trim();
-    return compact.length > maxLength
-      ? `${compact.slice(0, maxLength - 1).trimEnd()}…`
-      : compact;
+    return compact.length > maxLength ?
+      `${compact.slice(0, maxLength - 1).trimEnd()}…` :
+      compact;
   }
 
   /**
@@ -112,13 +117,13 @@ export function createOverlays({ state: layerState, services, parts, source }) {
     const mission = shortMissionLabel(launch?.name, 26).toUpperCase();
     const siteName = compactLaunchSiteName(launch?.launchSite);
     const launchTimeMs = Date.parse(launch?.launchTime);
-    const details = selected
-      ? [
-          siteName
-            ? `LAUNCH SITE · ${shortMissionLabel(siteName, 20).toUpperCase()}`
-            : 'LAUNCH SITE',
-        ]
-      : [];
+    const details = selected ?
+      [
+        siteName ?
+        `LAUNCH SITE · ${shortMissionLabel(siteName, 20).toUpperCase()}` :
+        'LAUNCH SITE',
+      ] :
+      [];
     return {
       id: `launch:${launch?.id}`,
       position,
@@ -126,11 +131,11 @@ export function createOverlays({ state: layerState, services, parts, source }) {
       title: mission,
       details,
       accent: '#22e6e6',
-      priority: selected
-        ? Number.MAX_SAFE_INTEGER
-        : Number.isFinite(launchTimeMs)
-          ? Math.floor(launchTimeMs / 1000)
-          : 0,
+      priority: selected ?
+        Number.MAX_SAFE_INTEGER :
+        Number.isFinite(launchTimeMs) ?
+        Math.floor(launchTimeMs / 1000) :
+        0,
       selected,
       protected: selected,
       paintLane: selected ? 'selected' : 'ambient-label',
@@ -214,7 +219,7 @@ export function createOverlays({ state: layerState, services, parts, source }) {
       .slice()
       .sort(
         (a, b) =>
-          b.priority - a.priority || String(a.id).localeCompare(String(b.id)),
+        b.priority - a.priority || String(a.id).localeCompare(String(b.id)),
       )
       .slice(0, cap);
   }
@@ -343,9 +348,9 @@ export function createOverlays({ state: layerState, services, parts, source }) {
       clearMissionOverlaySources();
       return;
     }
-    const selectedRecord = layerState._selectedLaunchId
-      ? layerState._missionOverlayRecords.get(layerState._selectedLaunchId)
-      : null;
+    const selectedRecord = layerState._selectedLaunchId ?
+      layerState._missionOverlayRecords.get(layerState._selectedLaunchId) :
+      null;
     if (selectedRecord) {
       layerState._missionOverlayHost.clearSource(
         ROCKET_MISSION_AMBIENT_OVERLAY_SOURCE_ID,
@@ -375,11 +380,11 @@ export function createOverlays({ state: layerState, services, parts, source }) {
         ROCKET_MISSION_SELECTED_OVERLAY_SOURCE_ID,
         true,
       );
-      layerState._selectedMissionOverlayTimeText = selectedRecord.liveEventTime
-        ? parts.policyHelpers.formatMissionEventTime(
-            selectedRecord.liveEventTime(),
-          )
-        : null;
+      layerState._selectedMissionOverlayTimeText = selectedRecord.liveEventTime ?
+        parts.policyHelpers.formatMissionEventTime(
+          selectedRecord.liveEventTime(),
+        ) :
+        null;
       return;
     }
 
@@ -416,9 +421,9 @@ export function createOverlays({ state: layerState, services, parts, source }) {
   }
 
   function refreshSelectedMissionOverlayText() {
-    const selectedRecord = layerState._selectedLaunchId
-      ? layerState._missionOverlayRecords.get(layerState._selectedLaunchId)
-      : null;
+    const selectedRecord = layerState._selectedLaunchId ?
+      layerState._missionOverlayRecords.get(layerState._selectedLaunchId) :
+      null;
     if (!selectedRecord?.liveEventTime) return;
     const nextText = parts.policyHelpers.formatMissionEventTime(
       selectedRecord.liveEventTime(),
@@ -493,13 +498,12 @@ export function createOverlays({ state: layerState, services, parts, source }) {
     // camera until the snap threshold was crossed, producing a repeating
     // forward/back jump. Keep smoothing only for the non-tracked close-up pad
     // marker, where the user can move the camera independently.
-    const renderedWindowPosition =
-      !replayActive && track.lastOverlayMode === mode
-        ? parts.replay.smoothReplayWindowPosition(
-            track.lastOverlayWindowPosition,
-            windowPosition,
-          )
-        : windowPosition;
+    const renderedWindowPosition = !replayActive && track.lastOverlayMode === mode ?
+      parts.replay.smoothReplayWindowPosition(
+        track.lastOverlayWindowPosition,
+        windowPosition,
+      ) :
+      windowPosition;
     track.lastOverlayWindowPosition = renderedWindowPosition;
     track.lastOverlayMode = mode;
     layerState._replayVehicleOverlay.hidden = false;
@@ -523,12 +527,12 @@ export function createOverlays({ state: layerState, services, parts, source }) {
         path,
         useForward ? forwardProgress : backwardProgress,
       );
-      const tangentWindowPosition = tangentPosition
-        ? Cesium.SceneTransforms.worldToWindowCoordinates(
-            layerState._viewer.scene,
-            tangentPosition,
-          )
-        : null;
+      const tangentWindowPosition = tangentPosition ?
+        Cesium.SceneTransforms.worldToWindowCoordinates(
+          layerState._viewer.scene,
+          tangentPosition,
+        ) :
+        null;
       if (tangentWindowPosition) {
         const screenDelta = Math.hypot(
           tangentWindowPosition.x - windowPosition.x,
@@ -539,15 +543,15 @@ export function createOverlays({ state: layerState, services, parts, source }) {
         // path-facing pose instead of snapping the rocket to a camera-facing
         // upright orientation.
         if (screenDelta >= 2) {
-          vehicleRotation = useForward
-            ? parts.replay.replayVehicleScreenRotation(
-                windowPosition,
-                tangentWindowPosition,
-              )
-            : parts.replay.replayVehicleScreenRotation(
-                tangentWindowPosition,
-                windowPosition,
-              );
+          vehicleRotation = useForward ?
+            parts.replay.replayVehicleScreenRotation(
+              windowPosition,
+              tangentWindowPosition,
+            ) :
+            parts.replay.replayVehicleScreenRotation(
+              tangentWindowPosition,
+              windowPosition,
+            );
           track.lastVehicleRotation = vehicleRotation;
         } else if (Number.isFinite(track.lastVehicleRotation)) {
           vehicleRotation = track.lastVehicleRotation;
@@ -561,9 +565,9 @@ export function createOverlays({ state: layerState, services, parts, source }) {
 
     const mission = shortMissionLabel(launch.name, 22).toUpperCase();
     const siteName = compactLaunchSiteName(launch.launchSite);
-    const siteCallout = siteName
-      ? `LAUNCH SITE · ${shortMissionLabel(siteName, 20).toUpperCase()}`
-      : 'LAUNCH SITE';
+    const siteCallout = siteName ?
+      `LAUNCH SITE · ${shortMissionLabel(siteName, 20).toUpperCase()}` :
+      'LAUNCH SITE';
     let title = mission;
     let detail = siteCallout;
     if (mode === 'countdown') {
@@ -571,9 +575,9 @@ export function createOverlays({ state: layerState, services, parts, source }) {
       detail = `LAUNCH STANDBY\n${siteCallout}`;
     } else if (mode === 'ascent') {
       title =
-        state.elapsedSinceStart < 1
-          ? `LIFTOFF · ${mission}`
-          : `${launch.trajectory.length > 1 ? 'ASCENT REPLAY' : 'ASCENT ESTIMATE'} · ${mission}`;
+        state.elapsedSinceStart < 1 ?
+        `LIFTOFF · ${mission}` :
+        `${launch.trajectory.length > 1 ? 'ASCENT REPLAY' : 'ASCENT ESTIMATE'} · ${mission}`;
       detail = parts.policyHelpers.formatMissionEventTime(state.eventTime);
     } else if (mode === 'recovery') {
       title = `STAGE RE-ENTRY / RECOVERY · ${mission}`;
