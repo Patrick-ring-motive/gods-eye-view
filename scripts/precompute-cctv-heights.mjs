@@ -1,6 +1,15 @@
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  readFile,
+  rename,
+  rm,
+  writeFile
+} from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  fileURLToPath,
+  pathToFileURL
+} from 'node:url';
 import {
   planeSupportPoints,
   poseHash,
@@ -39,7 +48,10 @@ export function nominalPose(source) {
 }
 
 /** Return a roughly 2 km grid key, with longitude width fixed per row. */
-export function cellKey({ lat, lon }) {
+export function cellKey({
+  lat,
+  lon
+}) {
   if (
     !Number.isFinite(lat) ||
     !Number.isFinite(lon) ||
@@ -70,7 +82,10 @@ export function planCells(cameras) {
   const cells = new Map();
   for (const camera of cameras) {
     const key = cellKey(camera.pose);
-    if (!cells.has(key)) cells.set(key, { key, cameras: [] });
+    if (!cells.has(key)) cells.set(key, {
+      key,
+      cameras: []
+    });
     cells.get(key).cameras.push(camera);
   }
   return [...cells.values()].sort((a, b) => {
@@ -110,10 +125,10 @@ export function mergeCameraSamples(
   const prior = previous?.poseHash === hash ? previous : null;
   const values = SAMPLE_KEYS.map(
     (key, i) =>
-      plausibleHeight(heights[i]) ??
-      plausibleHeight(
-        key === 'mount' ? prior?.mountGroundM : prior?.supports?.[key],
-      ),
+    plausibleHeight(heights[i]) ??
+    plausibleHeight(
+      key === 'mount' ? prior?.mountGroundM : prior?.supports?.[key],
+    ),
   );
   const entry = {
     poseHash: hash,
@@ -133,7 +148,10 @@ export function mergeCameraSamples(
 
 /** Build a sidecar while retaining entries outside this run's selection. */
 export function mergeSidecar(existing, updates, generatedAt) {
-  const cameras = { ...existing?.cameras, ...updates };
+  const cameras = {
+    ...existing?.cameras,
+    ...updates
+  };
   return {
     schemaVersion: 1,
     provider: 'google-3d-tiles',
@@ -141,15 +159,19 @@ export function mergeSidecar(existing, updates, generatedAt) {
     generatedAt,
     cameras: Object.fromEntries(
       Object.keys(cameras)
-        .sort()
-        .map((id) => [id, cameras[id]]),
+      .sort()
+      .map((id) => [id, cameras[id]]),
     ),
   };
 }
 
 /** Parse pilot filters; the limit applies after kinds, before resume filtering. */
 export function parseArgs(argv) {
-  const options = { limit: Infinity, kinds: null, dryRun: false };
+  const options = {
+    limit: Infinity,
+    kinds: null,
+    dryRun: false
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--dry-run') options.dryRun = true;
@@ -184,7 +206,10 @@ export function samplingPoints(pose) {
         `Shared planeSupportPoints returned invalid coordinates for ${key}`,
       );
     }
-    return { lat: point.lat, lon: point.lon };
+    return {
+      lat: point.lat,
+      lon: point.lon
+    };
   });
 }
 
@@ -245,11 +270,11 @@ export async function withDeadline(operation, timeoutMs = DEADLINE_MS) {
       new Promise((_, reject) => {
         timer = setTimeout(
           () =>
-            reject(
-              new Error(
-                `Height sampling timed out after ${timeoutMs / 1000} s`,
-              ),
+          reject(
+            new Error(
+              `Height sampling timed out after ${timeoutMs / 1000} s`,
             ),
+          ),
           timeoutMs,
         );
       }),
@@ -295,13 +320,17 @@ async function loadSidecar(output) {
 }
 
 async function writeSidecar(output, sidecar) {
-  await mkdir(path.dirname(output), { recursive: true });
+  await mkdir(path.dirname(output), {
+    recursive: true
+  });
   const temporary = `${output}.${process.pid}.tmp`;
   try {
     await writeFile(temporary, `${JSON.stringify(sidecar, null, 2)}\n`);
     await rename(temporary, output);
   } finally {
-    await rm(temporary, { force: true });
+    await rm(temporary, {
+      force: true
+    });
   }
 }
 
@@ -309,7 +338,10 @@ function counts(cameras, entries) {
   const ok = cameras.filter(
     (camera) => entries[camera.id]?.status === 'ok',
   ).length;
-  return { ok, miss: cameras.length - ok };
+  return {
+    ok,
+    miss: cameras.length - ok
+  };
 }
 
 async function main() {
@@ -322,7 +354,7 @@ async function main() {
   const output = path.resolve(
     ROOT,
     process.env.OUT ||
-      'src/data/local_data/cctv_ground_heights/cctv_ground_heights.json',
+    'src/data/local_data/cctv_ground_heights/cctv_ground_heights.json',
   );
   let sidecar = await loadSidecar(output);
   const response = await fetch(`${base}/api/cctv/sources`, {
@@ -351,13 +383,11 @@ async function main() {
         console.warn(`skip ${source.id}: ${error.message}`);
         return [];
       }
-      return [
-        {
-          id: source.id,
-          sourceKind: source.sourceKind || 'unknown',
-          pose,
-        },
-      ];
+      return [{
+        id: source.id,
+        sourceKind: source.sourceKind || 'unknown',
+        pose,
+      }, ];
     });
   const pending = selected.filter((camera) =>
     needsSampling(sidecar?.cameras?.[camera.id], camera.pose),
@@ -386,11 +416,12 @@ async function main() {
   let browser;
   try {
     if (pending.length) {
-      const { default: puppeteer } = await import('puppeteer');
+      const {
+        default: puppeteer
+      } = await import('puppeteer');
       browser = await puppeteer.launch({
         headless: false,
-        executablePath:
-          '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         protocolTimeout: 600000,
         args: [
           '--no-sandbox',
@@ -422,7 +453,11 @@ async function main() {
                 cameras.length;
               gev.viewer.camera.setView({
                 destination: Cartesian3.fromDegrees(lon, lat, 3000),
-                orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+                orientation: {
+                  heading: 0,
+                  pitch: -Math.PI / 2,
+                  roll: 0
+                },
               });
               const cartographics = cameras.flatMap((camera) =>
                 camera.points.map((point) =>
@@ -433,10 +468,10 @@ async function main() {
                 await scene.sampleHeightMostDetailed(cartographics);
               return cameras.map((_, i) =>
                 sampled
-                  .slice(i * 10, (i + 1) * 10)
-                  .map((point) =>
-                    Number.isFinite(point.height) ? point.height : null,
-                  ),
+                .slice(i * 10, (i + 1) * 10)
+                .map((point) =>
+                  Number.isFinite(point.height) ? point.height : null,
+                ),
               );
             }, batch),
           ),
@@ -466,8 +501,8 @@ async function main() {
     `Total: ${selected.length} cameras, ${tally.ok} ok/${tally.miss} miss, ${((Date.now() - started) / 1000).toFixed(1)} s`,
   );
   for (const kind of [
-    ...new Set(selected.map((camera) => camera.sourceKind)),
-  ].sort()) {
+      ...new Set(selected.map((camera) => camera.sourceKind)),
+    ].sort()) {
     const tally = counts(
       selected.filter((camera) => camera.sourceKind === kind),
       entries,
