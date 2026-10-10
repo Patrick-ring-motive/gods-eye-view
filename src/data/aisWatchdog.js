@@ -91,20 +91,33 @@ export function isLiveAisStatus(status) {
  * @returns {{kind: 'default'|'off'|'timeout', value?: number}}
  */
 export function parseSilenceTimeoutEnv(raw, warn) {
-  if (raw === undefined || raw === null) return { kind: 'default' };
+  if (raw === undefined || raw === null) return {
+    kind: 'default'
+  };
   const text = String(raw).trim();
-  if (!text) return { kind: 'default' };
+  if (!text) return {
+    kind: 'default'
+  };
   if (!/^\d+(\.\d+)?$/.test(text)) {
     warn?.(
       `[AISStream] Ignoring AISSTREAM_SILENCE_TIMEOUT_MS="${raw}" (not a non-negative number); ` +
-        `using the ${AIS_WATCHDOG_DEFAULTS.staleMs}ms default.`,
+      `using the ${AIS_WATCHDOG_DEFAULTS.staleMs}ms default.`,
     );
-    return { kind: 'default' };
+    return {
+      kind: 'default'
+    };
   }
   const value = Number(text);
-  if (!Number.isFinite(value)) return { kind: 'default' };
-  if (value === 0) return { kind: 'off' };
-  return { kind: 'timeout', value };
+  if (!Number.isFinite(value)) return {
+    kind: 'default'
+  };
+  if (value === 0) return {
+    kind: 'off'
+  };
+  return {
+    kind: 'timeout',
+    value
+  };
 }
 
 const DEFAULT_CLOCK = Object.freeze({
@@ -137,9 +150,9 @@ export function createAisWatchdog(options = {}) {
     positiveOr(options.recycleAfterMs, AIS_WATCHDOG_DEFAULTS.recycleAfterMs),
   );
   const backoffMs =
-    Array.isArray(options.backoffMs) && options.backoffMs.length
-      ? options.backoffMs.map((ms) => positiveOr(ms, 5_000))
-      : [...AIS_WATCHDOG_DEFAULTS.backoffMs];
+    Array.isArray(options.backoffMs) && options.backoffMs.length ?
+    options.backoffMs.map((ms) => positiveOr(ms, 5_000)) :
+    [...AIS_WATCHDOG_DEFAULTS.backoffMs];
   const downRetryMs = positiveOr(
     options.downRetryMs,
     AIS_WATCHDOG_DEFAULTS.downRetryMs,
@@ -232,7 +245,11 @@ export function createAisWatchdog(options = {}) {
     if (owned === null) return [];
     const generationToKill = owned;
     release();
-    return [{ type: 'terminate', generation: generationToKill, reason }];
+    return [{
+      type: 'terminate',
+      generation: generationToKill,
+      reason
+    }];
   }
 
   /**
@@ -348,7 +365,10 @@ export function createAisWatchdog(options = {}) {
     // state: the chip must not flicker back to a hopeful "connecting". Only
     // real data clears them.
     if (!QUIET_TERMINAL.has(status)) status = 'connecting';
-    return [{ type: 'connect', generation }];
+    return [{
+      type: 'connect',
+      generation
+    }];
   }
 
   /** True when an event belongs to the socket we still own. */
@@ -367,9 +387,11 @@ export function createAisWatchdog(options = {}) {
    */
   function onOpen(eventGeneration) {
     if (!ownsGeneration(eventGeneration)) {
-      return [
-        { type: 'terminate', generation: eventGeneration, reason: 'orphan' },
-      ];
+      return [{
+        type: 'terminate',
+        generation: eventGeneration,
+        reason: 'orphan'
+      }, ];
     }
     if (!QUIET_TERMINAL.has(status) && status !== 'stale')
       status = 'connecting';
@@ -384,9 +406,11 @@ export function createAisWatchdog(options = {}) {
    */
   function onMessage(eventGeneration) {
     if (!ownsGeneration(eventGeneration)) {
-      return [
-        { type: 'terminate', generation: eventGeneration, reason: 'orphan' },
-      ];
+      return [{
+        type: 'terminate',
+        generation: eventGeneration,
+        reason: 'orphan'
+      }, ];
     }
     const monoNow = clock.mono();
     silenceSinceMono = monoNow;
@@ -416,9 +440,9 @@ export function createAisWatchdog(options = {}) {
    */
   function onFailure(eventGeneration, detail = {}) {
     if (!ownsGeneration(eventGeneration)) return [];
-    const kind = AIS_FAILURE_KINDS.includes(detail.kind)
-      ? detail.kind
-      : 'transport';
+    const kind = AIS_FAILURE_KINDS.includes(detail.kind) ?
+      detail.kind :
+      'transport';
     // A probe dying of some unrelated fault while the key is refused keeps the
     // credential message — surfacing "ECONNRESET" would send the operator
     // chasing the network instead of the key.
@@ -464,12 +488,11 @@ export function createAisWatchdog(options = {}) {
       silentForMs,
       reconnectAttempt,
       // Projected onto the wall clock purely for display.
-      nextAttemptAt:
-        status === 'reconnecting' ||
+      nextAttemptAt: status === 'reconnecting' ||
         status === 'down' ||
-        status === 'auth-failed'
-          ? wallNow + waitingMs
-          : null,
+        status === 'auth-failed' ?
+        wallNow + waitingMs :
+        null,
       watchdog: silenceWatchArmed ? 'armed' : 'custom-subscription-off',
       staleAfterMs: staleMs,
     };
