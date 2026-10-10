@@ -1,13 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createStateChannel } from './stateChannel.js';
+import {
+  createStateChannel
+} from './stateChannel.js';
 
 test('snapshots and action data are immutable copies of live product state', () => {
-  const live = { selected: { id: 'a' }, items: ['a'] };
+  const live = {
+    selected: {
+      id: 'a'
+    },
+    items: ['a']
+  };
   const channel = createStateChannel(() => live);
   const received = [];
   channel.subscribe((event) => received.push(event));
-  const change = { type: 'selected', item: { id: 'b' } };
+  const change = {
+    type: 'selected',
+    item: {
+      id: 'b'
+    }
+  };
   live.selected.id = 'b';
   channel.publish(change);
   change.item.id = 'mutated';
@@ -21,20 +33,32 @@ test('snapshots and action data are immutable copies of live product state', () 
 
 test('reentrant updates retain order and a new subscriber never regresses behind its initial snapshot', () => {
   let count = 0;
-  const channel = createStateChannel(() => ({ count }));
+  const channel = createStateChannel(() => ({
+    count
+  }));
   const first = [],
     second = [],
     joined = [];
-  channel.subscribe(({ state, initial }) => {
+  channel.subscribe(({
+    state,
+    initial
+  }) => {
     if (initial) return;
     first.push(state.count);
     if (state.count === 1) {
       count = 2;
-      channel.publish({ type: 'next' });
-      channel.subscribe(({ state }) => joined.push(state.count));
+      channel.publish({
+        type: 'next'
+      });
+      channel.subscribe(({
+        state
+      }) => joined.push(state.count));
     }
   });
-  channel.subscribe(({ state, initial }) => {
+  channel.subscribe(({
+    state,
+    initial
+  }) => {
     if (!initial) second.push(state.count);
   });
   count = 1;
@@ -46,7 +70,9 @@ test('reentrant updates retain order and a new subscriber never regresses behind
 
 test('unsubscribe and destroy during delivery revoke pending callbacks and future reads', () => {
   let reads = 0;
-  const channel = createStateChannel(() => ({ reads: ++reads }));
+  const channel = createStateChannel(() => ({
+    reads: ++reads
+  }));
   let late = 0;
   let remove;
   channel.subscribe(
@@ -54,10 +80,13 @@ test('unsubscribe and destroy during delivery revoke pending callbacks and futur
       remove();
       channel.publish();
       channel.destroy();
+    }, {
+      emitCurrent: false
     },
-    { emitCurrent: false },
   );
-  remove = channel.subscribe(() => late++, { emitCurrent: false });
+  remove = channel.subscribe(() => late++, {
+    emitCurrent: false
+  });
   channel.publish();
   const stoppedReads = reads;
   channel.publish();
@@ -69,7 +98,9 @@ test('unsubscribe and destroy during delivery revoke pending callbacks and futur
 });
 
 test('a failed subscriber cannot prevent other controls from receiving an update', () => {
-  const channel = createStateChannel(() => ({ selected: 'a' }));
+  const channel = createStateChannel(() => ({
+    selected: 'a'
+  }));
   const errors = [];
   const original = console.error;
   console.error = (message) => errors.push(message);
@@ -89,11 +120,15 @@ test('a failed subscriber cannot prevent other controls from receiving an update
 });
 
 test('an invalid initial snapshot cannot retain a subscriber without a cleanup handle', () => {
-  let live = { action() {} };
+  let live = {
+    action() {}
+  };
   const channel = createStateChannel(() => live);
   let calls = 0;
   assert.throws(() => channel.subscribe(() => calls++), /plain data/);
-  live = { selected: 'a' };
+  live = {
+    selected: 'a'
+  };
   channel.publish();
   assert.equal(calls, 0);
 });
