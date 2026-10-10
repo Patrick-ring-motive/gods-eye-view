@@ -4,6 +4,7 @@ function buildBcycleUrls(systemId) {
     stationStatusUrl: `https://gbfs.bcycle.com/${systemId}/station_status.json`,
   };
 }
+
 function bcycleEntry({
   id,
   city,
@@ -23,17 +24,14 @@ function bcycleEntry({
     ...buildBcycleUrls(systemId),
   };
 }
-const RAW_GBFS_CITY_REGISTRY = [
-  {
+const RAW_GBFS_CITY_REGISTRY = [{
     id: 'nyc-citibike',
     city: 'New York, NY',
     centerLat: 40.7484,
     centerLon: -73.9967,
     loadRadiusKm: 140,
-    stationInformationUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_status.json',
+    stationInformationUrl: 'https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_information.json',
+    stationStatusUrl: 'https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_status.json',
     provider: 'Citi Bike',
   },
   {
@@ -42,10 +40,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 41.8781,
     centerLon: -87.6298,
     loadRadiusKm: 120,
-    stationInformationUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/chi/en/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/chi/en/station_status.json',
+    stationInformationUrl: 'https://gbfs.lyft.com/gbfs/2.3/chi/en/station_information.json',
+    stationStatusUrl: 'https://gbfs.lyft.com/gbfs/2.3/chi/en/station_status.json',
     provider: 'Divvy',
   },
   {
@@ -54,10 +50,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 38.9072,
     centerLon: -77.0369,
     loadRadiusKm: 120,
-    stationInformationUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_status.json',
+    stationInformationUrl: 'https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_information.json',
+    stationStatusUrl: 'https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_status.json',
     provider: 'Capital Bikeshare',
   },
   {
@@ -66,10 +60,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 37.7749,
     centerLon: -122.4194,
     loadRadiusKm: 110,
-    stationInformationUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/bay/en/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.lyft.com/gbfs/2.3/bay/en/station_status.json',
+    stationInformationUrl: 'https://gbfs.lyft.com/gbfs/2.3/bay/en/station_information.json',
+    stationStatusUrl: 'https://gbfs.lyft.com/gbfs/2.3/bay/en/station_status.json',
     provider: 'Bay Wheels',
   },
   {
@@ -78,8 +70,7 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 42.3601,
     centerLon: -71.0589,
     loadRadiusKm: 100,
-    stationInformationUrl:
-      'https://gbfs.bluebikes.com/gbfs/en/station_information.json',
+    stationInformationUrl: 'https://gbfs.bluebikes.com/gbfs/en/station_information.json',
     stationStatusUrl: 'https://gbfs.bluebikes.com/gbfs/en/station_status.json',
     provider: 'Blue Bikes',
   },
@@ -89,10 +80,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 39.9526,
     centerLon: -75.1652,
     loadRadiusKm: 100,
-    stationInformationUrl:
-      'https://gbfs.bcycle.com/bcycle_indego/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.bcycle.com/bcycle_indego/station_status.json',
+    stationInformationUrl: 'https://gbfs.bcycle.com/bcycle_indego/station_information.json',
+    stationStatusUrl: 'https://gbfs.bcycle.com/bcycle_indego/station_status.json',
     provider: 'Indego',
   },
   {
@@ -101,10 +90,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 45.5152,
     centerLon: -122.6784,
     loadRadiusKm: 95,
-    stationInformationUrl:
-      'https://gbfs.biketownpdx.com/gbfs/2.3/en/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.biketownpdx.com/gbfs/2.3/en/station_status.json',
+    stationInformationUrl: 'https://gbfs.biketownpdx.com/gbfs/2.3/en/station_information.json',
+    stationStatusUrl: 'https://gbfs.biketownpdx.com/gbfs/2.3/en/station_status.json',
     provider: 'BIKETOWN',
   },
   {
@@ -113,10 +100,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 34.0522,
     centerLon: -118.2437,
     loadRadiusKm: 120,
-    stationInformationUrl:
-      'https://gbfs.bcycle.com/bcycle_lametro/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.bcycle.com/bcycle_lametro/station_status.json',
+    stationInformationUrl: 'https://gbfs.bcycle.com/bcycle_lametro/station_information.json',
+    stationStatusUrl: 'https://gbfs.bcycle.com/bcycle_lametro/station_status.json',
     provider: 'Metro Bike',
   },
   {
@@ -125,10 +110,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 30.2672,
     centerLon: -97.7431,
     loadRadiusKm: 90,
-    stationInformationUrl:
-      'https://austin.publicbikesystem.net/customer/gbfs/v2/en/station_information.json',
-    stationStatusUrl:
-      'https://austin.publicbikesystem.net/customer/gbfs/v2/en/station_status.json',
+    stationInformationUrl: 'https://austin.publicbikesystem.net/customer/gbfs/v2/en/station_information.json',
+    stationStatusUrl: 'https://austin.publicbikesystem.net/customer/gbfs/v2/en/station_status.json',
     provider: 'CapMetro',
   },
   {
@@ -137,10 +120,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 21.3069,
     centerLon: -157.8583,
     loadRadiusKm: 90,
-    stationInformationUrl:
-      'https://hon.publicbikesystem.net/customer/gbfs/v2/en/station_information.json',
-    stationStatusUrl:
-      'https://hon.publicbikesystem.net/customer/gbfs/v2/en/station_status.json',
+    stationInformationUrl: 'https://hon.publicbikesystem.net/customer/gbfs/v2/en/station_information.json',
+    stationStatusUrl: 'https://hon.publicbikesystem.net/customer/gbfs/v2/en/station_status.json',
     provider: 'Biki',
   },
   {
@@ -149,10 +130,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 39.9612,
     centerLon: -82.9988,
     loadRadiusKm: 90,
-    stationInformationUrl:
-      'https://gbfs.cogobikeshare.com/gbfs/2.3/en/station_information.json',
-    stationStatusUrl:
-      'https://gbfs.cogobikeshare.com/gbfs/2.3/en/station_status.json',
+    stationInformationUrl: 'https://gbfs.cogobikeshare.com/gbfs/2.3/en/station_information.json',
+    stationStatusUrl: 'https://gbfs.cogobikeshare.com/gbfs/2.3/en/station_status.json',
     provider: 'CoGo',
   },
   {
@@ -161,10 +140,8 @@ const RAW_GBFS_CITY_REGISTRY = [
     centerLat: 35.0456,
     centerLon: -85.3097,
     loadRadiusKm: 90,
-    stationInformationUrl:
-      'https://chat.publicbikesystem.net/customer/gbfs/v2/en/station_information.json',
-    stationStatusUrl:
-      'https://chat.publicbikesystem.net/customer/gbfs/v2/en/station_status.json',
+    stationInformationUrl: 'https://chat.publicbikesystem.net/customer/gbfs/v2/en/station_information.json',
+    stationStatusUrl: 'https://chat.publicbikesystem.net/customer/gbfs/v2/en/station_status.json',
     provider: 'Bike Chattanooga',
   },
   bcycleEntry({
@@ -319,6 +296,7 @@ const RAW_GBFS_CITY_REGISTRY = [
     systemId: 'bcycle_santabarbara',
   }),
 ];
+
 function normalizeRegistryEntry(entry) {
   const id = String(entry?.id || '')
     .trim()
@@ -367,10 +345,9 @@ function normalizeRegistryEntry(entry) {
     city,
     centerLat,
     centerLon,
-    loadRadiusKm:
-      Number.isFinite(loadRadiusKm) && loadRadiusKm > 0
-        ? loadRadiusKm
-        : CITY_RANGE_BASE_KM,
+    loadRadiusKm: Number.isFinite(loadRadiusKm) && loadRadiusKm > 0 ?
+      loadRadiusKm :
+      CITY_RANGE_BASE_KM,
     stationInformationUrl: stationInformationUrl.toString(),
     stationStatusUrl: stationStatusUrl.toString(),
     provider: String(entry?.provider || 'GBFS').trim() || 'GBFS',
@@ -391,4 +368,7 @@ const GBFS_CITY_REGISTRY = (() => {
 const CITY_BY_ID = new Map(
   GBFS_CITY_REGISTRY.map((entry) => [entry.id, entry]),
 );
-export { GBFS_CITY_REGISTRY, CITY_BY_ID };
+export {
+  GBFS_CITY_REGISTRY,
+  CITY_BY_ID
+};
