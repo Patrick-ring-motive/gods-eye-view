@@ -1,4 +1,6 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
 import {
   createAlprCamerasLayer,
   createOverpassAlprSource,
@@ -16,5 +18,10 @@ const slot = createSourceSlot(
 export const configureAlprSource = slot.configure;
 export default createAlprCamerasLayer({
   source: slot.source,
-  services: { render, context, picking, groundFloor },
+  services: {
+    render,
+    context,
+    picking,
+    groundFloor
+  },
 });
