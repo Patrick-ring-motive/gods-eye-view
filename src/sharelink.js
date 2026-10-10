@@ -1,11 +1,19 @@
 import * as Cesium from 'cesium';
-import { BLOOM_INTENSITY_DEFAULT, BLOOM_SCALE_VERSION } from './bloom.js';
+import {
+  BLOOM_INTENSITY_DEFAULT,
+  BLOOM_SCALE_VERSION
+} from './bloom.js';
 import {
   migrateDetectionState,
   normalizeAllocationStrategy,
 } from './data/detectionPolicy.js';
-import { clampScopeTerminusPct } from './scopeMask.js';
-import { decodeLayerStateParams, encodeLayerStateParams } from './data/layerState.js';
+import {
+  clampScopeTerminusPct
+} from './scopeMask.js';
+import {
+  decodeLayerStateParams,
+  encodeLayerStateParams
+} from './data/layerState.js';
 
 /**
  * Share Links — URL Hash State Management
@@ -32,16 +40,51 @@ const SHARE_UI_STATE_PARAM = 'ui';
 const SHARE_STYLE_PARAMS_PARAM = 'sp';
 const SHARE_CREATED_AT_PARAM = 'at';
 
-const SHARE_PANEL_STATE_REGISTRY = Object.freeze([
-  { id: 'control-panel', token: 'c', pinnable: true },
-  { id: 'location-bar', token: 'l', pinnable: true },
-  { id: 'data-panel', token: 'd', pinnable: false },
-  { id: 'cctv-panel', token: 'v', pinnable: false },
-  { id: 'radio-panel', token: 'r', pinnable: false },
-  { id: 'scene-panel', token: 's', pinnable: false },
-  { id: 'global-context-panel', token: 'g', pinnable: false },
-  { id: 'pp-toggles', token: 'p', pinnable: false },
-  { id: 'param-slider-panel', token: 'm', pinnable: false },
+const SHARE_PANEL_STATE_REGISTRY = Object.freeze([{
+    id: 'control-panel',
+    token: 'c',
+    pinnable: true
+  },
+  {
+    id: 'location-bar',
+    token: 'l',
+    pinnable: true
+  },
+  {
+    id: 'data-panel',
+    token: 'd',
+    pinnable: false
+  },
+  {
+    id: 'cctv-panel',
+    token: 'v',
+    pinnable: false
+  },
+  {
+    id: 'radio-panel',
+    token: 'r',
+    pinnable: false
+  },
+  {
+    id: 'scene-panel',
+    token: 's',
+    pinnable: false
+  },
+  {
+    id: 'global-context-panel',
+    token: 'g',
+    pinnable: false
+  },
+  {
+    id: 'pp-toggles',
+    token: 'p',
+    pinnable: false
+  },
+  {
+    id: 'param-slider-panel',
+    token: 'm',
+    pinnable: false
+  },
 ]);
 
 const SHARE_PANEL_STATE_BY_TOKEN = Object.freeze(new Map(
@@ -53,36 +96,125 @@ const URL_TO_STYLE = Object.fromEntries(
 );
 
 const SHARE_STYLE_PARAM_REGISTRY = Object.freeze({
-  retro: Object.freeze([
-    { key: 'pixelation', token: 'p', min: 1, max: 10 },
-    { key: 'distortion', token: 'd', min: 0, max: 1 },
-    { key: 'instability', token: 'i', min: 0, max: 1 },
+  retro: Object.freeze([{
+      key: 'pixelation',
+      token: 'p',
+      min: 1,
+      max: 10
+    },
+    {
+      key: 'distortion',
+      token: 'd',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'instability',
+      token: 'i',
+      min: 0,
+      max: 1
+    },
   ]),
-  surveillance: Object.freeze([
-    { key: 'gain', token: 'g', min: 0, max: 1 },
-    { key: 'bloom', token: 'b', min: 0, max: 1 },
-    { key: 'scanlineStr', token: 's', min: 0, max: 1 },
-    { key: 'pixelation', token: 'p', min: 1, max: 6 },
+  surveillance: Object.freeze([{
+      key: 'gain',
+      token: 'g',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'bloom',
+      token: 'b',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'scanlineStr',
+      token: 's',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'pixelation',
+      token: 'p',
+      min: 1,
+      max: 6
+    },
   ]),
-  thermal: Object.freeze([
-    { key: 'sensitivity', token: 's', min: 0, max: 1 },
-    { key: 'bloom', token: 'b', min: 0, max: 1 },
-    { key: 'mode', token: 'm', min: 0, max: 1 },
-    { key: 'pixelation', token: 'p', min: 1, max: 6 },
-    { key: 'palette', token: 'a', min: 0, max: 1 },
+  thermal: Object.freeze([{
+      key: 'sensitivity',
+      token: 's',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'bloom',
+      token: 'b',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'mode',
+      token: 'm',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'pixelation',
+      token: 'p',
+      min: 1,
+      max: 6
+    },
+    {
+      key: 'palette',
+      token: 'a',
+      min: 0,
+      max: 1
+    },
   ]),
-  anime: Object.freeze([
-    { key: 'saturation', token: 's', min: 0, max: 2 },
-    { key: 'edgeThick', token: 'e', min: 0, max: 1 },
+  anime: Object.freeze([{
+      key: 'saturation',
+      token: 's',
+      min: 0,
+      max: 2
+    },
+    {
+      key: 'edgeThick',
+      token: 'e',
+      min: 0,
+      max: 1
+    },
   ]),
-  noir: Object.freeze([
-    { key: 'contrastAmt', token: 'c', min: 0, max: 2 },
-    { key: 'grainAmt', token: 'g', min: 0, max: 1 },
-    { key: 'vignetteAmt', token: 'v', min: 0, max: 1 },
+  noir: Object.freeze([{
+      key: 'contrastAmt',
+      token: 'c',
+      min: 0,
+      max: 2
+    },
+    {
+      key: 'grainAmt',
+      token: 'g',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'vignetteAmt',
+      token: 'v',
+      min: 0,
+      max: 1
+    },
   ]),
-  snow: Object.freeze([
-    { key: 'density', token: 'd', min: 0, max: 1 },
-    { key: 'wind', token: 'w', min: 0, max: 1 },
+  snow: Object.freeze([{
+      key: 'density',
+      token: 'd',
+      min: 0,
+      max: 1
+    },
+    {
+      key: 'wind',
+      token: 'w',
+      min: 0,
+      max: 1
+    },
   ]),
 });
 
@@ -135,12 +267,12 @@ export class ShareLinkManager {
     this._destroyed = false;
     this._restoreGeneration = 0;
     this._activeCameraFlight = null;
-    this._isNavigationCurrent = typeof isNavigationCurrent === 'function'
-      ? isNavigationCurrent
-      : () => true;
-    this._cancelOwnedNavigation = typeof cancelOwnedNavigation === 'function'
-      ? cancelOwnedNavigation
-      : null;
+    this._isNavigationCurrent = typeof isNavigationCurrent === 'function' ?
+      isNavigationCurrent :
+      () => true;
+    this._cancelOwnedNavigation = typeof cancelOwnedNavigation === 'function' ?
+      cancelOwnedNavigation :
+      null;
 
     // Listen for camera changes
     this._removeCameraChanged = this.viewer.camera.changed.addEventListener(() => {
@@ -221,14 +353,14 @@ export class ShareLinkManager {
       // a value pins the terminus opacity percent, clamped into the SUPPORTED
       // 94..100 band. `sce=0` used to survive as a sub-94 terminus — a hole in
       // the mask — and then got written straight back out on the next update.
-      scopeTerminusPct: params.has('sce')
-        ? clampScopeTerminusPct(params.get('sce'))
-        : null,
+      scopeTerminusPct: params.has('sce') ?
+        clampScopeTerminusPct(params.get('sce')) :
+        null,
       mapStack: params.get('map') || 'photoreal',
       layerState: decodedLayerState,
-      layerStateInvalid: params.get('v') === '2'
-        && params.has('l')
-        && decodedLayerState === null,
+      layerStateInvalid: params.get('v') === '2' &&
+        params.has('l') &&
+        decodedLayerState === null,
       panelState: decodePanelStateParams(params),
       sharedAtMs: decodeShareCreatedAtMs(params),
     };
@@ -246,8 +378,14 @@ export class ShareLinkManager {
   /**
    * Apply a parsed state to the viewer + style manager.
    */
-  async applyState(state, { applyCamera = true, navigationToken = null } = {}) {
-    if (this._destroyed || !state) return { succeeded: false, reason: 'unavailable' };
+  async applyState(state, {
+    applyCamera = true,
+    navigationToken = null
+  } = {}) {
+    if (this._destroyed || !state) return {
+      succeeded: false,
+      reason: 'unavailable'
+    };
     const view = {
       destination: Cesium.Cartesian3.fromDegrees(state.lon, state.lat, state.alt),
       orientation: {
@@ -256,18 +394,28 @@ export class ShareLinkManager {
         roll: Cesium.Math.toRadians(state.roll),
       },
     };
-    let cameraPromise = Promise.resolve({ status: applyCamera ? 'superseded' : 'skipped' });
+    let cameraPromise = Promise.resolve({
+      status: applyCamera ? 'superseded' : 'skipped'
+    });
     if (applyCamera && this._isNavigationCurrent(navigationToken)) {
       const restoreGeneration = ++this._restoreGeneration;
       let settleCamera;
-      cameraPromise = new Promise((resolve) => { settleCamera = resolve; });
+      cameraPromise = new Promise((resolve) => {
+        settleCamera = resolve;
+      });
       const releaseOwnedFlight = (status = 'cancelled') => {
         if (this._activeCameraFlight?.restoreGeneration === restoreGeneration) {
           this._activeCameraFlight = null;
         }
-        settleCamera({ status });
+        settleCamera({
+          status
+        });
       };
-      this._activeCameraFlight = { restoreGeneration, navigationToken, settle: releaseOwnedFlight };
+      this._activeCameraFlight = {
+        restoreGeneration,
+        navigationToken,
+        settle: releaseOwnedFlight
+      };
       // Re-apply the final pose only while this share restoration still owns
       // navigation. A later user or voice command wins over delayed restore.
       this.viewer.camera.flyTo({
@@ -276,9 +424,9 @@ export class ShareLinkManager {
         easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
         complete: () => {
           if (
-            this._destroyed
-            || restoreGeneration !== this._restoreGeneration
-            || !this._isNavigationCurrent(navigationToken)
+            this._destroyed ||
+            restoreGeneration !== this._restoreGeneration ||
+            !this._isNavigationCurrent(navigationToken)
           ) {
             releaseOwnedFlight('superseded');
             return;
@@ -443,7 +591,9 @@ export class ShareLinkManager {
   }
 
   /** Copy a current-state snapshot with a copy-time timestamp. Returns true on success. */
-  async copyLink({ nowMs = Date.now() } = {}) {
+  async copyLink({
+    nowMs = Date.now()
+  } = {}) {
     const params = this._buildHashParams();
     if (!params) return false;
     params.set(SHARE_CREATED_AT_PARAM, String(Math.floor(nowMs / 1000)));
@@ -546,7 +696,9 @@ export class ShareLinkManager {
 }
 
 /** Decode a strict positive epoch-seconds copy timestamp for age classification. */
-export function decodeShareCreatedAtMs(params, { nowMs = Date.now() } = {}) {
+export function decodeShareCreatedAtMs(params, {
+  nowMs = Date.now()
+} = {}) {
   const raw = params?.get?.(SHARE_CREATED_AT_PARAM);
   if (typeof raw !== 'string' || !/^[1-9]\d*$/.test(raw)) return null;
   const seconds = Number(raw);
@@ -606,12 +758,18 @@ export function decodePanelStateParams(params) {
     if (!spec || (field !== 'c' && field !== 'p')) continue;
     if (value !== '0' && value !== '1') continue;
     const bool = value === '1';
-    const current = stateById.get(spec.id) || { id: spec.id, collapsed: null, pinned: null };
+    const current = stateById.get(spec.id) || {
+      id: spec.id,
+      collapsed: null,
+      pinned: null
+    };
     if (field === 'c') current.collapsed = bool;
     else if (field === 'p' && spec.pinnable) current.pinned = bool;
     stateById.set(spec.id, current);
   }
   const specs = Array.from(stateById.values())
     .filter((entry) => typeof entry.collapsed === 'boolean');
-  return specs.length ? { specs } : null;
+  return specs.length ? {
+    specs
+  } : null;
 }
