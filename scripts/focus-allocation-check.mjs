@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import assert from 'node:assert/strict';
 import {
   advanceSpriteFocus,
@@ -36,7 +37,10 @@ function bytesPerCall(fn) {
     samples.push((after - before) / CALLS);
   }
   const rawMedian = median(samples);
-  return { rawMedian, samples };
+  return {
+    rawMedian,
+    samples
+  };
 }
 
 function netOfLoopBaseline(observed, baseline) {
@@ -54,20 +58,37 @@ function netOfLoopBaseline(observed, baseline) {
 }
 
 const target = {
-  screenRect: { left: 0, top: 0, right: 10, bottom: 10 },
+  screenRect: {
+    left: 0,
+    top: 0,
+    right: 10,
+    bottom: 10
+  },
   paddingPx: 18,
   cameraDistance: 1000,
 };
 const sprite = {};
 const focusInput = {
-  screenPosition: { x: 5, y: 5 },
+  screenPosition: {
+    x: 5,
+    y: 5
+  },
   cameraDistance: 1200,
   nowMs: 1000,
   target,
 };
 
-const baseColor = { withAlpha: (alpha) => ({ alpha }) };
-const billboard = { scale: 1, color: { alpha: 1 } };
+const baseColor = {
+  withAlpha: (alpha) => ({
+    alpha
+  })
+};
+const billboard = {
+  scale: 1,
+  color: {
+    alpha: 1
+  }
+};
 const aircraftInput = {
   billboard,
   baseScale: 1,
