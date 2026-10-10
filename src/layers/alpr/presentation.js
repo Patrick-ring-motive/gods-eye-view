@@ -130,8 +130,7 @@ export function createAlprPresentation({
           east: record.longitude,
         }),
       )
-      .slice(0, MAX_RENDERED) :
-      [];
+      .slice(0, MAX_RENDERED) : [];
     // A refresh may retain its own selection, never reclaim one cleared or
     // replaced by an aircraft, another layer, or a voice action.
     if (
