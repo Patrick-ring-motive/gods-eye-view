@@ -1,4 +1,7 @@
-import { test, beforeEach } from 'node:test';
+import {
+  test,
+  beforeEach
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   scopeMaskGeometry,
@@ -25,7 +28,9 @@ import {
   SCOPE_TERMINUS_QUANTUM,
   _resetScopeMaskForTest,
 } from './scopeMask.js';
-import { KEYHOLE_OUTER_RADIUS } from './celestialRing.js';
+import {
+  KEYHOLE_OUTER_RADIUS
+} from './celestialRing.js';
 
 beforeEach(() => _resetScopeMaskForTest());
 
@@ -79,8 +84,8 @@ test('an omitted feather argument uses the module default, whatever it is', () =
   const wider = scopeMaskGeometry(1200, 900, SCOPE_FEATHER_RATIO_DEFAULT + 0.4);
   assert.notEqual(wider.outerR - wider.innerR, omitted.outerR - omitted.innerR);
   const keyholeR = 900 * 0.5 * KEYHOLE_OUTER_RADIUS;
-  assert.ok(Math.abs((wider.outerR - wider.innerR)
-    - keyholeR * (SCOPE_FEATHER_RATIO_DEFAULT + 0.4)) < 1e-9);
+  assert.ok(Math.abs((wider.outerR - wider.innerR) -
+    keyholeR * (SCOPE_FEATHER_RATIO_DEFAULT + 0.4)) < 1e-9);
   // The default's VALUE (hidden feather, owner directive 2026-08-22) is pinned
   // with the rest of the first-run batch in reasonableDefaults.test.mjs.
 });
@@ -98,32 +103,74 @@ test('backing-store scale is clamped to 2x and survives junk input', () => {
  * canvas plus a `setDpr` that fires a real `(resolution: Ndppx)` change the
  * way moving a window between a 1x and a 2x monitor does.
  */
-function stubScopeMaskDom({ width = 1000, height = 800, dpr = 1 } = {}) {
-  const saved = { window: globalThis.window, document: globalThis.document, ResizeObserver: globalThis.ResizeObserver };
+function stubScopeMaskDom({
+  width = 1000,
+  height = 800,
+  dpr = 1
+} = {}) {
+  const saved = {
+    window: globalThis.window,
+    document: globalThis.document,
+    ResizeObserver: globalThis.ResizeObserver
+  };
   // Records every fillStyle assignment and gradient stop so the paint's actual
   // colours (not just its call sequence) can be asserted.
   const fillStyles = [];
   const gradientStops = [];
   // Canvas work actually performed — the disabled scope must do none of it.
-  const ops = { resizes: 0, clears: 0, fills: 0 };
+  const ops = {
+    resizes: 0,
+    clears: 0,
+    fills: 0
+  };
   const canvas = {
-    id: '', style: {},
-    _width: 0, _height: 0,
-    set width(value) { ops.resizes += 1; this._width = value; },
-    get width() { return this._width; },
-    set height(value) { this._height = value; },
-    get height() { return this._height; },
-    setAttribute() {}, remove() {},
+    id: '',
+    style: {},
+    _width: 0,
+    _height: 0,
+    set width(value) {
+      ops.resizes += 1;
+      this._width = value;
+    },
+    get width() {
+      return this._width;
+    },
+    set height(value) {
+      this._height = value;
+    },
+    get height() {
+      return this._height;
+    },
+    setAttribute() {},
+    remove() {},
     getContext: () => ({
-      setTransform() {}, beginPath() {}, rect() {}, arc() {},
-      clearRect() { ops.clears += 1; },
-      fill() { ops.fills += 1; },
-      fillRect() { ops.fills += 1; },
+      setTransform() {},
+      beginPath() {},
+      rect() {},
+      arc() {},
+      clearRect() {
+        ops.clears += 1;
+      },
+      fill() {
+        ops.fills += 1;
+      },
+      fillRect() {
+        ops.fills += 1;
+      },
       createRadialGradient: () => ({
-        addColorStop(offset, color) { gradientStops.push({ offset, color }); },
+        addColorStop(offset, color) {
+          gradientStops.push({
+            offset,
+            color
+          });
+        },
       }),
-      set fillStyle(value) { if (typeof value === 'string') fillStyles.push(value); },
-      get fillStyle() { return fillStyles[fillStyles.length - 1] || ''; },
+      set fillStyle(value) {
+        if (typeof value === 'string') fillStyles.push(value);
+      },
+      get fillStyle() {
+        return fillStyles[fillStyles.length - 1] || '';
+      },
     }),
   };
   const listeners = new Set();
@@ -136,9 +183,18 @@ function stubScopeMaskDom({ width = 1000, height = 800, dpr = 1 } = {}) {
       removeEventListener: (type, fn) => listeners.delete(fn),
     }),
   };
-  globalThis.document = { createElement: () => canvas };
-  globalThis.ResizeObserver = class { observe() {} disconnect() {} };
-  const container = { clientWidth: width, clientHeight: height, appendChild() {} };
+  globalThis.document = {
+    createElement: () => canvas
+  };
+  globalThis.ResizeObserver = class {
+    observe() {}
+    disconnect() {}
+  };
+  const container = {
+    clientWidth: width,
+    clientHeight: height,
+    appendChild() {}
+  };
   return {
     canvas,
     container,
@@ -161,9 +217,15 @@ function stubScopeMaskDom({ width = 1000, height = 800, dpr = 1 } = {}) {
 }
 
 test('a DPR change with no resize still repaints the backing store', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     // 1x monitor: backing store matches CSS pixels.
     assert.equal(dom.canvas.width, 1000);
     assert.equal(dom.canvas.height, 800);
@@ -185,9 +247,15 @@ test('a DPR change with no resize still repaints the backing store', () => {
 });
 
 test('destroy tears the DPR watch down (no redraw after teardown)', () => {
-  const dom = stubScopeMaskDom({ width: 640, height: 480, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 640,
+    height: 480,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     assert.equal(dom.canvas.width, 640);
     destroyScopeMask();
     dom.setDpr(2);
@@ -261,9 +329,15 @@ test('quantization snaps to the repaint grid', () => {
 });
 
 test('repaint gate: only a QUANTIZED step repaints; hovering costs nothing', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     const base = getScopeTerminusRepaintCount();
 
     // Parked at true full-globe altitude: the seeded alpha already matches, so
@@ -291,9 +365,15 @@ test('repaint gate: only a QUANTIZED step repaints; hovering costs nothing', () 
 });
 
 test('a full zoom-in gesture costs only a handful of repaints', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     const base = getScopeTerminusRepaintCount();
 
     // 20 Mm → ground in 10 km steps: ~2000 samples across the whole descent,
@@ -313,9 +393,15 @@ test('a full zoom-in gesture costs only a handful of repaints', () => {
 });
 
 test('an override pins the terminus and null restores the ramp', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     setScopeTerminusOverride(0.97);
     assert.equal(getScopeTerminusOverride(), 0.97);
     assert.equal(getScopeTerminusAlpha(), 0.97);
@@ -335,9 +421,15 @@ test('an override pins the terminus and null restores the ramp', () => {
 });
 
 test('the hard-crop (feather 0) path honors the same terminus alpha', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     updateScopeTerminusForHeight(SCOPE_TERMINUS_FAR_M + 5_000_000); // true full-globe view
     setScopeMaskFeather(0); // hard crop — the evenodd rect-minus-circle path
     // The globe-scale seed paint is legitimately in the history, so assert on
@@ -371,7 +463,9 @@ test('one quantum is the smallest step that can repaint', () => {
 function stubScopeViewer(container, heightM) {
   const preRenderListeners = new Set();
   const moveEndListeners = new Set();
-  const positionCartographic = { height: heightM };
+  const positionCartographic = {
+    height: heightM
+  };
   const addTo = (set) => (listener) => {
     set.add(listener);
     return () => set.delete(listener);
@@ -379,19 +473,37 @@ function stubScopeViewer(container, heightM) {
   return {
     viewer: {
       container,
-      scene: { preRender: { addEventListener: addTo(preRenderListeners) } },
-      camera: { positionCartographic, moveEnd: { addEventListener: addTo(moveEndListeners) } },
+      scene: {
+        preRender: {
+          addEventListener: addTo(preRenderListeners)
+        }
+      },
+      camera: {
+        positionCartographic,
+        moveEnd: {
+          addEventListener: addTo(moveEndListeners)
+        }
+      },
     },
-    setHeight(next) { positionCartographic.height = next; },
+    setHeight(next) {
+      positionCartographic.height = next;
+    },
     raisePreRender(times = 1) {
-      for (let i = 0; i < times; i += 1) for (const fn of [...preRenderListeners]) fn();
+      for (let i = 0; i < times; i += 1)
+        for (const fn of [...preRenderListeners]) fn();
     },
-    raiseMoveEnd() { for (const fn of [...moveEndListeners]) fn(); },
+    raiseMoveEnd() {
+      for (const fn of [...moveEndListeners]) fn();
+    },
   };
 }
 
 test('a disabled scope does no canvas work and samples no camera heights', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   const rig = stubScopeViewer(dom.container, 14_000_000); // true full-globe view
   try {
     installScopeMask(rig.viewer);
@@ -399,9 +511,13 @@ test('a disabled scope does no canvas work and samples no camera heights', () =>
 
     // The transition must clear the painted mask EXACTLY once, and must not
     // resize the backing store to do it.
-    const beforeDisable = { ...dom.ops };
+    const beforeDisable = {
+      ...dom.ops
+    };
     setScopeMaskEnabled(false);
-    const afterDisable = { ...dom.ops };
+    const afterDisable = {
+      ...dom.ops
+    };
     assert.equal(afterDisable.clears, beforeDisable.clears + 1,
       'the disable transition clears the mask exactly once');
     assert.equal(afterDisable.resizes, beforeDisable.resizes,
@@ -422,7 +538,9 @@ test('a disabled scope does no canvas work and samples no camera heights', () =>
     assert.equal(getScopeTerminusAlpha(), SCOPE_OUTSIDE_ALPHA, 'and must not track the camera');
 
     // Re-enable: the alpha it skipped is re-synced once, before the first paint.
-    const beforeEnable = { ...dom.ops };
+    const beforeEnable = {
+      ...dom.ops
+    };
     setScopeMaskEnabled(true);
     assert.equal(getScopeTerminusAlpha(), SCOPE_TERMINUS_ALPHA_NEAR,
       're-enabling must re-sync the terminus it stopped sampling');
@@ -435,7 +553,11 @@ test('a disabled scope does no canvas work and samples no camera heights', () =>
 });
 
 test('a DPR change that also crosses a terminus step paints once, not twice', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   const rig = stubScopeViewer(dom.container, SCOPE_TERMINUS_FAR_M);
   try {
     installScopeMask(rig.viewer);
@@ -444,7 +566,9 @@ test('a DPR change that also crosses a terminus step paints once, not twice', ()
     // Descend into the band WITHOUT a frame, then drag the window to a 2x
     // monitor: the DPR change and the pending terminus step land together.
     rig.setHeight(8_500_000);
-    const before = { ...dom.ops };
+    const before = {
+      ...dom.ops
+    };
     const repaintsBefore = getScopeTerminusRepaintCount();
     dom.setDpr(2);
 
@@ -479,9 +603,15 @@ test('terminus percents clamp into the supported band; junk is absent, not zero'
 });
 
 test('a pinned override is floored to the band at every entry point', () => {
-  const dom = stubScopeMaskDom({ width: 1000, height: 800, dpr: 1 });
+  const dom = stubScopeMaskDom({
+    width: 1000,
+    height: 800,
+    dpr: 1
+  });
   try {
-    installScopeMask({ container: dom.container });
+    installScopeMask({
+      container: dom.container
+    });
     setScopeTerminusOverride(0); // an sce=0 link, or any stale caller
     assert.equal(getScopeTerminusOverride(), SCOPE_OUTSIDE_ALPHA,
       'a fully transparent terminus is a hole in the mask, not a scope');
