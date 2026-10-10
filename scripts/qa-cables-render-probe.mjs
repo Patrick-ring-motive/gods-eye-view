@@ -65,7 +65,8 @@ try {
             origin: 'user'
           });
         } catch {
-          /* probe */ }
+          /* probe */
+        }
       }
     }
   });
