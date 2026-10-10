@@ -545,8 +545,7 @@ export function createRendering({
         // model; IR boost removes the remaining diffuse hint with flat UNLIT white.
         colorBlendAmount: flightState._irBoost ? 1.0 : spec.blendAmount,
         customShader: flightState._irBoost ?
-          flightState._IR_UNLIT_SHADER :
-          undefined,
+          flightState._IR_UNLIT_SHADER : undefined,
         id: icao24, // so scene.pick returns the icao for click-to-track
       });
     } catch {
@@ -751,8 +750,7 @@ export function createRendering({
           // IR boost removes the remaining diffuse hint with flat UNLIT white.
           colorBlendAmount: flightState._irBoost ? 1.0 : trackedSpec.blendAmount,
           customShader: flightState._irBoost ?
-            flightState._IR_UNLIT_SHADER :
-            undefined,
+            flightState._IR_UNLIT_SHADER : undefined,
           // Pick id (H1): without it, clicking the very plane being tracked read as
           // EMPTY SPACE (scene.pick → primitive with no id) → an unintended
           // deselect. With the icao, the click handler recognizes it as ours.
@@ -1091,8 +1089,7 @@ export function createRendering({
       const treatment = applyAircraftBillboardTreatment({
         billboard: bb,
         baseScale: flightState._cockpitContactMode && !isCockpitNear ?
-          1 :
-          _fleetBillboardScale(icao24, info?.klass),
+          1 : _fleetBillboardScale(icao24, info?.klass),
         baseAlpha: flightState._missingPolls.get(icao24) ? 0.45 : 1,
         baseColor,
         focusFactor: focus.factor,
@@ -1175,8 +1172,7 @@ export function createRendering({
               // stay full-strength at any range (billboards keep their normal
               // fade — full-opacity glyph walls read as overwhelming).
               baseColor: flightState._irBoost ?
-                Cesium.Color.WHITE :
-                _modelColor(icao24),
+                Cesium.Color.WHITE : _modelColor(icao24),
               alpha: flightState._irBoost ? 1 : treatment.alpha,
             });
           },
