@@ -1,15 +1,20 @@
 #!/usr/bin/env node
+
 /** Focused rendered proof for adaptive Cockpit Display/Radio layout. */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import puppeteer from 'puppeteer';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const shotsDir = path.join(repoRoot, 'qa-shots', 'cockpit-utility');
 const appUrl = process.env.QA_BASE_URL || 'http://localhost:4173';
 const headful = process.argv.includes('--headful');
-fs.mkdirSync(shotsDir, { recursive: true });
+fs.mkdirSync(shotsDir, {
+  recursive: true
+});
 
 const chromeCandidates = [
   process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -19,12 +24,14 @@ const chromeCandidates = [
 const executablePath = chromeCandidates.find((candidate) => fs.existsSync(candidate));
 const browser = await puppeteer.launch({
   headless: headful ? false : 'new',
-  ...(executablePath ? { executablePath } : {}),
+  ...(executablePath ? {
+    executablePath
+  } : {}),
   // Metal is a macOS-only ANGLE backend; anywhere else it fails WebGL init.
   args: [
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
     '--no-sandbox',
   ],
 });
@@ -41,12 +48,12 @@ page.on('console', (message) => {
 page.on('pageerror', (error) => consoleErrors.push(error.message));
 page.on('response', (response) => {
   const url = new URL(response.url());
-  const expectedOptionalTrackMiss = response.status() === 404
-    && url.pathname === '/api/opensky-track';
+  const expectedOptionalTrackMiss = response.status() === 404 &&
+    url.pathname === '/api/opensky-track';
   if (
-    url.origin === new URL(appUrl).origin
-    && response.status() >= 400
-    && !expectedOptionalTrackMiss
+    url.origin === new URL(appUrl).origin &&
+    response.status() >= 400 &&
+    !expectedOptionalTrackMiss
   ) {
     localHttpErrors.push(`${response.status()} ${url.pathname}`);
   }
@@ -58,15 +65,19 @@ const check = (name, passed, detail) => {
 };
 
 try {
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1
+  });
   await page.setRequestInterception(true);
   const routeQaRequest = (request) => {
     const url = new URL(request.url());
     // These scenarios exercise Context lifecycle and keyboard ownership, not
     // live orbit accuracy. Reuse the tracking suite's fixed element sets so
     // CelesTrak outages cannot invalidate an otherwise clean UI run.
-    if (url.origin === new URL(appUrl).origin
-      && ['/api/celestrak/active', '/api/celestrak/starlink'].includes(url.pathname)) {
+    if (url.origin === new URL(appUrl).origin &&
+      ['/api/celestrak/active', '/api/celestrak/starlink'].includes(url.pathname)) {
       const dense = url.pathname.endsWith('/starlink');
       request.respond({
         status: 200,
@@ -90,7 +101,9 @@ try {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ results: [] }),
+        body: JSON.stringify({
+          results: []
+        }),
       });
       return;
     }
@@ -101,10 +114,18 @@ try {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ results: points.map((point) => {
-          const [lon, lat] = point.split(',').map(Number);
-          return { lon, lat, elevation: 0, geoid: 0, ellipsoid: 0 };
-        }) }),
+        body: JSON.stringify({
+          results: points.map((point) => {
+            const [lon, lat] = point.split(',').map(Number);
+            return {
+              lon,
+              lat,
+              elevation: 0,
+              geoid: 0,
+              ellipsoid: 0
+            };
+          })
+        }),
       });
       return;
     }
@@ -128,7 +149,11 @@ try {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ msg: 'No error', now: Date.now(), ac: [] }),
+        body: JSON.stringify({
+          msg: 'No error',
+          now: Date.now(),
+          ac: []
+        }),
       });
       return;
     }
@@ -136,7 +161,9 @@ try {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ path: [] }),
+        body: JSON.stringify({
+          path: []
+        }),
       });
       return;
     }
@@ -158,22 +185,30 @@ try {
       request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ summary: 'Cockpit utility QA' }),
+        body: JSON.stringify({
+          summary: 'Cockpit utility QA'
+        }),
       });
       return;
     }
     request.continue();
   };
   page.on('request', routeQaRequest);
-  await page.goto(appUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  await page.waitForFunction(() => window.__godsEyeView?.styleManager, { timeout: 60_000 });
+  await page.goto(appUrl, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000
+  });
+  await page.waitForFunction(() => window.__godsEyeView?.styleManager, {
+    timeout: 60_000
+  });
   await page.waitForFunction(
-    () => document.getElementById('loading-screen')?.classList.contains('hidden'),
-    { timeout: 60_000 },
+    () => document.getElementById('loading-screen')?.classList.contains('hidden'), {
+      timeout: 60_000
+    },
   );
   await page.waitForFunction(() => (
-    typeof window.__gevQaRegisterLayer === 'function'
-    && typeof window.__gevQaUnregisterLayer === 'function'
+    typeof window.__gevQaRegisterLayer === 'function' &&
+    typeof window.__gevQaUnregisterLayer === 'function'
   ));
   await page.evaluate(() => {
     const manager = window.__godsEyeView.styleManager;
@@ -190,10 +225,15 @@ try {
     };
   });
   const contactMissionHandoff = await page.evaluate(async () => {
-    const { styleManager, dataManager } = window.__godsEyeView;
+    const {
+      styleManager,
+      dataManager
+    } = window.__godsEyeView;
     const originalShowToast = styleManager._showToast;
     const toasts = [];
-    styleManager._showToast = (message) => { toasts.push(String(message)); };
+    styleManager._showToast = (message) => {
+      toasts.push(String(message));
+    };
     try {
       if (styleManager._contextControls._contextMode) await styleManager._contextControls._selectContextMode(null);
       const contactsResult = await styleManager._contextControls._selectContextMode('flights');
@@ -218,14 +258,14 @@ try {
   });
   check(
     'Contacts hands off to Space Missions on the first request without a failure toast',
-    contactMissionHandoff.contactsResult === true
-      && contactMissionHandoff.missionResult === true
-      && contactMissionHandoff.mode === 'space-missions'
-      && contactMissionHandoff.missionsEnabled
-      && contactMissionHandoff.toasts?.length === 0
-      && contactMissionHandoff.exitResult === true
-      && contactMissionHandoff.modeAfterExit === null
-      && contactMissionHandoff.missionsOffAfterExit,
+    contactMissionHandoff.contactsResult === true &&
+    contactMissionHandoff.missionResult === true &&
+    contactMissionHandoff.mode === 'space-missions' &&
+    contactMissionHandoff.missionsEnabled &&
+    contactMissionHandoff.toasts?.length === 0 &&
+    contactMissionHandoff.exitResult === true &&
+    contactMissionHandoff.modeAfterExit === null &&
+    contactMissionHandoff.missionsOffAfterExit,
     JSON.stringify(contactMissionHandoff),
   );
   const cancelledMissionEntry = await page.evaluate(async () => {
@@ -233,7 +273,10 @@ try {
     const dataManager = window.__godsEyeView.dataManager;
     const rocketEntry = dataManager.layers.get('rocket-launches');
     if (!rocketEntry || dataManager.isEffectivelyEnabled('rocket-launches')) {
-      return { exercised: false, reason: 'Space Missions was not in a clean OFF state' };
+      return {
+        exercised: false,
+        reason: 'Space Missions was not in a clean OFF state'
+      };
     }
 
     const siblingId = 'qa-cockpit-cancel-sibling';
@@ -243,15 +286,30 @@ try {
       icon: 'science',
       source: 'QA',
       updateInterval: -1,
-      async init() { return true; },
-      async enable() { return true; },
-      async update() { return true; },
-      async disable() { return true; },
+      async init() {
+        return true;
+      },
+      async enable() {
+        return true;
+      },
+      async update() {
+        return true;
+      },
+      async disable() {
+        return true;
+      },
       async destroy() {},
-      getStats() { return { count: 1, status: 'live' }; },
+      getStats() {
+        return {
+          count: 1,
+          status: 'live'
+        };
+      },
     };
     window.__gevQaRegisterLayer(dataManager, siblingModule);
-    await dataManager.setEnabled(siblingId, true, { origin: 'programmatic' });
+    await dataManager.setEnabled(siblingId, true, {
+      origin: 'programmatic'
+    });
 
     const originalInitialized = rocketEntry.initialized;
     const originalLifecycle = rocketEntry.lifecycleState;
@@ -265,8 +323,12 @@ try {
     const toasts = [];
     let releaseEnable;
     let markEnableStarted;
-    const enableStarted = new Promise((resolve) => { markEnableStarted = resolve; });
-    const enableGate = new Promise((resolve) => { releaseEnable = resolve; });
+    const enableStarted = new Promise((resolve) => {
+      markEnableStarted = resolve;
+    });
+    const enableGate = new Promise((resolve) => {
+      releaseEnable = resolve;
+    });
     rocketEntry.initialized = true;
     rocketEntry.module.enable = async () => {
       markEnableStarted();
@@ -275,7 +337,9 @@ try {
     };
     rocketEntry.module.update = async () => true;
     rocketEntry.module.disable = async () => true;
-    styleManager._showToast = (message) => { toasts.push(String(message)); };
+    styleManager._showToast = (message) => {
+      toasts.push(String(message));
+    };
 
     let transitionResult = null;
     let timedOut = false;
@@ -292,18 +356,18 @@ try {
       const deadline = performance.now() + 5_000;
       while (performance.now() < deadline) {
         if (
-          styleManager._contextControls._contextModeEntering === null
-          && styleManager._contextControls._contextSessionSnapshot === null
-          && dataManager.isEnabled(siblingId)
-          && !dataManager.isEffectivelyEnabled('rocket-launches')
+          styleManager._contextControls._contextModeEntering === null &&
+          styleManager._contextControls._contextSessionSnapshot === null &&
+          dataManager.isEnabled(siblingId) &&
+          !dataManager.isEffectivelyEnabled('rocket-launches')
         ) break;
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
       timedOut = !(
-        styleManager._contextControls._contextModeEntering === null
-        && styleManager._contextControls._contextSessionSnapshot === null
-        && dataManager.isEnabled(siblingId)
-        && !dataManager.isEffectivelyEnabled('rocket-launches')
+        styleManager._contextControls._contextModeEntering === null &&
+        styleManager._contextControls._contextSessionSnapshot === null &&
+        dataManager.isEnabled(siblingId) &&
+        !dataManager.isEffectivelyEnabled('rocket-launches')
       );
       return {
         exercised: true,
@@ -323,19 +387,21 @@ try {
       rocketEntry.module.disable = originalMethods.disable;
       rocketEntry.initialized = originalInitialized;
       rocketEntry.lifecycleState = originalLifecycle;
-      await dataManager.setEnabled(siblingId, false, { origin: 'programmatic' });
+      await dataManager.setEnabled(siblingId, false, {
+        origin: 'programmatic'
+      });
       await window.__gevQaUnregisterLayer(dataManager, siblingId);
     }
   });
   check(
     'cancelled direct Space Missions entry restores its exact isolated sibling state',
-    cancelledMissionEntry.exercised
-      && cancelledMissionEntry.transitionResult === false
-      && !cancelledMissionEntry.timedOut
-      && cancelledMissionEntry.entering === null
-      && !cancelledMissionEntry.snapshotRetained
-      && cancelledMissionEntry.siblingRestored
-      && !cancelledMissionEntry.missionEffective,
+    cancelledMissionEntry.exercised &&
+    cancelledMissionEntry.transitionResult === false &&
+    !cancelledMissionEntry.timedOut &&
+    cancelledMissionEntry.entering === null &&
+    !cancelledMissionEntry.snapshotRetained &&
+    cancelledMissionEntry.siblingRestored &&
+    !cancelledMissionEntry.missionEffective,
     JSON.stringify(cancelledMissionEntry),
   );
   check(
@@ -348,7 +414,10 @@ try {
     const dataManager = window.__godsEyeView.dataManager;
     const rocketEntry = dataManager.layers.get('rocket-launches');
     if (!rocketEntry || dataManager.isEffectivelyEnabled('rocket-launches')) {
-      return { exercised: false, reason: 'Space Missions was not in a clean OFF state' };
+      return {
+        exercised: false,
+        reason: 'Space Missions was not in a clean OFF state'
+      };
     }
     const siblingId = 'qa-cockpit-replacement-sibling';
     window.__gevQaRegisterLayer(dataManager, {
@@ -357,14 +426,29 @@ try {
       icon: 'science',
       source: 'QA',
       updateInterval: -1,
-      async init() { return true; },
-      async enable() { return true; },
-      async update() { return true; },
-      async disable() { return true; },
+      async init() {
+        return true;
+      },
+      async enable() {
+        return true;
+      },
+      async update() {
+        return true;
+      },
+      async disable() {
+        return true;
+      },
       async destroy() {},
-      getStats() { return { count: 1, status: 'live' }; },
+      getStats() {
+        return {
+          count: 1,
+          status: 'live'
+        };
+      },
     });
-    await dataManager.setEnabled(siblingId, true, { origin: 'programmatic' });
+    await dataManager.setEnabled(siblingId, true, {
+      origin: 'programmatic'
+    });
     const original = {
       siblingInitialized: dataManager.layers.get(siblingId)?.initialized,
       initialized: rocketEntry.initialized,
@@ -378,8 +462,12 @@ try {
     let firstUpdate = true;
     let releaseUpdate;
     let markUpdateStarted;
-    const updateStarted = new Promise((resolve) => { markUpdateStarted = resolve; });
-    const updateGate = new Promise((resolve) => { releaseUpdate = resolve; });
+    const updateStarted = new Promise((resolve) => {
+      markUpdateStarted = resolve;
+    });
+    const updateGate = new Promise((resolve) => {
+      releaseUpdate = resolve;
+    });
     const toasts = [];
     rocketEntry.initialized = true;
     rocketEntry.module.enable = async () => true;
@@ -391,11 +479,15 @@ try {
       return true;
     };
     rocketEntry.module.disable = async () => true;
-    styleManager._showToast = (message) => { toasts.push(String(message)); };
+    styleManager._showToast = (message) => {
+      toasts.push(String(message));
+    };
     try {
       const entry = styleManager._contextControls._selectContextMode('space-missions');
       await updateStarted;
-      const replacement = dataManager.setEnabled('rocket-launches', true, { origin: 'programmatic' });
+      const replacement = dataManager.setEnabled('rocket-launches', true, {
+        origin: 'programmatic'
+      });
       releaseUpdate();
       const [entryResult, replacementResult] = await Promise.all([entry, replacement]);
       const committed = {
@@ -425,25 +517,27 @@ try {
       rocketEntry.module.disable = original.disable;
       rocketEntry.initialized = original.initialized;
       rocketEntry.lifecycleState = original.lifecycleState;
-      await dataManager.setEnabled(siblingId, false, { origin: 'programmatic' });
+      await dataManager.setEnabled(siblingId, false, {
+        origin: 'programmatic'
+      });
       await window.__gevQaUnregisterLayer(dataManager, siblingId);
     }
   });
   check(
     'right-rail Space Missions adopts a newer authoritative ON without stale restoration',
-    replacementMissionEntry.exercised
-      && replacementMissionEntry.entryResult === true
-      && replacementMissionEntry.replacementResult === true
-      && replacementMissionEntry.mode === 'space-missions'
-      && replacementMissionEntry.entering === null
-      && replacementMissionEntry.snapshotRetained
-      && replacementMissionEntry.siblingIsolated
-      && replacementMissionEntry.missionEnabled
-      && replacementMissionEntry.missionEffective
-      && replacementMissionEntry.toasts?.length === 0
-      && replacementMissionEntry.exitResult === true
-      && replacementMissionEntry.siblingRestored
-      && replacementMissionEntry.missionRestoredOff,
+    replacementMissionEntry.exercised &&
+    replacementMissionEntry.entryResult === true &&
+    replacementMissionEntry.replacementResult === true &&
+    replacementMissionEntry.mode === 'space-missions' &&
+    replacementMissionEntry.entering === null &&
+    replacementMissionEntry.snapshotRetained &&
+    replacementMissionEntry.siblingIsolated &&
+    replacementMissionEntry.missionEnabled &&
+    replacementMissionEntry.missionEffective &&
+    replacementMissionEntry.toasts?.length === 0 &&
+    replacementMissionEntry.exitResult === true &&
+    replacementMissionEntry.siblingRestored &&
+    replacementMissionEntry.missionRestoredOff,
     JSON.stringify(replacementMissionEntry),
   );
   const supersededMissionEntry = await page.evaluate(async () => {
@@ -451,7 +545,10 @@ try {
     const dataManager = window.__godsEyeView.dataManager;
     const rocketEntry = dataManager.layers.get('rocket-launches');
     if (!rocketEntry || dataManager.isEffectivelyEnabled('rocket-launches')) {
-      return { exercised: false, reason: 'Space Missions was not in a clean OFF state' };
+      return {
+        exercised: false,
+        reason: 'Space Missions was not in a clean OFF state'
+      };
     }
     const siblingId = 'qa-cockpit-superseded-sibling';
     window.__gevQaRegisterLayer(dataManager, {
@@ -460,14 +557,29 @@ try {
       icon: 'science',
       source: 'QA',
       updateInterval: -1,
-      async init() { return true; },
-      async enable() { return true; },
-      async update() { return true; },
-      async disable() { return true; },
+      async init() {
+        return true;
+      },
+      async enable() {
+        return true;
+      },
+      async update() {
+        return true;
+      },
+      async disable() {
+        return true;
+      },
       async destroy() {},
-      getStats() { return { count: 1, status: 'live' }; },
+      getStats() {
+        return {
+          count: 1,
+          status: 'live'
+        };
+      },
     });
-    await dataManager.setEnabled(siblingId, true, { origin: 'programmatic' });
+    await dataManager.setEnabled(siblingId, true, {
+      origin: 'programmatic'
+    });
     const original = {
       initialized: rocketEntry.initialized,
       lifecycleState: rocketEntry.lifecycleState,
@@ -479,8 +591,12 @@ try {
     };
     let releaseUpdate;
     let markUpdateStarted;
-    const updateStarted = new Promise((resolve) => { markUpdateStarted = resolve; });
-    const updateGate = new Promise((resolve) => { releaseUpdate = resolve; });
+    const updateStarted = new Promise((resolve) => {
+      markUpdateStarted = resolve;
+    });
+    const updateGate = new Promise((resolve) => {
+      releaseUpdate = resolve;
+    });
     const toasts = [];
     rocketEntry.initialized = true;
     rocketEntry.module.enable = async () => true;
@@ -490,12 +606,15 @@ try {
       return true;
     };
     rocketEntry.module.disable = async () => true;
-    styleManager._showToast = (message) => { toasts.push(String(message)); };
+    styleManager._showToast = (message) => {
+      toasts.push(String(message));
+    };
     try {
       const entry = styleManager._runUserFacingContextAction(
         (notificationToken) => styleManager._contextControls._selectContextMode(
-          'space-missions',
-          { notificationToken },
+          'space-missions', {
+            notificationToken
+          },
         ),
         'Space Missions could not complete the requested transition; try again',
       );
@@ -524,24 +643,29 @@ try {
       rocketEntry.module.disable = original.disable;
       rocketEntry.initialized = original.initialized;
       rocketEntry.lifecycleState = original.lifecycleState;
-      await dataManager.setEnabled(siblingId, false, { origin: 'programmatic' });
+      await dataManager.setEnabled(siblingId, false, {
+        origin: 'programmatic'
+      });
       await window.__gevQaUnregisterLayer(dataManager, siblingId);
     }
   });
   check(
     'right-rail Space Missions superseded by OFF restores exactly without a failure toast',
-    supersededMissionEntry.exercised
-      && supersededMissionEntry.entryResult === null
-      && supersededMissionEntry.mode === null
-      && supersededMissionEntry.entering === null
-      && !supersededMissionEntry.snapshotRetained
-      && supersededMissionEntry.siblingRestored
-      && !supersededMissionEntry.missionEffective
-      && supersededMissionEntry.toasts?.length === 0,
+    supersededMissionEntry.exercised &&
+    supersededMissionEntry.entryResult === null &&
+    supersededMissionEntry.mode === null &&
+    supersededMissionEntry.entering === null &&
+    !supersededMissionEntry.snapshotRetained &&
+    supersededMissionEntry.siblingRestored &&
+    !supersededMissionEntry.missionEffective &&
+    supersededMissionEntry.toasts?.length === 0,
     JSON.stringify(supersededMissionEntry),
   );
   const voiceMissionEntry = await page.evaluate(async () => {
-    const { dataManager, styleManager } = window.__godsEyeView;
+    const {
+      dataManager,
+      styleManager
+    } = window.__godsEyeView;
     const siblingId = '__qa_voice_context_sibling__';
     const rocketEntry = dataManager.layers.get('rocket-launches');
     window.__gevQaRegisterLayer(dataManager, {
@@ -550,12 +674,25 @@ try {
       icon: 'science',
       source: 'QA',
       updateInterval: -1,
-      async init() { return true; },
-      async enable() { return true; },
-      async update() { return true; },
-      async disable() { return true; },
+      async init() {
+        return true;
+      },
+      async enable() {
+        return true;
+      },
+      async update() {
+        return true;
+      },
+      async disable() {
+        return true;
+      },
       async destroy() {},
-      getStats() { return { count: 1, status: 'live' }; },
+      getStats() {
+        return {
+          count: 1,
+          status: 'live'
+        };
+      },
     });
     const original = {
       initialized: rocketEntry.initialized,
@@ -567,14 +704,18 @@ try {
     };
     const siblingLayerEntry = dataManager.layers.get(siblingId);
     siblingLayerEntry.initialized = true;
-    await dataManager.setEnabled(siblingId, true, { origin: 'programmatic' });
+    await dataManager.setEnabled(siblingId, true, {
+      origin: 'programmatic'
+    });
     rocketEntry.initialized = true;
     rocketEntry.module.init = async () => true;
     rocketEntry.module.enable = async () => true;
     rocketEntry.module.update = async () => true;
     rocketEntry.module.disable = async () => true;
     try {
-      const voiceOn = await dataManager.setEnabled('rocket-launches', true, { origin: 'voice' });
+      const voiceOn = await dataManager.setEnabled('rocket-launches', true, {
+        origin: 'voice'
+      });
       await new Promise((resolve) => setTimeout(resolve, 80));
       const voiceState = {
         voiceOn,
@@ -584,7 +725,9 @@ try {
         siblingIsolated: !dataManager.isEffectivelyEnabled(siblingId),
       };
       const snapshotBeforeOff = [...(styleManager._contextControls._contextSessionSnapshot?.enabledLayerIds || [])];
-      const voiceOff = await dataManager.setEnabled('rocket-launches', false, { origin: 'voice' });
+      const voiceOff = await dataManager.setEnabled('rocket-launches', false, {
+        origin: 'voice'
+      });
       const reactionCountAfterOff = styleManager._contextControls._contextLayerReactionPromises.size;
       await styleManager._waitForContextLayerSettlement();
       const restoredSiblingEntry = dataManager.layers.get(siblingId);
@@ -601,7 +744,9 @@ try {
         restoreActive: Boolean(styleManager._contextControls._contextRestoreState),
       };
 
-      await dataManager.setEnabled('rocket-launches', true, { origin: 'programmatic' });
+      await dataManager.setEnabled('rocket-launches', true, {
+        origin: 'programmatic'
+      });
       await new Promise((resolve) => setTimeout(resolve, 40));
       const internalState = {
         mode: styleManager._contextControls._contextMode,
@@ -609,8 +754,15 @@ try {
         snapshotRetained: Boolean(styleManager._contextControls._contextSessionSnapshot),
         missionEnabled: dataManager.isEffectivelyEnabled('rocket-launches'),
       };
-      await dataManager.setEnabled('rocket-launches', false, { origin: 'programmatic' });
-      return { exercised: true, voiceState, voiceExit, internalState };
+      await dataManager.setEnabled('rocket-launches', false, {
+        origin: 'programmatic'
+      });
+      return {
+        exercised: true,
+        voiceState,
+        voiceExit,
+        internalState
+      };
     } finally {
       rocketEntry.module.init = original.init;
       rocketEntry.module.enable = original.enable;
@@ -618,45 +770,50 @@ try {
       rocketEntry.module.disable = original.disable;
       rocketEntry.initialized = original.initialized;
       rocketEntry.lifecycleState = original.lifecycleState;
-      await dataManager.setEnabled(siblingId, false, { origin: 'programmatic' });
+      await dataManager.setEnabled(siblingId, false, {
+        origin: 'programmatic'
+      });
       siblingLayerEntry.initialized = original.siblingInitialized;
       await window.__gevQaUnregisterLayer(dataManager, siblingId);
     }
   });
   check(
     'voice Space Missions uses the same Context snapshot and exact-restore transaction as UI entry',
-    voiceMissionEntry.exercised
-      && voiceMissionEntry.voiceState?.voiceOn
-      && voiceMissionEntry.voiceState.mode === 'space-missions'
-      && voiceMissionEntry.voiceState.entering === null
-      && voiceMissionEntry.voiceState.snapshotRetained
-      && voiceMissionEntry.voiceState.siblingIsolated
-      && voiceMissionEntry.voiceExit?.voiceOff
-      && voiceMissionEntry.voiceExit.mode === null
-      && voiceMissionEntry.voiceExit.entering === null
-      && !voiceMissionEntry.voiceExit.snapshotRetained
-      && voiceMissionEntry.voiceExit.siblingRestored,
+    voiceMissionEntry.exercised &&
+    voiceMissionEntry.voiceState?.voiceOn &&
+    voiceMissionEntry.voiceState.mode === 'space-missions' &&
+    voiceMissionEntry.voiceState.entering === null &&
+    voiceMissionEntry.voiceState.snapshotRetained &&
+    voiceMissionEntry.voiceState.siblingIsolated &&
+    voiceMissionEntry.voiceExit?.voiceOff &&
+    voiceMissionEntry.voiceExit.mode === null &&
+    voiceMissionEntry.voiceExit.entering === null &&
+    !voiceMissionEntry.voiceExit.snapshotRetained &&
+    voiceMissionEntry.voiceExit.siblingRestored,
     JSON.stringify(voiceMissionEntry),
   );
   check(
     'internal programmatic Space Missions activation does not create a user Context session',
-    voiceMissionEntry.internalState?.missionEnabled
-      && voiceMissionEntry.internalState.mode === null
-      && voiceMissionEntry.internalState.entering === null
-      && !voiceMissionEntry.internalState.snapshotRetained,
+    voiceMissionEntry.internalState?.missionEnabled &&
+    voiceMissionEntry.internalState.mode === null &&
+    voiceMissionEntry.internalState.entering === null &&
+    !voiceMissionEntry.internalState.snapshotRetained,
     JSON.stringify(voiceMissionEntry),
   );
   await page.evaluate(() => window.__godsEyeView.dataManager.setEnabled(
     'flights',
-    true,
-    { origin: 'user' },
+    true, {
+      origin: 'user'
+    },
   ));
   await page.waitForFunction(() => {
     const layer = window.__godsEyeView?.dataManager?.layers?.get('flights')?.module;
     return (layer?.getAllPositions?.(500) || []).some(
       (candidate) => Number(candidate.altitudeM) > 1_000,
     );
-  }, { timeout: 60_000 });
+  }, {
+    timeout: 60_000
+  });
   const tracked = await page.evaluate(() => {
     const layer = window.__godsEyeView.dataManager.layers.get('flights')?.module;
     const candidates = layer?.getAllPositions?.(500) || [];
@@ -668,13 +825,20 @@ try {
   });
   check('real airborne flight is tracked before Contacts activation', tracked.tracked, JSON.stringify(tracked));
   await page.waitForFunction(
-    () => Boolean(window.__godsEyeView.viewer.trackedEntity?.position),
-    { timeout: 10_000 },
+    () => Boolean(window.__godsEyeView.viewer.trackedEntity?.position), {
+      timeout: 10_000
+    },
   );
   const preselectedContactAdoption = await page.evaluate(async () => {
-    const { styleManager, dataManager, viewer } = window.__godsEyeView;
+    const {
+      styleManager,
+      dataManager,
+      viewer
+    } = window.__godsEyeView;
     const flights = dataManager.layers.get('flights')?.module;
-    await dataManager.setEnabled('military', true, { origin: 'programmatic' });
+    await dataManager.setEnabled('military', true, {
+      origin: 'programmatic'
+    });
     const before = flights?.getTrackedInfo?.() || null;
     const trackedEntityBefore = viewer.trackedEntity;
     const blockerId = '__qa_slow_contacts_sibling__';
@@ -684,17 +848,32 @@ try {
     const settleTimeoutMs = 60_000;
     let releaseDisable = () => {};
     let reportDisableStarted = () => {};
-    const disableGate = new Promise((resolve) => { releaseDisable = resolve; });
-    const disableStarted = new Promise((resolve) => { reportDisableStarted = resolve; });
+    const disableGate = new Promise((resolve) => {
+      releaseDisable = resolve;
+    });
+    const disableStarted = new Promise((resolve) => {
+      reportDisableStarted = resolve;
+    });
     // Every await in this probe is bounded: the gated sibling teardown is the
     // behaviour under test, so a no-show has to fail the check with evidence
     // rather than hang the whole harness on an unresolved promise.
     const settleWithin = (promise, ms) => Promise.race([
       promise.then(
-        (value) => ({ settled: true, value }),
-        (error) => ({ settled: true, value: `error: ${String(error?.message || error)}` }),
+        (value) => ({
+          settled: true,
+          value
+        }),
+        (error) => ({
+          settled: true,
+          value: `error: ${String(error?.message || error)}`
+        }),
       ),
-      new Promise((resolve) => { setTimeout(() => resolve({ settled: false, value: null }), ms); }),
+      new Promise((resolve) => {
+        setTimeout(() => resolve({
+          settled: false,
+          value: null
+        }), ms);
+      }),
     ]);
     window.__gevQaRegisterLayer(dataManager, {
       id: blockerId,
@@ -702,22 +881,35 @@ try {
       icon: 'science',
       source: 'QA',
       updateInterval: -1,
-      async init() { return true; },
-      async enable() { return true; },
-      async update() { return true; },
+      async init() {
+        return true;
+      },
+      async enable() {
+        return true;
+      },
+      async update() {
+        return true;
+      },
       async disable() {
         reportDisableStarted();
         await disableGate;
         return true;
       },
       async destroy() {},
-      getStats() { return { count: 1, status: 'live' }; },
+      getStats() {
+        return {
+          count: 1,
+          status: 'live'
+        };
+      },
     });
     let deferCleanup = false;
     try {
       const blockerEntry = dataManager.layers.get(blockerId);
       blockerEntry.initialized = true;
-      await dataManager.setEnabled(blockerId, true, { origin: 'programmatic' });
+      await dataManager.setEnabled(blockerId, true, {
+        origin: 'programmatic'
+      });
       const transition = styleManager._contextControls._selectContextMode('flights');
       const disableStart = await settleWithin(disableStarted, gateTimeoutMs);
       if (!disableStart.settled) {
@@ -726,9 +918,9 @@ try {
         return {
           disableObserved: false,
           beforeId: before?.icao24 || null,
-          timeoutReason: `QA blocker disable() never started within ${gateTimeoutMs}ms — `
-            + 'the Contacts transition never tore its sibling down, so the pending-window '
-            + 'probe could not be exercised',
+          timeoutReason: `QA blocker disable() never started within ${gateTimeoutMs}ms — ` +
+            'the Contacts transition never tore its sibling down, so the pending-window ' +
+            'probe could not be exercised',
           transitionSettled: abandoned.settled,
           transitionResult: abandoned.value,
         };
@@ -782,27 +974,27 @@ try {
   });
   check(
     'Contacts blocks early Cockpit entry, then adopts the already tracked flight after settlement',
-    preselectedContactAdoption.disableObserved
-      && preselectedContactAdoption.transitionSettled
-      && preselectedContactAdoption.beforeId
-      && preselectedContactAdoption.pending?.changing
-      && preselectedContactAdoption.pending.entryHidden
-      && preselectedContactAdoption.pending.enterResult === false
-      && preselectedContactAdoption.pending.trackerPreserved
-      && preselectedContactAdoption.transitionResult === true
-      && preselectedContactAdoption.subject?.layerId === 'flights'
-      && String(preselectedContactAdoption.subject.id).toLowerCase()
-        === String(preselectedContactAdoption.beforeId).toLowerCase()
-      && String(preselectedContactAdoption.afterId).toLowerCase()
-        === String(preselectedContactAdoption.beforeId).toLowerCase()
-      && String(preselectedContactAdoption.viewerTrackedId).toLowerCase()
-        === `flights:${String(preselectedContactAdoption.beforeId).toLowerCase()}`
-      && preselectedContactAdoption.navigation?.canPrevious === false
-      && typeof preselectedContactAdoption.navigation?.canNext === 'boolean'
-      && preselectedContactAdoption.contextVisible
-      && preselectedContactAdoption.entryAvailableAfterSettlement
-      && preselectedContactAdoption.blockerStillRegistered
-      && preselectedContactAdoption.blockerEffectivelyOff,
+    preselectedContactAdoption.disableObserved &&
+    preselectedContactAdoption.transitionSettled &&
+    preselectedContactAdoption.beforeId &&
+    preselectedContactAdoption.pending?.changing &&
+    preselectedContactAdoption.pending.entryHidden &&
+    preselectedContactAdoption.pending.enterResult === false &&
+    preselectedContactAdoption.pending.trackerPreserved &&
+    preselectedContactAdoption.transitionResult === true &&
+    preselectedContactAdoption.subject?.layerId === 'flights' &&
+    String(preselectedContactAdoption.subject.id).toLowerCase() ===
+    String(preselectedContactAdoption.beforeId).toLowerCase() &&
+    String(preselectedContactAdoption.afterId).toLowerCase() ===
+    String(preselectedContactAdoption.beforeId).toLowerCase() &&
+    String(preselectedContactAdoption.viewerTrackedId).toLowerCase() ===
+    `flights:${String(preselectedContactAdoption.beforeId).toLowerCase()}` &&
+    preselectedContactAdoption.navigation?.canPrevious === false &&
+    typeof preselectedContactAdoption.navigation?.canNext === 'boolean' &&
+    preselectedContactAdoption.contextVisible &&
+    preselectedContactAdoption.entryAvailableAfterSettlement &&
+    preselectedContactAdoption.blockerStillRegistered &&
+    preselectedContactAdoption.blockerEffectivelyOff,
     JSON.stringify(preselectedContactAdoption),
   );
   // The slow thing in the field is the FETCH, so that is what this holds — the
@@ -827,7 +1019,10 @@ try {
   const readinessPage = await browser.newPage();
   let deferredInstallationReadiness;
   try {
-    await readinessPage.setViewport({ width: 1440, height: 900 });
+    await readinessPage.setViewport({
+      width: 1440,
+      height: 900
+    });
     readinessPage.on('pageerror', (error) => consoleErrors.push(error.message));
     await readinessPage.setRequestInterception(true);
     readinessPage.on('request', (request) => {
@@ -835,11 +1030,16 @@ try {
       if (url.origin === new URL(appUrl).origin && url.pathname === '/api/opensky') {
         const now = Math.floor(Date.now() / 1000);
         request.respond({
-          status: 200, contentType: 'application/json',
-          body: JSON.stringify({ time: now, states: [
-            ['aaa051', 'QA051', 'Synthetic', now, now, -97.7431, 30.2672,
-              9000, false, 230, 90, 0, null, 9000, null, false, 0],
-          ] }),
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            time: now,
+            states: [
+              ['aaa051', 'QA051', 'Synthetic', now, now, -97.7431, 30.2672,
+                9000, false, 230, 90, 0, null, 9000, null, false, 0
+              ],
+            ]
+          }),
         });
         return;
       }
@@ -847,12 +1047,18 @@ try {
     });
     const readinessUrl = new URL(appUrl);
     readinessUrl.searchParams.set('welcome', '0');
-    await readinessPage.goto(readinessUrl.href, { waitUntil: 'domcontentloaded' });
-    await readinessPage.waitForFunction(() => window.__godsEyeView?.dataManager
-      && document.getElementById('loading-screen')?.classList.contains('hidden'), { timeout: 60000 });
+    await readinessPage.goto(readinessUrl.href, {
+      waitUntil: 'domcontentloaded'
+    });
+    await readinessPage.waitForFunction(() => window.__godsEyeView?.dataManager &&
+      document.getElementById('loading-screen')?.classList.contains('hidden'), {
+        timeout: 60000
+      });
     await readinessPage.evaluate(async () => {
       const manager = window.__godsEyeView.dataManager;
-      await manager.setEnabled('flights', true, { origin: 'user' });
+      await manager.setEnabled('flights', true, {
+        origin: 'user'
+      });
       if (!manager.layers.get('flights').module.trackById('aaa051')) {
         throw new Error('First-fetch fixture aircraft was not tracked');
       }
@@ -861,15 +1067,32 @@ try {
       }
     });
     deferredInstallationReadiness = await readinessPage.evaluate(async () => {
-      const { styleManager, dataManager } = window.__godsEyeView;
+      const {
+        styleManager,
+        dataManager
+      } = window.__godsEyeView;
       const entry = dataManager.layers.get('military-installations');
-      if (!entry?.module) return { exercised: false, reason: 'military-installations missing' };
+      if (!entry?.module) return {
+        exercised: false,
+        reason: 'military-installations missing'
+      };
       const settleWithin = (promise, ms) => Promise.race([
         promise.then(
-          (value) => ({ settled: true, value }),
-          (error) => ({ settled: true, value: `error: ${String(error?.message || error)}` }),
+          (value) => ({
+            settled: true,
+            value
+          }),
+          (error) => ({
+            settled: true,
+            value: `error: ${String(error?.message || error)}`
+          }),
         ),
-        new Promise((resolve) => { setTimeout(() => resolve({ settled: false, value: null }), ms); }),
+        new Promise((resolve) => {
+          setTimeout(() => resolve({
+            settled: false,
+            value: null
+          }), ms);
+        }),
       ]);
       const row = () => [...document.querySelectorAll('#military-awareness-panel .military-awareness-row')]
         .find((candidate) => candidate.querySelector('strong')?.textContent?.trim() === 'Mapped installations');
@@ -884,14 +1107,20 @@ try {
       let transition = null;
       try {
         await styleManager._contextControls._selectContextMode(null);
-        await dataManager.setEnabled('military-installations', false, { origin: 'programmatic' });
+        await dataManager.setEnabled('military-installations', false, {
+          origin: 'programmatic'
+        });
 
         // Hold the first Overpass request open, honouring the module's own
         // AbortSignal so its camera-settle abort/refetch behaves as it does live.
         window.fetch = (input, init) => {
           const raw = typeof input === 'string' || input instanceof URL ? String(input) : input?.url;
           let url = null;
-          try { url = new URL(raw, window.location.href); } catch { return realFetch(input, init); }
+          try {
+            url = new URL(raw, window.location.href);
+          } catch {
+            return realFetch(input, init);
+          }
           if (url.pathname !== '/api/military-installations') return realFetch(input, init);
           requestSeen = true;
           const signal = init?.signal;
@@ -906,15 +1135,24 @@ try {
             };
             if (signal) {
               if (signal.aborted) return fail();
-              signal.addEventListener('abort', fail, { once: true });
+              signal.addEventListener('abort', fail, {
+                once: true
+              });
             }
             const tick = () => {
               if (done) return;
               if (released) {
                 done = true;
                 resolve(new Response(
-                  JSON.stringify({ elements: [], retrievedAt: new Date().toISOString() }),
-                  { status: 200, headers: { 'Content-Type': 'application/json' } },
+                  JSON.stringify({
+                    elements: [],
+                    retrievedAt: new Date().toISOString()
+                  }), {
+                    status: 200,
+                    headers: {
+                      'Content-Type': 'application/json'
+                    }
+                  },
                 ));
                 return;
               }
@@ -1019,26 +1257,26 @@ try {
   );
   check(
     'mapped installations load behind Contacts without a false all-clear or a locked Cockpit',
-    deferredInstallationReadiness.exercised
-      && deferredInstallationReadiness.started?.settled
-      && deferredInstallationReadiness.contacts?.settled
-      && deferredInstallationReadiness.contacts.value === true
-      && deferredInstallationReadiness.pendingLifecycle?.lifecycleState === 'enabling'
-      && readsUnknown(deferredInstallationReadiness.pendingCount)
-      && readsPendingReason(deferredInstallationReadiness.pendingReason)
-      && deferredInstallationReadiness.cockpitAvailableAfterActivation
-      && deferredInstallationReadiness.installed?.settled,
+    deferredInstallationReadiness.exercised &&
+    deferredInstallationReadiness.started?.settled &&
+    deferredInstallationReadiness.contacts?.settled &&
+    deferredInstallationReadiness.contacts.value === true &&
+    deferredInstallationReadiness.pendingLifecycle?.lifecycleState === 'enabling' &&
+    readsUnknown(deferredInstallationReadiness.pendingCount) &&
+    readsPendingReason(deferredInstallationReadiness.pendingReason) &&
+    deferredInstallationReadiness.cockpitAvailableAfterActivation &&
+    deferredInstallationReadiness.installed?.settled,
     JSON.stringify(deferredInstallationReadiness),
   );
   check(
     'installations still fetching behind a live Contacts panel never reads a number',
-    deferredInstallationReadiness.exercised
-      && deferredInstallationReadiness.pendingLifecycle?.lifecycleState === 'enabling'
-      && Array.isArray(deferredInstallationReadiness.fetchingCounts)
-      && deferredInstallationReadiness.fetchingCounts.length > 0
-      && deferredInstallationReadiness.fetchingCounts.every(readsUnknown)
-      && Array.isArray(deferredInstallationReadiness.fetchingReasons)
-      && deferredInstallationReadiness.fetchingReasons.every(readsPendingReason),
+    deferredInstallationReadiness.exercised &&
+    deferredInstallationReadiness.pendingLifecycle?.lifecycleState === 'enabling' &&
+    Array.isArray(deferredInstallationReadiness.fetchingCounts) &&
+    deferredInstallationReadiness.fetchingCounts.length > 0 &&
+    deferredInstallationReadiness.fetchingCounts.every(readsUnknown) &&
+    Array.isArray(deferredInstallationReadiness.fetchingReasons) &&
+    deferredInstallationReadiness.fetchingReasons.every(readsPendingReason),
     JSON.stringify({
       settledLifecycle: deferredInstallationReadiness.settledLifecycle,
       fetchingCounts: deferredInstallationReadiness.fetchingCounts,
@@ -1047,17 +1285,21 @@ try {
   );
   check(
     'the mapped-installations count appears once the first fetch actually answers',
-    deferredInstallationReadiness.exercised
-      && deferredInstallationReadiness.answered?.settled
-      && readsNumber(deferredInstallationReadiness.settledCount)
-      && !readsPendingReason(deferredInstallationReadiness.settledReason),
+    deferredInstallationReadiness.exercised &&
+    deferredInstallationReadiness.answered?.settled &&
+    readsNumber(deferredInstallationReadiness.settledCount) &&
+    !readsPendingReason(deferredInstallationReadiness.settledReason),
     JSON.stringify({
       answered: deferredInstallationReadiness.answered,
       settledCount: deferredInstallationReadiness.settledCount,
     }),
   );
   const locationContactHandoff = await page.evaluate(async () => {
-    const { styleManager, dataManager, viewer } = window.__godsEyeView;
+    const {
+      styleManager,
+      dataManager,
+      viewer
+    } = window.__godsEyeView;
     const awareness = dataManager.layers.get('military-awareness')?.module;
     const before = awareness?.getContextSnapshot?.()?.subject || null;
     document.querySelector('#location-pills .location-pill')?.click();
@@ -1069,8 +1311,14 @@ try {
     const owningLayer = after?.layerId === 'militaryFlights' ? 'military-flights' : after?.layerId;
     const trackedInfo = dataManager.layers.get(owningLayer)?.module?.getTrackedInfo?.() || null;
     return {
-      before: before ? { layerId: before.layerId, id: before.id } : null,
-      after: after ? { layerId: after.layerId, id: after.id } : null,
+      before: before ? {
+        layerId: before.layerId,
+        id: before.id
+      } : null,
+      after: after ? {
+        layerId: after.layerId,
+        id: after.id
+      } : null,
       mode: styleManager._contextControls._contextMode,
       released,
       refocused,
@@ -1079,18 +1327,21 @@ try {
   });
   check(
     'Location moves independently while Contact selection persists and Focus restores it',
-    locationContactHandoff.before?.id
-      && locationContactHandoff.after?.id === locationContactHandoff.before.id
-      && locationContactHandoff.after?.layerId === locationContactHandoff.before.layerId
-      && locationContactHandoff.mode === 'flights'
-      && locationContactHandoff.released
-      && locationContactHandoff.refocused
-      && String(locationContactHandoff.trackedId).toLowerCase()
-        === String(locationContactHandoff.before.id).toLowerCase(),
+    locationContactHandoff.before?.id &&
+    locationContactHandoff.after?.id === locationContactHandoff.before.id &&
+    locationContactHandoff.after?.layerId === locationContactHandoff.before.layerId &&
+    locationContactHandoff.mode === 'flights' &&
+    locationContactHandoff.released &&
+    locationContactHandoff.refocused &&
+    String(locationContactHandoff.trackedId).toLowerCase() ===
+    String(locationContactHandoff.before.id).toLowerCase(),
     JSON.stringify(locationContactHandoff),
   );
   const zoomedOutContactRefocus = await page.evaluate(async () => {
-    const { dataManager, viewer } = window.__godsEyeView;
+    const {
+      dataManager,
+      viewer
+    } = window.__godsEyeView;
     const awareness = dataManager.layers.get('military-awareness')?.module;
     const before = awareness?.getContextSnapshot?.()?.subject || null;
     const entityBefore = viewer.trackedEntity;
@@ -1111,8 +1362,14 @@ try {
     const focusedRange = cameraRange();
     const after = awareness?.getContextSnapshot?.()?.subject || null;
     return {
-      before: before ? { layerId: before.layerId, id: before.id } : null,
-      after: after ? { layerId: after.layerId, id: after.id } : null,
+      before: before ? {
+        layerId: before.layerId,
+        id: before.id
+      } : null,
+      after: after ? {
+        layerId: after.layerId,
+        id: after.id
+      } : null,
       sameEntity: viewer.trackedEntity === entityBefore,
       refocused,
       zoomedRange: Math.round(zoomedRange),
@@ -1121,25 +1378,28 @@ try {
   });
   check(
     'Contact Focus restores the canonical follow frame after a manual zoom-out',
-    zoomedOutContactRefocus.before?.id
-      && zoomedOutContactRefocus.after?.id === zoomedOutContactRefocus.before.id
-      && zoomedOutContactRefocus.after?.layerId === zoomedOutContactRefocus.before.layerId
-      && zoomedOutContactRefocus.sameEntity
-      && zoomedOutContactRefocus.refocused
-      && zoomedOutContactRefocus.zoomedRange > 1_000_000
-      && zoomedOutContactRefocus.focusedRange < 50_000,
+    zoomedOutContactRefocus.before?.id &&
+    zoomedOutContactRefocus.after?.id === zoomedOutContactRefocus.before.id &&
+    zoomedOutContactRefocus.after?.layerId === zoomedOutContactRefocus.before.layerId &&
+    zoomedOutContactRefocus.sameEntity &&
+    zoomedOutContactRefocus.refocused &&
+    zoomedOutContactRefocus.zoomedRange > 1_000_000 &&
+    zoomedOutContactRefocus.focusedRange < 50_000,
     JSON.stringify(zoomedOutContactRefocus),
   );
   await page.waitForFunction(() => {
     const entry = document.getElementById('cockpit-entry');
     return entry && !entry.hidden && !entry.disabled;
-  }, { timeout: 10_000 });
+  }, {
+    timeout: 10_000
+  });
   await page.$eval('#cockpit-entry', (entry) => entry.click());
   await page.waitForFunction(
-    () => document.body.classList.contains('cockpit-mode')
-      && window.__godsEyeView.styleManager.cockpitView.active
-      && !document.getElementById('cockpit-hud').hidden,
-    { timeout: 10_000 },
+    () => document.body.classList.contains('cockpit-mode') &&
+    window.__godsEyeView.styleManager.cockpitView.active &&
+    !document.getElementById('cockpit-hud').hidden, {
+      timeout: 10_000
+    },
   );
   await page.waitForFunction(
     () => {
@@ -1147,8 +1407,9 @@ try {
       // #cockpit-context would sail past this gate instead of failing here.
       const context = document.getElementById('cockpit-context');
       return Boolean(context) && !context.hidden;
+    }, {
+      timeout: 10_000
     },
-    { timeout: 10_000 },
   );
   const firstCockpitContact = await page.evaluate(() => {
     const awareness = window.__godsEyeView.dataManager.layers
@@ -1165,8 +1426,8 @@ try {
         id: snapshot.subject.id,
         label: snapshot.subject.label,
       } : null,
-      contextVisible: Boolean(context && !context.hidden
-        && getComputedStyle(context).display !== 'none'),
+      contextVisible: Boolean(context && !context.hidden &&
+        getComputedStyle(context).display !== 'none'),
       subjectText,
       previousDisabled: previous?.disabled,
       nextDisabled: next?.disabled,
@@ -1176,18 +1437,18 @@ try {
   });
   check(
     'first Cockpit entry shows matching Contact Previous/Next controls',
-    firstCockpitContact.contextVisible
-      && firstCockpitContact.subject?.layerId === 'flights'
-      && String(firstCockpitContact.subject.id).toLowerCase()
-        === String(tracked.id).toLowerCase()
-      && firstCockpitContact.subjectText.startsWith(
-        `${firstCockpitContact.subject.label} ·`,
-      )
-      && firstCockpitContact.previousDisabled
-        === !firstCockpitContact.navigation?.canPrevious
-      && firstCockpitContact.nextDisabled
-        === !firstCockpitContact.navigation?.canNext
-      && !firstCockpitContact.contextStandby,
+    firstCockpitContact.contextVisible &&
+    firstCockpitContact.subject?.layerId === 'flights' &&
+    String(firstCockpitContact.subject.id).toLowerCase() ===
+    String(tracked.id).toLowerCase() &&
+    firstCockpitContact.subjectText.startsWith(
+      `${firstCockpitContact.subject.label} ·`,
+    ) &&
+    firstCockpitContact.previousDisabled ===
+    !firstCockpitContact.navigation?.canPrevious &&
+    firstCockpitContact.nextDisabled ===
+    !firstCockpitContact.navigation?.canNext &&
+    !firstCockpitContact.contextStandby,
     JSON.stringify(firstCockpitContact),
   );
   // Owner playtest 2026-08-18: "when you click on Contacts, detections should
@@ -1197,7 +1458,9 @@ try {
   // context-mode transaction and the REAL CockpitViewController with a live
   // tracked flight: the one path a Node unit test cannot boot.
   const contactsDetection = await page.evaluate(async () => {
-    const { styleManager } = window.__godsEyeView;
+    const {
+      styleManager
+    } = window.__godsEyeView;
     const cockpit = styleManager.cockpitView;
     const mode = () => styleManager.getDetectionState().detectionMode;
     const density = () => styleManager.getDetectionState().densityPct;
@@ -1215,7 +1478,9 @@ try {
     const originalOverridden = styleManager._detectionUserOverridden;
 
     // Start from outside both, so activation is a real edge.
-    cockpit.exit({ restoreTracking: true });
+    cockpit.exit({
+      restoreTracking: true
+    });
     await settle();
     await styleManager._contextControls._selectContextMode(null);
     await settle(400);
@@ -1229,7 +1494,10 @@ try {
     // Adversarial precondition: detection explicitly OFF at a NON-tactical
     // density, and the operator already flagged as having overridden detection
     // this session — the flag that suppresses the military-style auto-enable.
-    styleManager.setDetection({ enabled: false, densityPct: 25 });
+    styleManager.setDetection({
+      enabled: false,
+      densityPct: 25
+    });
     await settle();
     const beforeContacts = mode();
     const overriddenBeforeContacts = styleManager._detectionUserOverridden;
@@ -1249,7 +1517,9 @@ try {
     const afterVisionCycle = mode();
     cockpit.setVisionMode('optical');
     await settle();
-    const exited = cockpit.exit({ restoreTracking: true }) === true;
+    const exited = cockpit.exit({
+      restoreTracking: true
+    }) === true;
     await settle();
     const afterCockpitExit = mode();
     const afterCockpitExitDensity = density();
@@ -1261,7 +1531,9 @@ try {
     const reentered = await enterCockpit();
     await settle();
     const afterCockpitReentry = mode();
-    cockpit.exit({ restoreTracking: true });
+    cockpit.exit({
+      restoreTracking: true
+    });
     await settle();
 
     // 4. Deactivating Contacts restores the pre-Contacts state.
@@ -1275,7 +1547,9 @@ try {
     await settle();
     const manualEnableMode = mode();
     const manualEnableDensity = density();
-    styleManager.setDetection({ enabled: false });
+    styleManager.setDetection({
+      enabled: false
+    });
     await settle();
 
     // Leave the session exactly as the following checks expect it.
@@ -1313,42 +1587,50 @@ try {
   });
   check(
     'Contacts owns detection: activation forces the tactical preset, cockpit transitions leave it alone, deactivation restores',
-    contactsDetection.contactsOn === true
-      && contactsDetection.entered
-      && contactsDetection.exited
-      && contactsDetection.reentered
-      && contactsDetection.restoredContacts === true
-      && contactsDetection.restoredCockpit
-      && contactsDetection.cockpitActive
-      && contactsDetection.cleanupSnapshotCleared
-      && contactsDetection.cleanupUnregistered
-      && contactsDetection.cleanupBlockerAbsent
-      && contactsDetection.beforeContacts === 'OFF'
-      && contactsDetection.overriddenBeforeContacts === true
-      // Activation forces the military look — Dense @ 75%, not the 25% the
-      // operator was sitting at, and regardless of the override flag.
-      && contactsDetection.afterContactsOn === 'DENSE'
-      && contactsDetection.afterContactsOnDensity === 75
-      // Cockpit is a move WITHIN Contacts: enter, vision cycle and — the actual
-      // bug — EXIT must all leave detection exactly where it was.
-      && contactsDetection.insideCockpit === 'DENSE'
-      && contactsDetection.afterVisionCycle === 'DENSE'
-      && contactsDetection.afterCockpitExit === 'DENSE'
-      && contactsDetection.afterCockpitExitDensity === 75
-      // A manual off holds for the session, including across a cockpit re-entry.
-      && contactsDetection.afterManualOff === 'OFF'
-      && contactsDetection.afterCockpitReentry === 'OFF'
-      // Leaving Contacts restores the pre-Contacts state — mode AND density, so
-      // the operator's next manual enable returns their own 25% profile rather
-      // than the tactical 75% Contacts stamped on.
-      && contactsDetection.afterContactsOff === 'OFF'
-      && contactsDetection.afterContactsOffDensity === 25
-      && contactsDetection.manualEnableMode === 'SPARSE'
-      && contactsDetection.manualEnableDensity === 25,
+    contactsDetection.contactsOn === true &&
+    contactsDetection.entered &&
+    contactsDetection.exited &&
+    contactsDetection.reentered &&
+    contactsDetection.restoredContacts === true &&
+    contactsDetection.restoredCockpit &&
+    contactsDetection.cockpitActive &&
+    contactsDetection.cleanupSnapshotCleared &&
+    contactsDetection.cleanupUnregistered &&
+    contactsDetection.cleanupBlockerAbsent &&
+    contactsDetection.beforeContacts === 'OFF' &&
+    contactsDetection.overriddenBeforeContacts === true
+    // Activation forces the military look — Dense @ 75%, not the 25% the
+    // operator was sitting at, and regardless of the override flag.
+    &&
+    contactsDetection.afterContactsOn === 'DENSE' &&
+    contactsDetection.afterContactsOnDensity === 75
+    // Cockpit is a move WITHIN Contacts: enter, vision cycle and — the actual
+    // bug — EXIT must all leave detection exactly where it was.
+    &&
+    contactsDetection.insideCockpit === 'DENSE' &&
+    contactsDetection.afterVisionCycle === 'DENSE' &&
+    contactsDetection.afterCockpitExit === 'DENSE' &&
+    contactsDetection.afterCockpitExitDensity === 75
+    // A manual off holds for the session, including across a cockpit re-entry.
+    &&
+    contactsDetection.afterManualOff === 'OFF' &&
+    contactsDetection.afterCockpitReentry === 'OFF'
+    // Leaving Contacts restores the pre-Contacts state — mode AND density, so
+    // the operator's next manual enable returns their own 25% profile rather
+    // than the tactical 75% Contacts stamped on.
+    &&
+    contactsDetection.afterContactsOff === 'OFF' &&
+    contactsDetection.afterContactsOffDensity === 25 &&
+    contactsDetection.manualEnableMode === 'SPARSE' &&
+    contactsDetection.manualEnableDensity === 25,
     JSON.stringify(contactsDetection),
   );
   const densityNavigation = await page.evaluate(async () => {
-    const { styleManager, dataManager, viewer } = window.__godsEyeView;
+    const {
+      styleManager,
+      dataManager,
+      viewer
+    } = window.__godsEyeView;
     const cockpit = styleManager.cockpitView;
     const awareness = dataManager.layers.get('military-awareness')?.module;
     const settle = (ms = 260) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -1371,7 +1653,9 @@ try {
     const setDensityFromUi = (value) => {
       const slider = document.getElementById('detection-density-slider');
       slider.value = String(value);
-      slider.dispatchEvent(new Event('input', { bubbles: true }));
+      slider.dispatchEvent(new Event('input', {
+        bubbles: true
+      }));
     };
 
     const states = [snapshot('before')];
@@ -1391,13 +1675,19 @@ try {
     await settle(1700);
     states.push(snapshot('voice-previous'));
 
-    const exited = cockpit.exit({ restoreTracking: true }) === true;
+    const exited = cockpit.exit({
+      restoreTracking: true
+    }) === true;
     await settle(100);
     const mapBefore = snapshot('map-before');
-    const mapNext = awareness?.navigateNext?.({ origin: 'user' }) === true;
+    const mapNext = awareness?.navigateNext?.({
+      origin: 'user'
+    }) === true;
     await settle();
     const mapAfterNext = snapshot('map-next');
-    const mapPrevious = awareness?.navigatePrevious?.({ origin: 'user' }) === true;
+    const mapPrevious = awareness?.navigatePrevious?.({
+      origin: 'user'
+    }) === true;
     await settle();
     const mapAfterPrevious = snapshot('map-previous');
     const reentered = cockpit.enter() === true;
@@ -1417,33 +1707,43 @@ try {
     };
   });
   const cockpitStatesStable = densityNavigation.states.every((state) => (
-    state.cockpitActive
-      && state.bodyCockpit
-      && state.contextMode === 'flights'
-      && !state.contextChanging
-      && state.subject
-      && state.tracked
+    state.cockpitActive &&
+    state.bodyCockpit &&
+    state.contextMode === 'flights' &&
+    !state.contextChanging &&
+    state.subject &&
+    state.tracked
   ));
   check(
     'Dense/Sparse UI and voice Next/Previous keep Cockpit active and standard Flights tracking stable',
-    cockpitStatesStable
-      && densityNavigation.states.find(({ step }) => step === 'sparse')?.density === 25
-      && densityNavigation.states.find(({ step }) => step === 'ui-next')?.density === 25
-      && densityNavigation.states.find(({ step }) => step === 'ui-previous')?.density === 75
-      && densityNavigation.voiceNext
-      && densityNavigation.voicePrevious
-      && densityNavigation.exited
-      && !densityNavigation.mapBefore.cockpitActive
-      && densityNavigation.mapBefore.contextMode === 'flights'
-      && densityNavigation.mapNext
-      && densityNavigation.mapAfterNext.tracked
-      && densityNavigation.mapPrevious
-      && densityNavigation.mapAfterPrevious.tracked
-      && densityNavigation.reentered,
+    cockpitStatesStable &&
+    densityNavigation.states.find(({
+      step
+    }) => step === 'sparse')?.density === 25 &&
+    densityNavigation.states.find(({
+      step
+    }) => step === 'ui-next')?.density === 25 &&
+    densityNavigation.states.find(({
+      step
+    }) => step === 'ui-previous')?.density === 75 &&
+    densityNavigation.voiceNext &&
+    densityNavigation.voicePrevious &&
+    densityNavigation.exited &&
+    !densityNavigation.mapBefore.cockpitActive &&
+    densityNavigation.mapBefore.contextMode === 'flights' &&
+    densityNavigation.mapNext &&
+    densityNavigation.mapAfterNext.tracked &&
+    densityNavigation.mapPrevious &&
+    densityNavigation.mapAfterPrevious.tracked &&
+    densityNavigation.reentered,
     JSON.stringify(densityNavigation),
   );
   const cockpitExitOwnership = await page.evaluate(async () => {
-    const { styleManager, dataManager, viewer } = window.__godsEyeView;
+    const {
+      styleManager,
+      dataManager,
+      viewer
+    } = window.__godsEyeView;
     const awareness = dataManager.layers.get('military-awareness')?.module;
     const entity = viewer.trackedEntity || styleManager.cockpitView.trackedEntity;
     const nextFrame = () => new Promise((resolve, reject) => {
@@ -1476,11 +1776,11 @@ try {
   });
   check(
     'Cockpit exit and later Contact Focus retain one source-owned camera-frame listener',
-    cockpitExitOwnership.exited
-      && cockpitExitOwnership.refocused
-      && cockpitExitOwnership.sameEntity
-      && cockpitExitOwnership.listenersAfterExit === cockpitExitOwnership.listenersBeforeExit + 1
-      && cockpitExitOwnership.listenersAfterFocus === cockpitExitOwnership.listenersAfterExit,
+    cockpitExitOwnership.exited &&
+    cockpitExitOwnership.refocused &&
+    cockpitExitOwnership.sameEntity &&
+    cockpitExitOwnership.listenersAfterExit === cockpitExitOwnership.listenersBeforeExit + 1 &&
+    cockpitExitOwnership.listenersAfterFocus === cockpitExitOwnership.listenersAfterExit,
     JSON.stringify(cockpitExitOwnership),
   );
   const cockpitPanelRoundTrip = await page.evaluate(async () => {
@@ -1506,23 +1806,38 @@ try {
       ['radio-panel', true],
     ]);
     for (const [panelId, collapsed] of desired) {
-      manager.setPanelCollapsed(panelId, collapsed, { persist: false, syncShare: false });
+      manager.setPanelCollapsed(panelId, collapsed, {
+        persist: false,
+        syncShare: false
+      });
     }
     const before = read();
     document.getElementById('cockpit-entry')?.click();
     await new Promise((resolve) => setTimeout(resolve, 120));
     const during = read();
-    manager.setPanelCollapsed('data-panel', false, { persist: false, syncShare: false });
+    manager.setPanelCollapsed('data-panel', false, {
+      persist: false,
+      syncShare: false
+    });
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const dataRect = document.getElementById('data-panel')?.getBoundingClientRect();
     const contactRect = document.getElementById('cockpit-context')?.getBoundingClientRect();
     const clearancePx = dataRect && contactRect ? contactRect.top - dataRect.bottom : null;
     const contactAutoCollapsed = manager.cockpitView.contextCollapsed === true;
-    manager.setPanelCollapsed('data-panel', true, { persist: false, syncShare: false });
+    manager.setPanelCollapsed('data-panel', true, {
+      persist: false,
+      syncShare: false
+    });
     const contactAutoRestored = manager.cockpitView.contextCollapsed === false;
     manager.cockpitView.setContextCollapsed(true);
-    manager.setPanelCollapsed('data-panel', false, { persist: false, syncShare: false });
-    manager.setPanelCollapsed('data-panel', true, { persist: false, syncShare: false });
+    manager.setPanelCollapsed('data-panel', false, {
+      persist: false,
+      syncShare: false
+    });
+    manager.setPanelCollapsed('data-panel', true, {
+      persist: false,
+      syncShare: false
+    });
     const manualContactCollapseRetained = manager.cockpitView.contextCollapsed === true;
     manager.cockpitView.setContextCollapsed(false);
     const exited = manager.cockpitView.exit() === true;
@@ -1540,26 +1855,29 @@ try {
   });
   check(
     'Cockpit temporarily collapses standard panels and restores the exact map layout on exit',
-    cockpitPanelRoundTrip.exited
-      && Object.values(cockpitPanelRoundTrip.during).every(Boolean)
-      && JSON.stringify(cockpitPanelRoundTrip.after)
-        === JSON.stringify(cockpitPanelRoundTrip.before)
-      && Number.isFinite(cockpitPanelRoundTrip.clearancePx)
-      && cockpitPanelRoundTrip.clearancePx >= 0
-      && cockpitPanelRoundTrip.contactAutoCollapsed
-      && cockpitPanelRoundTrip.contactAutoRestored
-      && cockpitPanelRoundTrip.manualContactCollapseRetained,
+    cockpitPanelRoundTrip.exited &&
+    Object.values(cockpitPanelRoundTrip.during).every(Boolean) &&
+    JSON.stringify(cockpitPanelRoundTrip.after) ===
+    JSON.stringify(cockpitPanelRoundTrip.before) &&
+    Number.isFinite(cockpitPanelRoundTrip.clearancePx) &&
+    cockpitPanelRoundTrip.clearancePx >= 0 &&
+    cockpitPanelRoundTrip.contactAutoCollapsed &&
+    cockpitPanelRoundTrip.contactAutoRestored &&
+    cockpitPanelRoundTrip.manualContactCollapseRetained,
     JSON.stringify(cockpitPanelRoundTrip),
   );
   await page.waitForFunction(() => {
     const entry = document.getElementById('cockpit-entry');
     return entry && !entry.hidden && !entry.disabled;
-  }, { timeout: 10_000 });
+  }, {
+    timeout: 10_000
+  });
   await page.$eval('#cockpit-entry', (entry) => entry.click());
   await page.waitForFunction(
-    () => document.body.classList.contains('cockpit-mode')
-      && window.__godsEyeView.styleManager.cockpitView.active,
-    { timeout: 10_000 },
+    () => document.body.classList.contains('cockpit-mode') &&
+    window.__godsEyeView.styleManager.cockpitView.active, {
+      timeout: 10_000
+    },
   );
   await page.evaluate(() => {
     const manager = window.__godsEyeView.styleManager;
@@ -1586,7 +1904,9 @@ try {
     manager._setCockpitDisclosure('display', false);
     manager._setCockpitDisclosure('radio', false);
     cockpit.setVisionMode('optical');
-    current.focus({ preventScroll: true });
+    current.focus({
+      preventScroll: true
+    });
     const states = [read()];
     for (let index = 0; index < 5; index += 1) {
       current.click();
@@ -1608,43 +1928,53 @@ try {
     manager.setStyle(originalStyle);
     await new Promise((resolve) => setTimeout(resolve, 900));
     cockpit.setVisionMode('optical');
-    return { states, inheritedNoir, explicitNoir, restoredNoir };
+    return {
+      states,
+      inheritedNoir,
+      explicitNoir,
+      restoredNoir
+    };
   });
   check(
     'Cockpit vision control exposes inherited, CRT, NVG, FLIR, and NOIR before wrapping',
-    JSON.stringify(visionCycle.states.map((state) => state.mode))
-      === JSON.stringify(['optical', 'crt', 'nvg', 'thermal', 'noir', 'optical'])
-      && visionCycle.states[4]?.label === 'NOIR'
-      && visionCycle.states[4]?.aria === 'Current cockpit vision style: Noir. Activate for next style.',
+    JSON.stringify(visionCycle.states.map((state) => state.mode)) ===
+    JSON.stringify(['optical', 'crt', 'nvg', 'thermal', 'noir', 'optical']) &&
+    visionCycle.states[4]?.label === 'NOIR' &&
+    visionCycle.states[4]?.aria === 'Current cockpit vision style: Noir. Activate for next style.',
     JSON.stringify(visionCycle),
   );
   check(
     'user vision changes open Display for every temporary treatment and retain selector focus',
-    visionCycle.states[1]?.mode === 'crt'
-      && visionCycle.states.slice(1, 5).every((state) => state.displayOpen === 'true')
-      && visionCycle.states.slice(1, 5).every((state) => state.radioOpen === 'false')
-      && visionCycle.states.slice(1, 5).every((state) => state.parametersActive)
-      && visionCycle.states.slice(1, 5).every((state) => !state.parametersCollapsed)
-      && visionCycle.states.slice(1, 5).every((state) => state.signalCollapsed)
-      && visionCycle.states.every((state) => state.focusRetained),
+    visionCycle.states[1]?.mode === 'crt' &&
+    visionCycle.states.slice(1, 5).every((state) => state.displayOpen === 'true') &&
+    visionCycle.states.slice(1, 5).every((state) => state.radioOpen === 'false') &&
+    visionCycle.states.slice(1, 5).every((state) => state.parametersActive) &&
+    visionCycle.states.slice(1, 5).every((state) => !state.parametersCollapsed) &&
+    visionCycle.states.slice(1, 5).every((state) => state.signalCollapsed) &&
+    visionCycle.states.every((state) => state.focusRetained),
     JSON.stringify(visionCycle.states),
   );
   check(
     'inherited Noir and explicit Noir keep distinct ownership and restore the Noir map preset',
-    visionCycle.inheritedNoir?.mode === 'optical'
-      && visionCycle.inheritedNoir?.label === 'NOIR'
-      && visionCycle.explicitNoir?.mode === 'noir'
-      && visionCycle.explicitNoir?.label === 'NOIR'
-      && visionCycle.restoredNoir?.mode === 'optical'
-      && visionCycle.restoredNoir?.activeStyle === 'noir'
-      && visionCycle.restoredNoir?.intensity === 1,
+    visionCycle.inheritedNoir?.mode === 'optical' &&
+    visionCycle.inheritedNoir?.label === 'NOIR' &&
+    visionCycle.explicitNoir?.mode === 'noir' &&
+    visionCycle.explicitNoir?.label === 'NOIR' &&
+    visionCycle.restoredNoir?.mode === 'optical' &&
+    visionCycle.restoredNoir?.activeStyle === 'noir' &&
+    visionCycle.restoredNoir?.intensity === 1,
     JSON.stringify(visionCycle),
   );
   await page.evaluate(() => window.__godsEyeView.styleManager.cockpitView.setVisionMode('noir'));
-  await page.screenshot({ path: path.join(shotsDir, 'vision-noir.png') });
+  await page.screenshot({
+    path: path.join(shotsDir, 'vision-noir.png')
+  });
   await page.evaluate(() => window.__godsEyeView.styleManager.cockpitView.setVisionMode('optical'));
 
-  const desktopState = async (variant, openKind) => page.evaluate(async ({ variantName, kind }) => {
+  const desktopState = async (variant, openKind) => page.evaluate(async ({
+    variantName,
+    kind
+  }) => {
     const manager = window.__godsEyeView.styleManager;
     const hud = document.getElementById('cockpit-hud');
     const signal = document.getElementById('cockpit-signal-stream');
@@ -1687,8 +2017,8 @@ try {
       kind,
       signalTop: Math.round(signalTop),
       firstPassTop,
-      idempotent: firstPassTop === hud.style.getPropertyValue('--cockpit-utility-top')
-        && firstPassPrimaryOnly === utility.classList.contains('layout-primary-only'),
+      idempotent: firstPassTop === hud.style.getPropertyValue('--cockpit-utility-top') &&
+        firstPassPrimaryOnly === utility.classList.contains('layout-primary-only'),
       utilityTop: hud.style.getPropertyValue('--cockpit-utility-top'),
       primaryOnly: utility.classList.contains('layout-primary-only'),
       expandedRect: expanded.getBoundingClientRect().toJSON(),
@@ -1701,21 +2031,24 @@ try {
     signal.style.maxHeight = priorSignalMaxHeight;
     manager.cockpitView.syncSignalLayout();
     return state;
-  }, { variantName: variant, kind: openKind });
+  }, {
+    variantName: variant,
+    kind: openKind
+  });
 
   for (const variant of ['off', 'minimal', 'tactical', 'operator']) {
     for (const kind of ['display', 'radio']) {
       const state = await desktopState(variant, kind);
       check(
         `${variant} ${kind} keeps its collapsed sibling visible in a roomy corridor`,
-        !state.primaryOnly
-          && state.expandedRect.width > 0
-          && state.siblingRect.width > 0
-          && state.siblingRect.height > 0
-          && state.siblingDisplay !== 'none'
-          && state.siblingAriaHidden === 'false'
-          && state.siblingExpanded === 'false'
-          && state.contained,
+        !state.primaryOnly &&
+        state.expandedRect.width > 0 &&
+        state.siblingRect.width > 0 &&
+        state.siblingRect.height > 0 &&
+        state.siblingDisplay !== 'none' &&
+        state.siblingAriaHidden === 'false' &&
+        state.siblingExpanded === 'false' &&
+        state.contained,
         JSON.stringify(state),
       );
       check(
@@ -1725,12 +2058,14 @@ try {
       );
     }
   }
-  await page.screenshot({ path: path.join(shotsDir, 'roomy-desktop.png') });
+  await page.screenshot({
+    path: path.join(shotsDir, 'roomy-desktop.png')
+  });
   check(
     'roomy screenshot remains in a real Cockpit session',
-    await page.evaluate(() => document.body.classList.contains('cockpit-mode')
-      && window.__godsEyeView.styleManager.cockpitView.active
-      && getComputedStyle(document.getElementById('cockpit-utility-controls')).display !== 'none'),
+    await page.evaluate(() => document.body.classList.contains('cockpit-mode') &&
+      window.__godsEyeView.styleManager.cockpitView.active &&
+      getComputedStyle(document.getElementById('cockpit-utility-controls')).display !== 'none'),
   );
 
   const portalScroll = await page.evaluate(async () => {
@@ -1796,10 +2131,10 @@ try {
   });
   check(
     'Display portal round trip preserves standard and Cockpit scroll owners',
-    portalScroll.standardBefore > 0
-      && portalScroll.cockpitBefore > 0
-      && portalScroll.standardAfter === portalScroll.standardBefore
-      && portalScroll.cockpitAfter === portalScroll.cockpitBefore,
+    portalScroll.standardBefore > 0 &&
+    portalScroll.cockpitBefore > 0 &&
+    portalScroll.standardAfter === portalScroll.standardBefore &&
+    portalScroll.cockpitAfter === portalScroll.cockpitBefore,
     JSON.stringify(portalScroll),
   );
 
@@ -1844,8 +2179,8 @@ try {
       return {
         firstPassTop,
         firstPassPrimaryOnly,
-        idempotent: firstPassTop === hud.style.getPropertyValue('--cockpit-utility-top')
-          && firstPassPrimaryOnly === utility.classList.contains('layout-primary-only'),
+        idempotent: firstPassTop === hud.style.getPropertyValue('--cockpit-utility-top') &&
+          firstPassPrimaryOnly === utility.classList.contains('layout-primary-only'),
       };
     };
     signal.style.maxHeight = 'none';
@@ -1876,8 +2211,8 @@ try {
     // the measured requirement instead, which holds for any future panel height,
     // and assert the precondition rather than assuming it.
     const roomySeed = moveSignalTopTo(exactSignalTop + 80);
-    const roomySeedExpanded = !utility.classList.contains('layout-primary-only')
-      && roomySeed.firstPassPrimaryOnly === false;
+    const roomySeedExpanded = !utility.classList.contains('layout-primary-only') &&
+      roomySeed.firstPassPrimaryOnly === false;
     const exact = {
       ...moveSignalTopTo(exactSignalTop),
       utilityTop: hud.style.getPropertyValue('--cockpit-utility-top'),
@@ -1885,7 +2220,9 @@ try {
       siblingVisible: getComputedStyle(radioControl).display !== 'none',
       siblingAriaHidden: radioControl.getAttribute('aria-hidden'),
     };
-    radio.focus({ preventScroll: true });
+    radio.focus({
+      preventScroll: true
+    });
     const constrained = {
       // One pixel on the far side of the same fit (`exactSignalTop` already sits
       // one pixel inside it), so this is still the one-pixel constraint it claims.
@@ -1896,8 +2233,8 @@ try {
       siblingRect: radioControl.getBoundingClientRect().toJSON(),
       siblingAriaHidden: radioControl.getAttribute('aria-hidden'),
       focusReturned: document.activeElement === display,
-      contained: displayControl.getBoundingClientRect().bottom
-        <= signal.getBoundingClientRect().top - 7,
+      contained: displayControl.getBoundingClientRect().bottom <=
+        signal.getBoundingClientRect().top - 7,
     };
     const restored = {
       ...moveSignalTopTo(exactSignalTop + 80),
@@ -1909,37 +2246,51 @@ try {
     signal.style.maxHeight = priorSignalMaxHeight;
     signal.style.height = priorSignalHeight;
     manager.cockpitView.syncSignalLayout();
-    return { minTop, stripHeight, exactSignalTop, roomySeedExpanded, exact, constrained, restored };
+    return {
+      minTop,
+      stripHeight,
+      exactSignalTop,
+      roomySeedExpanded,
+      exact,
+      constrained,
+      restored
+    };
   });
   check(
     'exact fit keeps the sibling; one-pixel constraint hides it, transfers focus, and restores it',
-    boundary.roomySeedExpanded
-      && !boundary.exact.primaryOnly
-      && boundary.exact.siblingVisible
-      && boundary.exact.siblingAriaHidden === 'false'
-      && boundary.constrained.primaryOnly
-      && boundary.constrained.siblingDisplay === 'none'
-      && boundary.constrained.siblingRect.width === 0
-      && boundary.constrained.siblingAriaHidden === 'true'
-      && boundary.constrained.focusReturned
-      && boundary.constrained.contained
-      && !boundary.restored.primaryOnly
-      && boundary.restored.siblingVisible
-      && boundary.restored.siblingAriaHidden === 'false',
+    boundary.roomySeedExpanded &&
+    !boundary.exact.primaryOnly &&
+    boundary.exact.siblingVisible &&
+    boundary.exact.siblingAriaHidden === 'false' &&
+    boundary.constrained.primaryOnly &&
+    boundary.constrained.siblingDisplay === 'none' &&
+    boundary.constrained.siblingRect.width === 0 &&
+    boundary.constrained.siblingAriaHidden === 'true' &&
+    boundary.constrained.focusReturned &&
+    boundary.constrained.contained &&
+    !boundary.restored.primaryOnly &&
+    boundary.restored.siblingVisible &&
+    boundary.restored.siblingAriaHidden === 'false',
     JSON.stringify(boundary),
   );
   check(
     'each corridor change is decided by the first layout pass, not a repeated one',
-    boundary.exact.idempotent
-      && boundary.restored.idempotent
-      && boundary.constrained.firstPassPrimaryOnly,
+    boundary.exact.idempotent &&
+    boundary.restored.idempotent &&
+    boundary.constrained.firstPassPrimaryOnly,
     JSON.stringify({
-      exact: { first: boundary.exact.firstPassTop, idempotent: boundary.exact.idempotent },
+      exact: {
+        first: boundary.exact.firstPassTop,
+        idempotent: boundary.exact.idempotent
+      },
       constrained: {
         first: boundary.constrained.firstPassTop,
         firstPassPrimaryOnly: boundary.constrained.firstPassPrimaryOnly,
       },
-      restored: { first: boundary.restored.firstPassTop, idempotent: boundary.restored.idempotent },
+      restored: {
+        first: boundary.restored.firstPassTop,
+        idempotent: boundary.restored.idempotent
+      },
     }),
   );
 
@@ -1948,7 +2299,9 @@ try {
     const cockpit = manager.cockpitView;
     const signalToggle = document.getElementById('cockpit-signal-toggle');
     let expandedEvents = 0;
-    const onExpanded = () => { expandedEvents += 1; };
+    const onExpanded = () => {
+      expandedEvents += 1;
+    };
     cockpit.signalUserCollapsed = false;
     manager._setCockpitDisclosure('display', false);
     manager._setCockpitDisclosure('radio', false);
@@ -1966,7 +2319,9 @@ try {
       const afterUtilityClose = expandedEvents;
       const utilityCloseReopenedSignals = !cockpit.signalCollapsed;
 
-      cockpit.setSignalCollapsed(true, { user: true });
+      cockpit.setSignalCollapsed(true, {
+        user: true
+      });
       manager._setCockpitDisclosure('radio', true);
       manager._setCockpitDisclosure('radio', false);
       const manualCollapseRetained = cockpit.signalCollapsed && cockpit.signalUserCollapsed;
@@ -1987,13 +2342,13 @@ try {
   });
   check(
     'Live Signals expansion is edge-triggered and manual collapse remains authoritative',
-    signalTransition.afterExpansion === 1
-      && signalTransition.afterRepeatedExpansion === 1
-      && signalTransition.afterUtilityClose === 2
-      && signalTransition.displayCollapsedSignals
-      && signalTransition.utilityCloseReopenedSignals
-      && signalTransition.manualCollapseRetained
-      && signalTransition.signalAriaExpanded === 'false',
+    signalTransition.afterExpansion === 1 &&
+    signalTransition.afterRepeatedExpansion === 1 &&
+    signalTransition.afterUtilityClose === 2 &&
+    signalTransition.displayCollapsedSignals &&
+    signalTransition.utilityCloseReopenedSignals &&
+    signalTransition.manualCollapseRetained &&
+    signalTransition.signalAriaExpanded === 'false',
     JSON.stringify(signalTransition),
   );
   const contextTransition = await page.evaluate(() => {
@@ -2001,7 +2356,9 @@ try {
     const priorCollapsed = cockpit.contextCollapsed;
     const contextToggle = document.getElementById('cockpit-context-toggle');
     let expandedEvents = 0;
-    const onExpanded = () => { expandedEvents += 1; };
+    const onExpanded = () => {
+      expandedEvents += 1;
+    };
     cockpit.setContextCollapsed(true);
     window.addEventListener('gev:cockpit-context-expanded', onExpanded);
     try {
@@ -2021,10 +2378,10 @@ try {
   });
   check(
     'Contact expansion is edge-triggered and retains its disclosure semantics',
-    contextTransition.afterExpansion === 1
-      && contextTransition.afterRepeatedExpansion === 1
-      && contextTransition.ariaExpanded === 'true'
-      && contextTransition.label === 'Collapse Contact panel',
+    contextTransition.afterExpansion === 1 &&
+    contextTransition.afterRepeatedExpansion === 1 &&
+    contextTransition.ariaExpanded === 'true' &&
+    contextTransition.label === 'Collapse Contact panel',
     JSON.stringify(contextTransition),
   );
   // Use the real connected DOM to catch focus loss caused by moving live rows.
@@ -2033,8 +2390,17 @@ try {
     const originalItems = cockpit.signalItems;
     const wasCollapsed = cockpit.signalCollapsed;
     cockpit.setSignalCollapsed(false);
-    const item = (id) => ({ key: `qa-${id}`, tone: 'info', timestamp: Date.now(),
-      title: `QA ${id}`, detail: 'Keyboard refresh fixture', target: { layerId: 'flights', id } });
+    const item = (id) => ({
+      key: `qa-${id}`,
+      tone: 'info',
+      timestamp: Date.now(),
+      title: `QA ${id}`,
+      detail: 'Keyboard refresh fixture',
+      target: {
+        layerId: 'flights',
+        id
+      }
+    });
     try {
       cockpit.signalItems = [item('focus-a'), item('focus-b')];
       cockpit.renderCockpitSignals();
@@ -2051,7 +2417,13 @@ try {
       const continued = document.activeElement === continuation;
       cockpit.signalItems = [item('focus-a'), item('focus-b')];
       cockpit.renderCockpitSignals();
-      return { acquired, retained, order, continued, notReclaimed: document.activeElement === continuation };
+      return {
+        acquired,
+        retained,
+        order,
+        continued,
+        notReclaimed: document.activeElement === continuation
+      };
     } finally {
       cockpit.signalItems = originalItems;
       cockpit.renderCockpitSignals();
@@ -2059,8 +2431,8 @@ try {
     }
   });
   check('Cockpit live reorder retains the same connected focus owner',
-    signalFocus.acquired && signalFocus.retained
-      && JSON.stringify(signalFocus.order) === JSON.stringify(['focus-c', 'focus-b', 'focus-a']),
+    signalFocus.acquired && signalFocus.retained &&
+    JSON.stringify(signalFocus.order) === JSON.stringify(['focus-c', 'focus-b', 'focus-a']),
     JSON.stringify(signalFocus));
   check('a departed Cockpit contact continues at the footer without later reclaiming focus',
     signalFocus.continued && signalFocus.notReclaimed, JSON.stringify(signalFocus));
@@ -2069,22 +2441,26 @@ try {
   await page.focus('#cesium-credits .cesium-credit-expand-link');
   await page.keyboard.press('Enter');
   check('keyboard attribution opening focuses Close inside Cockpit', await page.evaluate(() => (
-    document.activeElement?.classList.contains('cesium-credit-lightbox-close')
-      && document.querySelector('.cesium-credit-expand-link').getAttribute('aria-expanded') === 'true'
+    document.activeElement?.classList.contains('cesium-credit-lightbox-close') &&
+    document.querySelector('.cesium-credit-expand-link').getAttribute('aria-expanded') === 'true'
   )));
-  await page.screenshot({ path: path.join(shotsDir, 'keyboard-attribution.png') });
+  await page.screenshot({
+    path: path.join(shotsDir, 'keyboard-attribution.png')
+  });
   await page.keyboard.press('Escape');
   check('attribution Escape restores focus and keeps Cockpit active', await page.evaluate(() => (
-    document.activeElement?.classList.contains('cesium-credit-expand-link')
-      && document.activeElement.getAttribute('aria-expanded') === 'false'
-      && window.__godsEyeView.styleManager.cockpitView.active
+    document.activeElement?.classList.contains('cesium-credit-expand-link') &&
+    document.activeElement.getAttribute('aria-expanded') === 'false' &&
+    window.__godsEyeView.styleManager.cockpitView.active
   )));
-  await page.screenshot({ path: path.join(shotsDir, 'restored-desktop.png') });
+  await page.screenshot({
+    path: path.join(shotsDir, 'restored-desktop.png')
+  });
   check(
     'restored screenshot remains in a real Cockpit session',
-    await page.evaluate(() => document.body.classList.contains('cockpit-mode')
-      && window.__godsEyeView.styleManager.cockpitView.active
-      && getComputedStyle(document.getElementById('cockpit-utility-controls')).display !== 'none'),
+    await page.evaluate(() => document.body.classList.contains('cockpit-mode') &&
+      window.__godsEyeView.styleManager.cockpitView.active &&
+      getComputedStyle(document.getElementById('cockpit-utility-controls')).display !== 'none'),
   );
   const desktopViewActions = await page.evaluate(() => {
     const reset = document.getElementById('cockpit-reset-globe')?.getBoundingClientRect();
@@ -2092,20 +2468,27 @@ try {
     return {
       reset: reset?.toJSON() || null,
       exit: exit?.toJSON() || null,
-      viewport: { width: innerWidth, height: innerHeight },
+      viewport: {
+        width: innerWidth,
+        height: innerHeight
+      },
     };
   });
   check(
     'desktop Cockpit Reset and Exit remain readable without overlap',
-    desktopViewActions.reset?.width > 44
-      && desktopViewActions.exit?.width > 70
-      && desktopViewActions.reset.right <= desktopViewActions.exit.left
-      && desktopViewActions.reset.left >= 0
-      && desktopViewActions.exit.right <= desktopViewActions.viewport.width,
+    desktopViewActions.reset?.width > 44 &&
+    desktopViewActions.exit?.width > 70 &&
+    desktopViewActions.reset.right <= desktopViewActions.exit.left &&
+    desktopViewActions.reset.left >= 0 &&
+    desktopViewActions.exit.right <= desktopViewActions.viewport.width,
     JSON.stringify(desktopViewActions),
   );
 
-  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1
+  });
   const mobile = await page.evaluate(async () => {
     const manager = window.__godsEyeView.styleManager;
     const hud = document.getElementById('cockpit-hud');
@@ -2136,20 +2519,22 @@ try {
   });
   check(
     'mobile keeps both collapsed launchers and the existing fixed expanded behavior',
-    mobile.collapsed.display.width > 0
-      && mobile.collapsed.radio.width > 0
-      && mobile.expandedDisplay.width > 0
-      && mobile.expandedDisplay.width <= 366
-      && mobile.radioDisplay === 'none'
-      && mobile.radioAriaHidden === 'true',
+    mobile.collapsed.display.width > 0 &&
+    mobile.collapsed.radio.width > 0 &&
+    mobile.expandedDisplay.width > 0 &&
+    mobile.expandedDisplay.width <= 366 &&
+    mobile.radioDisplay === 'none' &&
+    mobile.radioAriaHidden === 'true',
     JSON.stringify(mobile),
   );
-  await page.screenshot({ path: path.join(shotsDir, 'mobile.png') });
+  await page.screenshot({
+    path: path.join(shotsDir, 'mobile.png')
+  });
   check(
     'mobile screenshot remains in a real Cockpit session',
-    await page.evaluate(() => document.body.classList.contains('cockpit-mode')
-      && window.__godsEyeView.styleManager.cockpitView.active
-      && getComputedStyle(document.getElementById('cockpit-utility-controls')).display !== 'none'),
+    await page.evaluate(() => document.body.classList.contains('cockpit-mode') &&
+      window.__godsEyeView.styleManager.cockpitView.active &&
+      getComputedStyle(document.getElementById('cockpit-utility-controls')).display !== 'none'),
   );
   const narrowViewActions = await page.evaluate(() => {
     const reset = document.getElementById('cockpit-reset-globe')?.getBoundingClientRect();
@@ -2157,16 +2542,19 @@ try {
     return {
       reset: reset?.toJSON() || null,
       exit: exit?.toJSON() || null,
-      viewport: { width: innerWidth, height: innerHeight },
+      viewport: {
+        width: innerWidth,
+        height: innerHeight
+      },
     };
   });
   check(
     'narrow Cockpit Reset and Exit remain readable without overlap',
-    narrowViewActions.reset?.width > 44
-      && narrowViewActions.exit?.width > 70
-      && narrowViewActions.reset.right <= narrowViewActions.exit.left
-      && narrowViewActions.reset.left >= 0
-      && narrowViewActions.exit.right <= narrowViewActions.viewport.width,
+    narrowViewActions.reset?.width > 44 &&
+    narrowViewActions.exit?.width > 70 &&
+    narrowViewActions.reset.right <= narrowViewActions.exit.left &&
+    narrowViewActions.reset.left >= 0 &&
+    narrowViewActions.exit.right <= narrowViewActions.viewport.width,
     JSON.stringify(narrowViewActions),
   );
 
@@ -2188,15 +2576,18 @@ try {
   await page.focus('#cockpit-reset-globe');
   await page.keyboard.press('Enter');
   await page.waitForFunction(
-    () => !window.__godsEyeView.styleManager.cockpitView.active,
-    { timeout: 6_000 },
+    () => !window.__godsEyeView.styleManager.cockpitView.active, {
+      timeout: 6_000
+    },
   );
   await page.waitForFunction(() => {
     const viewer = window.__godsEyeView.viewer;
     if (!viewer) return false;
     const height = viewer.camera.positionCartographic?.height;
     return Math.abs(height - 18_000_000) < 150_000;
-  }, { timeout: 6_000 });
+  }, {
+    timeout: 6_000
+  });
   const resetState = await page.evaluate(() => {
     const gev = window.__godsEyeView;
     const qa = window.__qaCockpitReset;
@@ -2216,12 +2607,12 @@ try {
   });
   check(
     'keyboard Cockpit Reset uses one canonical route and preserves Contact selection',
-    resetState.calls === 1
-      && !resetState.cockpitActive
-      && !resetState.trackedEntity
-      && resetState.resetHidden
-      && Math.abs(resetState.height - 18_000_000) < 150_000
-      && resetState.subjectPreserved,
+    resetState.calls === 1 &&
+    !resetState.cockpitActive &&
+    !resetState.trackedEntity &&
+    resetState.resetHidden &&
+    Math.abs(resetState.height - 18_000_000) < 150_000 &&
+    resetState.subjectPreserved,
     JSON.stringify(resetState),
   );
   check('runtime console remains clean', consoleErrors.length === 0 && localHttpErrors.length === 0,
