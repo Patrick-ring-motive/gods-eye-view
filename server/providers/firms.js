@@ -1,7 +1,12 @@
 import path from 'node:path';
-import { promises as fsp } from 'node:fs';
+import {
+  promises as fsp
+} from 'node:fs';
 
-import { filterTrailing24h, parseFirmsCsv } from '../../src/data/firmsCsv.js';
+import {
+  filterTrailing24h,
+  parseFirmsCsv
+} from '../../src/data/firmsCsv.js';
 
 /**
  * NASA FIRMS live active-fire proxy with a memory + disk cache.
@@ -63,7 +68,9 @@ export function firmsProxy() {
 
   async function writeDisk(entry) {
     try {
-      await fsp.mkdir(CACHE_DIR, { recursive: true });
+      await fsp.mkdir(CACHE_DIR, {
+        recursive: true
+      });
       await fsp.writeFile(CACHE_PATH, JSON.stringify(entry), 'utf8');
     } catch (err) {
       console.warn('[firms-proxy] cache write failed:', err?.message || err);
@@ -77,7 +84,9 @@ export function firmsProxy() {
    */
   async function fetchSource(key, source) {
     const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/${source}/world/2`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(60_000)
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const records = parseFirmsCsv(await res.text());
     if (records === null) throw new Error('non-CSV upstream response');
@@ -101,17 +110,29 @@ export function firmsProxy() {
         // and a world/2 VIIRS pull exceeds V8's argument limit (~125k) at
         // ~131k records — RangeError, and the whole source is silently dropped.
         for (const record of records) fires.push(record);
-        sources.push({ source, count: records.length, ok: true });
+        sources.push({
+          source,
+          count: records.length,
+          ok: true
+        });
       } catch (err) {
         console.warn(
           `[firms-proxy] ${source} fetch failed:`,
           err?.message || err,
         );
-        sources.push({ source, count: 0, ok: false });
+        sources.push({
+          source,
+          count: 0,
+          ok: false
+        });
       }
     }
     if (!sources.some((s) => s.ok)) throw new Error('all FIRMS sources failed');
-    return { at: now, sources, fires };
+    return {
+      at: now,
+      sources,
+      fires
+    };
   }
 
   /**
@@ -138,26 +159,34 @@ export function firmsProxy() {
     }
     if (!statusInflight) {
       statusInflight = (async () => {
-        try {
-          const url = `https://firms.modaps.eosdis.nasa.gov/mapserver/mapkey_status/?MAP_KEY=${encodeURIComponent(key)}`;
-          const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const body = await res.json();
-          const used = Number(body?.current_transactions);
-          const limit = Number(body?.transaction_limit);
-          return Number.isFinite(used) && Number.isFinite(limit)
-            ? { used, limit }
-            : null;
-        } catch (err) {
-          console.warn(
-            '[firms-proxy] mapkey status failed:',
-            err?.message || err,
-          );
-          return null;
-        }
-      })()
+          try {
+            const url = `https://firms.modaps.eosdis.nasa.gov/mapserver/mapkey_status/?MAP_KEY=${encodeURIComponent(key)}`;
+            const res = await fetch(url, {
+              signal: AbortSignal.timeout(10_000)
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const body = await res.json();
+            const used = Number(body?.current_transactions);
+            const limit = Number(body?.transaction_limit);
+            return Number.isFinite(used) && Number.isFinite(limit) ?
+              {
+                used,
+                limit
+              } :
+              null;
+          } catch (err) {
+            console.warn(
+              '[firms-proxy] mapkey status failed:',
+              err?.message || err,
+            );
+            return null;
+          }
+        })()
         .then((transactions) => {
-          statusCache = { at: Date.now(), transactions };
+          statusCache = {
+            at: Date.now(),
+            transactions
+          };
           return transactions;
         })
         .finally(() => {
@@ -207,7 +236,9 @@ export function firmsProxy() {
         }
 
         if (!key) {
-          sendJson(503, { error: 'no_key' });
+          sendJson(503, {
+            error: 'no_key'
+          });
           return;
         }
 
@@ -249,7 +280,9 @@ export function firmsProxy() {
         }
       } catch (err) {
         console.warn('[firms-proxy] error:', err?.message || err);
-        sendJson(500, { error: 'firms proxy error' });
+        sendJson(500, {
+          error: 'firms proxy error'
+        });
       }
     });
   };
