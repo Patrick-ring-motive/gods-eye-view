@@ -135,7 +135,8 @@ export function createScreenAnnotationRenderer(viewer, {
         }
       }
     } catch {
-      /* tiles not ready */ }
+      /* tiles not ready */
+    }
     const fallback = cached ? cached.h : 0;
     heightCache.set(key, {
       h: fallback,
@@ -288,7 +289,8 @@ export function createScreenAnnotationRenderer(viewer, {
       try {
         group.remove();
       } catch {
-        /* never inserted */ }
+        /* never inserted */
+      }
       if (records.size === 0) heightCache.clear();
       throw error;
     }
@@ -621,7 +623,8 @@ export function createScreenAnnotationRenderer(viewer, {
       try {
         node.remove();
       } catch {
-        /* gone */ }
+        /* gone */
+      }
     }, 360);
     records.delete(anno.id);
     // Board emptied → drop accumulated height samples (natural reset point).
@@ -637,11 +640,13 @@ export function createScreenAnnotationRenderer(viewer, {
     try {
       scene.postRender.removeEventListener(onPostRender);
     } catch {
-      /* torn down */ }
+      /* torn down */
+    }
     try {
       layer.remove();
     } catch {
-      /* gone */ }
+      /* gone */
+    }
     records.clear();
     heightCache.clear();
   }
@@ -727,7 +732,8 @@ function sizeCallout(callout) {
     callout.height = h;
     callout.sized = true;
   } catch {
-    /* not laid out yet */ }
+    /* not laid out yet */
+  }
 }
 
 function positionCallout(callout, x, y, center) {
