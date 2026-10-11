@@ -1,5 +1,9 @@
-import { adaptFirmsRecords } from '../../data/firmsAdapt.js';
-import { fireDetectionKey } from '../../data/firmsLabels.js';
+import {
+  adaptFirmsRecords
+} from '../../data/firmsAdapt.js';
+import {
+  fireDetectionKey
+} from '../../data/firmsLabels.js';
 
 export function createIngestion({
   layerState,
@@ -8,8 +12,12 @@ export function createIngestion({
   config,
   feed,
 }) {
-  const { clearSelectedEntityContextForLayer } = services.context;
-  const { id } = config;
+  const {
+    clearSelectedEntityContextForLayer
+  } = services.context;
+  const {
+    id
+  } = config;
 
   /** Replace a validated snapshot while preserving source freshness and selection identity. */
 
@@ -21,7 +29,9 @@ export function createIngestion({
     layerState._loading = true;
 
     try {
-      const payload = await feed.getSnapshot({ signal: request.signal });
+      const payload = await feed.getSnapshot({
+        signal: request.signal
+      });
       if (
         request.signal.aborted ||
         layerState.request !== request ||
@@ -46,9 +56,9 @@ export function createIngestion({
       );
       layerState._count = layerState._fires.length;
       // Data age, not response age: a stale proxy payload truthfully reads old.
-      layerState._lastUpdate = Number.isFinite(payload?.fetchedAt)
-        ? payload.fetchedAt
-        : Date.now();
+      layerState._lastUpdate = Number.isFinite(payload?.fetchedAt) ?
+        payload.fetchedAt :
+        Date.now();
       // Settle the previous selection BEFORE the LOD rebuild. renderCurrentLod
       // runs refreshContextRegistrations(), which deletes every context record
       // not in the new top-N — including the one the store still points at.
@@ -60,7 +70,9 @@ export function createIngestion({
         // The selected detection is not in the new payload: it left the feed
         // rather than being deselected. Eviction-aware readouts hold their
         // last-known values for this instead of tearing down.
-        clearSelectedEntityContextForLayer(id, { evicted: true });
+        clearSelectedEntityContextForLayer(id, {
+          evicted: true
+        });
       }
       components.rendering.renderCurrentLod(true);
       if (reselected) components.selection.selectFire(reselected, false);
@@ -107,5 +119,9 @@ export function createIngestion({
     },
   };
 
-  return { loadHeatmap, findMatchingFire, methods };
+  return {
+    loadHeatmap,
+    findMatchingFire,
+    methods
+  };
 }
