@@ -32,17 +32,24 @@ export function bindPanelDisclosure({
   const scope = listenerScope();
   for (const button of new Set(buttons)) {
     scope.listen(button, 'click', () => {
-      onChange(!panel.classList.contains('collapsed'), { explicit: true });
+      onChange(!panel.classList.contains('collapsed'), {
+        explicit: true
+      });
     });
   }
   scope.listen(panel, 'keydown', onEscape);
-  return { destroy: () => scope.destroy() };
+  return {
+    destroy: () => scope.destroy()
+  };
 }
 
 /** Close the nearest expanded panel and return focus to its disclosure. */
 export function collapsePanelOnEscape(
-  event,
-  { panel, onChange, beforeCollapse },
+  event, {
+    panel,
+    onChange,
+    beforeCollapse
+  },
 ) {
   if (event.key !== 'Escape' || event.defaultPrevented) return false;
   if (
@@ -58,14 +65,18 @@ export function collapsePanelOnEscape(
   event.preventDefault();
   event.stopPropagation();
   beforeCollapse?.();
-  onChange(true, { explicit: true });
+  onChange(true, {
+    explicit: true
+  });
   const disclosure =
     panel.querySelector(`[data-dock-toggle-target="${panel.id}"]`) ||
     panel.querySelector(`[data-collapse-target="${panel.id}"]`);
   const escapedFromDisclosure =
     event.target === disclosure || disclosure?.contains?.(event.target);
   if (escapedFromDisclosure) disclosure?.blur?.();
-  else disclosure?.focus?.({ preventScroll: true });
+  else disclosure?.focus?.({
+    preventScroll: true
+  });
   return true;
 }
 
@@ -177,8 +188,9 @@ export function createHoverDisclosure({
     () => {
       lastWheelTime = performance.now();
       clearOpen();
+    }, {
+      passive: true
     },
-    { passive: true },
   );
 
   listen(panelEl, 'click', (event) => {
@@ -186,7 +198,9 @@ export function createHoverDisclosure({
     clearOpen();
     clearClose();
     if (panelEl.classList.contains('collapsed')) {
-      onChange(false, { explicit: true });
+      onChange(false, {
+        explicit: true
+      });
     }
   });
 
@@ -215,7 +229,9 @@ export function createHoverDisclosure({
   const focusContent = () => {
     const target = focusTarget?.();
     if (destroyed || !isActive() || !target?.focus) return false;
-    target.focus({ preventScroll: true });
+    target.focus({
+      preventScroll: true
+    });
     return document.activeElement === target;
   };
 
@@ -248,13 +264,17 @@ export function createHoverDisclosure({
     disclosureFocusTimer = window.setTimeout(attemptFocus, 240);
   };
 
-  const toggleDisclosure = ({ focusContent = false } = {}) => {
+  const toggleDisclosure = ({
+    focusContent = false
+  } = {}) => {
     if (destroyed || !isActive()) return;
     cancelPendingFocus();
     clearOpen();
     clearClose();
     const shouldOpen = panelEl.classList.contains('collapsed');
-    onChange(!shouldOpen, { explicit: true });
+    onChange(!shouldOpen, {
+      explicit: true
+    });
     if (shouldOpen && focusContent) scheduleContentFocus();
   };
 
@@ -264,7 +284,9 @@ export function createHoverDisclosure({
     // Space on keyup, and pointer clicks report a non-zero detail. Scheduling
     // focus from the synthesized click avoids a key latch that can outlive the
     // disclosure after a long Enter hold moves focus into the tray.
-    toggleDisclosure({ focusContent: event.detail === 0 });
+    toggleDisclosure({
+      focusContent: event.detail === 0
+    });
   });
   listen(disclosure, 'keydown', (event) => {
     if (event.key !== 'Enter') return;
@@ -273,7 +295,9 @@ export function createHoverDisclosure({
     event.preventDefault();
     event.stopPropagation();
     if (event.repeat) return;
-    toggleDisclosure({ focusContent: true });
+    toggleDisclosure({
+      focusContent: true
+    });
   });
 
   listen(panelEl, 'focusin', () => clearClose());
