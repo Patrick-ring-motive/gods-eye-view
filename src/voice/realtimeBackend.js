@@ -1,4 +1,7 @@
-import { DEFAULT_VOICE_TIER, resolveVoiceModel } from './voiceCost.js';
+import {
+  DEFAULT_VOICE_TIER,
+  resolveVoiceModel
+} from './voiceCost.js';
 
 /** Realtime-compatible token and SDP requests, independent of microphone/UI ownership. */
 export function createRealtimeBackend({
@@ -15,7 +18,10 @@ export function createRealtimeBackend({
     );
   return Object.freeze({
     protocol: 'openai-realtime',
-    async requestToken({ tier = DEFAULT_VOICE_TIER, signal } = {}) {
+    async requestToken({
+      tier = DEFAULT_VOICE_TIER,
+      signal
+    } = {}) {
       signal = scoped(signal);
       signal.throwIfAborted();
       const separator = tokenEndpoint.includes('?') ? '&' : '?';
@@ -51,15 +57,18 @@ export function createRealtimeBackend({
         );
       return {
         token,
-        model:
-          response.headers?.get?.('X-GEV-Voice-Model') ||
+        model: response.headers?.get?.('X-GEV-Voice-Model') ||
           data?.session?.model ||
           null,
         tier: response.headers?.get?.('X-GEV-Voice-Tier') || null,
         expiresAt,
       };
     },
-    async negotiate({ offerSdp, credential, signal }) {
+    async negotiate({
+      offerSdp,
+      credential,
+      signal
+    }) {
       signal = scoped(signal);
       signal.throwIfAborted();
       if (
