@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBundledCableSource } from './bundledSource.js';
+import {
+  createBundledCableSource
+} from './bundledSource.js';
 
 test('a failed bundled response releases its body', async () => {
   let released = 0;
@@ -26,9 +28,14 @@ test('cancellation during JSON parsing cannot return a late snapshot', async () 
       ok: true,
       async json() {
         controller.abort();
-        return { type: 'FeatureCollection', features: [] };
+        return {
+          type: 'FeatureCollection',
+          features: []
+        };
       },
     }),
   });
-  await assert.rejects(source.fetch(controller.signal), { name: 'AbortError' });
+  await assert.rejects(source.fetch(controller.signal), {
+    name: 'AbortError'
+  });
 });
