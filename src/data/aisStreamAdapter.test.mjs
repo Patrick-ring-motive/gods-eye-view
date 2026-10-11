@@ -1,7 +1,9 @@
 // AISStream transport adapter. Exercises the REAL adapter — the same code the
 // Vite plugin runs — against mock sockets that reproduce `ws` semantics,
 // including the window between terminate() and its asynchronous close event.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   AIS_MAX_FRAME_BYTES,
@@ -16,7 +18,11 @@ import {
   parseRetryAfterMs,
 } from './aisStreamAdapter.js';
 
-const ENV = { hasKey: true, hasTransport: true, keyFingerprint: 'key-a' };
+const ENV = {
+  hasKey: true,
+  hasTransport: true,
+  keyFingerprint: 'key-a'
+};
 
 const BUDGETS = Object.freeze({
   staleMs: 1_000,
@@ -30,9 +36,17 @@ function fakeClock(startWall = 1_700_000_000_000, startMono = 10_000) {
   let wall = startWall;
   let mono = startMono;
   return {
-    clock: { wall: () => wall, mono: () => mono },
-    advance(ms) { wall += ms; mono += ms; },
-    get wall() { return wall; },
+    clock: {
+      wall: () => wall,
+      mono: () => mono
+    },
+    advance(ms) {
+      wall += ms;
+      mono += ms;
+    },
+    get wall() {
+      return wall;
+    },
   };
 }
 
@@ -114,7 +128,9 @@ function setup(options = {}) {
   const adapter = createAisStreamAdapter({
     createSocket: (url) => new transport.MockSocket(url),
     resolveUrl: () => 'ws://mock.invalid/stream',
-    buildSubscription: () => ({ APIKey: 'redacted' }),
+    buildSubscription: () => ({
+      APIKey: 'redacted'
+    }),
     ingestEnvelope: (envelope) => {
       ingested.push(envelope);
       if (typeof options.ingestResult === 'function') return options.ingestResult(envelope);
@@ -125,17 +141,35 @@ function setup(options = {}) {
     clock: time.clock,
     warn: (message) => warnings.push(message),
   });
-  adapter.setWatchdogOptions({ ...BUDGETS, ...options.budgets });
+  adapter.setWatchdogOptions({
+    ...BUDGETS,
+    ...options.budgets
+  });
 
-  return { adapter, transport, time, ingested, warnings };
+  return {
+    adapter,
+    transport,
+    time,
+    ingested,
+    warnings
+  };
 }
 
 /** A well-formed AIS position report. */
 function aisFrame(mmsi = '123456789') {
   return JSON.stringify({
     MessageType: 'PositionReport',
-    MetaData: { MMSI: mmsi, latitude: 1, longitude: 2 },
-    Message: { PositionReport: { Latitude: 1, Longitude: 2 } },
+    MetaData: {
+      MMSI: mmsi,
+      latitude: 1,
+      longitude: 2
+    },
+    Message: {
+      PositionReport: {
+        Latitude: 1,
+        Longitude: 2
+      }
+    },
   });
 }
 
@@ -270,7 +304,9 @@ test('a valid JSON frame carrying no AIS record is not liveness', async () => {
   const socket = context.transport.created[0];
   socket.emit('open');
 
-  socket.emit('message', JSON.stringify({ MessageType: 'Heartbeat' }));
+  socket.emit('message', JSON.stringify({
+    MessageType: 'Heartbeat'
+  }));
   await flush();
 
   assert.equal(context.ingested.length, 1, 'it reached the ingester');
@@ -284,15 +320,27 @@ test('an MMSI-bearing envelope with no recognised message is NOT liveness', asyn
   const socket = context.transport.created[0];
   socket.emit('open');
 
-  socket.emit('message', JSON.stringify({ MetaData: { MMSI: '123456789' } }));
+  socket.emit('message', JSON.stringify({
+    MetaData: {
+      MMSI: '123456789'
+    }
+  }));
   socket.emit('message', JSON.stringify({
     MessageType: 'NotARealType',
-    MetaData: { MMSI: '123456789' },
-    Message: { NotARealType: { Latitude: 1 } },
+    MetaData: {
+      MMSI: '123456789'
+    },
+    Message: {
+      NotARealType: {
+        Latitude: 1
+      }
+    },
   }));
   socket.emit('message', JSON.stringify({
     MessageType: 'PositionReport', // recognised type, but no body filed under it
-    MetaData: { MMSI: '123456789' },
+    MetaData: {
+      MMSI: '123456789'
+    },
   }));
   await flush();
 
@@ -325,8 +373,14 @@ test('every message type in AISStream\'s own enum counts as liveness', () => {
     assert.equal(
       isRecognizedAisEnvelope({
         MessageType: messageType,
-        MetaData: { MMSI: '123456789' },
-        Message: { [messageType]: { UserID: 123456789 } },
+        MetaData: {
+          MMSI: '123456789'
+        },
+        Message: {
+          [messageType]: {
+            UserID: 123456789
+          }
+        },
       }),
       true,
       `${messageType} must count as liveness`,
@@ -349,8 +403,14 @@ test('the previously-omitted types are live end to end, not just in the predicat
 
   socket.emit('message', JSON.stringify({
     MessageType: 'AddressedBinaryMessage',
-    MetaData: { MMSI: '987654321' },
-    Message: { AddressedBinaryMessage: { UserID: 987654321 } },
+    MetaData: {
+      MMSI: '987654321'
+    },
+    Message: {
+      AddressedBinaryMessage: {
+        UserID: 987654321
+      }
+    },
   }));
   await flush();
 
@@ -362,22 +422,40 @@ test('the previously-omitted types are live end to end, not just in the predicat
 
 test('the shared recognition predicate is what production actually ships', () => {
   assert.equal(isRecognizedAisEnvelope(JSON.parse(aisFrame())), true);
-  assert.equal(isRecognizedAisEnvelope({ MetaData: { MMSI: '1' } }), false);
-  assert.equal(isRecognizedAisEnvelope({ MessageType: 'PositionReport' }), false);
+  assert.equal(isRecognizedAisEnvelope({
+    MetaData: {
+      MMSI: '1'
+    }
+  }), false);
+  assert.equal(isRecognizedAisEnvelope({
+    MessageType: 'PositionReport'
+  }), false);
   assert.equal(isRecognizedAisEnvelope({
     MessageType: 'PositionReport',
-    Message: { PositionReport: {} },
+    Message: {
+      PositionReport: {}
+    },
   }), false, 'no MMSI');
   assert.equal(isRecognizedAisEnvelope({
     MessageType: 'Nonsense',
-    MetaData: { MMSI: '1' },
-    Message: { Nonsense: {} },
+    MetaData: {
+      MMSI: '1'
+    },
+    Message: {
+      Nonsense: {}
+    },
   }), false, 'unrecognised type');
   // Static data has no position but is still real feed traffic.
   assert.equal(isRecognizedAisEnvelope({
     MessageType: 'ShipStaticData',
-    MetaData: { MMSI: '1' },
-    Message: { ShipStaticData: { Destination: 'X' } },
+    MetaData: {
+      MMSI: '1'
+    },
+    Message: {
+      ShipStaticData: {
+        Destination: 'X'
+      }
+    },
   }), true);
   assert.equal(isRecognizedAisEnvelope(null), false);
   assert.equal(isRecognizedAisEnvelope([]), false);
@@ -389,7 +467,9 @@ test('an error envelope is never liveness and never resets the ladder', async ()
   const socket = context.transport.created[0];
   socket.emit('open');
 
-  socket.emit('message', JSON.stringify({ error: 'temporary upstream glitch' }));
+  socket.emit('message', JSON.stringify({
+    error: 'temporary upstream glitch'
+  }));
   await flush();
 
   const snap = context.adapter.snapshot();
@@ -431,7 +511,9 @@ test('an owned open subscribes exactly once', async () => {
   socket.emit('open');
 
   assert.equal(socket.sent.length, 1);
-  assert.deepEqual(JSON.parse(socket.sent[0]), { APIKey: 'redacted' });
+  assert.deepEqual(JSON.parse(socket.sent[0]), {
+    APIKey: 'redacted'
+  });
 });
 
 // --- FINDINGS 3 & 4 [P1]: auth and rate-limit classification --------------
@@ -442,7 +524,9 @@ test('an auth error envelope goes terminal instead of into the fast ladder', asy
   const socket = context.transport.created[0];
   socket.emit('open');
 
-  socket.emit('message', JSON.stringify({ error: 'Invalid API key' }));
+  socket.emit('message', JSON.stringify({
+    error: 'Invalid API key'
+  }));
   await flush();
 
   const snap = context.adapter.snapshot();
@@ -466,7 +550,9 @@ test('repeated auth envelopes never accelerate — the 5s-forever loop is closed
       connects += 1;
       const socket = context.transport.created[i];
       socket.emit('open');
-      socket.emit('message', JSON.stringify({ error: 'Invalid API key' }));
+      socket.emit('message', JSON.stringify({
+        error: 'Invalid API key'
+      }));
       await flush();
     }
     context.time.advance(1_000);
@@ -486,7 +572,9 @@ test('an auth envelope followed by a same-tick close is still classified as auth
   const socket = context.transport.created[0];
   socket.emit('open');
 
-  socket.emit('message', Buffer.from(JSON.stringify({ error: 'Invalid API key' })));
+  socket.emit('message', Buffer.from(JSON.stringify({
+    error: 'Invalid API key'
+  })));
   socket.serverClose(); // same tick, no awaits in between
 
   const snap = context.adapter.snapshot();
@@ -503,7 +591,9 @@ test('the sync decode path covers every shape ws delivers', () => {
   assert.equal(decodeAisFrameSync(new TextEncoder().encode('typed').buffer), 'typed');
   assert.equal(decodeAisFrameSync([Buffer.from('a'), Buffer.from('b')]), 'ab');
   // Only the Blob shape needs the async fallback.
-  assert.equal(decodeAisFrameSync({ text: async () => 'blob' }), null);
+  assert.equal(decodeAisFrameSync({
+    text: async () => 'blob'
+  }), null);
 });
 
 test('a Blob frame still works through the async fallback', async () => {
@@ -512,7 +602,9 @@ test('a Blob frame still works through the async fallback', async () => {
   const socket = context.transport.created[0];
   socket.emit('open');
 
-  socket.emit('message', { text: async () => aisFrame() });
+  socket.emit('message', {
+    text: async () => aisFrame()
+  });
   await flush();
 
   assert.equal(context.adapter.snapshot().status, 'live');
@@ -523,7 +615,10 @@ test('an HTTP 401 upgrade failure is classified as auth, not a transport fault',
   context.adapter.ensure(ENV);
   const socket = context.transport.created[0];
 
-  socket.emit('unexpected-response', {}, { statusCode: 401, headers: {} });
+  socket.emit('unexpected-response', {}, {
+    statusCode: 401,
+    headers: {}
+  });
 
   const snap = context.adapter.snapshot();
   assert.equal(snap.status, 'auth-failed');
@@ -534,7 +629,10 @@ test('an HTTP 401 upgrade failure is classified as auth, not a transport fault',
 test('an HTTP 403 upgrade failure is also terminal', async () => {
   const context = setup();
   context.adapter.ensure(ENV);
-  context.transport.created[0].emit('unexpected-response', {}, { statusCode: 403, headers: {} });
+  context.transport.created[0].emit('unexpected-response', {}, {
+    statusCode: 403,
+    headers: {}
+  });
   assert.equal(context.adapter.snapshot().status, 'auth-failed');
 });
 
@@ -543,7 +641,9 @@ test('an HTTP 429 honours Retry-After', async () => {
   context.adapter.ensure(ENV);
   context.transport.created[0].emit('unexpected-response', {}, {
     statusCode: 429,
-    headers: { 'retry-after': '120' },
+    headers: {
+      'retry-after': '120'
+    },
   });
 
   const snap = context.adapter.snapshot();
@@ -554,7 +654,10 @@ test('an HTTP 429 honours Retry-After', async () => {
 test('an HTTP 429 without Retry-After falls back to the slowest rung', async () => {
   const context = setup();
   context.adapter.ensure(ENV);
-  context.transport.created[0].emit('unexpected-response', {}, { statusCode: 429, headers: {} });
+  context.transport.created[0].emit('unexpected-response', {}, {
+    statusCode: 429,
+    headers: {}
+  });
 
   const slowest = BUDGETS.backoffMs[BUDGETS.backoffMs.length - 1];
   assert.equal(context.adapter.snapshot().nextAttemptAt - context.time.wall, slowest);
@@ -586,20 +689,44 @@ test('a genuine transport error still uses the fast first rung', async () => {
 // --- Pure classification helpers ------------------------------------------
 
 test('failure classification separates auth, rate limits and transport faults', () => {
-  assert.equal(classifyAisFailure({ httpStatus: 401 }).kind, 'auth');
-  assert.equal(classifyAisFailure({ httpStatus: 403 }).kind, 'auth');
-  assert.equal(classifyAisFailure({ httpStatus: 429 }).kind, 'rate-limit');
-  assert.equal(classifyAisFailure({ httpStatus: 500 }).kind, 'transport');
+  assert.equal(classifyAisFailure({
+    httpStatus: 401
+  }).kind, 'auth');
+  assert.equal(classifyAisFailure({
+    httpStatus: 403
+  }).kind, 'auth');
+  assert.equal(classifyAisFailure({
+    httpStatus: 429
+  }).kind, 'rate-limit');
+  assert.equal(classifyAisFailure({
+    httpStatus: 500
+  }).kind, 'transport');
   // ws's own wording when nothing consumed 'unexpected-response'.
-  assert.equal(classifyAisFailure({ message: 'Unexpected server response: 401' }).kind, 'auth');
-  assert.equal(classifyAisFailure({ message: 'Unexpected server response: 429' }).kind, 'rate-limit');
+  assert.equal(classifyAisFailure({
+    message: 'Unexpected server response: 401'
+  }).kind, 'auth');
+  assert.equal(classifyAisFailure({
+    message: 'Unexpected server response: 429'
+  }).kind, 'rate-limit');
   // Upstream envelope wording.
-  assert.equal(classifyAisFailure({ message: 'Invalid API key' }).kind, 'auth');
-  assert.equal(classifyAisFailure({ message: 'unauthorized' }).kind, 'auth');
-  assert.equal(classifyAisFailure({ message: 'API key is required' }).kind, 'auth');
-  assert.equal(classifyAisFailure({ message: 'rate limit exceeded' }).kind, 'rate-limit');
-  assert.equal(classifyAisFailure({ message: 'too many connections' }).kind, 'rate-limit');
-  assert.equal(classifyAisFailure({ message: 'ECONNRESET' }).kind, 'transport');
+  assert.equal(classifyAisFailure({
+    message: 'Invalid API key'
+  }).kind, 'auth');
+  assert.equal(classifyAisFailure({
+    message: 'unauthorized'
+  }).kind, 'auth');
+  assert.equal(classifyAisFailure({
+    message: 'API key is required'
+  }).kind, 'auth');
+  assert.equal(classifyAisFailure({
+    message: 'rate limit exceeded'
+  }).kind, 'rate-limit');
+  assert.equal(classifyAisFailure({
+    message: 'too many connections'
+  }).kind, 'rate-limit');
+  assert.equal(classifyAisFailure({
+    message: 'ECONNRESET'
+  }).kind, 'transport');
   assert.equal(classifyAisFailure({}).kind, 'transport');
 });
 
@@ -624,7 +751,10 @@ test('envelope parsing separates malformed, error and data frames', () => {
   assert.equal(parseAisEnvelope('nope').kind, 'malformed');
   assert.equal(parseAisEnvelope('[]').kind, 'malformed');
   assert.equal(parseAisEnvelope('null').kind, 'malformed');
-  assert.deepEqual(parseAisEnvelope('{"error":"bad key"}'), { kind: 'error', message: 'bad key' });
+  assert.deepEqual(parseAisEnvelope('{"error":"bad key"}'), {
+    kind: 'error',
+    message: 'bad key'
+  });
   assert.equal(parseAisEnvelope(aisFrame()).kind, 'data');
 });
 
@@ -647,12 +777,16 @@ test('a keyless environment opens nothing and terminates anything held', async (
   const context = setup();
   const socket = await goLive(context);
 
-  context.adapter.ensure({ hasKey: false });
+  context.adapter.ensure({
+    hasKey: false
+  });
   assert.equal(socket.terminated, true);
   assert.equal(context.adapter.snapshot().status, 'missing-key');
 
   context.time.advance(600_000);
-  context.adapter.ensure({ hasKey: false });
+  context.adapter.ensure({
+    hasKey: false
+  });
   assert.equal(context.transport.created.length, 1, 'no sockets while keyless');
 });
 
@@ -660,7 +794,10 @@ test('a socket without ws emitter semantics is rejected, not silently mis-read',
   const time = fakeClock();
   const adapter = createAisStreamAdapter({
     // A built-in-WebSocket-shaped object: addEventListener only, no terminate.
-    createSocket: () => ({ addEventListener() {}, close() {} }),
+    createSocket: () => ({
+      addEventListener() {},
+      close() {}
+    }),
     resolveUrl: () => 'ws://mock.invalid/stream',
     buildSubscription: () => ({}),
     ingestEnvelope: () => false,
@@ -677,7 +814,9 @@ test('a socket without ws emitter semantics is rejected, not silently mis-read',
 test('a socket factory failure is classified rather than thrown', () => {
   const time = fakeClock();
   const adapter = createAisStreamAdapter({
-    createSocket: () => { throw new Error('ws transport unavailable'); },
+    createSocket: () => {
+      throw new Error('ws transport unavailable');
+    },
     resolveUrl: () => 'ws://mock.invalid/stream',
     buildSubscription: () => ({}),
     ingestEnvelope: () => false,
@@ -714,7 +853,9 @@ test('frame sizing covers every shape without decoding', () => {
   assert.equal(aisFrameByteLength(Buffer.alloc(11)), 11);
   assert.equal(aisFrameByteLength(new ArrayBuffer(7)), 7);
   assert.equal(aisFrameByteLength([Buffer.alloc(3), Buffer.alloc(4)]), 7);
-  assert.equal(aisFrameByteLength({ text: async () => '' }), 0, 'Blob defers to the async path');
+  assert.equal(aisFrameByteLength({
+    text: async () => ''
+  }), 0, 'Blob defers to the async path');
 });
 
 test('a frame whose decode throws is treated as malformed, not fatal', async () => {
@@ -728,7 +869,9 @@ test('a frame whose decode throws is treated as malformed, not fatal', async () 
   // EventEmitter and reach the process-level handler.
   const view = new Uint8Array(new ArrayBuffer(8));
   Object.defineProperty(view, 'buffer', {
-    get() { throw new TypeError('detached ArrayBuffer'); },
+    get() {
+      throw new TypeError('detached ArrayBuffer');
+    },
   });
 
   assert.doesNotThrow(() => socket.emit('message', view));
@@ -744,7 +887,11 @@ test('a frame whose decode throws is treated as malformed, not fatal', async () 
 });
 
 test('an ingester that throws does not take the process down', async () => {
-  const context = setup({ ingestResult: () => { throw new Error('boom'); } });
+  const context = setup({
+    ingestResult: () => {
+      throw new Error('boom');
+    }
+  });
   context.adapter.ensure(ENV);
   const socket = context.transport.created[0];
   socket.emit('open');
