@@ -1832,8 +1832,7 @@ async function main() {
     const calBeforeDrag = await page.evaluate(() => {
       const mod = window.__godsEyeView.dataManager.layers.get('cctv').module;
       const cam = mod.getUIState().activeCamera;
-      return cam ?
-        {
+      return cam ? {
           calibration: cam.calibration,
           elevationM: cam.elevationM,
           groundResolveCount: cam.groundResolveCount,
@@ -1880,8 +1879,7 @@ async function main() {
               const mod =
                 window.__godsEyeView.dataManager.layers.get('cctv').module;
               const cam = mod.getUIState().activeCamera;
-              return cam ?
-                {
+              return cam ? {
                   elevationM: cam.elevationM,
                   eastOffsetM: cam.calibration?.offsetEastM,
                   groundMeshSampleRequestCount: cam.groundMeshSampleRequestCount,
