@@ -1,6 +1,14 @@
-import { HEALTH_SYNC_INTERVAL_MS, HEALTH_ENDPOINT } from './policy.js';
+import {
+  HEALTH_SYNC_INTERVAL_MS,
+  HEALTH_ENDPOINT
+} from './policy.js';
 
-export function createHealth({ state: layerState, services, parts, source }) {
+export function createHealth({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Fetches per-camera health status from the backend and updates _healthById.
    * Rate-limited to HEALTH_SYNC_INTERVAL_MS unless forced.
@@ -15,7 +23,9 @@ export function createHealth({ state: layerState, services, parts, source }) {
 
     try {
       const signal = layerState._sourceAbort?.signal;
-      const data = await source.getHealth({ signal });
+      const data = await source.getHealth({
+        signal
+      });
       signal?.throwIfAborted();
       const rows = Array.isArray(data?.cameras) ? data.cameras : [];
       const next = new Map();
@@ -37,5 +47,7 @@ export function createHealth({ state: layerState, services, parts, source }) {
       // keep previous health map
     }
   }
-  return { syncHealthState };
+  return {
+    syncHealthState
+  };
 }
