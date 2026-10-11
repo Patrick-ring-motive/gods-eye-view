@@ -1,7 +1,15 @@
-import { flowBucket, flowSpeedScale } from '../../data/trafficFlowStyle.js';
-import { presetDotOutline } from '../../data/trafficPresetStyle.js';
+import {
+  flowBucket,
+  flowSpeedScale
+} from '../../data/trafficFlowStyle.js';
+import {
+  presetDotOutline
+} from '../../data/trafficPresetStyle.js';
 import * as Cesium from 'cesium';
-import { queuePlatoons, locateAlongRoad } from '../../data/trafficQueue.js';
+import {
+  queuePlatoons,
+  locateAlongRoad
+} from '../../data/trafficQueue.js';
 import {
   SPEED_MPS,
   MAX_DOTS,
@@ -42,9 +50,9 @@ export function createAnimation({
     if (layerState._liveMode && !flow && layerState._uncoveredMode === 'hide')
       return;
 
-    const count = Number.isFinite(budgetCount)
-      ? Math.max(0, Math.floor(budgetCount))
-      : parts.model.computeDotCount(road, altitude);
+    const count = Number.isFinite(budgetCount) ?
+      Math.max(0, Math.floor(budgetCount)) :
+      parts.model.computeDotCount(road, altitude);
     const numSegments = road.waypoints.length - 1;
     if (numSegments < 1 || count <= 0) return;
 
@@ -60,17 +68,17 @@ export function createAnimation({
     const flowColor = bucket ? layerState._activeBucketColors[bucket] : null;
     // Dark-halo outline under styled presets (null = shipped no-outline).
     const outlineSpec =
-      bucket && layerState._presetDots === 'on'
-        ? presetDotOutline(layerState._stylePreset, bucket)
-        : null;
-    const outlineColor = outlineSpec
-      ? new Cesium.Color(
-          outlineSpec.rgba[0] / 255,
-          outlineSpec.rgba[1] / 255,
-          outlineSpec.rgba[2] / 255,
-          outlineSpec.rgba[3],
-        )
-      : null;
+      bucket && layerState._presetDots === 'on' ?
+      presetDotOutline(layerState._stylePreset, bucket) :
+      null;
+    const outlineColor = outlineSpec ?
+      new Cesium.Color(
+        outlineSpec.rgba[0] / 255,
+        outlineSpec.rgba[1] / 255,
+        outlineSpec.rgba[2] / 255,
+        outlineSpec.rgba[3],
+      ) :
+      null;
     const flowSpeed = flow ? flowSpeedScale(flow.level) : 1;
     const now = Date.now();
 
@@ -87,8 +95,15 @@ export function createAnimation({
         for (let p = 0; p < platoons.length; p++) {
           const dir = road.oneway ? road.oneway : p % 2 === 0 ? 1 : -1;
           for (const s of platoons[p]) {
-            const { segIdx, t } = locateAlongRoad(road.segmentDist, s);
-            placements.push({ segIdx, t, direction: dir });
+            const {
+              segIdx,
+              t
+            } = locateAlongRoad(road.segmentDist, s);
+            placements.push({
+              segIdx,
+              t,
+              direction: dir
+            });
           }
         }
       }
@@ -99,9 +114,9 @@ export function createAnimation({
 
       // Random start position: pick a random segment and offset within it —
       // unless this is a queued jam dot with a platoon placement.
-      const segIdx = placements
-        ? placements[i].segIdx
-        : Math.floor(Math.random() * numSegments);
+      const segIdx = placements ?
+        placements[i].segIdx :
+        Math.floor(Math.random() * numSegments);
       const t = placements ? placements[i].t : Math.random();
 
       // Speed noise: base speed +/-30% for organic variation. baseMps (noise
@@ -113,13 +128,13 @@ export function createAnimation({
 
       // One-way roads flow only their legal direction; two-way alternates
       // (per platoon in queue mode — a queue moves as one).
-      const direction = placements
-        ? placements[i].direction
-        : road.oneway
-          ? road.oneway
-          : i % 2 === 0
-            ? 1
-            : -1;
+      const direction = placements ?
+        placements[i].direction :
+        road.oneway ?
+        road.oneway :
+        i % 2 === 0 ?
+        1 :
+        -1;
 
       // Compute initial Cartesian3 position via linear interpolation
       Cesium.Cartesian3.lerp(
@@ -155,9 +170,12 @@ export function createAnimation({
         disableDepthTestDistance: jamProminent ? JAM_DOT_DEPTH_PUNCH : 2000,
         // Preset dark halo (spread only when present — the keyless/normal
         // path passes the exact shipped option set).
-        ...(outlineSpec
-          ? { outlineColor, outlineWidth: outlineSpec.width }
-          : {}),
+        ...(outlineSpec ?
+          {
+            outlineColor,
+            outlineWidth: outlineSpec.width
+          } :
+          {}),
       });
       layerState._bucketCounts[bucket || 'sim'] += 1;
 
@@ -176,10 +194,12 @@ export function createAnimation({
         stoppedUntil: 0,
         // Stop-and-go creep state (jam-viz density prototype): jam dots
         // alternate move-bursts and stops. Null in sim mode and for non-jam.
-        creep:
-          bucket === 'jam' && parts.style.jamDensityOn()
-            ? { moving: Math.random() < 0.4, until: now + Math.random() * 2000 }
-            : null,
+        creep: bucket === 'jam' && parts.style.jamDensityOn() ?
+          {
+            moving: Math.random() < 0.4,
+            until: now + Math.random() * 2000
+          } :
+          null,
       });
     }
   }
@@ -202,9 +222,9 @@ export function createAnimation({
   function animate() {
     const now = Date.now();
     // Delta time in seconds, capped to avoid jumps when returning from background tab
-    const dt = layerState._lastAnimTime
-      ? Math.min((now - layerState._lastAnimTime) / 1000, 0.1)
-      : 0.016;
+    const dt = layerState._lastAnimTime ?
+      Math.min((now - layerState._lastAnimTime) / 1000, 0.1) :
+      0.016;
     layerState._lastAnimTime = now;
 
     for (let i = 0; i < layerState._dots.length; i++) {
@@ -307,8 +327,18 @@ export function createAnimation({
     layerState._dots = [];
     layerState._roads = [];
     layerState._count = 0;
-    layerState._bucketCounts = { free: 0, slow: 0, jam: 0, sim: 0 };
+    layerState._bucketCounts = {
+      free: 0,
+      slow: 0,
+      jam: 0,
+      sim: 0
+    };
     layerState._closedRoads = 0;
   }
-  return { spawnDotsForRoad, animate, maybeStopLight, clearDots };
+  return {
+    spawnDotsForRoad,
+    animate,
+    maybeStopLight,
+    clearDots
+  };
 }
