@@ -1,4 +1,6 @@
-import { locationMiniStatus } from '../locationStatus.js';
+import {
+  locationMiniStatus
+} from '../locationStatus.js';
 const POI_KEYS = ['Q', 'W', 'E', 'R', 'T'];
 
 /** Location DOM, keyboard handling and pending row animation over supplied actions. */
@@ -154,9 +156,9 @@ export class LocationControls {
     this.destroyed = true;
     this.cancelExpansion();
     for (const remove of [
-      ...this.poiRemovers.splice(0),
-      ...this.removers.splice(0),
-    ])
+        ...this.poiRemovers.splice(0),
+        ...this.removers.splice(0),
+      ])
       remove();
     this.orbitIndicator?.remove();
   }
