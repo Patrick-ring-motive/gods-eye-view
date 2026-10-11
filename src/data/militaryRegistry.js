@@ -1,7 +1,13 @@
-import { createMilitaryRegistry } from '../layers/aircraft/classification.js';
-import { createAdsbLolSource } from '../sources/live/standalone.js';
+import {
+  createMilitaryRegistry
+} from '../layers/aircraft/classification.js';
+import {
+  createAdsbLolSource
+} from '../sources/live/standalone.js';
 
-const registry = createMilitaryRegistry({ source: createAdsbLolSource() });
+const registry = createMilitaryRegistry({
+  source: createAdsbLolSource()
+});
 export const isMilitaryLayerActive = registry.isMilitaryLayerActive;
 export const setMilitaryLayerActive = registry.setMilitaryLayerActive;
 export const onMilitaryLayerActiveChange = registry.onMilitaryLayerActiveChange;
