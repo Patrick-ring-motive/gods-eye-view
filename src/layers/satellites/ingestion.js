@@ -1,6 +1,12 @@
-import { twoline2satrec } from 'satellite.js';
+import {
+  twoline2satrec
+} from 'satellite.js';
 import * as Cesium from 'cesium';
-import { CATALOG_GROUPS, ISS_NORAD, POINT_STYLES } from './policy.js';
+import {
+  CATALOG_GROUPS,
+  ISS_NORAD,
+  POINT_STYLES
+} from './policy.js';
 
 export function createIngestion({
   state: layerState,
@@ -9,7 +15,9 @@ export function createIngestion({
   source,
 }) {
   const methods = {
-    async update(viewer, { signal = null } = {}) {
+    async update(viewer, {
+      signal = null
+    } = {}) {
       const trackingRefreshEpoch = ++layerState._trackingRefreshEpoch;
       layerState._lastTrackingRefreshOutcome = {
         epoch: trackingRefreshEpoch,
@@ -18,9 +26,9 @@ export function createIngestion({
       };
       const resourceController = new AbortController();
       layerState._activeUpdateControllers.add(resourceController);
-      const updateSignal = signal
-        ? AbortSignal.any([signal, resourceController.signal])
-        : resourceController.signal;
+      const updateSignal = signal ?
+        AbortSignal.any([signal, resourceController.signal]) :
+        resourceController.signal;
       try {
         updateSignal.throwIfAborted();
         // Load all core groups in parallel; a failed/empty group degrades
@@ -31,14 +39,26 @@ export function createIngestion({
               const res = await source.readGroup(groupDef.path, {
                 signal: updateSignal,
               });
-              if (!res.ok) return { ...groupDef, entries: [], ok: false };
+              if (!res.ok) return {
+                ...groupDef,
+                entries: [],
+                ok: false
+              };
               const entries = parts.orbits.parseTLE(res.text);
               updateSignal.throwIfAborted();
-              return { ...groupDef, entries, ok: entries.length > 0 };
+              return {
+                ...groupDef,
+                entries,
+                ok: entries.length > 0
+              };
             } catch (error) {
               if (updateSignal.aborted || error?.name === 'AbortError')
                 throw error;
-              return { ...groupDef, entries: [], ok: false };
+              return {
+                ...groupDef,
+                entries: [],
+                ok: false
+              };
             }
           }),
         );
@@ -70,9 +90,9 @@ export function createIngestion({
         // At least one group loaded — proceed with a fresh rebuild, but keep the
         // partial outage visible at the layer control instead of presenting the
         // reduced catalog as a fully healthy refresh.
-        layerState._lastError = failed.length
-          ? `${failed.length} CelesTrak group${failed.length === 1 ? '' : 's'} unavailable`
-          : null;
+        layerState._lastError = failed.length ?
+          `${failed.length} CelesTrak group${failed.length === 1 ? '' : 's'} unavailable` :
+          null;
 
         // Clear existing
         layerState._pointCollection.removeAll();
@@ -98,7 +118,10 @@ export function createIngestion({
         // Process all TLE entries in CATALOG_GROUPS order
         const allEntries = [];
         for (const r of results) {
-          for (const e of r.entries) allEntries.push({ ...e, group: r.tag });
+          for (const e of r.entries) allEntries.push({
+            ...e,
+            group: r.tag
+          });
         }
 
         // Deduplicate by NORAD ID — first (most specific) group tag wins
@@ -169,9 +192,13 @@ export function createIngestion({
         // Re-apply dense mode after a full catalog rebuild (fire-and-forget —
         // _loadDenseCatalog handles its own errors and token invalidation).
         layerState._denseLoadPromise =
-          layerState._params.catalog === 'dense'
-            ? parts.catalog._loadDenseCatalog({ signal: updateSignal })
-            : Promise.resolve({ status: 'not-requested' });
+          layerState._params.catalog === 'dense' ?
+          parts.catalog._loadDenseCatalog({
+            signal: updateSignal
+          }) :
+          Promise.resolve({
+            status: 'not-requested'
+          });
         // The catalog the published voice subject was resolved against is gone.
         // Re-resolve it, or release the slot if the subject provably did not
         // survive. Deliberately not awaited: it waits on dense settlement, and
@@ -189,5 +216,7 @@ export function createIngestion({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
