@@ -78,11 +78,9 @@ export async function setContextMode(
     cancelled: true,
     error: 'Context request was superseded by a newer voice turn',
     ...this.getContextModeState(),
-    ...(this._contextTransitionFailedLayerIds?.length ?
-      {
-        failedLayerIds: [...this._contextTransitionFailedLayerIds]
-      } :
-      {}),
+    ...(this._contextTransitionFailedLayerIds?.length ? {
+      failedLayerIds: [...this._contextTransitionFailedLayerIds]
+    } : {}),
   });
   if (!requestIsCurrent()) return cancellationResult();
   try {
@@ -103,16 +101,12 @@ export async function setContextMode(
         action: 'set_context_mode',
         mode: state.mode,
         ...state,
-        ...(result === true ?
-          {} :
-          {
-            error: 'Context mode transition did not complete'
-          }),
-        ...(this._contextTransitionFailedLayerIds?.length ?
-          {
-            failedLayerIds: [...this._contextTransitionFailedLayerIds]
-          } :
-          {}),
+        ...(result === true ? {} : {
+          error: 'Context mode transition did not complete'
+        }),
+        ...(this._contextTransitionFailedLayerIds?.length ? {
+          failedLayerIds: [...this._contextTransitionFailedLayerIds]
+        } : {}),
       };
     }
     const canonical = mode === 'contacts' ? 'flights' : mode;
@@ -152,45 +146,36 @@ export async function setContextMode(
       action: 'set_context_mode',
       mode: state.mode,
       ...state,
-      ...(transitioned === true ?
-        {} :
-        {
-          // Named in the operator's vocabulary, not the internal id: this
-          // string is read by the voice model, which takes 'contacts'.
-          error: crossModeSwitchLost ?
-            `Switch to ${contextModeWord(canonical)} did not complete — Context is now off` :
-            'Context mode transition did not complete',
-          ...(crossModeSwitchLost ? {
-            contextOff: true,
-            priorMode
-          } : {}),
-        }),
-      ...(this._contextTransitionFailedLayerIds?.length ?
-        {
-          failedLayerIds: [...this._contextTransitionFailedLayerIds]
-        } :
-        {}),
+      ...(transitioned === true ? {} : {
+        // Named in the operator's vocabulary, not the internal id: this
+        // string is read by the voice model, which takes 'contacts'.
+        error: crossModeSwitchLost ?
+          `Switch to ${contextModeWord(canonical)} did not complete — Context is now off` : 'Context mode transition did not complete',
+        ...(crossModeSwitchLost ? {
+          contextOff: true,
+          priorMode
+        } : {}),
+      }),
+      ...(this._contextTransitionFailedLayerIds?.length ? {
+        failedLayerIds: [...this._contextTransitionFailedLayerIds]
+      } : {}),
     };
   } catch (error) {
     if (!requestIsCurrent()) {
       return {
         ...cancellationResult(),
-        ...(Array.isArray(error?.failedLayerIds) ?
-          {
-            failedLayerIds: [...error.failedLayerIds]
-          } :
-          {}),
+        ...(Array.isArray(error?.failedLayerIds) ? {
+          failedLayerIds: [...error.failedLayerIds]
+        } : {}),
       };
     }
     return {
       ok: false,
       action: 'set_context_mode',
       error: error?.message || 'Context mode transition failed',
-      ...(Array.isArray(error?.failedLayerIds) ?
-        {
-          failedLayerIds: [...error.failedLayerIds]
-        } :
-        {}),
+      ...(Array.isArray(error?.failedLayerIds) ? {
+        failedLayerIds: [...error.failedLayerIds]
+      } : {}),
       ...this.getContextModeState(),
     };
   }
