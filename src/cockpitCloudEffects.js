@@ -245,7 +245,8 @@ export class CockpitCloudEffectsController {
     try {
       localStorage.setItem(WEATHER_ENABLED_STORAGE_KEY, next ? '1' : '0');
     } catch {
-      /* best effort */ }
+      /* best effort */
+    }
     if (!next) {
       this.stop();
     } else if (document.body.classList.contains('cockpit-mode')) {
