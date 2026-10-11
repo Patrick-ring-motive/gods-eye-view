@@ -6,7 +6,12 @@ import {
   ISS_OVERLAY_SOURCE_OPTIONS,
 } from './policy.js';
 
-export function createLabels({ state: layerState, services, parts, source }) {
+export function createLabels({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** Build the persistent ISS ambient label from the cached point position. */
 
   function createIssOverlayEntry(position) {
@@ -48,9 +53,9 @@ export function createLabels({ state: layerState, services, parts, source }) {
 
   function _refreshDockedCompanions(nowMs) {
     const trackedPosition =
-      layerState._trackedNorad === null
-        ? null
-        : parts.tracking._trackedDisplayCached();
+      layerState._trackedNorad === null ?
+      null :
+      parts.tracking._trackedDisplayCached();
     if (!trackedPosition) {
       if (layerState._dockedCompanions.size === 0) return false;
       layerState._dockedCompanions = new Set();
