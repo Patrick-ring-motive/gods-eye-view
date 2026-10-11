@@ -1,8 +1,13 @@
 /** A missing geocoder returns an unavailable outcome without making requests. */
 export const unavailablePlaceSearch = Object.freeze({
-  async geocode(_query, { signal } = {}) {
+  async geocode(_query, {
+    signal
+  } = {}) {
     signal?.throwIfAborted();
-    return { place: null, answered: false };
+    return {
+      place: null,
+      answered: false
+    };
   },
 });
 
@@ -19,22 +24,34 @@ export function createPlaceSearch({
 }) {
   const cache = new Map();
   return {
-    async geocode(query, { bias = null, signal } = {}) {
+    async geocode(query, {
+      bias = null,
+      signal
+    } = {}) {
       const combined = AbortSignal.any(
         [lifetime, signal, AbortSignal.timeout(timeoutMs)].filter(Boolean),
       );
       combined.throwIfAborted();
       const text = String(query ?? '').trim();
-      if (!text) return { place: null, answered: true };
+      if (!text) return {
+        place: null,
+        answered: true
+      };
       const key = `${bias || ''}\n${text.toLowerCase()}`;
       const cached = cache.get(key);
       if (cached && cached.expires > now()) return cached.result;
       cache.delete(key);
-      let result = { place: null, answered: providers.length > 0 };
+      let result = {
+        place: null,
+        answered: providers.length > 0
+      };
       try {
         for (const [index, provider] of providers.entries()) {
           combined.throwIfAborted();
-          const next = await provider.geocode(text, { bias, signal: combined });
+          const next = await provider.geocode(text, {
+            bias,
+            signal: combined
+          });
           combined.throwIfAborted();
           result = {
             place: next.place,
@@ -49,7 +66,10 @@ export function createPlaceSearch({
         lifetime?.throwIfAborted();
         signal?.throwIfAborted();
         if (!combined.aborted) throw error;
-        return { place: null, answered: false };
+        return {
+          place: null,
+          answered: false
+        };
       }
       combined.throwIfAborted();
       if (result.answered) {
