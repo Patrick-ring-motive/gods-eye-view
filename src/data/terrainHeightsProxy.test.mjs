@@ -1,6 +1,8 @@
 // Terrain proxy cache/retry mechanics. All dependencies are injected; no real
 // network, disk, or Vite server is involved.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   fetchTerrainChunkWithRetry,
@@ -9,14 +11,25 @@ import {
 } from './terrainHeightsProxy.js';
 
 function result(id, ellipsoid) {
-  return { id, ellipsoid, elevation: ellipsoid - 10, geoid: 10 };
+  return {
+    id,
+    ellipsoid,
+    elevation: ellipsoid - 10,
+    geoid: 10
+  };
 }
 
 test('per-point cache reconstruction preserves exact request order with mixed hits/misses and duplicates', async () => {
   const now = 50_000;
   const cache = new Map([
-    [terrainPointKey([10, 1]), { at: now, result: result('cached-a', 101) }],
-    [terrainPointKey([30, 3]), { at: now, result: result('cached-c', 303) }],
+    [terrainPointKey([10, 1]), {
+      at: now,
+      result: result('cached-a', 101)
+    }],
+    [terrainPointKey([30, 3]), {
+      at: now,
+      result: result('cached-c', 303)
+    }],
   ]);
   const points = [
     [30, 3],
@@ -58,7 +71,9 @@ test('429 retry honors Retry-After before the next attempt', async () => {
   let clock = 1_000_000;
   let attempts = 0;
   const sleeps = [];
-  const results = await fetchTerrainChunkWithRetry([[12.345678, 45.678912]], {
+  const results = await fetchTerrainChunkWithRetry([
+    [12.345678, 45.678912]
+  ], {
     now: () => clock,
     random: () => 0.5,
     makeSignal: () => undefined,
@@ -80,7 +95,9 @@ test('429 retry honors Retry-After before the next attempt', async () => {
       return {
         ok: true,
         status: 200,
-        json: async () => ({ results: [result('recovered', 88)] }),
+        json: async () => ({
+          results: [result('recovered', 88)]
+        }),
       };
     },
   });
@@ -94,7 +111,9 @@ test('permanently failing upstream exhausts retries and returns 502 without fake
   let clock = 2_000_000;
   let attempts = 0;
   const response = await resolveTerrainHeightRequest({
-    points: [[-97.7431, 30.2672]],
+    points: [
+      [-97.7431, 30.2672]
+    ],
     cache: new Map(),
     ttlMs: 10_000,
     now: () => clock,
@@ -108,7 +127,13 @@ test('permanently failing upstream exhausts retries and returns 502 without fake
         },
         fetchImpl: async () => {
           attempts += 1;
-          return { ok: false, status: 503, headers: { get: () => null } };
+          return {
+            ok: false,
+            status: 503,
+            headers: {
+              get: () => null
+            }
+          };
         },
       }),
   });
@@ -124,8 +149,14 @@ test('permanently failing upstream exhausts retries and returns 502 without fake
 
 test('stale per-point entries serve through a failed refresh only when every point is real', async () => {
   const cache = new Map([
-    [terrainPointKey([1, 1]), { at: 0, result: result('stale-a', 11) }],
-    [terrainPointKey([2, 2]), { at: 0, result: result('stale-b', 22) }],
+    [terrainPointKey([1, 1]), {
+      at: 0,
+      result: result('stale-a', 11)
+    }],
+    [terrainPointKey([2, 2]), {
+      at: 0,
+      result: result('stale-b', 22)
+    }],
   ]);
   const response = await resolveTerrainHeightRequest({
     points: [
@@ -161,9 +192,15 @@ test('a null-height row counts as absent, not a refresh failure, and is re-asked
     fetchMissing: async (missing) => {
       calls += 1;
       return missing.map(([lon, lat]) =>
-        lon === -97.428
-          ? { lon, lat, elevation: 443.855, geoid: null, ellipsoid: null }
-          : result('real', 69.93),
+        lon === -97.428 ?
+        {
+          lon,
+          lat,
+          elevation: 443.855,
+          geoid: null,
+          ellipsoid: null
+        } :
+        result('real', 69.93),
       );
     },
   };
@@ -214,9 +251,17 @@ test('a dropped position remains a genuine upstream fault', async () => {
 });
 
 test('malformed height objects remain refresh failures, not absent readings', async () => {
-  for (const row of [{}, [], { ellipsoid: '0' }, { ellipsoid: null }]) {
+  for (const row of [{},
+      [], {
+        ellipsoid: '0'
+      }, {
+        ellipsoid: null
+      }
+    ]) {
     const response = await resolveTerrainHeightRequest({
-      points: [[1, 2]],
+      points: [
+        [1, 2]
+      ],
       cache: new Map(),
       ttlMs: 10_000,
       fetchMissing: async () => [row],
