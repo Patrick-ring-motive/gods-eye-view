@@ -59,22 +59,18 @@ export function normalizeLayerLoading(layer = {}) {
     unavailable,
     keyRequired,
     degraded,
-    cameraRetry: layer.id === 'alpr-cameras' && layer.enabled && !disabling ?
-      {
-        retryAt: Number(stats.retryAt) || 0,
-        retrying: stats.retrying === true,
-        error,
-      } :
-      null,
-    installationRetry: layer.id === 'military-installations' && layer.enabled && !disabling ?
-      {
-        retryAt: Number(stats.retryAt) || 0,
-        retrying: stats.retrying === true,
-        failureReason: stats.failureReason,
-        loading,
-        status: stats.status,
-      } :
-      null,
+    cameraRetry: layer.id === 'alpr-cameras' && layer.enabled && !disabling ? {
+      retryAt: Number(stats.retryAt) || 0,
+      retrying: stats.retrying === true,
+      error,
+    } : null,
+    installationRetry: layer.id === 'military-installations' && layer.enabled && !disabling ? {
+      retryAt: Number(stats.retryAt) || 0,
+      retrying: stats.retrying === true,
+      failureReason: stats.failureReason,
+      loading,
+      status: stats.status,
+    } : null,
   };
 }
 
@@ -323,16 +319,12 @@ export function reduceLoadingFeedback(previous, summary, nowMs, event = null) {
       batchOutcome,
       terminal: null,
       operation: summary.disabling ?
-        'disabling' :
-        summary.refresh ?
-        'refresh' :
-        'loading',
+        'disabling' : summary.refresh ?
+        'refresh' : 'loading',
       failedEventIds: [
         ...new Set([
           ...(beginning ? [] : state.failedEventIds || []),
-          ...(eventParticipates && terminalFromEvent(event) === 'error' ?
-            [eventLayerId] :
-            []),
+          ...(eventParticipates && terminalFromEvent(event) === 'error' ? [eventLayerId] : []),
         ]),
       ],
     };
@@ -367,9 +359,7 @@ export function reduceLoadingFeedback(previous, summary, nowMs, event = null) {
       failedEventIds: [
         ...new Set([
           ...(state.failedEventIds || []),
-          ...(eventParticipates && terminalFromEvent(event) === 'error' ?
-            [eventLayerId] :
-            []),
+          ...(eventParticipates && terminalFromEvent(event) === 'error' ? [eventLayerId] : []),
         ]),
       ],
     };
@@ -453,8 +443,7 @@ export function presentLoadingFeedback(state, summary, nowMs) {
     return {
       state: 'loading',
       label: active[0].cameraRetry.retrying ?
-        'RETRYING ALPR CAMERAS' :
-        'FETCHING ALPR CAMERAS',
+        'RETRYING ALPR CAMERAS' : 'FETCHING ALPR CAMERAS',
       detail: 'OpenStreetMap · Overpass',
     };
   }
@@ -467,8 +456,7 @@ export function presentLoadingFeedback(state, summary, nowMs) {
     return {
       state: 'loading',
       label: active[0].installationRetry.retrying ?
-        'RETRYING MAPPED SITES' :
-        'FETCHING MAPPED SITES',
+        'RETRYING MAPPED SITES' : 'FETCHING MAPPED SITES',
       detail: 'OpenStreetMap · Overpass',
     };
   }
@@ -485,12 +473,9 @@ export function presentLoadingFeedback(state, summary, nowMs) {
   const suffix = active.length > 2 ? ` +${active.length - 2}` : '';
   return {
     state: elapsed >= LOADING_LONG_THRESHOLD_MS ?
-      'long' :
-      summary.disabling ?
-      'disabling' :
-      summary.refresh ?
-      'refresh' :
-      'loading',
+      'long' : summary.disabling ?
+      'disabling' : summary.refresh ?
+      'refresh' : 'loading',
     label,
     detail: `${names}${suffix}`,
   };
