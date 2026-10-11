@@ -1,8 +1,15 @@
 import * as Cesium from 'cesium';
 
-export function createFlightState({ source, services }) {
-  const { createGroundSnap } = services.groundSnap;
-  const flightState = { lifetime: new AbortController() };
+export function createFlightState({
+  source,
+  services
+}) {
+  const {
+    createGroundSnap
+  } = services.groundSnap;
+  const flightState = {
+    lifetime: new AbortController()
+  };
 
   flightState._source = source;
 
@@ -268,7 +275,11 @@ export function createFlightState({ source, services }) {
 
   flightState._scratchEnu = new Cesium.Matrix4();
 
-  flightState._scratchArc = { east: 0, north: 0, endCourseDeg: 0 };
+  flightState._scratchArc = {
+    east: 0,
+    north: 0,
+    endCourseDeg: 0
+  };
 
   flightState._scratchRenderTime = new Cesium.JulianDate();
 
