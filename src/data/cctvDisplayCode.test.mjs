@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CAMERA_CODE_MAX_CHARS,
@@ -19,7 +21,11 @@ test('cameraDisplayCode trims long names with an ellipsis and collapses whitespa
 });
 
 test('every pack labels by its feed name; explicit codes win; the id is the last resort', () => {
-  const base = { lat: 1, lon: 1, url: 'https://x.test/a.jpg' };
+  const base = {
+    lat: 1,
+    lon: 1,
+    url: 'https://x.test/a.jpg'
+  };
   assert.equal(
     normalizeSourceItem({
       ...base,
