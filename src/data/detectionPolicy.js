@@ -66,9 +66,9 @@ export const AIRCRAFT_BRACKET_FLOOR_ANCHOR = 0.01;
  */
 export function aircraftBracketAlphaFloor(outsideOpacity) {
   const raw = Number(outsideOpacity);
-  const outside = Number.isFinite(raw)
-    ? Math.max(0, Math.min(1, raw))
-    : AIRCRAFT_BRACKET_FLOOR_ANCHOR;
+  const outside = Number.isFinite(raw) ?
+    Math.max(0, Math.min(1, raw)) :
+    AIRCRAFT_BRACKET_FLOOR_ANCHOR;
   if (outside <= 0) return 0;
   if (outside <= AIRCRAFT_BRACKET_FLOOR_ANCHOR) {
     return AIRCRAFT_BRACKET_ALPHA_FLOOR * (outside / AIRCRAFT_BRACKET_FLOOR_ANCHOR);
@@ -102,14 +102,44 @@ export function detectionHorizontalSector(screenX, viewportWidth) {
 }
 
 export const VIEW_SCALE_BUDGETS = Object.freeze({
-  street: Object.freeze({ 0: 9, 25: 23, 50: 45, 75: 68, 100: 90 }),
-  city: Object.freeze({ 0: 7, 25: 18, 50: 35, 75: 53, 100: 70 }),
-  metro: Object.freeze({ 0: 6, 25: 14, 50: 28, 75: 41, 100: 55 }),
-  regional: Object.freeze({ 0: 4, 25: 10, 50: 20, 75: 30, 100: 40 }),
+  street: Object.freeze({
+    0: 9,
+    25: 23,
+    50: 45,
+    75: 68,
+    100: 90
+  }),
+  city: Object.freeze({
+    0: 7,
+    25: 18,
+    50: 35,
+    75: 53,
+    100: 70
+  }),
+  metro: Object.freeze({
+    0: 6,
+    25: 14,
+    50: 28,
+    75: 41,
+    100: 55
+  }),
+  regional: Object.freeze({
+    0: 4,
+    25: 10,
+    50: 20,
+    75: 30,
+    100: 40
+  }),
   // Full-globe views leave substantial radial screen space around the Earth.
   // Dense satellite fields can use that space without card overlap, so the
   // global row intentionally has a larger ceiling than the regional row.
-  global: Object.freeze({ 0: 6, 25: 14, 50: 28, 75: 42, 100: 56 }),
+  global: Object.freeze({
+    0: 6,
+    25: 14,
+    50: 28,
+    75: 42,
+    100: 56
+  }),
 });
 
 /** Clamp and canonicalize arbitrary input onto the five approved density stops. */
@@ -153,9 +183,9 @@ export function normalizeAllocationStrategy(strategy, fallback = ALLOCATION_ELAS
   const raw = String(strategy || '').trim().toUpperCase();
   if (ALLOCATION_STRATEGIES.includes(raw)) return raw;
   const normalizedFallback = String(fallback || '').trim().toUpperCase();
-  return ALLOCATION_STRATEGIES.includes(normalizedFallback)
-    ? normalizedFallback
-    : ALLOCATION_ELASTIC;
+  return ALLOCATION_STRATEGIES.includes(normalizedFallback) ?
+    normalizedFallback :
+    ALLOCATION_ELASTIC;
 }
 
 /** Classify camera altitude into the shared label-budget view scale. */
@@ -186,22 +216,42 @@ export function migrateDetectionState(mode, densityPct, fallbackDensity = 50) {
   if (normalized === 'OFF') {
     const supplied = Number.isFinite(Number(densityPct)) ? densityPct : fallbackDensity;
     const stop = canonicalizeDensity(supplied, fallbackDensity);
-    return { enabled: false, profile: profileForDensity(stop), densityPct: stop };
+    return {
+      enabled: false,
+      profile: profileForDensity(stop),
+      densityPct: stop
+    };
   }
   if (rawMode === 'PANOPTIC' || rawMode === 'GOD' || rawMode === 'ON') {
     const density = Number.isFinite(Number(densityPct)) ? Math.max(75, Number(densityPct)) : 75;
-    return { enabled: true, profile: 'DENSE', densityPct: canonicalizeDensity(density) };
+    return {
+      enabled: true,
+      profile: 'DENSE',
+      densityPct: canonicalizeDensity(density)
+    };
   }
   if (rawMode === 'SPARSE' || rawMode === 'SURVEY') {
     const density = Number.isFinite(Number(densityPct)) ? Math.min(25, Number(densityPct)) : 25;
     const stop = canonicalizeDensity(density, 25);
-    return { enabled: true, profile: 'SPARSE', densityPct: stop };
+    return {
+      enabled: true,
+      profile: 'SPARSE',
+      densityPct: stop
+    };
   }
   if (normalized === 'BALANCED' || normalized === 'DENSE') {
     const supplied = Number.isFinite(Number(densityPct)) ? canonicalizeDensity(densityPct) : defaultDensityForProfile(normalized);
     const stop = profileForDensity(supplied) === normalized ? supplied : defaultDensityForProfile(normalized);
-    return { enabled: true, profile: normalized, densityPct: stop };
+    return {
+      enabled: true,
+      profile: normalized,
+      densityPct: stop
+    };
   }
   const stop = canonicalizeDensity(densityPct, fallbackDensity);
-  return { enabled: true, profile: profileForDensity(stop), densityPct: stop };
+  return {
+    enabled: true,
+    profile: profileForDensity(stop),
+    densityPct: stop
+  };
 }
