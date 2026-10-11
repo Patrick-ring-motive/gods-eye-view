@@ -6,7 +6,12 @@
  * an on-demand voice call. Pattern from skylight (MIT) shared/src/celestial.ts
  * nextISSPass, extended with set-time + peak tracking.
  */
-import { propagate, gstime, eciToEcf, ecfToLookAngles } from 'satellite.js';
+import {
+  propagate,
+  gstime,
+  eciToEcf,
+  ecfToLookAngles
+} from 'satellite.js';
 
 const R2D = 180 / Math.PI;
 const D2R = Math.PI / 180;
@@ -18,8 +23,11 @@ export function lookAnglesAt(satrec, dateMs, latDeg, lonDeg) {
   const pos = pv && pv.position;
   if (!pos || typeof pos === 'boolean') return null;
   const ecf = eciToEcf(pos, gstime(date));
-  const look = ecfToLookAngles(
-    { latitude: latDeg * D2R, longitude: lonDeg * D2R, height: 0 },
+  const look = ecfToLookAngles({
+      latitude: latDeg * D2R,
+      longitude: lonDeg * D2R,
+      height: 0
+    },
     ecf,
   );
   return {
@@ -29,8 +37,14 @@ export function lookAnglesAt(satrec, dateMs, latDeg, lonDeg) {
 }
 
 export function findNextIssPass({
-  satrec, latDeg, lonDeg, fromMs,
-  minElevDeg = 10, horizonHours = 24, coarseStepSec = 30, fineStepSec = 5,
+  satrec,
+  latDeg,
+  lonDeg,
+  fromMs,
+  minElevDeg = 10,
+  horizonHours = 24,
+  coarseStepSec = 30,
+  fineStepSec = 5,
 }) {
   const elev = (t) => lookAnglesAt(satrec, t, latDeg, lonDeg)?.elevDeg ?? -90;
   const horizonMs = fromMs + horizonHours * 3600_000;
@@ -41,7 +55,10 @@ export function findNextIssPass({
   // pass, that's still "the next pass" for a voice answer — accept it.
   let hit = null;
   for (let t = fromMs; t <= horizonMs; t += coarse) {
-    if (elev(t) >= minElevDeg) { hit = t; break; }
+    if (elev(t) >= minElevDeg) {
+      hit = t;
+      break;
+    }
   }
   if (hit == null) return null;
 
@@ -56,11 +73,20 @@ export function findNextIssPass({
   while (t <= horizonMs) {
     const e = elev(t);
     if (e < minElevDeg && t > riseMs) break;
-    if (e > maxElevDeg) { maxElevDeg = e; maxElevMs = t; }
+    if (e > maxElevDeg) {
+      maxElevDeg = e;
+      maxElevMs = t;
+    }
     t += fine;
   }
   const setMs = t;
 
   const rise = lookAnglesAt(satrec, riseMs, latDeg, lonDeg);
-  return { riseMs, setMs, maxElevDeg, maxElevMs, riseAzDeg: rise ? rise.azDeg : 0 };
+  return {
+    riseMs,
+    setMs,
+    maxElevDeg,
+    maxElevMs,
+    riseAzDeg: rise ? rise.azDeg : 0
+  };
 }
