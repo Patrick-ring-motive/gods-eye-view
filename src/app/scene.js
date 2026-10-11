@@ -1,15 +1,29 @@
 import * as Cesium from 'cesium';
-import { createApplicationViewer } from '../app/viewer.js';
-import { registerDataCredits } from '../data/dataCredits.js';
-import { configureCreditKeyboardAccess } from '../creditKeyboard.js';
-import { MapStackController } from '../mapStackController.js';
-import { loadPhotorealisticTileset } from '../mapStartup.js';
-import { initLogoGaze } from '../logoGaze.js';
+import {
+  createApplicationViewer
+} from '../app/viewer.js';
+import {
+  registerDataCredits
+} from '../data/dataCredits.js';
+import {
+  configureCreditKeyboardAccess
+} from '../creditKeyboard.js';
+import {
+  MapStackController
+} from '../mapStackController.js';
+import {
+  loadPhotorealisticTileset
+} from '../mapStartup.js';
+import {
+  initLogoGaze
+} from '../logoGaze.js';
 import {
   uninstallRenderGovernor,
   governorRequestRender,
 } from '../renderGovernor.js';
-import { describeError } from './errors.js';
+import {
+  describeError
+} from './errors.js';
 
 /** Construct the application globe using the caller's local configuration. */
 export async function createApplicationScene({
@@ -49,9 +63,9 @@ export async function createApplicationScene({
   registerDataCredits(viewer, credits);
   configureCreditKeyboardAccess(document);
   loaderStatus.textContent =
-    googleApiKey || cesiumToken
-      ? 'Loading Google 3D Tiles...'
-      : 'Loading the keyless globe...';
+    googleApiKey || cesiumToken ?
+    'Loading Google 3D Tiles...' :
+    'Loading the keyless globe...';
   const photoreal = await loadPhotorealisticTileset(Cesium, {
     googleApiKey,
     cesiumToken,
@@ -98,7 +112,9 @@ export async function createApplicationScene({
     // live scene state, so intermediate emissions are harmless.
     onChange: (state) => {
       window.dispatchEvent(
-        new CustomEvent('gev:map-stack-changed', { detail: state }),
+        new CustomEvent('gev:map-stack-changed', {
+          detail: state
+        }),
       );
     },
     onError: (message) => console.warn('[MapStack]', message),
@@ -109,5 +125,9 @@ export async function createApplicationScene({
   });
 
   signal.throwIfAborted();
-  return { viewer, tileset, mapStackController };
+  return {
+    viewer,
+    tileset,
+    mapStackController
+  };
 }
