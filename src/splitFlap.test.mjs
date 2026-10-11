@@ -146,11 +146,19 @@ test('null and undefined are treated as empty, never stringified into the chip',
 });
 
 test('option overrides drive both the stagger and the budget', () => {
-  const plan = planSplitFlap('AAAA', 'BBBB', { charMs: 100, staggerMs: 10, maxTotalMs: 1000 });
+  const plan = planSplitFlap('AAAA', 'BBBB', {
+    charMs: 100,
+    staggerMs: 10,
+    maxTotalMs: 1000
+  });
   assert.deepEqual(plan.cells.map((cell) => cell.delayMs), [0, 10, 20, 30]);
   assert.equal(plan.durationMs, 130);
   // Invalid overrides fall back to the defaults rather than producing NaN.
-  const guarded = planSplitFlap('AB', 'CD', { charMs: 0, staggerMs: -5, maxTotalMs: NaN });
+  const guarded = planSplitFlap('AB', 'CD', {
+    charMs: 0,
+    staggerMs: -5,
+    maxTotalMs: NaN
+  });
   assert.equal(guarded.durationMs, FLAP_STAGGER_MS + FLAP_CHAR_MS);
 });
 
@@ -219,8 +227,8 @@ test('an interrupted cascade never flaps away a glyph that was never on screen',
     const candidates = [aChars[index] || ' ', bChars[index] || ' '];
     assert.ok(
       candidates.includes(glyph),
-      `column ${index} shows ${JSON.stringify(glyph)}, which is neither `
-        + `${JSON.stringify(candidates[0])} nor ${JSON.stringify(candidates[1])}`,
+      `column ${index} shows ${JSON.stringify(glyph)}, which is neither ` +
+      `${JSON.stringify(candidates[0])} nor ${JSON.stringify(candidates[1])}`,
     );
   });
 
@@ -298,11 +306,11 @@ test('a cleared column holds its place instead of letting later glyphs slide lef
 
 test('every column keeps its index for the whole cascade, growing or shrinking', () => {
   for (const [from, to] of [
-    ['LOADING LIVE DATA', 'LOAD COMPLETE'],
-    ['LOAD', 'LOAD COMPLETE'],
-    ['TURNING OFF LIVE DATA', 'LIVE DATA OFF'],
-    ['', 'LOAD FAILED'],
-  ]) {
+      ['LOADING LIVE DATA', 'LOAD COMPLETE'],
+      ['LOAD', 'LOAD COMPLETE'],
+      ['TURNING OFF LIVE DATA', 'LIVE DATA OFF'],
+      ['', 'LOAD FAILED'],
+    ]) {
     const plan = planSplitFlap(from, to);
     const widths = new Set();
     for (let t = 0; t <= plan.durationMs + 50; t += 7) {
@@ -331,7 +339,9 @@ test('an interrupt mid-shrink flaps away the blanks and glyphs actually on scree
 
 test('visibleGlyphs is defensive about junk input', () => {
   assert.equal(visibleGlyphs(null, 100), '');
-  assert.equal(visibleGlyphs({ cells: [] }, 100), '');
+  assert.equal(visibleGlyphs({
+    cells: []
+  }, 100), '');
   const plan = planSplitFlap('AB', 'CD');
   // Negative and non-finite elapsed times read as "nothing has turned yet".
   assert.equal(visibleGlyphs(plan, -500), 'AB');
