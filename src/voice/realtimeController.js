@@ -1,5 +1,9 @@
-import { readLayerLifecycleSummary } from './layerSummary.js';
-import { createRealtimeBackend } from './realtimeBackend.js';
+import {
+  readLayerLifecycleSummary
+} from './layerSummary.js';
+import {
+  createRealtimeBackend
+} from './realtimeBackend.js';
 import {
   DEFAULT_VOICE_TIER,
   VOICE_COST_LIMITS,
@@ -118,19 +122,19 @@ export function shouldPauseRadioForVoice({
   speaker = 'idle',
   pushToTalkKeyHeld = false,
 } = {}) {
-  return status === 'connecting'
-    || status === 'executing'
-    || speaker === 'user'
-    || speaker === 'ai'
-    || Boolean(pushToTalkKeyHeld);
+  return status === 'connecting' ||
+    status === 'executing' ||
+    speaker === 'user' ||
+    speaker === 'ai' ||
+    Boolean(pushToTalkKeyHeld);
 }
 
 /** Successful Radio voice actions that should hand control back to playing audio. */
 export function shouldStopVoiceAfterRadioTool(result) {
   return Boolean(
-    result?.ok
-    && result.action === 'control_radio'
-    && ['play', 'resume', 'select', 'next', 'previous'].includes(result.radioAction),
+    result?.ok &&
+    result.action === 'control_radio' &&
+    ['play', 'resume', 'select', 'next', 'previous'].includes(result.radioAction),
   );
 }
 
@@ -141,7 +145,10 @@ export async function startPreparedRadioAfterPlaybackReady(result, {
   cancelRadio,
   isCurrent = () => true,
 } = {}) {
-  if (!result?.ok || !result.radioPlaybackRequested) return { handled: false, result };
+  if (!result?.ok || !result.radioPlaybackRequested) return {
+    handled: false,
+    result
+  };
   try {
     const started = await prepareRadio?.();
     const current = Boolean(isCurrent?.());
@@ -182,7 +189,10 @@ export async function startPreparedRadioAfterPlaybackReady(result, {
 }
 
 /** Silence both broadcaster audio and tuner static when voice owns the speaker. */
-export function silenceRadioForVoice({ duckRadio, pauseRadio } = {}) {
+export function silenceRadioForVoice({
+  duckRadio,
+  pauseRadio
+} = {}) {
   duckRadio?.();
   return pauseRadio?.() || false;
 }
@@ -194,14 +204,25 @@ export function silenceRadioForVoice({ duckRadio, pauseRadio } = {}) {
 const SUPERSEDED_RESPONSE_MEMORY = 8;
 
 export class GevRealtimeController {
-  constructor({ runner, ui, radioLayer = null, dataManager = null,
-    backend = createRealtimeBackend(), signal, debugSink = postDebugLog }) {
+  constructor({
+    runner,
+    ui,
+    radioLayer = null,
+    dataManager = null,
+    backend = createRealtimeBackend(),
+    signal,
+    debugSink = postDebugLog
+  }) {
     this.backend = backend;
     this.lifetimeSignal = signal;
     this.connectionAbort = null;
     this.debugSink = debugSink;
-    this.lifetimeAbort = () => this.stop({ removeUi: true });
-    signal?.addEventListener('abort', this.lifetimeAbort, { once: true });
+    this.lifetimeAbort = () => this.stop({
+      removeUi: true
+    });
+    signal?.addEventListener('abort', this.lifetimeAbort, {
+      once: true
+    });
     this.runner = runner;
     this.ui = ui;
     this.radioLayer = radioLayer;
@@ -255,25 +276,30 @@ export class GevRealtimeController {
     });
     this.costCapStopped = false;
     this.radioControlUnsubscribe = this.radioLayer?.subscribePlaybackControls?.((control) => {
-      const event = typeof control === 'string'
-        ? { action: control, origin: 'user' }
-        : (control || {});
+      const event = typeof control === 'string' ?
+        {
+          action: control,
+          origin: 'user'
+        } :
+        (control || {});
       if (
-        event.origin === 'user'
-        && (event.action === 'pause' || event.action === 'stop')
+        event.origin === 'user' &&
+        (event.action === 'pause' || event.action === 'stop')
       ) {
         this.cancelRadioHandoff();
       } else if (event.origin === 'user' && event.action === 'play' && this.isActive()) {
         // Explicit user playback has already reached `playing` under the voice
         // hard mute. Hand the speaker to Radio without tearing its stream down.
-        this.stop({ preserveRadioPlayback: true });
+        this.stop({
+          preserveRadioPlayback: true
+        });
       }
     }) || null;
     this.radioVisibilityRequestUnsubscribe = this.dataManager?.subscribeVisibilityRequests?.((change) => {
       if (
-        change?.layerId === 'radio'
-        && change.enabled === false
-        && change.origin === 'user'
+        change?.layerId === 'radio' &&
+        change.enabled === false &&
+        change.origin === 'user'
       ) {
         this.reserveRadioVisibilityOff();
       }
@@ -306,19 +332,25 @@ export class GevRealtimeController {
     this.pendingViewportDeletes = new Set();
     this.errors = loadStoredErrors();
     this.sessionId = createDebugSessionId();
-    this.debugLog('controller.created', { status: this.status });
+    this.debugLog('controller.created', {
+      status: this.status
+    });
   }
 
   isActive() {
     return this.status !== 'idle' && this.status !== 'error';
   }
 
-  async start({ pushToTalk = false } = {}) {
+  async start({
+    pushToTalk = false
+  } = {}) {
     if (this.isActive() || this.lifetimeSignal?.aborted) return;
     this.pauseRadioForVoice();
     const pushToTalkKeyHeld = pushToTalk && this.pushToTalkKeyHeld;
     const spaceKeyHeld = this.spaceKeyHeld;
-    this.stop({ preserveStatus: true });
+    this.stop({
+      preserveStatus: true
+    });
     this.pushToTalkMode = pushToTalk;
     this.pushToTalkKeyHeld = pushToTalkKeyHeld;
     this.spaceKeyHeld = spaceKeyHeld;
@@ -358,9 +390,15 @@ export class GevRealtimeController {
     let localStream = null;
     let localPc = null;
     try {
-      const minted = await this.backend.requestToken({ tier: this.voiceTier, signal });
+      const minted = await this.backend.requestToken({
+        tier: this.voiceTier,
+        signal
+      });
       const token = minted.token;
-      if (this.abandonStart(epoch, { localStream, localPc })) return;
+      if (this.abandonStart(epoch, {
+          localStream,
+          localPc
+        })) return;
       // Bind the session meter to the model actually served. An env override
       // (OPENAI_REALTIME_MODEL[_MINI]) can point a tier at a different model,
       // and pricing by the tier we asked for would then under-meter and let the
@@ -372,9 +410,9 @@ export class GevRealtimeController {
       const costState = this.costTracker.state();
       if (!costState.ratesRecognized) {
         console.warn(
-          `[GEV voice] unrecognised Realtime model "${costState.modelId}" — `
-          + 'billing this session at the most expensive known rates. Update the '
-          + 'rate table in src/voice/voiceCost.js.'
+          `[GEV voice] unrecognised Realtime model "${costState.modelId}" — ` +
+          'billing this session at the most expensive known rates. Update the ' +
+          'rate table in src/voice/voiceCost.js.'
         );
       }
       this.syncCostUi();
@@ -392,7 +430,10 @@ export class GevRealtimeController {
           channelCount: 1,
         },
       });
-      if (this.abandonStart(epoch, { localStream, localPc })) return;
+      if (this.abandonStart(epoch, {
+          localStream,
+          localPc
+        })) return;
       this.stream = localStream;
       this.setMicrophoneEnabled(!this.pushToTalkMode || this.pushToTalkKeyHeld);
       this.startVoiceVisualizer(localStream);
@@ -432,11 +473,13 @@ export class GevRealtimeController {
       const dataChannel = this.pc.createDataChannel('oai-events');
       this.dc = dataChannel;
       dataChannel.addEventListener('open', () => {
-        const detail = this.pushToTalkMode
-          ? (this.pushToTalkKeyHeld ? 'Release Space to send' : 'Hold Space to talk')
-          : 'Ask or command';
+        const detail = this.pushToTalkMode ?
+          (this.pushToTalkKeyHeld ? 'Release Space to send' : 'Hold Space to talk') :
+          'Ask or command';
         this.setStatus('listening', detail);
-        this.debugLog('data_channel.open', { connection: this.connectionDiagnostics(dataChannel) });
+        this.debugLog('data_channel.open', {
+          connection: this.connectionDiagnostics(dataChannel)
+        });
       });
       dataChannel.addEventListener('message', (event) => this.handleRealtimeEvent(event));
       dataChannel.addEventListener('error', (event) => {
@@ -454,29 +497,49 @@ export class GevRealtimeController {
 
       const offer = await this.pc.createOffer();
       await this.pc.setLocalDescription(offer);
-      if (this.abandonStart(epoch, { localStream, localPc })) return;
+      if (this.abandonStart(epoch, {
+          localStream,
+          localPc
+        })) return;
       this.debugLog('webrtc.offer.created', {
         sdpLength: offer.sdp?.length || 0,
         connection: this.connectionDiagnostics(),
       });
-      const answerSdp = await this.backend.negotiate({ offerSdp: offer.sdp, credential: minted, signal });
-      if (this.abandonStart(epoch, { localStream, localPc })) return;
+      const answerSdp = await this.backend.negotiate({
+        offerSdp: offer.sdp,
+        credential: minted,
+        signal
+      });
+      if (this.abandonStart(epoch, {
+          localStream,
+          localPc
+        })) return;
       await this.pc.setRemoteDescription({
         type: 'answer',
         sdp: answerSdp,
       });
-      if (this.abandonStart(epoch, { localStream, localPc })) return;
-      this.debugLog('webrtc.answer.applied', { connection: this.connectionDiagnostics() });
+      if (this.abandonStart(epoch, {
+          localStream,
+          localPc
+        })) return;
+      this.debugLog('webrtc.answer.applied', {
+        connection: this.connectionDiagnostics()
+      });
     } catch (error) {
       // A superseded attempt should die quietly — its resources are already
       // released by abandonStart / the newer start(), and surfacing its error
       // would clobber the live session's status (H7).
       if (epoch !== this.startEpoch) {
-        releaseStartResources({ localStream, localPc });
+        releaseStartResources({
+          localStream,
+          localPc
+        });
         return;
       }
       const diagnostics = this.connectionDiagnostics();
-      this.stop({ preserveStatus: true });
+      this.stop({
+        preserveStatus: true
+      });
       this.reportError('Realtime connection', error, diagnostics);
     }
   }
@@ -497,7 +560,10 @@ export class GevRealtimeController {
       this.dc = null;
     }
     releaseStartResources(resources);
-    this.debugLog('session.start.abandoned', { epoch, currentEpoch: this.startEpoch });
+    this.debugLog('session.start.abandoned', {
+      epoch,
+      currentEpoch: this.startEpoch
+    });
     return true;
   }
 
@@ -551,11 +617,11 @@ export class GevRealtimeController {
       }
       this.spaceKeyHeld = true;
       this.pushToTalkHoldFocusOwner = document.activeElement;
-      this.pushToTalkHoldControl = isInteractiveSpaceTarget(document.activeElement)
-        ? document.activeElement
-        : (isInteractiveSpaceTarget(event.target)
-          ? event.target.closest?.(SPACE_INTERACTIVE_SELECTOR) || event.target
-          : null);
+      this.pushToTalkHoldControl = isInteractiveSpaceTarget(document.activeElement) ?
+        document.activeElement :
+        (isInteractiveSpaceTarget(event.target) ?
+          event.target.closest?.(SPACE_INTERACTIVE_SELECTOR) || event.target :
+          null);
       this.pushToTalkHoldPreservesNative = Boolean(this.pushToTalkHoldControl);
       // Background Space is reserved immediately to avoid scrolling. A focused
       // control keeps its native keydown and release unless the hold is claimed.
@@ -574,16 +640,16 @@ export class GevRealtimeController {
         // gesture rather than letting voice claim a key held for another owner.
         if (document.activeElement !== this.pushToTalkHoldFocusOwner) return;
         if (
-          document.visibilityState === 'hidden'
-          || (typeof document.hasFocus === 'function' && !document.hasFocus())
+          document.visibilityState === 'hidden' ||
+          (typeof document.hasFocus === 'function' && !document.hasFocus())
         ) return;
         if (this.isActive() && !this.pushToTalkMode) return;
         // Blur before voice starts. This removes the focused state and ensures
         // the eventual Space release cannot activate the old control.
         if (
-          this.pushToTalkHoldControl
-          && document.activeElement === this.pushToTalkHoldControl
-          && typeof this.pushToTalkHoldControl.blur === 'function'
+          this.pushToTalkHoldControl &&
+          document.activeElement === this.pushToTalkHoldControl &&
+          typeof this.pushToTalkHoldControl.blur === 'function'
         ) {
           this.pushToTalkHoldControl.blur();
         }
@@ -594,7 +660,9 @@ export class GevRealtimeController {
           this.setMicrophoneEnabled(true);
           if (this.status === 'listening') this.setStatus('listening', 'Release Space to send');
         } else {
-          this.start({ pushToTalk: true });
+          this.start({
+            pushToTalk: true
+          });
           // start() performs a controlled stop() before connecting. Restore the
           // marker it clears so the UI reflects this still-held gesture.
           if (this.pushToTalkKeyHeld) this.ui.root.dataset.pushToTalk = 'held';
@@ -720,9 +788,9 @@ export class GevRealtimeController {
           let energy = 0;
           for (let bin = start; bin < end; bin++) energy += signal.data[bin];
           const normalized = Math.min(1, (energy / (end - start)) / 190);
-          const gate = this.visualizerSpeaker === 'ai'
-            ? ASSISTANT_VISUALIZER_GATE
-            : MICROPHONE_VISUALIZER_GATE;
+          const gate = this.visualizerSpeaker === 'ai' ?
+            ASSISTANT_VISUALIZER_GATE :
+            MICROPHONE_VISUALIZER_GATE;
           const shaped = Math.pow(gateVoiceVisualizerLevel(normalized, gate), 0.72);
           bar.style.setProperty('--audio-level', `${Math.round(5 + shaped * 29)}px`);
           bar.style.setProperty('--audio-opacity', `${(0.5 + shaped * 0.5).toFixed(2)}`);
@@ -746,7 +814,10 @@ export class GevRealtimeController {
     const context = this.visualizerAudioContext;
     if (!context || !stream) return;
     try {
-      try { this.visualizerOutputSource?.disconnect(); } catch { /* no-op */ }
+      try {
+        this.visualizerOutputSource?.disconnect();
+      } catch {
+        /* no-op */ }
       const analyser = context.createAnalyser();
       analyser.fftSize = 64;
       analyser.smoothingTimeConstant = 0.72;
@@ -770,8 +841,14 @@ export class GevRealtimeController {
   stopVoiceVisualizer() {
     if (this.visualizerFrame) cancelAnimationFrame(this.visualizerFrame);
     this.visualizerFrame = null;
-    try { this.visualizerSource?.disconnect(); } catch { /* no-op */ }
-    try { this.visualizerOutputSource?.disconnect(); } catch { /* no-op */ }
+    try {
+      this.visualizerSource?.disconnect();
+    } catch {
+      /* no-op */ }
+    try {
+      this.visualizerOutputSource?.disconnect();
+    } catch {
+      /* no-op */ }
     this.visualizerSource = null;
     this.visualizerAnalyser = null;
     this.visualizerData = null;
@@ -791,12 +868,16 @@ export class GevRealtimeController {
   // a live hot mic behind it (H8). stop() itself bumps the epoch and clears the
   // grace timer; preserveStatus lets reportError own the final 'error' status.
   fatalError(source, error = null, extra = {}) {
-    this.stop({ preserveStatus: true });
+    this.stop({
+      preserveStatus: true
+    });
     return this.reportError(source, error, extra);
   }
 
   stop(options = {}) {
-    const { removeUi = false, preserveStatus = false, preserveRadioPlayback = false } = options;
+    const {
+      removeUi = false, preserveStatus = false, preserveRadioPlayback = false
+    } = options;
     // Bump the epoch so any start() awaiting a token/getUserMedia/SDP bails and
     // releases its own resources instead of promoting them onto a stopped
     // controller (H7).
@@ -843,11 +924,17 @@ export class GevRealtimeController {
       // "lower bound" — the estimate can also run high (worst-case rates for
       // residuals/unknown models), so it is simply partial, not directional.
       if (this.responseActive) this.costTracker.markIncomplete();
-      try { this.dc.close(); } catch { /* no-op */ }
+      try {
+        this.dc.close();
+      } catch {
+        /* no-op */ }
       this.dc = null;
     }
     if (this.pc) {
-      try { this.pc.close(); } catch { /* no-op */ }
+      try {
+        this.pc.close();
+      } catch {
+        /* no-op */ }
       this.pc = null;
     }
     this._tearingDown = false;
@@ -943,7 +1030,10 @@ export class GevRealtimeController {
       item: {
         type: 'message',
         role: 'system',
-        content: [{ type: 'input_text', text: JSON.stringify(payload) }],
+        content: [{
+          type: 'input_text',
+          text: JSON.stringify(payload)
+        }],
       },
     }, 'client.map_event');
   }
@@ -954,14 +1044,19 @@ export class GevRealtimeController {
     }
     const cleanText = String(text || '').trim();
     if (!cleanText) return;
-    this.cancelRadioHandoff({ abortTools: true });
+    this.cancelRadioHandoff({
+      abortTools: true
+    });
     this.supersedeActiveResponseForUserTurn();
     const itemEvent = {
       type: 'conversation.item.create',
       item: {
         type: 'message',
         role: 'user',
-        content: [{ type: 'input_text', text: cleanText }],
+        content: [{
+          type: 'input_text',
+          text: cleanText
+        }],
       },
     };
     this.sendRealtimeEvent(itemEvent, 'client.user_text');
@@ -1028,7 +1123,9 @@ export class GevRealtimeController {
     if (!this.dc || this.dc.readyState !== 'open') return;
     this.pendingUserTextResponse = false;
     this.responseCreatePending = true;
-    const sent = this.sendRealtimeEvent({ type: 'response.create' }, 'client.response_create.user_text');
+    const sent = this.sendRealtimeEvent({
+      type: 'response.create'
+    }, 'client.response_create.user_text');
     if (!sent) this.responseCreatePending = false;
   }
 
@@ -1048,7 +1145,9 @@ export class GevRealtimeController {
 
     if (payload.type === 'error') {
       if (payload.error?.code === 'conversation_already_has_active_response') {
-        this.cancelRadioHandoff({ abortTools: true });
+        this.cancelRadioHandoff({
+          abortTools: true
+        });
         this.responseActive = true;
         this.responseCreatePending = false;
         this.pendingResponseInstructions = null;
@@ -1081,7 +1180,9 @@ export class GevRealtimeController {
       this.responseCreatePending = false;
       this.pendingResponseInstructions = null;
       this.pendingUserTextResponse = false;
-      this.cancelRadioHandoff({ abortTools: true });
+      this.cancelRadioHandoff({
+        abortTools: true
+      });
       this.reportError('Realtime API', payload.error, {
         eventId: payload.event_id,
         type: payload.error?.type,
@@ -1095,7 +1196,9 @@ export class GevRealtimeController {
     if (payload.type === 'input_audio_buffer.speech_started') {
       this.userTurnPending = true;
       this.pendingResponseInstructions = null;
-      this.cancelRadioHandoff({ abortTools: true });
+      this.cancelRadioHandoff({
+        abortTools: true
+      });
       this.setVoiceSpeaker('user');
     }
     this.updateResponseState(payload);
@@ -1139,7 +1242,9 @@ export class GevRealtimeController {
     // re-check would be untestable dead code. If the extractor ever returns
     // multiple calls, restore a per-iteration check inside the loop below.
     if (this.isSessionEnding()) {
-      this.debugLog('voice.cost.cap.tools_skipped', { skipped: calls.length });
+      this.debugLog('voice.cost.cap.tools_skipped', {
+        skipped: calls.length
+      });
       return;
     }
 
@@ -1198,23 +1303,23 @@ export class GevRealtimeController {
       try {
         const parsedArguments = parseArguments(call.arguments);
         const isRadioControlCall = call.name === 'control_radio';
-        const isRadioVisibilityCall = call.name === 'set_layer_visibility'
-          && parsedArguments.layerId === 'radio';
+        const isRadioVisibilityCall = call.name === 'set_layer_visibility' &&
+          parsedArguments.layerId === 'radio';
         isRadioFeatureCall = isRadioControlCall || isRadioVisibilityCall;
-        const radioControlAction = isRadioControlCall
-          ? String(parsedArguments.action || '').toLowerCase()
-          : null;
-        const radioAuthorityDomain = isRadioVisibilityCall
-          || ['enable', 'disable'].includes(radioControlAction)
-          ? 'visibility'
-          : radioControlAction === 'status'
-            ? 'query'
-            : isRadioControlCall
-              ? 'playback'
-              : null;
+        const radioControlAction = isRadioControlCall ?
+          String(parsedArguments.action || '').toLowerCase() :
+          null;
+        const radioAuthorityDomain = isRadioVisibilityCall ||
+          ['enable', 'disable'].includes(radioControlAction) ?
+          'visibility' :
+          radioControlAction === 'status' ?
+          'query' :
+          isRadioControlCall ?
+          'playback' :
+          null;
         radioOwnershipClaimed = (
-          isRadioControlCall
-          && ['disable', 'pause', 'stop'].includes(radioControlAction)
+          isRadioControlCall &&
+          ['disable', 'pause', 'stop'].includes(radioControlAction)
         ) || (isRadioVisibilityCall && parsedArguments.enabled === false);
         if (radioOwnershipClaimed) {
           // Reserve authority by cancelling unsafe underlying work now, but do
@@ -1222,10 +1327,10 @@ export class GevRealtimeController {
           // semantic success. A failed stronger action must not suppress an
           // older sibling that already completed valid work.
           radioReservationToken = this.reserveRadioToolHandoff({
-            abortScope: radioControlAction === 'disable'
-              || (isRadioVisibilityCall && parsedArguments.enabled === false)
-              ? 'all'
-              : 'playback',
+            abortScope: radioControlAction === 'disable' ||
+              (isRadioVisibilityCall && parsedArguments.enabled === false) ?
+              'all' :
+              'playback',
           });
         }
         radioHandoffEpochAtStart = this.radioHandoffEpoch;
@@ -1248,29 +1353,29 @@ export class GevRealtimeController {
         result = await this.runner(call.name, parsedArguments, {
           signal: toolController.signal,
           isCurrent: () => (
-            this.activeToolAbortControllers.has(toolController)
-            && !this.userTurnPending
-            && this.dc === resultChannel
-            && resultChannel?.readyState === 'open'
-            && (radioAuthorityDomain !== 'playback'
-              || radioHandoffEpochAtStart === this.radioHandoffEpoch)
+            this.activeToolAbortControllers.has(toolController) &&
+            !this.userTurnPending &&
+            this.dc === resultChannel &&
+            resultChannel?.readyState === 'open' &&
+            (radioAuthorityDomain !== 'playback' ||
+              radioHandoffEpochAtStart === this.radioHandoffEpoch)
           ),
         });
         if (result?.ok && result.radioPlaybackRequested) {
           const sessionIsCurrent = (
-            this.activeToolAbortControllers.has(toolController)
-            && !this.userTurnPending
-            && this.dc === resultChannel
-            && resultChannel?.readyState === 'open'
+            this.activeToolAbortControllers.has(toolController) &&
+            !this.userTurnPending &&
+            this.dc === resultChannel &&
+            resultChannel?.readyState === 'open'
           );
-          const handoffIsCurrent = sessionIsCurrent
-            && radioHandoffEpochAtStart === this.radioHandoffEpoch;
+          const handoffIsCurrent = sessionIsCurrent &&
+            radioHandoffEpochAtStart === this.radioHandoffEpoch;
           const siblingStoppedPlayback = Boolean(
-            sessionIsCurrent
-            && !handoffIsCurrent
-            && toolResponseId
-            && this.radioHandoffCancellation?.epoch === this.radioHandoffEpoch
-            && this.radioHandoffCancellation?.responseId === toolResponseId,
+            sessionIsCurrent &&
+            !handoffIsCurrent &&
+            toolResponseId &&
+            this.radioHandoffCancellation?.epoch === this.radioHandoffEpoch &&
+            this.radioHandoffCancellation?.responseId === toolResponseId,
           );
           if (handoffIsCurrent) {
             this.pendingRadioPlaybackResult = result;
@@ -1298,9 +1403,9 @@ export class GevRealtimeController {
             };
           }
         } else if (
-          result?.ok
-          && result.action === 'control_radio'
-          && ['disable', 'pause', 'stop'].includes(result.radioAction)
+          result?.ok &&
+          result.action === 'control_radio' &&
+          ['disable', 'pause', 'stop'].includes(result.radioAction)
         ) {
           if (!radioOwnershipClaimed) {
             this.cancelRadioHandoff({
@@ -1310,9 +1415,9 @@ export class GevRealtimeController {
           }
         }
       } catch (error) {
-        const authoritativeRadioState = isRadioFeatureCall
-          ? (this.radioLayer?.getUIState?.() || {})
-          : null;
+        const authoritativeRadioState = isRadioFeatureCall ?
+          (this.radioLayer?.getUIState?.() || {}) :
+          null;
         result = {
           ok: false,
           error: error?.message || 'GEV command failed',
@@ -1345,7 +1450,9 @@ export class GevRealtimeController {
           ...result,
           ...lifecycleSummary,
           audioState: authoritativeRadioState.audioState || result.audioState,
-          ...(result.radioAction === 'pause' && lifecycleSummary.enabled === false ? { changed: false } : {}),
+          ...(result.radioAction === 'pause' && lifecycleSummary.enabled === false ? {
+            changed: false
+          } : {}),
         };
       }
       this.debugLog('tool.result', {
@@ -1354,11 +1461,11 @@ export class GevRealtimeController {
         result,
       });
       lastResult = result;
-      stopAfterRadioTool = stopAfterRadioTool
-        || (
-          shouldStopVoiceAfterRadioTool(result)
-          && !result.radioPlaybackRequested
-          && !result.radioPlaybackSuppressed
+      stopAfterRadioTool = stopAfterRadioTool ||
+        (
+          shouldStopVoiceAfterRadioTool(result) &&
+          !result.radioPlaybackRequested &&
+          !result.radioPlaybackSuppressed
         );
       sentOutput = this.sendToolOutput(call.call_id || call.id, result) || sentOutput;
       if (radioReservationToken) {
@@ -1382,7 +1489,9 @@ export class GevRealtimeController {
       try {
         await this.sendVisualContextIfUseful(lastResult);
       } catch (error) {
-        this.debugLog('viewport_context.failed', { error: error?.message || String(error) });
+        this.debugLog('viewport_context.failed', {
+          error: error?.message || String(error)
+        });
       }
       // Keep the Radio handoff wording authoritative even when another tool
       // result follows Radio in the same multi-intent response.
@@ -1444,8 +1553,7 @@ export class GevRealtimeController {
         id: newItemId,
         type: 'message',
         role: 'user',
-        content: [
-          {
+        content: [{
             type: 'input_text',
             text: "Current God's Eye View viewport screenshot. Read any clearly visible street, building, and place labels in the image and combine them with the structured nearbyPlaces, streetLabels, and scene context. Do not invent labels that are not legible.",
           },
@@ -1473,23 +1581,26 @@ export class GevRealtimeController {
     if (status === 'error') this.ui.root.classList.remove('error-dismissed');
     this.updateVoiceButtonLabel();
     this.ui.status.textContent = STATUS[status] || STATUS.idle;
-    const resolvedDetail = status === 'listening' && this.pushToTalkMode
-      ? (this.pushToTalkKeyHeld ? 'Release Space to send' : 'Hold Space to talk')
-      : detail;
-    const primaryDetail = status === 'error'
-      ? 'VOICE UNAVAILABLE'
-      : (resolvedDetail || (status === 'idle' ? 'VOICE STANDBY' : 'VOICE ACTIVE'));
+    const resolvedDetail = status === 'listening' && this.pushToTalkMode ?
+      (this.pushToTalkKeyHeld ? 'Release Space to send' : 'Hold Space to talk') :
+      detail;
+    const primaryDetail = status === 'error' ?
+      'VOICE UNAVAILABLE' :
+      (resolvedDetail || (status === 'idle' ? 'VOICE STANDBY' : 'VOICE ACTIVE'));
     this.ui.detail.textContent = primaryDetail;
     this.ui.detail.title = primaryDetail;
     if (this.ui.errorDetail) {
-      this.ui.errorDetail.textContent = status === 'error'
-        ? (resolvedDetail || 'Voice session could not be started.')
-        : '';
+      this.ui.errorDetail.textContent = status === 'error' ?
+        (resolvedDetail || 'Voice session could not be started.') :
+        '';
     }
     if (status === 'idle' || status === 'connecting' || status === 'error') {
       this.setVoiceSpeaker('idle');
     }
-    if (shouldPauseRadioForVoice({ status, pushToTalkKeyHeld: this.pushToTalkKeyHeld })) {
+    if (shouldPauseRadioForVoice({
+        status,
+        pushToTalkKeyHeld: this.pushToTalkKeyHeld
+      })) {
       this.pauseRadioForVoice();
     }
   }
@@ -1509,7 +1620,9 @@ export class GevRealtimeController {
     }
   }
 
-  setVoiceSpeaker(speaker, { keepVisualizerSpeaker = false } = {}) {
+  setVoiceSpeaker(speaker, {
+    keepVisualizerSpeaker = false
+  } = {}) {
     const nextSpeaker = speaker === 'user' || speaker === 'ai' ? speaker : 'idle';
     this.visualizerSpeaker = resolveVoiceVisualizerSpeaker(
       this.visualizerSpeaker,
@@ -1517,14 +1630,18 @@ export class GevRealtimeController {
       keepVisualizerSpeaker,
     );
     this.ui.root.dataset.speaker = nextSpeaker;
-    if (shouldPauseRadioForVoice({ speaker: nextSpeaker })) this.pauseRadioForVoice();
+    if (shouldPauseRadioForVoice({
+        speaker: nextSpeaker
+      })) this.pauseRadioForVoice();
   }
 
   /** Pause Radio for explicit voice ownership; never resumes it automatically. */
   pauseRadioForVoice() {
     return silenceRadioForVoice({
       duckRadio: () => this.setRadioVoiceDucking(true),
-      pauseRadio: () => this.radioLayer?.pause?.({ origin: 'voice-duck' }),
+      pauseRadio: () => this.radioLayer?.pause?.({
+        origin: 'voice-duck'
+      }),
     });
   }
 
@@ -1543,7 +1660,9 @@ export class GevRealtimeController {
   reserveRadioVisibilityOff() {
     const reservation = ++this.radioVisibilityOffReservation;
     this.radioVisibilityOffPending = true;
-    this.freezeRadioHandoffForReservation({ abortActiveTools: true });
+    this.freezeRadioHandoffForReservation({
+      abortActiveTools: true
+    });
     // The manager publishes the request synchronously before appending it to
     // the per-layer queue. Defer one microtask so waitForLayerSettled observes
     // this request as well as any earlier lifecycle work.
@@ -1554,7 +1673,9 @@ export class GevRealtimeController {
         this.radioVisibilityOffPending = false;
         if (this.dataManager?.isEnabled?.('radio') === false) {
           this.radioHandoffDeferredByReservation = false;
-          this.cancelRadioHandoff({ abortRadioSiblings: true });
+          this.cancelRadioHandoff({
+            abortRadioSiblings: true
+          });
           return;
         }
         this.resumeDeferredRadioHandoffIfUnreserved();
@@ -1567,8 +1688,13 @@ export class GevRealtimeController {
   }
 
   /** Freeze active, prepared, and preflight Radio work without committing. */
-  freezeRadioHandoffForReservation({ abortScope = 'all', abortActiveTools = false } = {}) {
-    if (abortActiveTools) this.abortRadioSiblingTools({ scope: abortScope });
+  freezeRadioHandoffForReservation({
+    abortScope = 'all',
+    abortActiveTools = false
+  } = {}) {
+    if (abortActiveTools) this.abortRadioSiblingTools({
+      scope: abortScope
+    });
     if (this.radioHandoffInFlight) {
       if (this.radioHandoffInFlightResult && !this.pendingRadioPlaybackResult) {
         this.pendingRadioPlaybackResult = this.radioHandoffInFlightResult;
@@ -1577,27 +1703,43 @@ export class GevRealtimeController {
       const attemptId = this.radioHandoffAttemptId;
       this.radioHandoffInFlight = false;
       this.radioHandoffAttemptId = null;
-      this.radioLayer?.stopPlayback?.({ origin: 'voice-cleanup', attemptId });
+      this.radioLayer?.stopPlayback?.({
+        origin: 'voice-cleanup',
+        attemptId
+      });
     }
   }
 
   /** Reserve a dedicated/generic stronger Radio tool until its result settles. */
-  reserveRadioToolHandoff({ abortScope = 'all' } = {}) {
+  reserveRadioToolHandoff({
+    abortScope = 'all'
+  } = {}) {
     const token = Symbol('radio-tool-handoff-reservation');
-    this.radioToolHandoffReservations.set(token, { abortScope });
-    this.freezeRadioHandoffForReservation({ abortScope });
+    this.radioToolHandoffReservations.set(token, {
+      abortScope
+    });
+    this.freezeRadioHandoffForReservation({
+      abortScope
+    });
     return token;
   }
 
   /** Commit or release one stronger Radio tool's provisional reservation. */
-  settleRadioToolHandoffReservation(token, { commit = false, responseId = null } = {}) {
+  settleRadioToolHandoffReservation(token, {
+    commit = false,
+    responseId = null
+  } = {}) {
     const reservation = this.radioToolHandoffReservations.get(token);
     if (!reservation) return;
     this.radioToolHandoffReservations.delete(token);
     if (commit) {
       this.radioHandoffDeferredByReservation = false;
-      this.abortRadioSiblingTools({ scope: reservation.abortScope });
-      this.cancelRadioHandoff({ responseId });
+      this.abortRadioSiblingTools({
+        scope: reservation.abortScope
+      });
+      this.cancelRadioHandoff({
+        responseId
+      });
       return;
     }
     this.resumeDeferredRadioHandoffIfUnreserved();
@@ -1613,9 +1755,9 @@ export class GevRealtimeController {
   /** Start one prepared handoff unless a direct user OFF currently owns it. */
   async startPendingRadioHandoff() {
     if (
-      !this.pendingRadioPlaybackResult
-      || this.isRadioHandoffReserved()
-      || this.radioHandoffInFlight
+      !this.pendingRadioPlaybackResult ||
+      this.isRadioHandoffReserved() ||
+      this.radioHandoffInFlight
     ) return;
     const pendingResult = this.pendingRadioPlaybackResult;
     this.pendingRadioPlaybackResult = null;
@@ -1629,19 +1771,23 @@ export class GevRealtimeController {
     // Radio remains inaudible through buffering and confirmed `playing`.
     this.radioLayer?.setVoiceDucked?.(true);
     const radioHandoff = await startPreparedRadioAfterPlaybackReady(pendingResult, {
-      prepareRadio: () => this.radioLayer?.playForVoice?.({ attemptId: handoffAttemptId }),
-      stopVoice: () => this.stop({ preserveRadioPlayback: true }),
+      prepareRadio: () => this.radioLayer?.playForVoice?.({
+        attemptId: handoffAttemptId
+      }),
+      stopVoice: () => this.stop({
+        preserveRadioPlayback: true
+      }),
       cancelRadio: () => this.radioLayer?.stopPlayback?.({
         origin: 'voice-cleanup',
         attemptId: handoffAttemptId,
       }),
       isCurrent: () => (
-        this.radioHandoffInFlight
-        && !this.isRadioHandoffReserved()
-        && handoffEpoch === this.radioHandoffEpoch
-        && !this.userTurnPending
-        && this.dc === handoffChannel
-        && handoffChannel?.readyState === 'open'
+        this.radioHandoffInFlight &&
+        !this.isRadioHandoffReserved() &&
+        handoffEpoch === this.radioHandoffEpoch &&
+        !this.userTurnPending &&
+        this.dc === handoffChannel &&
+        handoffChannel?.readyState === 'open'
       ),
     });
     const stillCurrent = handoffEpoch === this.radioHandoffEpoch;
@@ -1652,7 +1798,9 @@ export class GevRealtimeController {
         this.radioHandoffInFlightResult = null;
       }
     }
-    this.debugLog('tool.radio_handoff', { result: radioHandoff.result });
+    this.debugLog('tool.radio_handoff', {
+      result: radioHandoff.result
+    });
     if (radioHandoff.result?.ok || radioHandoff.cancelled || !stillCurrent) return;
     if (this.dc?.readyState === 'open' && !this.userTurnPending) {
       this.setStatus('listening', 'Radio did not start');
@@ -1661,7 +1809,10 @@ export class GevRealtimeController {
   }
 
   /** Invalidate delayed Radio work inside the requested authority scope. */
-  abortRadioSiblingTools({ responseId = null, scope = 'all' } = {}) {
+  abortRadioSiblingTools({
+    responseId = null,
+    scope = 'all'
+  } = {}) {
     for (const [controller, metadata] of this.activeRadioToolControllers) {
       if (responseId && metadata.responseId !== responseId) continue;
       if (scope === 'playback' && metadata.authorityDomain !== 'playback') continue;
@@ -1671,7 +1822,11 @@ export class GevRealtimeController {
   }
 
   /** Invalidate delayed Radio work and stop only a preflight owned by voice. */
-  cancelRadioHandoff({ abortTools = false, responseId = null, abortRadioSiblings = false } = {}) {
+  cancelRadioHandoff({
+    abortTools = false,
+    responseId = null,
+    abortRadioSiblings = false
+  } = {}) {
     this.radioHandoffEpoch++;
     this.radioHandoffCancellation = {
       epoch: this.radioHandoffEpoch,
@@ -1695,7 +1850,10 @@ export class GevRealtimeController {
     this.radioHandoffInFlight = false;
     this.radioHandoffAttemptId = null;
     if (shouldStopPlayback) {
-      this.radioLayer?.stopPlayback?.({ origin: 'voice-cleanup', attemptId });
+      this.radioLayer?.stopPlayback?.({
+        origin: 'voice-cleanup',
+        attemptId
+      });
     }
   }
 
@@ -1814,9 +1972,9 @@ export class GevRealtimeController {
       this.ui.tierButton.textContent = isMini ? 'MINI' : 'STD';
       this.ui.tierButton.setAttribute('aria-pressed', isMini ? 'true' : 'false');
       const pendingId = resolveVoiceModel(pendingTier).id;
-      this.ui.tierButton.title = this.isActive() && state.modelId !== pendingId
-        ? `Next session: ${pendingId} — this session stays on ${state.modelId}`
-        : `Voice model: ${pendingId} — click to switch to ${
+      this.ui.tierButton.title = this.isActive() && state.modelId !== pendingId ?
+        `Next session: ${pendingId} — this session stays on ${state.modelId}` :
+        `Voice model: ${pendingId} — click to switch to ${
           isMini ? 'standard' : 'mini'
         }; applies next session`;
     }
@@ -1825,8 +1983,8 @@ export class GevRealtimeController {
       this.ui.costValue.dataset.level = state.level;
       this.ui.costValue.title =
         `Estimated session cost on ${state.modelId} — ${state.responses} response(s). ` +
-        `Warns at ${formatCostUsd(state.warnUsd)}, ends the session at ${formatCostUsd(state.capUsd)}.`
-        + (state.note ? ` ${state.note}` : '');
+        `Warns at ${formatCostUsd(state.warnUsd)}, ends the session at ${formatCostUsd(state.capUsd)}.` +
+        (state.note ? ` ${state.note}` : '');
     }
   }
 
@@ -1942,7 +2100,9 @@ export class GevRealtimeController {
       modelId: state.modelId,
     });
     try {
-      this.stop({ preserveStatus: true });
+      this.stop({
+        preserveStatus: true
+      });
     } finally {
       this.setStatus('idle', `Session ended — cost cap ${state.display}`);
       this.syncCostUi();
@@ -1970,7 +2130,9 @@ export class GevRealtimeController {
       // The data-channel completion can arrive before WebRTC has drained its
       // final audio packets. Return the UI styling to idle now, but keep the
       // meter on the remote stream until the next user turn or session stop.
-      this.setVoiceSpeaker('idle', { keepVisualizerSpeaker: true });
+      this.setVoiceSpeaker('idle', {
+        keepVisualizerSpeaker: true
+      });
       // A failed response is otherwise swallowed here — the assistant just goes
       // mute with no feedback (H9/H3). Surface the reason so the user knows why.
       if (responseStatus === 'failed') {
@@ -2029,19 +2191,24 @@ export class GevRealtimeController {
     this.responseCreatePending = true;
     const sent = this.sendRealtimeEvent({
       type: 'response.create',
-      response: { instructions },
+      response: {
+        instructions
+      },
     }, 'client.response_create.tool_followup');
     if (!sent) this.responseCreatePending = false;
   }
 
   debugLog(event, payload = {}) {
-    try { this.debugSink?.({
-      timestamp: new Date().toISOString(),
-      sessionId: this.sessionId,
-      event,
-      status: this.status,
-      payload: sanitizeDebugValue(payload),
-    }); } catch { /* Diagnostics cannot interrupt voice. */ }
+    try {
+      this.debugSink?.({
+        timestamp: new Date().toISOString(),
+        sessionId: this.sessionId,
+        event,
+        status: this.status,
+        payload: sanitizeDebugValue(payload),
+      });
+    } catch {
+      /* Diagnostics cannot interrupt voice. */ }
   }
 }
 
@@ -2079,15 +2246,15 @@ function responseInstructionForToolResult(result) {
     if (isAircraft) {
       aircraftRules.push('Begin with the returned callsign and include the returned registration when available.');
       aircraftRules.push('For the selected aircraft, explicitly cover operator, aircraft type, and route before finishing.');
-      aircraftRules.push(selectedProperties.operator
-        ? 'State the operator value returned in selected.properties.'
-        : 'Say exactly “Operator details are unavailable.”');
-      aircraftRules.push(selectedProperties.type
-        ? 'State the aircraft type returned in selected.properties; a concise family name may omit a subtype suffix.'
-        : 'Say exactly “Aircraft type is unavailable.”');
-      aircraftRules.push(selectedProperties.route || selectedProperties.routeOrigin || selectedProperties.routeDestination
-        ? 'State the route endpoint codes exactly as returned; do not expand airport codes into city names.'
-        : 'Say exactly “Route details are unavailable.”');
+      aircraftRules.push(selectedProperties.operator ?
+        'State the operator value returned in selected.properties.' :
+        'Say exactly “Operator details are unavailable.”');
+      aircraftRules.push(selectedProperties.type ?
+        'State the aircraft type returned in selected.properties; a concise family name may omit a subtype suffix.' :
+        'Say exactly “Aircraft type is unavailable.”');
+      aircraftRules.push(selectedProperties.route || selectedProperties.routeOrigin || selectedProperties.routeDestination ?
+        'State the route endpoint codes exactly as returned; do not expand airport codes into city names.' :
+        'Say exactly “Route details are unavailable.”');
       aircraftRules.push('Never infer operator, type, or route from the callsign.');
     }
     return [
@@ -2102,9 +2269,9 @@ function responseInstructionForToolResult(result) {
     return 'Briefly summarize the current GEV camera, active style, and relevant enabled layers. Do not repeat yourself.';
   }
   if (result?.action === 'adjust_camera_zoom') {
-    return result.ok
-      ? `Confirm once that the camera zoomed ${result.direction}. Do not claim any other change.`
-      : `Tell the user the camera did not move and briefly state this error: ${result.error || 'unknown camera error'}.`;
+    return result.ok ?
+      `Confirm once that the camera zoomed ${result.direction}. Do not claim any other change.` :
+      `Tell the user the camera did not move and briefly state this error: ${result.error || 'unknown camera error'}.`;
   }
   if (result?.action === 'annotate_map') {
     // Compose STATIC guidance so route-fallback AND partial-failure are both honored.
@@ -2144,14 +2311,21 @@ function createDebugSessionId() {
 // Idempotently tear down a MediaStream + RTCPeerConnection acquired by an
 // abandoned start() attempt. Every close is guarded so double-release (once
 // here, once via stop()) is a no-op — critical for closing the hot mic (H7).
-function releaseStartResources({ localStream = null, localPc = null } = {}) {
+function releaseStartResources({
+  localStream = null,
+  localPc = null
+} = {}) {
   if (localStream) {
     try {
       localStream.getTracks().forEach((track) => track.stop());
-    } catch { /* no-op */ }
+    } catch {
+      /* no-op */ }
   }
   if (localPc) {
-    try { localPc.close(); } catch { /* no-op */ }
+    try {
+      localPc.close();
+    } catch {
+      /* no-op */ }
   }
 }
 
@@ -2159,12 +2333,16 @@ function postDebugLog(record) {
   try {
     const body = JSON.stringify(record);
     if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: 'application/json' });
+      const blob = new Blob([body], {
+        type: 'application/json'
+      });
       if (navigator.sendBeacon(DEBUG_LOG_URL, blob)) return;
     }
     fetch(DEBUG_LOG_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body,
       keepalive: body.length < 60000,
     }).catch(() => {});
@@ -2201,9 +2379,9 @@ function sanitizeDebugString(value) {
     .replace(/"client_secret"\s*:\s*"[^"]+"/gi, '"client_secret":"[Redacted]"')
     .replace(/"value"\s*:\s*"ek_[^"]+"/gi, '"value":"[Redacted ephemeral key]"');
   const maxLength = 50000;
-  return redacted.length > maxLength
-    ? `${redacted.slice(0, maxLength)}...[Truncated ${redacted.length - maxLength} chars]`
-    : redacted;
+  return redacted.length > maxLength ?
+    `${redacted.slice(0, maxLength)}...[Truncated ${redacted.length - maxLength} chars]` :
+    redacted;
 }
 
 function isSecretLikeKey(key) {
@@ -2223,7 +2401,10 @@ async function captureViewportImage() {
 
   // Clamp BOTH dimensions by a total-pixel budget so tall portrait windows are
   // downscaled too (the old width-only clamp let them through — M13).
-  const { width, height } = computeDownscale(source.width, source.height, VIEWPORT_MAX_PIXELS);
+  const {
+    width,
+    height
+  } = computeDownscale(source.width, source.height, VIEWPORT_MAX_PIXELS);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -2259,7 +2440,10 @@ export function computeDownscale(width, height, maxPixels) {
   const w = Math.max(1, Math.floor(width) || 0);
   const h = Math.max(1, Math.floor(height) || 0);
   const budget = Math.max(1, maxPixels || 0);
-  if (w * h <= budget) return { width: w, height: h };
+  if (w * h <= budget) return {
+    width: w,
+    height: h
+  };
   const scale = Math.sqrt(budget / (w * h));
   // Floor (not round) both dims so the result can never exceed the budget:
   // floor(w*s) * floor(h*s) <= (w*s)(h*s) = budget. Rounding could push a
@@ -2300,8 +2484,14 @@ export async function renderFreshCesiumFrame(viewer) {
     // necessarily draw — request a frame and await its postRender (bounded),
     // which also covers the just-became-visible race.
     const rendered = new Promise((resolve) => {
-      const remove = scene.postRender.addEventListener(() => { remove(); resolve(true); });
-      setTimeout(() => { remove(); resolve(false); }, 400);
+      const remove = scene.postRender.addEventListener(() => {
+        remove();
+        resolve(true);
+      });
+      setTimeout(() => {
+        remove();
+        resolve(false);
+      }, 400);
     });
     scene.requestRender?.();
     const fresh = await rendered;
@@ -2321,7 +2511,9 @@ function isNearlyBlackFrame(ctx, width, height) {
   const sampleCanvas = document.createElement('canvas');
   sampleCanvas.width = sampleWidth;
   sampleCanvas.height = sampleHeight;
-  const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+  const sampleCtx = sampleCanvas.getContext('2d', {
+    willReadFrequently: true
+  });
   if (!sampleCtx) return false;
   sampleCtx.drawImage(ctx.canvas, 0, 0, sampleWidth, sampleHeight);
   const pixels = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight).data;
@@ -2568,9 +2760,9 @@ export function resolveVoiceVisualizerSpeaker(currentSpeaker, nextSpeaker, keepC
  * @returns {string}
  */
 export function resolveVoiceControlHint(pushToTalkMode, pushToTalkKeyHeld) {
-  return pushToTalkMode && pushToTalkKeyHeld
-    ? 'Release Space to send'
-    : 'Hold Space to speak · tap Space to activate focused controls';
+  return pushToTalkMode && pushToTalkKeyHeld ?
+    'Release Space to send' :
+    'Hold Space to speak · tap Space to activate focused controls';
 }
 
 /**
