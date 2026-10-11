@@ -8,10 +8,16 @@
  */
 
 /** Force the prior aircraft layer to reacquire Cesium and durable tracking ownership. */
-export function restoreAircraftTrackingOwner(layer, id, { origin = 'programmatic' } = {}) {
+export function restoreAircraftTrackingOwner(layer, id, {
+  origin = 'programmatic'
+} = {}) {
   if (!layer?.trackById || !id) return false;
-  layer.stopTracking?.({ origin });
-  return Boolean(layer.trackById(id, { origin }));
+  layer.stopTracking?.({
+    origin
+  });
+  return Boolean(layer.trackById(id, {
+    origin
+  }));
 }
 
 /** Normalize Cockpit aircraft metadata into a stable tracking target. */
@@ -35,9 +41,9 @@ export function enterCockpitWithTracking({
 }) {
   const currentTarget = aircraftTrackingTarget(cockpitView?.readAircraftInfo?.());
   const restoreTarget = rollbackTarget === undefined ? currentTarget : rollbackTarget;
-  const key = (target) => target?.layerId && target?.id
-    ? `${target.layerId}:${target.id}`
-    : null;
+  const key = (target) => target?.layerId && target?.id ?
+    `${target.layerId}:${target.id}` :
+    null;
   let activeLayer = currentLayer;
   let activeTarget = currentTarget;
   let entryError = null;
@@ -49,7 +55,9 @@ export function enterCockpitWithTracking({
     if (selectingTarget) {
       activeLayer = selectedLayer;
       activeTarget = selectedTarget;
-      if (!selectedLayer.trackById?.(selectedTarget.id, { origin: selectionOrigin })) {
+      if (!selectedLayer.trackById?.(selectedTarget.id, {
+          origin: selectionOrigin
+        })) {
         entryError = new Error('Selected aircraft could not be tracked for Cockpit entry');
       }
     }
@@ -65,12 +73,15 @@ export function enterCockpitWithTracking({
       // authority, then republish the prior target with that origin. A
       // programmatic rollback would fix the camera while leaving the failed
       // target durable in local/share state.
-      activeLayer?.stopTracking?.({ origin: selectionOrigin });
+      activeLayer?.stopTracking?.({
+        origin: selectionOrigin
+      });
       if (restoreTarget && !restoreAircraftTrackingOwner(
-        rollbackLayer,
-        restoreTarget.id,
-        { origin: selectionOrigin },
-      )) {
+          rollbackLayer,
+          restoreTarget.id, {
+            origin: selectionOrigin
+          },
+        )) {
         entryError ||= new Error('Prior aircraft tracking could not be restored');
       }
     } catch (error) {
@@ -79,7 +90,9 @@ export function enterCockpitWithTracking({
   }
   if (entryThrew) {
     try {
-      cockpitView.exit?.({ restoreTracking: false });
+      cockpitView.exit?.({
+        restoreTracking: false
+      });
     } catch {
       // Tracker rollback above remains authoritative if partial Cockpit cleanup fails.
     }
