@@ -108,9 +108,9 @@ function positiveNumber(value, fallback) {
 
 function nowMs() {
   return typeof performance !== 'undefined' &&
-    typeof performance.now === 'function'
-    ? performance.now()
-    : Date.now();
+    typeof performance.now === 'function' ?
+    performance.now() :
+    Date.now();
 }
 
 /**
@@ -233,12 +233,12 @@ function displayedGlyph(cell, turned) {
  */
 export function visibleGlyphs(plan, elapsedMs, options = {}) {
   const charMs = positiveNumber(options.charMs, FLAP_CHAR_MS);
-  const turnRatio = Number.isFinite(Number(options.turnRatio))
-    ? Number(options.turnRatio)
-    : FLAP_TURN_RATIO;
-  const elapsed = Number.isFinite(Number(elapsedMs))
-    ? Math.max(0, Number(elapsedMs))
-    : 0;
+  const turnRatio = Number.isFinite(Number(options.turnRatio)) ?
+    Number(options.turnRatio) :
+    FLAP_TURN_RATIO;
+  const elapsed = Number.isFinite(Number(elapsedMs)) ?
+    Math.max(0, Number(elapsedMs)) :
+    0;
   const turn = charMs * turnRatio;
   let out = '';
   for (const cell of plan?.cells || []) {
@@ -280,9 +280,7 @@ function isVisible(element) {
   const view = element.ownerDocument?.defaultView;
   if (typeof view?.getComputedStyle !== 'function') return true;
   for (
-    let node = element;
-    node && node.nodeType === 1;
-    node = node.parentElement
+    let node = element; node && node.nodeType === 1; node = node.parentElement
   ) {
     const style = view.getComputedStyle(node);
     if (style.visibility === 'hidden' || style.display === 'none') return false;
@@ -292,9 +290,9 @@ function isVisible(element) {
 }
 
 function measureWidth(element) {
-  return typeof element.getBoundingClientRect === 'function'
-    ? element.getBoundingClientRect().width
-    : 0;
+  return typeof element.getBoundingClientRect === 'function' ?
+    element.getBoundingClientRect().width :
+    0;
 }
 
 /**
@@ -316,7 +314,10 @@ function ensureHost(element) {
     cells?.classList?.contains(CELLS_CLASS) &&
     !cells.nextElementSibling
   ) {
-    return { text, cells };
+    return {
+      text,
+      cells
+    };
   }
 
   const doc = element.ownerDocument || globalThis.document;
@@ -331,7 +332,10 @@ function ensureHost(element) {
   nextCells.setAttribute('aria-hidden', 'true');
   element.classList.add(HOST_CLASS);
   element.replaceChildren(nextText, nextCells);
-  return { text: nextText, cells: nextCells };
+  return {
+    text: nextText,
+    cells: nextCells
+  };
 }
 
 /** Drop the width transition, leaving the element at its natural width. */
@@ -460,11 +464,11 @@ export function setSplitFlapText(element, text, options = {}) {
   // string: columns whose stagger has not elapsed are still showing the
   // previous label's glyphs, and those are what must flap away.
   const state = flapStates.get(element);
-  const displayed = state
-    ? visibleGlyphs(state.plan, nowMs() - state.startedAt, {
-        charMs: state.charMs,
-      })
-    : settled;
+  const displayed = state ?
+    visibleGlyphs(state.plan, nowMs() - state.startedAt, {
+      charMs: state.charMs,
+    }) :
+    settled;
   clearFlapTimer(element);
 
   const beforeWidth = measureWidth(element);
@@ -542,5 +546,7 @@ export function disposeSplitFlap(element) {
   cancelWidthEase(element);
   clearSizing(element);
   const cells = element.querySelector?.('.gev-flap-cells');
-  if (cells) rest(element, { cells });
+  if (cells) rest(element, {
+    cells
+  });
 }
