@@ -334,8 +334,7 @@ export function createAlprCamerasLayer({
           id: 'find-camera',
           label: 'SHOW NEAREST',
           title: state.viewer?.trackedEntity ?
-            'Stop following the current object before navigating to a camera' :
-            'Move to the nearest loaded camera and show its details',
+            'Stop following the current object before navigating to a camera' : 'Move to the nearest loaded camera and show its details',
           disabled:
             !state.enabled || !count || Boolean(state.viewer?.trackedEntity),
           onClick: focusNearest,
@@ -352,8 +351,7 @@ export function createAlprCamerasLayer({
       return {
         count: state.dataSource?.entities.values.length || 0,
         countLabel: state.enabled ?
-          `${state.dataSource?.entities.values.length || 0} nearby` :
-          '',
+          `${state.dataSource?.entities.values.length || 0} nearby` : '',
         lastUpdate: state.lastUpdate,
         stale: state.stale,
         saturated: state.saturated,
@@ -363,15 +361,12 @@ export function createAlprCamerasLayer({
         retryAt: state.retryAt,
         retrying: state.retrying,
         retryInSec: state.retryAt ?
-          Math.max(0, Math.ceil((state.retryAt - Date.now()) / 1000)) :
-          0,
+          Math.max(0, Math.ceil((state.retryAt - Date.now()) / 1000)) : 0,
         loadingLabel: state.loading ?
           state.retrying ?
           'retrying mapped ALPR cameras' :
-          'loading mapped ALPR cameras' :
-          state.status === 'zoom-in' ?
-          'Zoom in to load mapped cameras' :
-          [
+          'loading mapped ALPR cameras' : state.status === 'zoom-in' ?
+          'Zoom in to load mapped cameras' : [
             state.stale ? 'Showing cached locations' : '',
             state.saturated ? 'Coverage limited — zoom in' : '',
             state.status === 'empty' ?
