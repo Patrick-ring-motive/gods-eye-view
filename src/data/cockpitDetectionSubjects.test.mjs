@@ -1,8 +1,17 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
-import { dispatchCockpitModeChanged, enter, exit, _adoptTrackedEntity } from '../ui/cockpitTrackingController.js';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
+import {
+  dispatchCockpitModeChanged,
+  enter,
+  exit,
+  _adoptTrackedEntity
+} from '../ui/cockpitTrackingController.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
 import flightsLayer, {
   _setCockpitDetectionSubjectForTest as setFlightsCockpitSubject,
@@ -19,8 +28,7 @@ const NEXT_SUBJECT = 'def456';
 const FLIGHTS_SOURCE = readLayerSource(new URL('./flights.js', import.meta.url));
 const MILITARY_SOURCE = readLayerSource(new URL('./militaryFlights.js', import.meta.url));
 
-const LAYERS = [
-  {
+const LAYERS = [{
     name: 'commercial',
     layer: flightsLayer,
     setSubject: setFlightsCockpitSubject,
@@ -29,7 +37,10 @@ const LAYERS = [
         icao24,
         entity: null,
         billboard: candidateBillboard(icao24),
-        billboardCollection: { show: true, remove() {} },
+        billboardCollection: {
+          show: true,
+          remove() {}
+        },
         viewer: candidateViewer(),
         tracked: false,
         meta: {
@@ -50,7 +61,10 @@ const LAYERS = [
         icao24,
         entity: null,
         billboard: candidateBillboard(icao24),
-        billboardCollection: { show: true, remove() {} },
+        billboardCollection: {
+          show: true,
+          remove() {}
+        },
         viewer: candidateViewer(),
         tracked: false,
         meta: {
@@ -75,29 +89,54 @@ function candidateBillboard(icao24) {
 
 function candidateViewer() {
   return {
-    camera: { positionCartographic: null },
+    camera: {
+      positionCartographic: null
+    },
     scene: {},
   };
 }
 
 function candidateIds(layer) {
-  return layer.getDetectableObjects({ maxCount: 10 }).map((candidate) => candidate.sourceId);
+  return layer.getDetectableObjects({
+    maxCount: 10
+  }).map((candidate) => candidate.sourceId);
 }
 
 test('Cockpit lifecycle publishes one normalized aircraft identity to both detection owners', () => {
   const previousWindow = globalThis.window;
   const details = [];
-  globalThis.window = { dispatchEvent: event => details.push(event.detail) };
+  globalThis.window = {
+    dispatchEvent: event => details.push(event.detail)
+  };
   try {
-    dispatchCockpitModeChanged(true, { icao24: ' ABC123 ', layerId: 'military' });
-    dispatchCockpitModeChanged(true, { icao24: ' DEF456 ', layerId: 'other' });
+    dispatchCockpitModeChanged(true, {
+      icao24: ' ABC123 ',
+      layerId: 'military'
+    });
+    dispatchCockpitModeChanged(true, {
+      icao24: ' DEF456 ',
+      layerId: 'other'
+    });
     dispatchCockpitModeChanged(false);
-    assert.deepEqual(details, [
-      { active: true, subjectId: 'abc123', layerId: 'military' },
-      { active: true, subjectId: 'def456', layerId: null },
-      { active: false, subjectId: null, layerId: null },
+    assert.deepEqual(details, [{
+        active: true,
+        subjectId: 'abc123',
+        layerId: 'military'
+      },
+      {
+        active: true,
+        subjectId: 'def456',
+        layerId: null
+      },
+      {
+        active: false,
+        subjectId: null,
+        layerId: null
+      },
     ]);
-  } finally { globalThis.window = previousWindow; }
+  } finally {
+    globalThis.window = previousWindow;
+  }
   for (const action of [enter, _adoptTrackedEntity]) {
     assert.match(action.toString(), /this\.dispatchCockpitModeChanged\(true, info\);/,
       'entry and in-Cockpit handoff each publish the active subject');
@@ -106,9 +145,9 @@ test('Cockpit lifecycle publishes one normalized aircraft identity to both detec
     'exit clears the active subject');
 
   for (const [name, source] of [
-    ['commercial', FLIGHTS_SOURCE],
-    ['military', MILITARY_SOURCE],
-  ]) {
+      ['commercial', FLIGHTS_SOURCE],
+      ['military', MILITARY_SOURCE],
+    ]) {
     const consumer = /function\s*(?:parts\.\w+\.)?_applyCockpitState\(\s*detail\s*=\s*\{\},?\s*\)\s*\{[\s\S]*?\n {0,2}\}/
       .exec(source)?.[0];
     assert.ok(consumer, `${name} Cockpit consumer is defined`);
@@ -176,7 +215,9 @@ test('a Cockpit subject duplicated across commercial and military feeds is suppr
             restore() {},
           };
         },
-        toDataURL() { return 'data:image/png;base64,cockpit-contact-test'; },
+        toDataURL() {
+          return 'data:image/png;base64,cockpit-contact-test';
+        },
       };
     },
   };
@@ -198,4 +239,3 @@ test('a Cockpit subject duplicated across commercial and military feeds is suppr
     else globalThis.document = realDocument;
   }
 });
-
