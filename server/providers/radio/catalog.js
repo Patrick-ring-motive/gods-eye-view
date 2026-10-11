@@ -1,7 +1,13 @@
-import { lookup as lookupDns } from 'node:dns/promises';
-import { randomUUID } from 'node:crypto';
+import {
+  lookup as lookupDns
+} from 'node:dns/promises';
+import {
+  randomUUID
+} from 'node:crypto';
 
-import { readResponseTextCapped } from '../common/http.js';
+import {
+  readResponseTextCapped
+} from '../common/http.js';
 import {
   normalizeRadioBrowserStation,
   publicRadioStation,
@@ -29,8 +35,9 @@ import {
 export async function mapRadioConcurrent(values, concurrency, mapper) {
   const results = new Array(values.length);
   let cursor = 0;
-  const workers = Array.from(
-    { length: Math.min(concurrency, values.length) },
+  const workers = Array.from({
+      length: Math.min(concurrency, values.length)
+    },
     async () => {
       for (;;) {
         const index = cursor++;
@@ -49,7 +56,10 @@ export function createRadioProxyMiddleware({
   lookupImpl = lookupDns,
   now = Date.now,
 } = {}) {
-  let mirrorCache = { origins: [...RADIO_FALLBACK_MIRRORS], cachedAt: 0 };
+  let mirrorCache = {
+    origins: [...RADIO_FALLBACK_MIRRORS],
+    cachedAt: 0
+  };
   let mirrorPromise = null;
   let catalogCache = null;
   let catalogGeneration = 0;
@@ -73,13 +83,16 @@ export function createRadioProxyMiddleware({
         lookupImpl,
       );
       const options = {
-        headers: { Accept: 'application/json', 'User-Agent': RADIO_USER_AGENT },
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': RADIO_USER_AGENT
+        },
         signal: controller.signal,
         redirect: 'manual',
       };
-      const response = fetchImpl
-        ? await fetchImpl(destination.href, options)
-        : await fetchPinnedRadioResponse(destination, options, addresses);
+      const response = fetchImpl ?
+        await fetchImpl(destination.href, options) :
+        await fetchPinnedRadioResponse(destination, options, addresses);
       if (response.status >= 300 && response.status < 400) {
         try {
           await response.body?.cancel?.();
@@ -110,8 +123,8 @@ export function createRadioProxyMiddleware({
           const discovered = [
             ...new Set(
               (Array.isArray(rows) ? rows : [])
-                .map((row) => radioMirrorOrigin(row?.name))
-                .filter(Boolean),
+              .map((row) => radioMirrorOrigin(row?.name))
+              .filter(Boolean),
             ),
           ];
           if (discovered.length) {
@@ -126,7 +139,10 @@ export function createRadioProxyMiddleware({
             };
           }
         } catch {
-          mirrorCache = { ...mirrorCache, cachedAt: now() };
+          mirrorCache = {
+            ...mirrorCache,
+            cachedAt: now()
+          };
         }
         return mirrorCache.origins;
       })().finally(() => {
@@ -180,13 +196,13 @@ export function createRadioProxyMiddleware({
           if (
             !rows.every(
               (row) =>
-                row &&
-                typeof row === 'object' &&
-                !Array.isArray(row) &&
-                typeof row.stationuuid === 'string' &&
-                typeof row.name === 'string' &&
-                (typeof row.url_resolved === 'string' ||
-                  typeof row.url === 'string'),
+              row &&
+              typeof row === 'object' &&
+              !Array.isArray(row) &&
+              typeof row.stationuuid === 'string' &&
+              typeof row.name === 'string' &&
+              (typeof row.url_resolved === 'string' ||
+                typeof row.url === 'string'),
             )
           )
             throw new Error(
@@ -200,13 +216,12 @@ export function createRadioProxyMiddleware({
             .replace(/[_-]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim();
-          const requestedTagCovered =
-            !requestedTag ||
+          const requestedTagCovered = !requestedTag ||
             stations.some((station) =>
               station.tags.some(
                 (stationTag) =>
-                  stationTag === requestedTag ||
-                  stationTag.includes(requestedTag),
+                stationTag === requestedTag ||
+                stationTag.includes(requestedTag),
               ),
             );
           return {
@@ -217,7 +232,10 @@ export function createRadioProxyMiddleware({
             stations,
           };
         } catch {
-          return { succeeded: false, stations: [] };
+          return {
+            succeeded: false,
+            stations: []
+          };
         }
       },
     );
@@ -292,7 +310,10 @@ export function createRadioProxyMiddleware({
     }
     if (degraded) {
       servedStationIds = nextCatalog.stationIds;
-      return { ...nextCatalog, acceptedGeneration: null };
+      return {
+        ...nextCatalog,
+        acceptedGeneration: null
+      };
     }
     catalogCache = {
       ...nextCatalog,
@@ -307,7 +328,10 @@ export function createRadioProxyMiddleware({
       catalogCache &&
       now() - catalogCache.cachedAt < RADIO_DIRECTORY_CACHE_MS
     ) {
-      return { ...catalogCache, stale: false };
+      return {
+        ...catalogCache,
+        stale: false
+      };
     }
     if (!refreshPromise) {
       refreshPromise = refreshCatalog().finally(() => {
@@ -315,7 +339,10 @@ export function createRadioProxyMiddleware({
       });
     }
     try {
-      return { ...(await refreshPromise), stale: false };
+      return {
+        ...(await refreshPromise),
+        stale: false
+      };
     } catch (error) {
       if (
         catalogCache &&
@@ -345,7 +372,10 @@ export function createRadioProxyMiddleware({
     const requestUrl = new URL(req.url || '/', 'http://localhost');
     if (requestUrl.pathname === '/stations') {
       if (req.method !== 'GET') {
-        res.writeHead(405, { Allow: 'GET', 'Cache-Control': 'no-store' });
+        res.writeHead(405, {
+          Allow: 'GET',
+          'Cache-Control': 'no-store'
+        });
         res.end();
         return;
       }
@@ -374,21 +404,30 @@ export function createRadioProxyMiddleware({
     const clickMatch = requestUrl.pathname.match(/^\/click\/([0-9a-f-]+)$/i);
     if (clickMatch) {
       if (req.method !== 'POST') {
-        res.writeHead(405, { Allow: 'POST', 'Cache-Control': 'no-store' });
+        res.writeHead(405, {
+          Allow: 'POST',
+          'Cache-Control': 'no-store'
+        });
         res.end();
         return;
       }
       const id = clickMatch[1].toLowerCase();
       if (!RADIO_UUID_RE.test(id) || !servedStationIds.has(id)) {
-        sendJson(res, 404, { error: 'Unknown radio station' });
+        sendJson(res, 404, {
+          error: 'Unknown radio station'
+        });
         return;
       }
-      res.writeHead(204, { 'Cache-Control': 'no-store' });
+      res.writeHead(204, {
+        'Cache-Control': 'no-store'
+      });
       res.end();
       void fetchPath(`/json/url/${id}`).catch(() => {});
       return;
     }
 
-    sendJson(res, 404, { error: 'Unknown radio route' });
+    sendJson(res, 404, {
+      error: 'Unknown radio route'
+    });
   };
 }
