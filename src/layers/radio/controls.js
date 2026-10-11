@@ -51,8 +51,7 @@ export function createControls({
         loading: layerState._loading,
         error: layerState._error,
         lastUpdate: layerState._updatedAt ?
-          Date.parse(layerState._updatedAt) :
-          null,
+          Date.parse(layerState._updatedAt) : null,
         horizonScans: layerState._horizonScanCount,
         overlayEntries: layerState._overlayDiagnostics.entryCount,
       };
