@@ -46,9 +46,9 @@ export function adsbLolProxy() {
       const at = Date.parse(raw);
       if (Number.isFinite(at) && at > now) return clampCooldown(at - now);
     }
-    return upstream.status === 429
-      ? RATE_LIMIT_COOLDOWN_MS
-      : SERVER_ERROR_COOLDOWN_MS;
+    return upstream.status === 429 ?
+      RATE_LIMIT_COOLDOWN_MS :
+      SERVER_ERROR_COOLDOWN_MS;
   }
 
   function serve(res, status, body, cacheStatus, extra = {}) {
@@ -56,11 +56,11 @@ export function adsbLolProxy() {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
       'X-ADS-B-Cache': cacheStatus,
-      ...(['HIT', 'STALE'].includes(cacheStatus)
-        ? {
-            'X-ADS-B-Cache-Age-Ms': String(Math.max(0, Date.now() - _cacheAt)),
-          }
-        : {}),
+      ...(['HIT', 'STALE'].includes(cacheStatus) ?
+        {
+          'X-ADS-B-Cache-Age-Ms': String(Math.max(0, Date.now() - _cacheAt)),
+        } :
+        {}),
       ...extra,
     });
     res.end(body);
@@ -88,14 +88,19 @@ export function adsbLolProxy() {
           serve(
             res,
             _cooldownStatus || 503,
-            JSON.stringify({ error: 'adsb.lol upstream cooling down' }),
-            'NONE',
-            { 'Retry-After': retryAfter },
+            JSON.stringify({
+              error: 'adsb.lol upstream cooling down'
+            }),
+            'NONE', {
+              'Retry-After': retryAfter
+            },
           );
           return;
         }
         const upstream = await fetch('https://api.adsb.lol/v2/mil', {
-          headers: { 'User-Agent': 'gods-eye-view-adsblol-proxy/1.0' },
+          headers: {
+            'User-Agent': 'gods-eye-view-adsblol-proxy/1.0'
+          },
         });
         if (upstream.ok) {
           const body = await upstream.text();
@@ -131,13 +136,13 @@ export function adsbLolProxy() {
           upstream.status,
           body,
           'MISS',
-          _cooldownUntil > Date.now()
-            ? {
-                'Retry-After': String(
-                  Math.ceil((_cooldownUntil - Date.now()) / 1000),
-                ),
-              }
-            : {},
+          _cooldownUntil > Date.now() ?
+          {
+            'Retry-After': String(
+              Math.ceil((_cooldownUntil - Date.now()) / 1000),
+            ),
+          } :
+          {},
         );
       } catch (e) {
         console.error('[adsb.lol Proxy]', e.message);
@@ -145,8 +150,12 @@ export function adsbLolProxy() {
           serve(res, 200, _cache, 'STALE');
           return;
         }
-        res.writeHead(502, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'ADS-B proxy error' }));
+        res.writeHead(502, {
+          'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify({
+          error: 'ADS-B proxy error'
+        }));
       }
     });
   };
