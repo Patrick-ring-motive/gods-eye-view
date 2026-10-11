@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * pano-pinhole.mjs
  *
@@ -34,9 +35,20 @@
  * Dependencies: sharp (devDependency)
  */
 
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, join, basename, extname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  readFileSync,
+  mkdirSync,
+  writeFileSync
+} from 'node:fs';
+import {
+  resolve,
+  join,
+  basename,
+  extname
+} from 'node:path';
+import {
+  fileURLToPath
+} from 'node:url';
 import sharp from 'sharp';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -49,23 +61,52 @@ const PROJECT_ROOT = resolve(__dirname, '..');
 function parseArgs() {
   const args = process.argv.slice(2);
   const opts = {
-    heading: 0, pitch: 0, roll: 0, hfov: 90,
-    width: 1920, height: 1080, step: 45, all: false, outdir: 'output',
+    heading: 0,
+    pitch: 0,
+    roll: 0,
+    hfov: 90,
+    width: 1920,
+    height: 1080,
+    step: 45,
+    all: false,
+    outdir: 'output',
   };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--input':   opts.input = args[++i]; break;
-      case '--heading':  opts.heading = parseFloat(args[++i]); break;
-      case '--pitch':    opts.pitch = parseFloat(args[++i]); break;
-      case '--roll':     opts.roll = parseFloat(args[++i]); break;
-      case '--hfov':     opts.hfov = parseFloat(args[++i]); break;
-      case '--focal':    opts.focal = parseFloat(args[++i]); break;
-      case '--width':    opts.width = parseInt(args[++i], 10); break;
-      case '--height':   opts.height = parseInt(args[++i], 10); break;
-      case '--step':     opts.step = parseInt(args[++i], 10); break;
-      case '--all':      opts.all = true; break;
-      case '--outdir':   opts.outdir = args[++i]; break;
+      case '--input':
+        opts.input = args[++i];
+        break;
+      case '--heading':
+        opts.heading = parseFloat(args[++i]);
+        break;
+      case '--pitch':
+        opts.pitch = parseFloat(args[++i]);
+        break;
+      case '--roll':
+        opts.roll = parseFloat(args[++i]);
+        break;
+      case '--hfov':
+        opts.hfov = parseFloat(args[++i]);
+        break;
+      case '--focal':
+        opts.focal = parseFloat(args[++i]);
+        break;
+      case '--width':
+        opts.width = parseInt(args[++i], 10);
+        break;
+      case '--height':
+        opts.height = parseInt(args[++i], 10);
+        break;
+      case '--step':
+        opts.step = parseInt(args[++i], 10);
+        break;
+      case '--all':
+        opts.all = true;
+        break;
+      case '--outdir':
+        opts.outdir = args[++i];
+        break;
       case '--help':
         console.log([
           'Usage: node tools/pano-pinhole.mjs --input <panorama.jpg> [options]',
@@ -123,7 +164,7 @@ function sampleBilinear(buf, pW, pH, u, v) {
 
   const x0 = Math.floor(u);
   const y0 = Math.floor(v);
-  const x1 = (x0 + 1) % pW;  // wrap horizontally
+  const x1 = (x0 + 1) % pW; // wrap horizontally
   const y1 = Math.min(y0 + 1, pH - 1);
 
   const fx = u - x0;
@@ -212,10 +253,30 @@ function buildRotationMatrix(headingRad, pitchRad, rollRad) {
 // ---------------------------------------------------------------------------
 
 const COMPASS_NAMES = {
-  0: 'N', 15: 'NNE', 30: 'NNE2', 45: 'NE', 60: 'ENE', 75: 'ENE2',
-  90: 'E', 105: 'ESE', 120: 'ESE2', 135: 'SE', 150: 'SSE', 165: 'SSE2',
-  180: 'S', 195: 'SSW', 210: 'SSW2', 225: 'SW', 240: 'WSW', 255: 'WSW2',
-  270: 'W', 285: 'WNW', 300: 'WNW2', 315: 'NW', 330: 'NNW', 345: 'NNW2',
+  0: 'N',
+  15: 'NNE',
+  30: 'NNE2',
+  45: 'NE',
+  60: 'ENE',
+  75: 'ENE2',
+  90: 'E',
+  105: 'ESE',
+  120: 'ESE2',
+  135: 'SE',
+  150: 'SSE',
+  165: 'SSE2',
+  180: 'S',
+  195: 'SSW',
+  210: 'SSW2',
+  225: 'SW',
+  240: 'WSW',
+  255: 'WSW2',
+  270: 'W',
+  285: 'WNW',
+  300: 'WNW2',
+  315: 'NW',
+  330: 'NNW',
+  345: 'NNW2',
 };
 
 // ---------------------------------------------------------------------------
@@ -301,9 +362,9 @@ async function main() {
     headings.push(opts.heading);
   }
 
-  const fovLabel = opts.focal !== undefined
-    ? `f${Math.round(opts.focal)}`
-    : `fov${Math.round(opts.hfov)}`;
+  const fovLabel = opts.focal !== undefined ?
+    `f${Math.round(opts.focal)}` :
+    `fov${Math.round(opts.hfov)}`;
   const hfovDeg = 2 * Math.atan((opts.width / 2) / focalPx) * 180 / Math.PI;
 
   console.log('\nPano → Pinhole Renderer');
@@ -329,7 +390,9 @@ async function main() {
     .toBuffer();
 
   const outdir = resolve(PROJECT_ROOT, opts.outdir);
-  mkdirSync(outdir, { recursive: true });
+  mkdirSync(outdir, {
+    recursive: true
+  });
 
   const inputBase = basename(opts.input, extname(opts.input));
   const outW = opts.width;
@@ -347,8 +410,16 @@ async function main() {
     const outName = `pinhole_${inputBase}_h${heading}_p${opts.pitch}_${fovLabel}_${outW}x${outH}_${compassLabel}.jpg`;
     const outPath = join(outdir, outName);
 
-    await sharp(outBuf, { raw: { width: outW, height: outH, channels: 3 } })
-      .jpeg({ quality: 92 })
+    await sharp(outBuf, {
+        raw: {
+          width: outW,
+          height: outH,
+          channels: 3
+        }
+      })
+      .jpeg({
+        quality: 92
+      })
       .toFile(outPath);
 
     console.log(`  ${compassLabel.padEnd(4)} (${String(heading).padStart(3)}°): ${outName}  (${renderMs}ms)`);
