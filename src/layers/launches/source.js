@@ -3,9 +3,13 @@ export function createLaunchSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
 } = {}) {
   return {
-    async getLaunches({ signal } = {}) {
+    async getLaunches({
+      signal
+    } = {}) {
       signal?.throwIfAborted();
-      const response = await fetchImpl('/api/launches', { signal });
+      const response = await fetchImpl('/api/launches', {
+        signal
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const payload = await response.json();
       signal?.throwIfAborted();
@@ -13,9 +17,13 @@ export function createLaunchSource({
         throw new Error('Malformed launch snapshot');
       return payload;
     },
-    async getActiveTle({ signal } = {}) {
+    async getActiveTle({
+      signal
+    } = {}) {
       signal?.throwIfAborted();
-      const response = await fetchImpl('/api/celestrak/active', { signal });
+      const response = await fetchImpl('/api/celestrak/active', {
+        signal
+      });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const text = await response.text();
       signal?.throwIfAborted();
