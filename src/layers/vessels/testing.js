@@ -56,9 +56,7 @@ export function createTesting({
     };
     state.trail = options.trail || null;
     state.trailMmsi = options.trailMmsi || null;
-    state.trailPositions = Array.isArray(options.trailPositions) ?
-      [...options.trailPositions] :
-      [];
+    state.trailPositions = Array.isArray(options.trailPositions) ? [...options.trailPositions] : [];
     state.transportStatus = options.transportStatus || null;
     state.lastMessageAt = options.lastMessageAt ?? null;
     state.rawRowCount = Number.isFinite(options.rawRowCount) ?
@@ -120,8 +118,7 @@ export function createTesting({
 
   function _setAisRuntimeForTest(runtime = null) {
     components.lifecycle.clearFirstConnectTimer();
-    vesselState._aisRuntime = runtime ?
-      {
+    vesselState._aisRuntime = runtime ? {
         now: runtime.now,
         setTimeout: runtime.setTimeout,
         clearTimeout: runtime.clearTimeout,
