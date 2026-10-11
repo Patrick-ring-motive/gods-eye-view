@@ -1,1 +1,4 @@
-export { createApplicationData as createStandaloneData } from '../app/data.js';
+export {
+  createApplicationData as createStandaloneData
+}
+from '../app/data.js';
