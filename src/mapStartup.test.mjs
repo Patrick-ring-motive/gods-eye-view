@@ -14,15 +14,25 @@ function fakeCesium(outcomes = []) {
   };
   return {
     calls,
-    Ion: { defaultAccessToken: undefined },
-    GoogleMaps: { defaultApiKey: undefined },
+    Ion: {
+      defaultAccessToken: undefined
+    },
+    GoogleMaps: {
+      defaultApiKey: undefined
+    },
     async createGooglePhotorealistic3DTileset(options) {
-      calls.push({ options, googleKey: options.key });
+      calls.push({
+        options,
+        googleKey: options.key
+      });
       return next();
     },
     IonResource: {
       async fromAssetId(assetId, options) {
-        return { assetId, ...options };
+        return {
+          assetId,
+          ...options
+        };
       },
     },
     Cesium3DTileset: {
@@ -40,10 +50,15 @@ function fakeCesium(outcomes = []) {
 
 test('map startup route reflects the best configured provider', () => {
   assert.equal(
-    selectMapStartupRoute({ googleApiKey: 'google', cesiumToken: 'ion' }),
+    selectMapStartupRoute({
+      googleApiKey: 'google',
+      cesiumToken: 'ion'
+    }),
     'google-direct',
   );
-  assert.equal(selectMapStartupRoute({ cesiumToken: 'ion' }), 'google-ion');
+  assert.equal(selectMapStartupRoute({
+    cesiumToken: 'ion'
+  }), 'google-ion');
   assert.equal(selectMapStartupRoute(), 'osm');
 });
 
@@ -56,7 +71,9 @@ test('no credentials skip photoreal loading and preserve keyless startup', async
 });
 
 test('a direct Google key is preferred', async () => {
-  const tileset = { id: 'direct' };
+  const tileset = {
+    id: 'direct'
+  };
   const Cesium = fakeCesium([tileset]);
   const result = await loadPhotorealisticTileset(Cesium, {
     googleApiKey: 'google-secret',
@@ -68,7 +85,9 @@ test('a direct Google key is preferred', async () => {
 });
 
 test('an ion-only setup loads the hosted Google 3D asset', async () => {
-  const tileset = { id: 'ion' };
+  const tileset = {
+    id: 'ion'
+  };
   const Cesium = fakeCesium([tileset]);
   const result = await loadPhotorealisticTileset(Cesium, {
     cesiumToken: 'ion-secret',
@@ -84,7 +103,9 @@ test('an ion-only setup loads the hosted Google 3D asset', async () => {
 });
 
 test('a failed direct request retries through ion before falling back', async () => {
-  const tileset = { id: 'ion-fallback' };
+  const tileset = {
+    id: 'ion-fallback'
+  };
   const Cesium = fakeCesium([new Error('direct denied'), tileset]);
   const result = await loadPhotorealisticTileset(Cesium, {
     googleApiKey: 'google-secret',
@@ -128,12 +149,20 @@ test('failed direct and ion requests preserve the keyless OSM fallback', async (
 });
 
 test('independent source configurations never mutate shared SDK credentials', async () => {
-  const Cesium = fakeCesium([{ id: 'a' }, { id: 'b' }]);
+  const Cesium = fakeCesium([{
+    id: 'a'
+  }, {
+    id: 'b'
+  }]);
   Cesium.Ion.defaultAccessToken = 'untouched-ion';
   Cesium.GoogleMaps.defaultApiKey = 'untouched-google';
   await Promise.all([
-    loadPhotorealisticTileset(Cesium, { googleApiKey: 'source-a' }),
-    loadPhotorealisticTileset(Cesium, { cesiumToken: 'source-b' }),
+    loadPhotorealisticTileset(Cesium, {
+      googleApiKey: 'source-a'
+    }),
+    loadPhotorealisticTileset(Cesium, {
+      cesiumToken: 'source-b'
+    }),
   ]);
   assert.equal(Cesium.calls[0].googleKey, 'source-a');
   assert.equal(Cesium.calls[1].ionToken, 'source-b');
