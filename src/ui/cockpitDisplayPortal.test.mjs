@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CockpitDisplayPortal } from './cockpitDisplayPortal.js';
+import {
+  CockpitDisplayPortal
+} from './cockpitDisplayPortal.js';
 
 function fixture() {
   const prior = Object.fromEntries(
@@ -19,7 +21,10 @@ function fixture() {
       this.children = [];
       this.parentNode = null;
       this.scrollTop = 0;
-      this.classList = { toggle() {}, remove() {} };
+      this.classList = {
+        toggle() {},
+        remove() {}
+      };
     }
     append(node) {
       node.remove();
@@ -70,7 +75,11 @@ function fixture() {
   globalThis.document = {
     createComment: (name) => new Node(name),
     activeElement: group,
-    body: { classList: { contains: () => false } },
+    body: {
+      classList: {
+        contains: () => false
+      }
+    },
   };
   globalThis.window = new EventTarget();
   globalThis.requestAnimationFrame = (fn) => {
@@ -83,7 +92,9 @@ function fixture() {
     new CockpitDisplayPortal({
       standardPanel: standard,
       cockpitPanel: cockpit,
-      groups: [['hud', group]],
+      groups: [
+        ['hud', group]
+      ],
       layout: () => {
         layouts += 1;
       },
@@ -162,7 +173,11 @@ test('disposal restores groups and revokes mode listeners and queued focus work'
   try {
     const owner = f.create();
     window.dispatchEvent(
-      new CustomEvent('gev:cockpit-mode-changed', { detail: { active: true } }),
+      new CustomEvent('gev:cockpit-mode-changed', {
+        detail: {
+          active: true
+        }
+      }),
     );
     assert.equal(f.group.parentNode, f.slot);
     const obsolete = [...f.frames.values()];
@@ -170,7 +185,11 @@ test('disposal restores groups and revokes mode listeners and queued focus work'
     owner.destroy();
     obsolete.forEach((callback) => callback());
     window.dispatchEvent(
-      new CustomEvent('gev:cockpit-mode-changed', { detail: { active: true } }),
+      new CustomEvent('gev:cockpit-mode-changed', {
+        detail: {
+          active: true
+        }
+      }),
     );
     owner.setActive(true);
     assert.deepEqual(f.standard.children, [f.group, f.sibling]);
