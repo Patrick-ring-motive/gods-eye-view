@@ -2386,8 +2386,7 @@ test('mission entry guard remains active until the slow Rocket Launches enable s
   });
   mgr.subscribe((change) => {
     if (
-      change.layerId === 'rocket-launches' &&
-      ['visibility', 'visibility-blocked', 'visibility-failed'].includes(change.type)
+      change.layerId === 'rocket-launches' && ['visibility', 'visibility-blocked', 'visibility-failed'].includes(change.type)
     ) {
       enteringMode = null;
     }
