@@ -2,7 +2,9 @@ import {
   GevRealtimeController,
   shouldIgnoreVoiceButtonClick,
 } from './realtimeController.js';
-import { createVoiceControl } from './control.js';
+import {
+  createVoiceControl
+} from './control.js';
 
 /** Bind a supplied action runner and connection controller to the voice controls. */
 export function createVoiceCommands({
@@ -18,9 +20,13 @@ export function createVoiceCommands({
     window.__gevVoiceCommands &&
     typeof window.__gevVoiceCommands.stop === 'function'
   ) {
-    window.__gevVoiceCommands.stop({ removeUi: true });
+    window.__gevVoiceCommands.stop({
+      removeUi: true
+    });
   }
-  const ui = createVoiceControl({ reset: true });
+  const ui = createVoiceControl({
+    reset: true
+  });
   const radioLayer = dataManager?.layers?.get('radio')?.module || null;
   const controller = createController({
     runner,
@@ -37,14 +43,19 @@ export function createVoiceCommands({
   if (annotations && typeof annotations.onOutlineEvent === 'function') {
     controller.annotationEventUnsubscribe = annotations.onOutlineEvent(
       (evt) => {
-        controller.notifyMapEvent({ type: 'map_annotation_outline', ...evt });
+        controller.notifyMapEvent({
+          type: 'map_annotation_outline',
+          ...evt
+        });
       },
     );
   }
   controller.buttonHandler = () => {
     if (shouldIgnoreVoiceButtonClick(controller.spaceKeyHeld)) return;
     if (controller.isActive()) controller.stop();
-    else controller.start({ pushToTalk: false });
+    else controller.start({
+      pushToTalk: false
+    });
   };
   ui.button.addEventListener('click', controller.buttonHandler);
   if (ui.tierButton) {
