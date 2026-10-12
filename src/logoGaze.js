@@ -16,17 +16,26 @@ const GAZE_EPSILON = 0.08;
 export function calculateLogoGaze(clientX, clientY, rect, maxOffset = MAX_GAZE_SVG_UNITS) {
   const values = [clientX, clientY, rect?.left, rect?.top, rect?.width, rect?.height, maxOffset];
   if (!values.every(Number.isFinite) || rect.width <= 0 || rect.height <= 0 || maxOffset < 0) {
-    return { x: 0, y: 0 };
+    return {
+      x: 0,
+      y: 0
+    };
   }
 
   const dx = clientX - (rect.left + rect.width / 2);
   const dy = clientY - (rect.top + rect.height / 2);
   const distance = Math.hypot(dx, dy);
-  if (distance === 0) return { x: 0, y: 0 };
+  if (distance === 0) return {
+    x: 0,
+    y: 0
+  };
 
   const strength = Math.min(distance / FULL_GAZE_DISTANCE_PX, 1);
   const scale = maxOffset * strength / distance;
-  return { x: dx * scale, y: dy * scale };
+  return {
+    x: dx * scale,
+    y: dy * scale
+  };
 }
 
 /**
@@ -137,7 +146,9 @@ export function initLogoGaze(root = document) {
     scheduleAnimation();
   };
 
-  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointermove', onPointerMove, {
+    passive: true
+  });
   window.addEventListener('blur', resetGaze);
   document.documentElement.addEventListener('pointerleave', resetGaze);
 
