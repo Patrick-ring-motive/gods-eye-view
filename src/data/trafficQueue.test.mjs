@@ -1,7 +1,13 @@
 // src/data/trafficQueue.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { queueDistances, queuePlatoons, locateAlongRoad } from './trafficQueue.js';
+import {
+  queueDistances,
+  queuePlatoons,
+  locateAlongRoad
+} from './trafficQueue.js';
 
 // ── queuePlatoons ───────────────────────────────────────────
 
@@ -57,17 +63,38 @@ test('queueDistances: degenerate input yields no positions', () => {
 
 test('locateAlongRoad: maps a distance to the containing segment + t', () => {
   const segs = [100, 50, 200];
-  assert.deepEqual(locateAlongRoad(segs, 0), { segIdx: 0, t: 0 });
-  assert.deepEqual(locateAlongRoad(segs, 50), { segIdx: 0, t: 0.5 });
-  assert.deepEqual(locateAlongRoad(segs, 100), { segIdx: 0, t: 1 });
-  assert.deepEqual(locateAlongRoad(segs, 125), { segIdx: 1, t: 0.5 });
-  assert.deepEqual(locateAlongRoad(segs, 350), { segIdx: 2, t: 1 });
+  assert.deepEqual(locateAlongRoad(segs, 0), {
+    segIdx: 0,
+    t: 0
+  });
+  assert.deepEqual(locateAlongRoad(segs, 50), {
+    segIdx: 0,
+    t: 0.5
+  });
+  assert.deepEqual(locateAlongRoad(segs, 100), {
+    segIdx: 0,
+    t: 1
+  });
+  assert.deepEqual(locateAlongRoad(segs, 125), {
+    segIdx: 1,
+    t: 0.5
+  });
+  assert.deepEqual(locateAlongRoad(segs, 350), {
+    segIdx: 2,
+    t: 1
+  });
 });
 
 test('locateAlongRoad: clamps beyond-road distances to the road end', () => {
-  assert.deepEqual(locateAlongRoad([100, 50], 999), { segIdx: 1, t: 1 });
+  assert.deepEqual(locateAlongRoad([100, 50], 999), {
+    segIdx: 1,
+    t: 1
+  });
 });
 
 test('locateAlongRoad: zero-length segments are skipped safely', () => {
-  assert.deepEqual(locateAlongRoad([0, 100], 50), { segIdx: 1, t: 0.5 });
+  assert.deepEqual(locateAlongRoad([0, 100], 50), {
+    segIdx: 1,
+    t: 0.5
+  });
 });
