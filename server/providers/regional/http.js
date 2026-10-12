@@ -6,8 +6,7 @@ import {
 const REGIONAL_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 
 async function fetchRegionalJson(
-  url,
-  {
+  url, {
     headers = {},
     timeoutMs = 9000,
     maxBytes = REGIONAL_MAX_RESPONSE_BYTES,
@@ -16,7 +15,10 @@ async function fetchRegionalJson(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { signal: controller.signal, headers });
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers
+    });
     if (!response.ok) throw new Error(`Upstream returned ${response.status}`);
     return readResponseJsonCapped(response, maxBytes);
   } finally {
@@ -25,8 +27,7 @@ async function fetchRegionalJson(
 }
 
 async function fetchRegionalText(
-  url,
-  {
+  url, {
     headers = {},
     timeoutMs = 9000,
     maxBytes = REGIONAL_MAX_RESPONSE_BYTES,
@@ -35,7 +36,10 @@ async function fetchRegionalText(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { signal: controller.signal, headers });
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers
+    });
     if (!response.ok) throw new Error(`Upstream returned ${response.status}`);
     return readResponseTextCapped(response, maxBytes);
   } finally {
@@ -43,4 +47,7 @@ async function fetchRegionalText(
   }
 }
 
-export { fetchRegionalJson, fetchRegionalText };
+export {
+  fetchRegionalJson,
+  fetchRegionalText
+};
