@@ -33,8 +33,8 @@ export function greatCircleKm(lat1, lon1, lat2, lon2) {
   const p2 = toRad(lat2);
   const dp = toRad(lat2 - lat1);
   const dl = toRad(lon2 - lon1);
-  const a = Math.sin(dp / 2) ** 2
-    + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  const a = Math.sin(dp / 2) ** 2 +
+    Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
@@ -76,7 +76,10 @@ function destinationPoint(lat, lon, bearingRad, distKm) {
   );
   // Normalize longitude to [-180, 180)
   const lonDeg = ((toDeg(l2) + 540) % 360) - 180;
-  return { lat: toDeg(p2), lon: lonDeg };
+  return {
+    lat: toDeg(p2),
+    lon: lonDeg
+  };
 }
 
 /**
@@ -100,17 +103,35 @@ function destinationPoint(lat, lon, bearingRad, distKm) {
  * @returns {{lat:number, lon:number, source:'hit'|'nadir'|'pulled'}}
  *   The fetch center and which rule produced it.
  */
-export function deriveFetchCenter({ nadirLat, nadirLon, hitLat, hitLon, maxPullKm = 12 }) {
+export function deriveFetchCenter({
+  nadirLat,
+  nadirLon,
+  hitLat,
+  hitLon,
+  maxPullKm = 12
+}) {
   if (!Number.isFinite(hitLat) || !Number.isFinite(hitLon)) {
-    return { lat: nadirLat, lon: nadirLon, source: 'nadir' };
+    return {
+      lat: nadirLat,
+      lon: nadirLon,
+      source: 'nadir'
+    };
   }
   const distKm = greatCircleKm(nadirLat, nadirLon, hitLat, hitLon);
   if (distKm <= maxPullKm) {
-    return { lat: hitLat, lon: hitLon, source: 'hit' };
+    return {
+      lat: hitLat,
+      lon: hitLon,
+      source: 'hit'
+    };
   }
   const bearing = initialBearingRad(nadirLat, nadirLon, hitLat, hitLon);
   const pulled = destinationPoint(nadirLat, nadirLon, bearing, maxPullKm);
-  return { lat: pulled.lat, lon: pulled.lon, source: 'pulled' };
+  return {
+    lat: pulled.lat,
+    lon: pulled.lon,
+    source: 'pulled'
+  };
 }
 
 /**
