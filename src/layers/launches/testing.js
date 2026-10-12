@@ -7,8 +7,7 @@ export function createTesting({
   /** Test seam for real layer lifecycle coverage with a recording host. */
 
   function _setRocketMissionOverlayHostForTest(host = null) {
-    layerState._missionOverlayHost = host ?
-      {
+    layerState._missionOverlayHost = host ? {
         ...layerState.DEFAULT_OVERLAY_HOST,
         ...host
       } :
