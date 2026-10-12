@@ -1,4 +1,6 @@
-import { applicationServices } from '../services/application.js';
+import {
+  applicationServices
+} from '../services/application.js';
 // src/data/terrainHeights.js — batched, cached client terrain-height resolver
 // (docs/plans/2026-07-05-entity-height-datum-fix.md Task 3).
 //
@@ -30,7 +32,10 @@ import { applicationServices } from '../services/application.js';
 //      points string sent to the proxy, so repeated calls (including calls
 //      from a fresh page load, a different camera batch, etc.) consistently
 //      hit the same warm proxy cache entry.
-import { ensureGeoidReady, geoidHeight } from './geoid.js';
+import {
+  ensureGeoidReady,
+  geoidHeight
+} from './geoid.js';
 
 /** Max points per outgoing request to `/api/terrain/heights` (see file header, point 1). */
 // Match the server's upstream batch so sequential upstream work also fits
@@ -102,8 +107,12 @@ export function cachedRealEllipsoidalGround(lat, lon) {
 async function fetchChunk(chunk) {
   // lon,lat order (matches the proxy's documented `points=lon,lat;…` contract
   // and Task 2's implementation).
-  const results = await applicationServices.terrain.getHeights(chunk, { signal: AbortSignal.timeout(30000) });
-  const body = { results };
+  const results = await applicationServices.terrain.getHeights(chunk, {
+    signal: AbortSignal.timeout(30000)
+  });
+  const body = {
+    results
+  };
   if (!Array.isArray(body?.results)) throw new Error('malformed terrain heights response (no results array)');
   if (body.results.length !== chunk.length) {
     throw new Error(
@@ -187,9 +196,9 @@ export async function resolveEllipsoidalGround(coords) {
   const now = Date.now();
   for (const item of work) {
     const entry = cache.get(item.key);
-    const fallbackCooling = entry?.source === 'geoid-fallback'
-      && Number.isFinite(entry.retryAt)
-      && now < entry.retryAt;
+    const fallbackCooling = entry?.source === 'geoid-fallback' &&
+      Number.isFinite(entry.retryAt) &&
+      now < entry.retryAt;
     if ((entry && entry.source === 'reearth') || fallbackCooling || seenKeys.has(item.key)) continue;
     seenKeys.add(item.key);
     uncached.push(item);
@@ -211,7 +220,10 @@ export async function resolveEllipsoidalGround(coords) {
         // one contact frozen at the geoid while its neighbors resolved).
         // An omitted point now caches nothing and retries on the next warm.
         if (Number.isFinite(ellipsoid)) {
-          cache.set(item.key, { ellipsoid, source: 'reearth' });
+          cache.set(item.key, {
+            ellipsoid,
+            source: 'reearth'
+          });
         }
       }
     } catch {
@@ -236,8 +248,14 @@ export async function resolveEllipsoidalGround(coords) {
   // retries later): report it unresolved instead of throwing.
   return work.map((item) => {
     const entry = cache.get(item.key);
-    return entry
-      ? { ellipsoid: entry.ellipsoid, source: entry.source }
-      : { ellipsoid: null, source: 'unresolved' };
+    return entry ?
+      {
+        ellipsoid: entry.ellipsoid,
+        source: entry.source
+      } :
+      {
+        ellipsoid: null,
+        source: 'unresolved'
+      };
   });
 }
