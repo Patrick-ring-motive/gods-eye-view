@@ -18,7 +18,9 @@
 // registry (director._captureLayerStates), so those shots declare all sixteen
 // keys and still reconcile in full.
 
-import { contextLayerEnableBlockReason } from '../contextModePolicy.js';
+import {
+  contextLayerEnableBlockReason
+} from '../contextModePolicy.js';
 
 /**
  * Layer params that re-establish a tracked contact — and with it a SECOND
@@ -124,7 +126,10 @@ export function sceneRequiresContextModeExit(contextMode) {
   if (!contextMode) return false;
   return contextLayerEnableBlockReason({
     contextMode,
-    change: { layerId: SCENE_EXCLUSIVITY_PROBE_LAYER_ID, enabled: true },
+    change: {
+      layerId: SCENE_EXCLUSIVITY_PROBE_LAYER_ID,
+      enabled: true
+    },
   }) !== null;
 }
 
@@ -144,9 +149,9 @@ export function sceneRequiresContextModeExit(contextMode) {
  * @returns {Array<{ id: string, enabled: boolean, params: Object|undefined }>}
  */
 export function sceneLayerPlan(targetStates, registeredIds) {
-  const known = registeredIds instanceof Set
-    ? registeredIds
-    : (registeredIds ? new Set(registeredIds) : null);
+  const known = registeredIds instanceof Set ?
+    registeredIds :
+    (registeredIds ? new Set(registeredIds) : null);
 
   const plan = [];
   for (const [id, target] of Object.entries(targetStates || {})) {
