@@ -149,14 +149,11 @@ export function createTracking({
           parts.queries._toCleanText(info?.type) || '',
         ),
         altitude: described.onGround ?
-          'on ground' :
-          parts.queries._formatAltitude(info?.altitudeFt),
+          'on ground' : parts.queries._formatAltitude(info?.altitudeFt),
         speed: Number.isFinite(described.velocityMps) ?
-          `${Math.round(described.velocityMps * 1.944)} kt` :
-          '',
+          `${Math.round(described.velocityMps * 1.944)} kt` : '',
         heading: Number.isFinite(described.track) ?
-          `${Math.round(described.track)}°` :
-          '',
+          `${Math.round(described.track)}°` : '',
         icao24,
         // Honesty cue: the contact is coasting on dead reckoning, so the
         // narrated position/velocity are last-known rather than live.
