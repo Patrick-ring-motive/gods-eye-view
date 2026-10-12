@@ -66,13 +66,11 @@ export class PanelPositionControls {
 
   _initPanelDrag() {
     if (this.destroyed) return;
-    const dragSpecs = [
-      {
-        id: 'pp-toggles',
-        panel: this._ppToggles,
-        handle: this._ppToggles?.querySelector('.panel-drag-handle.compact'),
-      },
-    ].filter(Boolean);
+    const dragSpecs = [{
+      id: 'pp-toggles',
+      panel: this._ppToggles,
+      handle: this._ppToggles?.querySelector('.panel-drag-handle.compact'),
+    }, ].filter(Boolean);
 
     for (const spec of dragSpecs) {
       if (!spec.panel || !spec.handle) continue;
@@ -98,7 +96,9 @@ export class PanelPositionControls {
     return `godsEyeView.${PANEL_LAYOUT_STORAGE_VERSION}.panelCollapsed.${panelId}`;
   }
 
-  _restorePanelCollapsedState(panelId, { allowStored = true } = {}) {
+  _restorePanelCollapsedState(panelId, {
+    allowStored = true
+  } = {}) {
     const panelEl = document.getElementById(panelId);
     if (!panelEl) return;
     let collapsed = panelEl.classList.contains('collapsed');
@@ -153,7 +153,10 @@ export class PanelPositionControls {
         return;
       // Clamp to the viewport: a position saved at one window size would otherwise land off-screen at
       // another (audit U2 — observed a panel at x:-192). The drag handler clamps; restore must too.
-      const { left, top } = this._clampToViewport(
+      const {
+        left,
+        top
+      } = this._clampToViewport(
         Math.round(pos.left),
         Math.round(pos.top),
         panelEl,
