@@ -141,10 +141,10 @@ export function displayedKinematics({
   reportedTrackDeg,
 } = {}) {
   return {
-    speedMps: Number.isFinite(derivedSpeedMps) ? Math.max(0, derivedSpeedMps)
-      : (Number.isFinite(reportedSpeedMps) ? Math.max(0, reportedSpeedMps) : null),
-    trackDeg: Number.isFinite(derivedTrackDeg) ? derivedTrackDeg
-      : (Number.isFinite(reportedTrackDeg) ? reportedTrackDeg : null),
+    speedMps: Number.isFinite(derivedSpeedMps) ? Math.max(0, derivedSpeedMps) :
+      (Number.isFinite(reportedSpeedMps) ? Math.max(0, reportedSpeedMps) : null),
+    trackDeg: Number.isFinite(derivedTrackDeg) ? derivedTrackDeg :
+      (Number.isFinite(reportedTrackDeg) ? reportedTrackDeg : null),
   };
 }
 
@@ -253,7 +253,11 @@ export const CORRIDOR_SAMPLE_SPACING_M = 55;
  *  straight walk makes. */
 export const CORRIDOR_MAX_LENGTH_M = 1300;
 /** Scratch for the shared arc integrator (see arcOffsetEnu). */
-const _scratchProjectArc = { east: 0, north: 0, endCourseDeg: 0 };
+const _scratchProjectArc = {
+  east: 0,
+  north: 0,
+  endCourseDeg: 0
+};
 
 /**
  * Where a ground contact will be after `dtSec`, using the SAME kinematics the
@@ -275,10 +279,16 @@ const _scratchProjectArc = { east: 0, north: 0, endCourseDeg: 0 };
  * @returns {{lat: number, lon: number}} Projected coordinate, degrees.
  */
 export function projectGroundArcLatLon(lat, lon, courseDeg, speedMps, turnRateDps, dtSec) {
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { lat, lon };
-  if (!Number.isFinite(courseDeg) || !Number.isFinite(speedMps) || !Number.isFinite(dtSec)
-    || speedMps <= 0 || dtSec <= 0) {
-    return { lat, lon };
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return {
+    lat,
+    lon
+  };
+  if (!Number.isFinite(courseDeg) || !Number.isFinite(speedMps) || !Number.isFinite(dtSec) ||
+    speedMps <= 0 || dtSec <= 0) {
+    return {
+      lat,
+      lon
+    };
   }
   const off = arcOffsetEnu(speedMps, courseDeg, turnRateDps || 0, dtSec, _scratchProjectArc);
   // Guard the pole: cos(lat) → 0 would send the longitude to infinity.
@@ -320,15 +330,28 @@ export function projectGroundArcLatLon(lat, lon, courseDeg, speedMps, turnRateDp
  * @returns {Array<{lat: number, lon: number}>} Polyline, display position first.
  */
 export function corridorPathLatLon({
-  extrapolating, displayLat, displayLon, courseDeg, speedMps, turnRateDps = 0,
-  fixLat, fixLon, lookaheadSec,
+  extrapolating,
+  displayLat,
+  displayLon,
+  courseDeg,
+  speedMps,
+  turnRateDps = 0,
+  fixLat,
+  fixLon,
+  lookaheadSec,
 }) {
   if (!Number.isFinite(displayLat) || !Number.isFinite(displayLon)) return [];
-  const start = { lat: displayLat, lon: displayLon };
+  const start = {
+    lat: displayLat,
+    lon: displayLon
+  };
   if (!extrapolating && Number.isFinite(fixLat) && Number.isFinite(fixLon)) {
     // The dead-reckon LERPS a straight chord between two fixes, so two points
     // ARE the display path here; the corridor's own walk fills the cells.
-    return [start, { lat: fixLat, lon: fixLon }];
+    return [start, {
+      lat: fixLat,
+      lon: fixLon
+    }];
   }
   const speed = Number.isFinite(speedMps) ? speedMps : 0;
   const seconds = Number.isFinite(lookaheadSec) ? lookaheadSec : 0;
@@ -366,7 +389,11 @@ export function arcOffsetEnu(speedMps, trackDeg, turnRateDps, dtSec, result) {
   return result;
 }
 
-const _forwardFixArc = { east: 0, north: 0, endCourseDeg: 0 };
+const _forwardFixArc = {
+  east: 0,
+  north: 0,
+  endCourseDeg: 0
+};
 const _forwardFixEnu = new Cesium.Matrix4();
 const _forwardFixOffset = new Cesium.Cartesian3();
 
@@ -386,9 +413,9 @@ const _forwardFixOffset = new Cesium.Cartesian3();
  */
 export function synthesizeForwardKinematicsFix(newest, next = {}) {
   if (!newest?.position || !newest?.time || !Number.isFinite(next.epochMs)) return null;
-  const startEpochMs = Number.isFinite(newest.epochMs)
-    ? newest.epochMs
-    : Cesium.JulianDate.toDate(newest.time).getTime();
+  const startEpochMs = Number.isFinite(newest.epochMs) ?
+    newest.epochMs :
+    Cesium.JulianDate.toDate(newest.time).getTime();
   if (!Number.isFinite(startEpochMs) || next.epochMs <= startEpochMs) return null;
 
   const previousVelocity = Number.isFinite(newest.velocity) ? Math.max(0, newest.velocity) : 0;
