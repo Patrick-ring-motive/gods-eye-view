@@ -1,5 +1,9 @@
-import { RADIO_UUID_RE } from './constants.js';
-import { normalizeRadioCountryInput } from '../../../src/data/radioCountry.js';
+import {
+  RADIO_UUID_RE
+} from './constants.js';
+import {
+  normalizeRadioCountryInput
+} from '../../../src/data/radioCountry.js';
 export function cleanRadioText(value, maxLength) {
   return String(value ?? '')
     .replace(/[\u0000-\u001f\u007f]/g, ' ')
@@ -64,9 +68,9 @@ export function normalizeRadioBrowserStation(raw) {
   const lat =
     raw?.geo_lat === null || raw?.geo_lat === '' ? null : Number(raw?.geo_lat);
   const lon =
-    raw?.geo_long === null || raw?.geo_long === ''
-      ? null
-      : Number(raw?.geo_long);
+    raw?.geo_long === null || raw?.geo_long === '' ?
+    null :
+    Number(raw?.geo_long);
   const codec = cleanRadioText(raw?.codec, 16).toUpperCase();
   const streamUrl = publicRadioHttpsUrl(raw?.url_resolved || raw?.url);
   if (
@@ -90,10 +94,10 @@ export function normalizeRadioBrowserStation(raw) {
     .split(',')
     .map((tag) =>
       cleanRadioText(tag, 80)
-        .toLocaleLowerCase()
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim(),
+      .toLocaleLowerCase()
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim(),
     )
     .filter(Boolean)
     .filter((tag, index, all) => all.indexOf(tag) === index)
@@ -106,9 +110,9 @@ export function normalizeRadioBrowserStation(raw) {
   const rawCountryCode = cleanRadioText(raw?.countrycode, 2).toUpperCase();
   const normalizedCode = normalizeRadioCountryInput(rawCountryCode);
   const normalizedCountry =
-    normalizedCode.valid && !normalizedCode.empty
-      ? normalizedCode
-      : normalizeRadioCountryInput(cleanRadioText(raw?.country, 80));
+    normalizedCode.valid && !normalizedCode.empty ?
+    normalizedCode :
+    normalizeRadioCountryInput(cleanRadioText(raw?.country, 80));
   const bitrate = Number(raw?.bitrate);
   return {
     id,
@@ -120,17 +124,15 @@ export function normalizeRadioBrowserStation(raw) {
     tags,
     languages,
     state: cleanRadioText(raw?.state, 80),
-    country:
-      normalizedCountry.valid && !normalizedCountry.empty
-        ? normalizedCountry.name
-        : cleanRadioText(raw?.country, 80),
+    country: normalizedCountry.valid && !normalizedCountry.empty ?
+      normalizedCountry.name :
+      cleanRadioText(raw?.country, 80),
     countryCode: normalizedCountry.valid ? normalizedCountry.code : '',
     metadataTrust: 'untrusted-community',
     codec,
-    bitrate:
-      Number.isInteger(bitrate) && bitrate >= 8 && bitrate <= 1024
-        ? bitrate
-        : null,
+    bitrate: Number.isInteger(bitrate) && bitrate >= 8 && bitrate <= 1024 ?
+      bitrate :
+      null,
     clickCount: Math.max(0, Math.min(10_000_000, Number(raw?.clickcount) || 0)),
   };
 }
