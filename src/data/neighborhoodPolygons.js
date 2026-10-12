@@ -10,19 +10,21 @@
  * touching this module — see `local_data/neighborhoods/SOURCE.md`.
  */
 
-import { createRetryableLoader } from './retryableLoad.js';
+import {
+  createRetryableLoader
+} from './retryableLoad.js';
 
 // bbox = [west, south, east, north]; only load a city file when the point falls in its box.
-const CITY_FILES = [
-  {
-    id: 'san-francisco',
-    bbox: [-122.55, 37.7, -122.35, 37.84],
-    loader: () =>
-      import('./local_data/neighborhoods/san-francisco.json', {
-        with: { type: 'json' },
-      }),
-  },
-];
+const CITY_FILES = [{
+  id: 'san-francisco',
+  bbox: [-122.55, 37.7, -122.35, 37.84],
+  loader: () =>
+    import('./local_data/neighborhoods/san-francisco.json', {
+      with: {
+        type: 'json'
+      },
+    }),
+}, ];
 
 /**
  * city id → memoized loader. Failures are NOT memoized: a transient
@@ -143,10 +145,10 @@ async function loadCity(city) {
 export async function lookupNeighborhoodRing(lat, lon, matchName) {
   const city = CITY_FILES.find(
     (c) =>
-      lon >= c.bbox[0] &&
-      lat >= c.bbox[1] &&
-      lon <= c.bbox[2] &&
-      lat <= c.bbox[3],
+    lon >= c.bbox[0] &&
+    lat >= c.bbox[1] &&
+    lon <= c.bbox[2] &&
+    lat <= c.bbox[3],
   );
   if (!city) return null;
   const feats = await loadCity(city);
@@ -193,5 +195,8 @@ export async function lookupNeighborhoodRing(lat, lon, matchName) {
       best = cand;
     }
   }
-  return best ? { ring: best.ring, name: best.name } : null;
+  return best ? {
+    ring: best.ring,
+    name: best.name
+  } : null;
 }
