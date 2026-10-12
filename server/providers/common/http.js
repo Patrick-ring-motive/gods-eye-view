@@ -24,19 +24,26 @@ export async function readResponseTextCapped(response, maxBytes, signal) {
   const cancel = () => {
     void reader.cancel().catch(() => {});
   };
-  signal?.addEventListener('abort', cancel, { once: true });
+  signal?.addEventListener('abort', cancel, {
+    once: true
+  });
   const decoder = new TextDecoder();
   let out = '';
   let total = 0;
   try {
     for (;;) {
       signal?.throwIfAborted();
-      const { done, value } = await reader.read();
+      const {
+        done,
+        value
+      } = await reader.read();
       signal?.throwIfAborted();
       if (done) break;
       total += value.byteLength;
       if (total > maxBytes) throw tooLarge();
-      out += decoder.decode(value, { stream: true });
+      out += decoder.decode(value, {
+        stream: true
+      });
     }
     return out + decoder.decode();
   } catch (error) {
@@ -59,7 +66,10 @@ export async function readResponseJsonCapped(response, maxBytes) {
  */
 export function coalesceProxyRequest(inFlight, key, create) {
   const existing = inFlight.get(key);
-  if (existing) return { promise: existing, shared: true };
+  if (existing) return {
+    promise: existing,
+    shared: true
+  };
   let promise;
   promise = Promise.resolve()
     .then(create)
@@ -67,7 +77,10 @@ export function coalesceProxyRequest(inFlight, key, create) {
       if (inFlight.get(key) === promise) inFlight.delete(key);
     });
   inFlight.set(key, promise);
-  return { promise, shared: false };
+  return {
+    promise,
+    shared: false
+  };
 }
 
 /**
@@ -87,16 +100,25 @@ export async function readCappedResponseText(upstream, maxBytes) {
     } catch {
       /* no-op */
     }
-    return { tooLarge: true, text: '' };
+    return {
+      tooLarge: true,
+      text: ''
+    };
   }
   if (
     !upstream.body ||
     typeof upstream.body[Symbol.asyncIterator] !== 'function'
   ) {
     const text = await upstream.text();
-    return text.length > maxBytes
-      ? { tooLarge: true, text: '' }
-      : { tooLarge: false, text };
+    return text.length > maxBytes ?
+      {
+        tooLarge: true,
+        text: ''
+      } :
+      {
+        tooLarge: false,
+        text
+      };
   }
   const decoder = new TextDecoder();
   let text = '';
@@ -109,10 +131,18 @@ export async function readCappedResponseText(upstream, maxBytes) {
       } catch {
         /* no-op */
       }
-      return { tooLarge: true, text: '' };
+      return {
+        tooLarge: true,
+        text: ''
+      };
     }
-    text += decoder.decode(chunk, { stream: true });
+    text += decoder.decode(chunk, {
+      stream: true
+    });
   }
   text += decoder.decode();
-  return { tooLarge: false, text };
+  return {
+    tooLarge: false,
+    text
+  };
 }
