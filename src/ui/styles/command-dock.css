@@ -7,10 +7,8 @@
   z-index: 145;
   display: grid;
   grid-template-areas: 'locations voice presets';
-  grid-template-columns: minmax(300px, 1fr) minmax(230px, 270px) minmax(
-      390px,
-      1.15fr
-    );
+  grid-template-columns: minmax(300px, 1fr) minmax(230px, 270px) minmax(390px,
+      1.15fr);
   align-items: stretch;
   width: min(94vw, 1240px);
   padding: 6px;
@@ -30,9 +28,9 @@
     visibility var(--transition-smooth);
 }
 
-#command-dock > #location-bar,
-#command-dock > #control-panel,
-#command-dock > #gev-voice-control {
+#command-dock>#location-bar,
+#command-dock>#control-panel,
+#command-dock>#gev-voice-control {
   position: relative;
   inset: auto;
   width: auto;
@@ -40,19 +38,19 @@
   transform: none;
 }
 
-#command-dock > #location-bar {
+#command-dock>#location-bar {
   grid-area: locations;
   min-width: 0;
   border-right: 1px solid rgba(123, 189, 211, 0.16);
 }
 
-#command-dock > #control-panel {
+#command-dock>#control-panel {
   grid-area: presets;
   min-width: 0;
   border-left: 1px solid rgba(123, 189, 211, 0.16);
 }
 
-#command-dock > #gev-voice-control {
+#command-dock>#gev-voice-control {
   grid-area: voice;
   z-index: 2;
   align-self: stretch;
@@ -219,10 +217,7 @@ body:not(.ui-clean-view):not(.recording-mode) #cesium-credits {
   bottom: calc(2vh + 7rem);
 }
 
-body:not(.ui-clean-view):not(.recording-mode):has(
-    #intel-hud[data-variant='minimal'].active
-  )
-  #cesium-credits {
+body:not(.ui-clean-view):not(.recording-mode):has(#intel-hud[data-variant='minimal'].active) #cesium-credits {
   right: 36px;
   left: auto;
   width: min(340px, calc(100vw - 72px)) !important;
@@ -260,17 +255,17 @@ body.recording-mode #cesium-credits {
     width: calc(100vw - 24px);
   }
 
-  #command-dock > #location-bar {
+  #command-dock>#location-bar {
     border-right: 1px solid rgba(123, 189, 211, 0.16);
     border-bottom: 1px solid rgba(123, 189, 211, 0.16);
   }
 
-  #command-dock > #control-panel {
+  #command-dock>#control-panel {
     border-top: 1px solid rgba(123, 189, 211, 0.16);
     border-left: 0;
   }
 
-  #command-dock > #gev-voice-control {
+  #command-dock>#gev-voice-control {
     margin: -10px 0 0;
   }
 
