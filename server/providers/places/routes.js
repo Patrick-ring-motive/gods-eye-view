@@ -1,6 +1,13 @@
-import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import { haversineKm } from '../common/geo.js';
-import { readResponseTextCapped } from '../common/http.js';
+import {
+  makeRateLimiter,
+  clientKey
+} from '../common/rate-limit.js';
+import {
+  haversineKm
+} from '../common/geo.js';
+import {
+  readResponseTextCapped
+} from '../common/http.js';
 import {
   normalizeRouteProfile,
   projectRouteResult,
@@ -24,8 +31,10 @@ const _routeRateLimiter = makeRateLimiter({
 });
 
 export function installRouteMiddleware(
-  middlewares,
-  { endpoints = {}, fetchImpl = (...args) => fetch(...args) } = {},
+  middlewares, {
+    endpoints = {},
+    fetchImpl = (...args) => fetch(...args)
+  } = {},
 ) {
   const _routeCache = new Map();
 
@@ -33,8 +42,13 @@ export function installRouteMiddleware(
   // GET /api/route?profile=foot|car|bike&coords=lon,lat;lon,lat[;...]
   middlewares.use('/api/route', async (req, res) => {
     const fail = (msg) => {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: false, error: msg }));
+      res.writeHead(200, {
+        'Content-Type': 'application/json'
+      });
+      res.end(JSON.stringify({
+        ok: false,
+        error: msg
+      }));
     };
     try {
       if (!_routeRateLimiter(clientKey(req))) {
@@ -42,7 +56,10 @@ export function installRouteMiddleware(
           'Content-Type': 'application/json',
           'Retry-After': '5',
         });
-        res.end(JSON.stringify({ ok: false, error: 'rate limited' }));
+        res.end(JSON.stringify({
+          ok: false,
+          error: 'rate limited'
+        }));
         return;
       }
       const url = new URL(req.url, 'http://localhost');
@@ -95,7 +112,9 @@ export function installRouteMiddleware(
       const now = Date.now();
       const cached = _routeCache.get(cacheKey);
       if (cached && now - cached.cachedAt <= ROUTE_CACHE_MS) {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, {
+          'Content-Type': 'application/json'
+        });
         res.end(JSON.stringify(cached.payload));
         return;
       }
@@ -110,7 +129,9 @@ export function installRouteMiddleware(
         const upstreamRes = await fetchImpl(upstream, {
           signal: controller.signal,
           redirect: 'error',
-          headers: { 'User-Agent': 'gods-eye-view/dev (local)' },
+          headers: {
+            'User-Agent': 'gods-eye-view/dev (local)'
+          },
         });
         if (!upstreamRes.ok) return fail('no route found');
         const ctype = upstreamRes.headers.get('content-type') || '';
@@ -127,10 +148,15 @@ export function installRouteMiddleware(
       if (osrm?.code !== 'Ok' || !route?.geometry?.coordinates?.length)
         return fail('no route found');
       const payload = projectRouteResult(route, profile);
-      _routeCache.set(cacheKey, { payload, cachedAt: now });
+      _routeCache.set(cacheKey, {
+        payload,
+        cachedAt: now
+      });
       if (_routeCache.size > 200)
         _routeCache.delete(_routeCache.keys().next().value);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.writeHead(200, {
+        'Content-Type': 'application/json'
+      });
       res.end(JSON.stringify(payload));
     } catch (e) {
       console.error('[Route Proxy]', e?.message || e);
