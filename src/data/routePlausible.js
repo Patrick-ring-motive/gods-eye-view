@@ -42,8 +42,8 @@ export function crossTrackKm(lat, lon, lat1, lon1, lat2, lon2) {
 
 const NEAR_ENDPOINT_KM = 130;
 const CROSS_TRACK_KM = 200;
-const LOW_ALT_M = 3700;        // ~12 000 ft
-const VERT_TREND_MPS = 2;      // ~400 fpm
+const LOW_ALT_M = 3700; // ~12 000 ft
+const VERT_TREND_MPS = 2; // ~400 fpm
 const LOCAL_AIRPORT_KM = 150;
 
 /**
@@ -55,7 +55,14 @@ const LOCAL_AIRPORT_KM = 150;
  * @param {{lat:number|null, lon:number|null}|null} [p.destination]
  * @returns {boolean} false ONLY when the route is confidently wrong.
  */
-export function routePlausible({ latDeg, lonDeg, altitudeM = null, verticalRateMps = null, origin = null, destination = null }) {
+export function routePlausible({
+  latDeg,
+  lonDeg,
+  altitudeM = null,
+  verticalRateMps = null,
+  origin = null,
+  destination = null
+}) {
   const haveO = Number.isFinite(origin?.lat) && Number.isFinite(origin?.lon);
   const haveD = Number.isFinite(destination?.lat) && Number.isFinite(destination?.lon);
   if (!haveO && !haveD) return true; // no coordinates — cannot judge, do not hide
