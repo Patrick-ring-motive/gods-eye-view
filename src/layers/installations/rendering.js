@@ -1,5 +1,9 @@
 import * as Cesium from 'cesium';
-import { LAYER_ID, MAX_RENDERED, COLOR_BY_CLASS } from './policy.js';
+import {
+  LAYER_ID,
+  MAX_RENDERED,
+  COLOR_BY_CLASS
+} from './policy.js';
 
 export function createRendering({
   state: layerState,
@@ -7,15 +11,22 @@ export function createRendering({
   parts,
   source,
 }) {
-  const { floorAltitudeM, cachedGroundFloor } = services.ground;
+  const {
+    floorAltitudeM,
+    cachedGroundFloor
+  } = services.ground;
   const {
     removeEntityContextsForLayer,
     getSelectedEntityContext,
     registerEntityContext,
     selectEntityContext,
   } = services.context;
-  const { governorRequestRender } = services.render;
-  const { warmFireAnchorFloors } = services.anchors;
+  const {
+    governorRequestRender
+  } = services.render;
+  const {
+    warmFireAnchorFloors
+  } = services.anchors;
 
   /**
    * Shared rendered-surface height for an installation anchor or footprint.
@@ -60,7 +71,9 @@ export function createRendering({
     return selected ? [...rendered, selected] : rendered;
   }
 
-  function renderRecords({ claimSelection = false } = {}) {
+  function renderRecords({
+    claimSelection = false
+  } = {}) {
     // Context navigation can select another layer without a canvas click.
     // A delayed floor/data repaint must not steal that newer selection back.
     const selectedContext = getSelectedEntityContext();
@@ -89,25 +102,24 @@ export function createRendering({
         position: displayPosition,
         point: {
           pixelSize: record.id === layerState.selectedId ? 13 : 9,
-          color:
-            record.id === layerState.selectedId ? Cesium.Color.WHITE : color,
+          color: record.id === layerState.selectedId ? Cesium.Color.WHITE : color,
           outlineColor: Cesium.Color.BLACK.withAlpha(0.8),
           outlineWidth: 1,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
-        polygon: record.footprint
-          ? {
-              hierarchy: new Cesium.PolygonHierarchy(
-                record.footprint.map(([longitude, latitude]) =>
-                  Cesium.Cartesian3.fromDegrees(longitude, latitude),
-                ),
+        polygon: record.footprint ?
+          {
+            hierarchy: new Cesium.PolygonHierarchy(
+              record.footprint.map(([longitude, latitude]) =>
+                Cesium.Cartesian3.fromDegrees(longitude, latitude),
               ),
-              material: color.withAlpha(0.12),
-              outline: true,
-              outlineColor: color.withAlpha(0.65),
-              height: surfaceHeightM,
-            }
-          : undefined,
+            ),
+            material: color.withAlpha(0.12),
+            outline: true,
+            outlineColor: color.withAlpha(0.65),
+            height: surfaceHeightM,
+          } :
+          undefined,
       });
       entity.gevTrackedId = `installations:${record.id}`;
       entity.gevDisplayPosition = () => displayPosition;
@@ -115,18 +127,17 @@ export function createRendering({
         title: record.name || 'MAPPED INSTALLATION',
         details: [
           String(record.class || 'installation')
-            .replaceAll('_', ' ')
-            .toUpperCase(),
+          .replaceAll('_', ' ')
+          .toUpperCase(),
         ],
         accent: COLOR_BY_CLASS[record.class] || '#9ca6b0',
       };
       registerEntityContext(entity, {
         id: record.id,
         layerId: LAYER_ID,
-        layerName:
-          record.kind === 'place_candidate'
-            ? 'Military Site Search Candidates'
-            : 'Mapped Military Installations',
+        layerName: record.kind === 'place_candidate' ?
+          'Military Site Search Candidates' :
+          'Mapped Military Installations',
         source: parts.model.installationSourceLabel(record),
         label: record.name,
         latitude: record.latitude,
@@ -140,9 +151,9 @@ export function createRendering({
         },
       });
     }
-    const selectedEntity = layerState.selectedId
-      ? layerState.dataSource.entities.getById(layerState.selectedId)
-      : null;
+    const selectedEntity = layerState.selectedId ?
+      layerState.dataSource.entities.getById(layerState.selectedId) :
+      null;
     if (selectedEntity) selectEntityContext(selectedEntity);
     else layerState.selectedId = null;
   }
@@ -172,9 +183,12 @@ export function createRendering({
     const cold = records
       .filter(
         (record) =>
-          cachedGroundFloor(record.latitude, record.longitude) == null,
+        cachedGroundFloor(record.latitude, record.longitude) == null,
       )
-      .map((record) => ({ lat: record.latitude, lon: record.longitude }));
+      .map((record) => ({
+        lat: record.latitude,
+        lon: record.longitude
+      }));
     if (!cold.length) return;
     warmFireAnchorFloors(cold).then(() => {
       if (!layerState.enabled || !layerState.dataSource) return;
