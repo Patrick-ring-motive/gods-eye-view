@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * streetview-panorama.mjs
  *
@@ -22,9 +23,18 @@
  * Dependencies: sharp (npm install sharp)
  */
 
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  readFileSync,
+  mkdirSync,
+  writeFileSync
+} from 'node:fs';
+import {
+  resolve,
+  join
+} from 'node:path';
+import {
+  fileURLToPath
+} from 'node:url';
 import sharp from 'sharp';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -36,16 +46,32 @@ const PROJECT_ROOT = resolve(__dirname, '..');
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { zoom: 3, radius: 50, outdir: 'output' };
+  const opts = {
+    zoom: 3,
+    radius: 50,
+    outdir: 'output'
+  };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--lat':    opts.lat = parseFloat(args[++i]); break;
-      case '--lon':    opts.lon = parseFloat(args[++i]); break;
-      case '--zoom':   opts.zoom = parseInt(args[++i], 10); break;
-      case '--radius': opts.radius = parseInt(args[++i], 10); break;
-      case '--outdir': opts.outdir = args[++i]; break;
-      case '--key':    opts.key = args[++i]; break;
+      case '--lat':
+        opts.lat = parseFloat(args[++i]);
+        break;
+      case '--lon':
+        opts.lon = parseFloat(args[++i]);
+        break;
+      case '--zoom':
+        opts.zoom = parseInt(args[++i], 10);
+        break;
+      case '--radius':
+        opts.radius = parseInt(args[++i], 10);
+        break;
+      case '--outdir':
+        opts.outdir = args[++i];
+        break;
+      case '--key':
+        opts.key = args[++i];
+        break;
       case '--help':
         console.log(`Usage: node tools/streetview-panorama.mjs --lat <lat> --lon <lon> [--zoom 0-5] [--radius m] [--outdir dir] [--key apikey]`);
         process.exit(0);
@@ -85,7 +111,8 @@ function loadApiKey(overrideKey) {
       const val = trimmed.slice(eqIdx + 1).trim();
       if (key === 'GOOGLE_MAPS_API_KEY' && val) return val;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */ }
 
   console.error('Error: No API key found. Set GOOGLE_MAPS_API_KEY in .env or pass --key.');
   process.exit(1);
@@ -96,14 +123,23 @@ function loadApiKey(overrideKey) {
 // ---------------------------------------------------------------------------
 
 const TILE_API = 'https://tile.googleapis.com/v1';
-const COMMON_HEADERS = { 'Referer': 'http://localhost:4173/' };
+const COMMON_HEADERS = {
+  'Referer': 'http://localhost:4173/'
+};
 
 async function createSession(apiKey) {
   const url = `${TILE_API}/createSession?key=${apiKey}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: { ...COMMON_HEADERS, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mapType: 'streetview', language: 'en-US', region: 'US' }),
+    headers: {
+      ...COMMON_HEADERS,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      mapType: 'streetview',
+      language: 'en-US',
+      region: 'US'
+    }),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -116,8 +152,17 @@ async function findPanoId(apiKey, session, lat, lng, radius) {
   const url = `${TILE_API}/streetview/panoIds?session=${session}&key=${apiKey}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: { ...COMMON_HEADERS, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ locations: [{ lat, lng }], radius }),
+    headers: {
+      ...COMMON_HEADERS,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      locations: [{
+        lat,
+        lng
+      }],
+      radius
+    }),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -133,7 +178,9 @@ async function findPanoId(apiKey, session, lat, lng, radius) {
 
 async function getMetadata(apiKey, session, panoId) {
   const url = `${TILE_API}/streetview/metadata?session=${session}&key=${apiKey}&panoId=${panoId}`;
-  const res = await fetch(url, { headers: COMMON_HEADERS });
+  const res = await fetch(url, {
+    headers: COMMON_HEADERS
+  });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`metadata failed (${res.status}): ${text}`);
@@ -143,7 +190,9 @@ async function getMetadata(apiKey, session, panoId) {
 
 async function fetchTile(apiKey, session, panoId, z, x, y) {
   const url = `${TILE_API}/streetview/tiles/${z}/${x}/${y}?session=${session}&key=${apiKey}&panoId=${panoId}`;
-  const res = await fetch(url, { headers: COMMON_HEADERS });
+  const res = await fetch(url, {
+    headers: COMMON_HEADERS
+  });
   if (!res.ok) {
     // Some edge tiles may be empty — return null
     if (res.status === 404 || res.status === 204) return null;
@@ -158,7 +207,12 @@ async function fetchTile(apiKey, session, panoId, z, x, y) {
 // ---------------------------------------------------------------------------
 
 async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
-  const { imageWidth, imageHeight, tileWidth, tileHeight } = metadata;
+  const {
+    imageWidth,
+    imageHeight,
+    tileWidth,
+    tileHeight
+  } = metadata;
 
   // Street View tile grids follow a fixed power-of-2 scheme:
   //   zoom 0: 1×1    (360° FOV, entire panorama in one tile)
@@ -176,8 +230,8 @@ async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
   // We use the fixed grid, then let fetchTile silently return null for
   // any tiles that 404 (edge padding). The stitched canvas size is
   // grid × tileSize, and real image content fills the upper-left portion.
-  const tilesX = Math.pow(2, zoom);                       // cols: 1,2,4,8,16,32
-  const tilesY = Math.max(1, Math.pow(2, zoom - 1));      // rows: 1,1,2,4, 8,16
+  const tilesX = Math.pow(2, zoom); // cols: 1,2,4,8,16,32
+  const tilesY = Math.max(1, Math.pow(2, zoom - 1)); // rows: 1,1,2,4, 8,16
 
   // The panorama image is an equirectangular projection: width = 360°,
   // height = 180°. The tile grid is always 2:1 aspect (except zoom 0
@@ -200,7 +254,10 @@ async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
 
   for (let y = 0; y < tilesY; y++) {
     for (let x = 0; x < tilesX; x++) {
-      queue.push({ x, y });
+      queue.push({
+        x,
+        y
+      });
     }
   }
 
@@ -209,9 +266,16 @@ async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
 
   async function worker() {
     while (queue.length > 0) {
-      const { x, y } = queue.shift();
+      const {
+        x,
+        y
+      } = queue.shift();
       const buf = await fetchTile(apiKey, session, panoId, zoom, x, y);
-      tiles.push({ x, y, buf });
+      tiles.push({
+        x,
+        y,
+        buf
+      });
       completed++;
       if (completed % 10 === 0 || completed === total) {
         process.stdout.write(`  Fetched ${completed}/${total} tiles\r`);
@@ -219,7 +283,9 @@ async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
     }
   }
 
-  const workers = Array.from({ length: Math.min(CONCURRENCY, total) }, () => worker());
+  const workers = Array.from({
+    length: Math.min(CONCURRENCY, total)
+  }, () => worker());
   await Promise.all(workers);
   console.log(`  Fetched ${total}/${total} tiles`);
 
@@ -227,7 +293,12 @@ async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
   console.log(`Stitching ${panoWidth}x${panoHeight} panorama...`);
 
   const composites = [];
-  for (const { x, y, buf } of tiles) {
+  for (const {
+      x,
+      y,
+      buf
+    }
+    of tiles) {
     if (!buf) continue;
     composites.push({
       input: buf,
@@ -241,12 +312,22 @@ async function stitchPanorama(apiKey, session, panoId, metadata, zoom) {
       width: panoWidth,
       height: panoHeight,
       channels: 3,
-      background: { r: 0, g: 0, b: 0 },
+      background: {
+        r: 0,
+        g: 0,
+        b: 0
+      },
     },
   }).composite(composites);
 
-  const outBuf = await panorama.jpeg({ quality: 92 }).toBuffer();
-  return { buffer: outBuf, width: panoWidth, height: panoHeight };
+  const outBuf = await panorama.jpeg({
+    quality: 92
+  }).toBuffer();
+  return {
+    buffer: outBuf,
+    width: panoWidth,
+    height: panoHeight
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -280,16 +361,42 @@ async function main() {
     return Math.sqrt(dy * dy + dx * dx);
   };
 
-  const probePoints = [
-    { lat: opts.lat, lng: opts.lon },
-    { lat: opts.lat + offsetM, lng: opts.lon },
-    { lat: opts.lat - offsetM, lng: opts.lon },
-    { lat: opts.lat, lng: opts.lon + offsetM },
-    { lat: opts.lat, lng: opts.lon - offsetM },
-    { lat: opts.lat + offsetM * 2, lng: opts.lon },
-    { lat: opts.lat - offsetM * 2, lng: opts.lon },
-    { lat: opts.lat, lng: opts.lon + offsetM * 2 },
-    { lat: opts.lat, lng: opts.lon - offsetM * 2 },
+  const probePoints = [{
+      lat: opts.lat,
+      lng: opts.lon
+    },
+    {
+      lat: opts.lat + offsetM,
+      lng: opts.lon
+    },
+    {
+      lat: opts.lat - offsetM,
+      lng: opts.lon
+    },
+    {
+      lat: opts.lat,
+      lng: opts.lon + offsetM
+    },
+    {
+      lat: opts.lat,
+      lng: opts.lon - offsetM
+    },
+    {
+      lat: opts.lat + offsetM * 2,
+      lng: opts.lon
+    },
+    {
+      lat: opts.lat - offsetM * 2,
+      lng: opts.lon
+    },
+    {
+      lat: opts.lat,
+      lng: opts.lon + offsetM * 2
+    },
+    {
+      lat: opts.lat,
+      lng: opts.lon - offsetM * 2
+    },
   ];
 
   const seen = new Map(); // panoId → metadata
@@ -300,7 +407,9 @@ async function main() {
     let pId;
     try {
       pId = await findPanoId(apiKey, session, pt.lat, pt.lng, opts.radius);
-    } catch { continue; }
+    } catch {
+      continue;
+    }
     if (seen.has(pId)) continue;
     const candidate = await getMetadata(apiKey, session, pId);
     seen.set(pId, candidate);
@@ -356,13 +465,19 @@ async function main() {
   console.log(`  Distance from requested point: ${distM.toFixed(1)}m\n`);
 
   // Step 4: Fetch and stitch panorama
-  const { buffer: panoBuffer, width: panoWidth, height: panoHeight } = await stitchPanorama(
+  const {
+    buffer: panoBuffer,
+    width: panoWidth,
+    height: panoHeight
+  } = await stitchPanorama(
     apiKey, session, meta.panoId, meta, opts.zoom
   );
 
   // Step 5: Save outputs
   const outdir = resolve(PROJECT_ROOT, opts.outdir);
-  mkdirSync(outdir, { recursive: true });
+  mkdirSync(outdir, {
+    recursive: true
+  });
 
   const panoPath = join(outdir, `panorama_${opts.lat}_${opts.lon}.jpg`);
   writeFileSync(panoPath, panoBuffer);
