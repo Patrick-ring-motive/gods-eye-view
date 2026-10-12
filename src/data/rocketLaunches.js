@@ -1,4 +1,6 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
 import {
   createRocketLaunchesLayer,
   createLaunchSource,
@@ -16,7 +18,12 @@ const sourceSlot = createSourceSlot(
 export const configureLaunchSource = sourceSlot.configure;
 const layer = createRocketLaunchesLayer({
   source: sourceSlot.source,
-  services: { satellites, geometry, overlays, render },
+  services: {
+    satellites,
+    geometry,
+    overlays,
+    render
+  },
 });
 export const satelliteParamsForSpaceMissions =
   layer.satelliteParamsForSpaceMissions;
@@ -85,5 +92,6 @@ export {
   ROCKET_MISSION_AMBIENT_OVERLAY_COLLISION_CAPACITY,
   ROCKET_MISSION_SELECTED_OVERLAY_SOURCE_OPTIONS,
   LAUNCH_PAD_ZONE_RADIUS_M,
-} from '../layers/launches/index.js';
+}
+from '../layers/launches/index.js';
 export default layer;
