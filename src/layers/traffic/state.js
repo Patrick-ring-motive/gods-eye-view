@@ -1,7 +1,12 @@
 import * as Cesium from 'cesium';
-import { FLOW_BUCKET_COLORS, TRAFFIC_TIMING_ENABLED } from './policy.js';
+import {
+  FLOW_BUCKET_COLORS,
+  TRAFFIC_TIMING_ENABLED
+} from './policy.js';
 
-export function createState({ services }) {
+export function createState({
+  services
+}) {
   const layerState = {};
 
   // ─── Module State ──────────────────────────────────────────
@@ -118,7 +123,12 @@ export function createState({ services }) {
    * @type {{free:number, slow:number, jam:number, sim:number}}
    */
 
-  layerState._bucketCounts = { free: 0, slow: 0, jam: 0, sim: 0 };
+  layerState._bucketCounts = {
+    free: 0,
+    slow: 0,
+    jam: 0,
+    sim: 0
+  };
 
   /** @type {number} Roads in the current render skipped entirely as closed. */
 
@@ -195,7 +205,9 @@ export function createState({ services }) {
    * @type {{free:Cesium.Color, slow:Cesium.Color, jam:Cesium.Color}}
    */
 
-  layerState._activeBucketColors = { ...FLOW_BUCKET_COLORS };
+  layerState._activeBucketColors = {
+    ...FLOW_BUCKET_COLORS
+  };
 
   /**
    * Dot fade-out distances, recomputed per render from the camera-to-area
