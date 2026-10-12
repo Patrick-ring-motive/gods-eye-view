@@ -5,7 +5,12 @@ import {
   DOT_HEIGHT_OFFSET,
 } from './policy.js';
 
-export function createTiming({ state: layerState, services, parts, source }) {
+export function createTiming({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Return development timing counters for the capture harness and inertness test.
    * This named export is unused by the application and removed from production.
@@ -77,7 +82,9 @@ export function createTiming({ state: layerState, services, parts, source }) {
     const traceId = state?.trace?.id ?? 'interaction';
     const pass = state?.pass || 'load';
     const name = `traffic:${traceId}:${pass}:${phase}:${++layerState._trafficTimingSequence}`;
-    const options = { detail: trafficTimingDetail(state, phase, extra) };
+    const options = {
+      detail: trafficTimingDetail(state, phase, extra)
+    };
     if (Number.isFinite(startTime)) options.startTime = startTime;
     performance.mark(name, options);
     return name;
@@ -125,15 +132,15 @@ export function createTiming({ state: layerState, services, parts, source }) {
   function clearTrafficTimingEntries() {
     const markNames = new Set(
       performance
-        .getEntriesByType('mark')
-        .filter((entry) => entry.name.startsWith('traffic:'))
-        .map((entry) => entry.name),
+      .getEntriesByType('mark')
+      .filter((entry) => entry.name.startsWith('traffic:'))
+      .map((entry) => entry.name),
     );
     const measureNames = new Set(
       performance
-        .getEntriesByType('measure')
-        .filter((entry) => entry.name.startsWith('traffic:'))
-        .map((entry) => entry.name),
+      .getEntriesByType('measure')
+      .filter((entry) => entry.name.startsWith('traffic:'))
+      .map((entry) => entry.name),
     );
     for (const name of markNames) performance.clearMarks(name);
     for (const name of measureNames) performance.clearMeasures(name);
@@ -150,7 +157,10 @@ export function createTiming({ state: layerState, services, parts, source }) {
   function markTrafficTimingCameraChange() {
     const interactionId = ++layerState._trafficTimingSequence;
     const timestamp = performance.now();
-    const anchor = { interactionId, timestamp };
+    const anchor = {
+      interactionId,
+      timestamp
+    };
     layerState._trafficTimingCurrentAnchor = anchor;
     performance.mark(trafficTimingCameraChangeMarkName(interactionId), {
       startTime: timestamp,
@@ -202,8 +212,7 @@ export function createTiming({ state: layerState, services, parts, source }) {
     const _trafficTimingParseStartTime = performance.now();
     const _trafficTimingParseStart = trafficTimingMark(
       _trafficTimingState,
-      'road-parse-start',
-      {},
+      'road-parse-start', {},
       _trafficTimingParseStartTime,
     );
     /* TRACE_ONLY_END */
@@ -211,22 +220,23 @@ export function createTiming({ state: layerState, services, parts, source }) {
       /* TRACE_ONLY_BEGIN */
       const _trafficTimingParseEnd = trafficTimingMark(
         _trafficTimingState,
-        'road-parse-end',
-        { roadCount: 0 },
+        'road-parse-end', {
+          roadCount: 0
+        },
       );
       trafficTimingMeasure(
         'road-parse-total',
         _trafficTimingState,
         _trafficTimingParseStart,
-        _trafficTimingParseEnd,
-        { roadCount: 0 },
+        _trafficTimingParseEnd, {
+          roadCount: 0
+        },
       );
       trafficTimingAggregate(
         'sample-height-total',
         _trafficTimingState,
         _trafficTimingParseStartTime,
-        0,
-        {
+        0, {
           sampleHeightCalls: 0,
           sampleHeightMeanMs: 0,
           distinctCells: 0,
@@ -237,8 +247,9 @@ export function createTiming({ state: layerState, services, parts, source }) {
         'waypoint-materialization',
         _trafficTimingState,
         _trafficTimingParseStartTime,
-        0,
-        { roadCount: 0 },
+        0, {
+          roadCount: 0
+        },
       );
       /* TRACE_ONLY_END */
       return [];
@@ -256,9 +267,9 @@ export function createTiming({ state: layerState, services, parts, source }) {
 
       const rawCoords = el.geometry.map((g) => [g.lon, g.lat]);
       const simplifyStep =
-        rawCoords.length > MAX_WAYPOINTS_PER_ROAD
-          ? Math.ceil(rawCoords.length / MAX_WAYPOINTS_PER_ROAD)
-          : 1;
+        rawCoords.length > MAX_WAYPOINTS_PER_ROAD ?
+        Math.ceil(rawCoords.length / MAX_WAYPOINTS_PER_ROAD) :
+        1;
       const coords = [];
       for (let i = 0; i < rawCoords.length; i += simplifyStep) {
         coords.push(rawCoords[i]);
@@ -277,11 +288,11 @@ export function createTiming({ state: layerState, services, parts, source }) {
         onewayTag === 'yes' ||
         onewayTag === '1' ||
         onewayTag === 'true' ||
-        el.tags?.junction === 'roundabout'
-          ? 1
-          : onewayTag === '-1'
-            ? -1
-            : 0;
+        el.tags?.junction === 'roundabout' ?
+        1 :
+        onewayTag === '-1' ?
+        -1 :
+        0;
 
       let baseHeight = 0;
       const firstCoord = coords[0];
@@ -325,16 +336,22 @@ export function createTiming({ state: layerState, services, parts, source }) {
         performance.now() - _trafficTimingMaterializeStart;
       /* TRACE_ONLY_END */
 
-      roads.push({ coords, type, oneway, waypoints, segmentDist });
+      roads.push({
+        coords,
+        type,
+        oneway,
+        waypoints,
+        segmentDist
+      });
     }
 
     /* TRACE_ONLY_BEGIN */
     const _trafficTimingMetrics = {
       roadCount: roads.length,
       sampleHeightCalls: _trafficTimingSampleHeightCalls,
-      sampleHeightMeanMs: _trafficTimingSampleHeightCalls
-        ? _trafficTimingSampleHeightMs / _trafficTimingSampleHeightCalls
-        : 0,
+      sampleHeightMeanMs: _trafficTimingSampleHeightCalls ?
+        _trafficTimingSampleHeightMs / _trafficTimingSampleHeightCalls :
+        0,
       distinctCells: _trafficTimingSampledCells.size,
     };
     trafficTimingAggregate(
@@ -391,8 +408,7 @@ export function createTiming({ state: layerState, services, parts, source }) {
       const visibleTime = performance.now();
       const postRender = trafficTimingMark(
         state,
-        'next-post-render',
-        {
+        'next-post-render', {
           renderId,
           ...renderMetrics,
         },
@@ -400,8 +416,7 @@ export function createTiming({ state: layerState, services, parts, source }) {
       );
       const firstVisible = trafficTimingMark(
         state,
-        'first-visible-pixel',
-        {
+        'first-visible-pixel', {
           renderId,
           visibleBoundary: 'next-postRender',
           ...renderMetrics,
@@ -412,8 +427,7 @@ export function createTiming({ state: layerState, services, parts, source }) {
         'render-to-post-render',
         state,
         renderEnd,
-        postRender,
-        {
+        postRender, {
           renderId,
           visibleBoundary: 'next-postRender',
           ...renderMetrics,
@@ -423,8 +437,11 @@ export function createTiming({ state: layerState, services, parts, source }) {
         'last-camera-change-to-first-visible',
         state,
         state.trace.cameraChangeMark,
-        firstVisible,
-        { renderId, visibleBoundary: 'next-postRender', ...renderMetrics },
+        firstVisible, {
+          renderId,
+          visibleBoundary: 'next-postRender',
+          ...renderMetrics
+        },
       );
     });
     layerState._trafficTimingPostRenderRemovers?.add(remove);
