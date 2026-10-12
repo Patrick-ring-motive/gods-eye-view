@@ -368,25 +368,23 @@ test('conversions are session-scoped and no lifecycle path clears them', async (
     },
   });
   const realFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => (String(url).startsWith('/api/opensky') ?
-    {
-      ok: true,
-      status: 200,
-      headers: {
-        get: () => null
-      },
-      json: async () => ({
-        time: 0,
-        states: []
-      })
-    } :
-    {
-      ok: true,
-      status: 200,
-      json: async () => ({
-        ac: []
-      })
-    });
+  globalThis.fetch = async (url) => (String(url).startsWith('/api/opensky') ? {
+    ok: true,
+    status: 200,
+    headers: {
+      get: () => null
+    },
+    json: async () => ({
+      time: 0,
+      states: []
+    })
+  } : {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      ac: []
+    })
+  });
   try {
     await flightsLayer.update(viewer);
     assert.equal(isTr3b(icao24), true, 'losing the contact does not drop its conversion');
