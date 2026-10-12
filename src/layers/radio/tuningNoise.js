@@ -58,9 +58,9 @@ export function createTuningNoise({
       awaitingStationId: layerState._tuningAwaitingStationId,
       voiceDucked: layerState._voiceDucked,
     });
-    const target = audible
-      ? Math.min(RADIO_TUNER_STATIC_MAX_GAIN, layerState._userVolume * 0.03)
-      : 0;
+    const target = audible ?
+      Math.min(RADIO_TUNER_STATIC_MAX_GAIN, layerState._userVolume * 0.03) :
+      0;
     const now = layerState._tuningNoiseContext.currentTime;
     layerState._tuningNoiseGain.gain.cancelScheduledValues(now);
     layerState._tuningNoiseGain.gain.setValueAtTime(
@@ -116,7 +116,10 @@ export function createTuningNoise({
     return true;
   }
 
-  function clearRadioTuningNoise({ emit = true, restoredStation = null } = {}) {
+  function clearRadioTuningNoise({
+    emit = true,
+    restoredStation = null
+  } = {}) {
     if (layerState._tuningCameraNavigation)
       parts.navigation.invalidateRadioCameraNavigation();
     layerState._tuningActive = false;
