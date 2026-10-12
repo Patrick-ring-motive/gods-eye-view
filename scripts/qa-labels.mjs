@@ -144,11 +144,9 @@ function analyzeMembership(samples) {
     exposure,
     transitions: Math.max(0, samples.length - 1),
     minimumPopulation: samples.length ?
-      Math.min(...samples.map((sample) => sample.labeledKeys.length)) :
-      0,
+      Math.min(...samples.map((sample) => sample.labeledKeys.length)) : 0,
     maximumPopulation: samples.length ?
-      Math.max(...samples.map((sample) => sample.labeledKeys.length)) :
-      0,
+      Math.max(...samples.map((sample) => sample.labeledKeys.length)) : 0,
   };
 }
 
