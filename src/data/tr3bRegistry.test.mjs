@@ -1,11 +1,17 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 // src/data/tr3bRegistry.test.mjs
 // TR-3B conversion Easter egg: registry state, sprite-variant selection,
 // class-label override, and the render-path invariants that keep a converted
 // contact a 2D triangle across polls, style switches, and the 3D handoff.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {
+  readFile
+} from 'node:fs/promises';
 import * as Cesium from 'cesium';
 
 import {
@@ -21,7 +27,10 @@ import {
   tr3bIconKind,
   tr3bTypeLabel,
 } from './tr3bRegistry.js';
-import { aircraftIcon, TRACKED_ICON_PX } from './aircraftIcons.js';
+import {
+  aircraftIcon,
+  TRACKED_ICON_PX
+} from './aircraftIcons.js';
 import flightsLayer, {
   _setTrackedFlightRefreshStateForTest,
   mapAnalystRecord as mapFlightAnalystRecord,
@@ -30,9 +39,16 @@ import militaryFlightsLayer, {
   _setTrackedMilitaryRefreshStateForTest,
   mapAnalystRecord as mapMilitaryAnalystRecord,
 } from './militaryFlights.js';
-import { findCompatibleHistoryIndex } from './militaryAwareness.js';
-import { createGevActionRunner } from '../voice/gevActions.js';
-import { ANALYST_LAYERS, createAnalystEngine } from './analystEngine.js';
+import {
+  findCompatibleHistoryIndex
+} from './militaryAwareness.js';
+import {
+  createGevActionRunner
+} from '../voice/gevActions.js';
+import {
+  ANALYST_LAYERS,
+  createAnalystEngine
+} from './analystEngine.js';
 
 /** Strip block and line comments so source pins scan CODE, not prose. */
 function stripComments(source) {
@@ -84,13 +100,19 @@ test('tr3b sprite variant: unconverted passes the class through, converted picks
   // Identity for every ordinary contact — this is what lets the layers route
   // EVERY aircraftIcon() call through the resolver without behaviour change.
   assert.equal(tr3bIconKind('a1b2c3', 'airliner'), 'airliner');
-  assert.equal(tr3bIconKind('a1b2c3', 'helicopter', { hot: true }), 'helicopter');
+  assert.equal(tr3bIconKind('a1b2c3', 'helicopter', {
+    hot: true
+  }), 'helicopter');
   assert.equal(tr3bIconKind('a1b2c3', undefined), undefined);
 
   setTr3b('a1b2c3', true);
   assert.equal(tr3bIconKind('a1b2c3', 'airliner'), 'tr3b', 'normal styles get the cold triangle');
-  assert.equal(tr3bIconKind('a1b2c3', 'airliner', { hot: false }), 'tr3b');
-  assert.equal(tr3bIconKind('a1b2c3', 'airliner', { hot: true }), 'tr3bHot',
+  assert.equal(tr3bIconKind('a1b2c3', 'airliner', {
+    hot: false
+  }), 'tr3b');
+  assert.equal(tr3bIconKind('a1b2c3', 'airliner', {
+      hot: true
+    }), 'tr3bHot',
     'FLIR/NVG/surveillance (irBoost) get the thermal-reactive variant');
   // Class no longer influences the glyph once converted.
   assert.equal(tr3bIconKind('a1b2c3', 'fastjet'), 'tr3b');
@@ -149,7 +171,12 @@ test('a conversion survives a poll refresh, in both the billboard and the tracke
   const icao24 = 'a1b2c3';
   setTr3b(icao24, true);
 
-  const entity = { gevLabelModel: { title: 'OLD', details: [] } };
+  const entity = {
+    gevLabelModel: {
+      title: 'OLD',
+      details: []
+    }
+  };
   const billboard = {
     position: Cesium.Cartesian3.fromDegrees(-97.7, 30.2, 9_000),
     color: Cesium.Color.WHITE,
@@ -159,12 +186,20 @@ test('a conversion survives a poll refresh, in both the billboard and the tracke
     height: 20,
     scale: 1,
   };
-  const viewer = { camera: { positionCartographic: null }, scene: {} };
+  const viewer = {
+    camera: {
+      positionCartographic: null
+    },
+    scene: {}
+  };
   _setTrackedFlightRefreshStateForTest({
     icao24,
     entity,
     billboard,
-    billboardCollection: { show: false, remove() {} },
+    billboardCollection: {
+      show: false,
+      remove() {}
+    },
     viewer,
     meta: {
       callsign: 'OLD1',
@@ -190,19 +225,29 @@ test('a conversion survives a poll refresh, in both the billboard and the tracke
   const nowSec = Math.floor(Date.now() / 1000);
   globalThis.fetch = async (url) => {
     if (!String(url).startsWith('/api/opensky')) {
-      return { ok: true, status: 200, json: async () => ({ ac: [] }) };
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          ac: []
+        })
+      };
     }
     return {
       ok: true,
       status: 200,
-      headers: { get: () => null },
+      headers: {
+        get: () => null
+      },
       json: async () => ({
         time: nowSec,
-        states: [[
-          icao24, 'DAL123 ', 'United States', nowSec, nowSec,
-          -97.6, 30.3, 10_668, false, 250, 95, 5, null, 10_700,
-          null, null, null, 5,
-        ]],
+        states: [
+          [
+            icao24, 'DAL123 ', 'United States', nowSec, nowSec,
+            -97.6, 30.3, 10_668, false, 250, 95, 5, null, 10_700,
+            null, null, null, 5,
+          ]
+        ],
       }),
     };
   };
@@ -293,7 +338,12 @@ test('conversions are session-scoped and no lifecycle path clears them', async (
   clearTr3bRegistry();
   const icao24 = 'a1b2c3';
   setTr3b(icao24, true);
-  const viewer = { camera: { positionCartographic: null }, scene: {} };
+  const viewer = {
+    camera: {
+      positionCartographic: null
+    },
+    scene: {}
+  };
   _setTrackedFlightRefreshStateForTest({
     icao24,
     entity: null,
@@ -303,15 +353,40 @@ test('conversions are session-scoped and no lifecycle path clears them', async (
       image: aircraftIcon('tr3b'),
       show: true,
     },
-    billboardCollection: { show: false, remove() {} },
+    billboardCollection: {
+      show: false,
+      remove() {}
+    },
     viewer,
     tracked: false,
-    meta: { callsign: 'OLD1', altitude: 9_000, klass: 'airliner', rawLat: 30.2, rawLon: -97.7 },
+    meta: {
+      callsign: 'OLD1',
+      altitude: 9_000,
+      klass: 'airliner',
+      rawLat: 30.2,
+      rawLon: -97.7
+    },
   });
   const realFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => (String(url).startsWith('/api/opensky')
-    ? { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ time: 0, states: [] }) }
-    : { ok: true, status: 200, json: async () => ({ ac: [] }) });
+  globalThis.fetch = async (url) => (String(url).startsWith('/api/opensky') ?
+    {
+      ok: true,
+      status: 200,
+      headers: {
+        get: () => null
+      },
+      json: async () => ({
+        time: 0,
+        states: []
+      })
+    } :
+    {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ac: []
+      })
+    });
   try {
     await flightsLayer.update(viewer);
     assert.equal(isTr3b(icao24), true, 'losing the contact does not drop its conversion');
@@ -329,8 +404,18 @@ test('analyst records report the class the contact RENDERS as, in both layers', 
   // Style-independent on purpose: an analyst answer must not change with FLIR.
   assert.notEqual(TR3B_CLASS, 'tr3bHot');
 
-  const civil = { callsign: 'SWA696', klass: 'airliner', rawLat: 30.2, rawLon: -97.7 };
-  const mil = { callsign: 'RCH451', klass: 'fastjet', rawLat: 30.2, rawLon: -97.7 };
+  const civil = {
+    callsign: 'SWA696',
+    klass: 'airliner',
+    rawLat: 30.2,
+    rawLon: -97.7
+  };
+  const mil = {
+    callsign: 'RCH451',
+    klass: 'fastjet',
+    rawLat: 30.2,
+    rawLon: -97.7
+  };
   assert.equal(mapFlightAnalystRecord('a1b2c3', civil).aircraftClass, 'airliner');
   assert.equal(mapMilitaryAnalystRecord('ae01ce', mil).aircraftClass, 'fastjet');
 
@@ -357,26 +442,46 @@ test('the analyst engine filters and aggregates a tr3b class without choking', a
   setTr3b('a1b2c3', true);
   const records = [
     mapFlightAnalystRecord('a1b2c3', {
-      callsign: 'SWA696', klass: 'airliner', rawLat: 30.20, rawLon: -97.70,
-      altitude: 10_000, velocity: 200,
+      callsign: 'SWA696',
+      klass: 'airliner',
+      rawLat: 30.20,
+      rawLon: -97.70,
+      altitude: 10_000,
+      velocity: 200,
     }),
     mapFlightAnalystRecord('deadbe', {
-      callsign: 'AAL100', klass: 'airliner', rawLat: 30.21, rawLon: -97.71,
-      altitude: 11_000, velocity: 240,
+      callsign: 'AAL100',
+      klass: 'airliner',
+      rawLat: 30.21,
+      rawLon: -97.71,
+      altitude: 11_000,
+      velocity: 240,
     }),
   ];
   const engine = createAnalystEngine({
     getRecords: (key) => (key === 'flights' ? records : []),
     resolveRegionRing: async () => null,
-    getViewContext: () => ({ lat: 30.2, lon: -97.7, viewRadiusKm: 150 }),
+    getViewContext: () => ({
+      lat: 30.2,
+      lon: -97.7,
+      viewRadiusKm: 150
+    }),
   });
 
   // aircraftClass is a declared free-text field, so 'tr3b' is just another value.
   assert.equal(ANALYST_LAYERS.flights.text.includes('aircraftClass'), true);
 
   const hits = await engine.query({
-    layers: ['flights'], scope: { kind: 'anywhere' },
-    filters: [{ field: 'aircraftClass', op: 'eq', value: 'tr3b' }], limit: 50,
+    layers: ['flights'],
+    scope: {
+      kind: 'anywhere'
+    },
+    filters: [{
+      field: 'aircraftClass',
+      op: 'eq',
+      value: 'tr3b'
+    }],
+    limit: 50,
   });
   assert.equal(hits.ok, true);
   assert.equal(hits.count, 1, 'filtering for TR-3B finds the converted contact');
@@ -384,15 +489,28 @@ test('the analyst engine filters and aggregates a tr3b class without choking', a
 
   // The ordinary contact is still reachable by its real class.
   const airliners = await engine.query({
-    layers: ['flights'], scope: { kind: 'anywhere' },
-    filters: [{ field: 'aircraftClass', op: 'eq', value: 'airliner' }], limit: 50,
+    layers: ['flights'],
+    scope: {
+      kind: 'anywhere'
+    },
+    filters: [{
+      field: 'aircraftClass',
+      op: 'eq',
+      value: 'airliner'
+    }],
+    limit: 50,
   });
   assert.equal(airliners.count, 1, 'the converted contact no longer answers to airliner');
 
   // A numeric sort/summary still runs over the mixed set — aircraftClass is
   // free text, so there is no enum lookup an unknown value could break.
   const fastest = await engine.query({
-    layers: ['flights'], scope: { kind: 'anywhere' }, sortBy: 'speedMps', limit: 5,
+    layers: ['flights'],
+    scope: {
+      kind: 'anywhere'
+    },
+    sortBy: 'speedMps',
+    limit: 5,
   });
   assert.equal(fastest.ok, true);
   assert.equal(fastest.count, 2);
@@ -428,7 +546,11 @@ test('cockpit class filter matches a converted contact end to end', async () => 
   // airframe class, so the filter never matched. Real normalizer + real
   // getNearby record builder + real filter matcher; only the styleManager glue
   // (covered by its own ui tests) is stubbed.
-  globalThis.window = globalThis.window || { clearTimeout, setTimeout, requestIdleCallback: null };
+  globalThis.window = globalThis.window || {
+    clearTimeout,
+    setTimeout,
+    requestIdleCallback: null
+  };
   clearTr3bRegistry();
   const icao24 = 'abc123';
   const center = Cesium.Cartesian3.fromDegrees(-97.7, 30.2, 200);
@@ -437,20 +559,52 @@ test('cockpit class filter matches a converted contact end to end', async () => 
   const seen = [];
   const runner = createGevActionRunner({
     viewer: {
-      clock: { onTick: { addEventListener: () => () => {} } },
-      scene: { canvas: { addEventListener() {}, removeEventListener() {} } },
-      camera: { moveEnd: { addEventListener() {} } },
+      clock: {
+        onTick: {
+          addEventListener: () => () => {}
+        }
+      },
+      scene: {
+        canvas: {
+          addEventListener() {},
+          removeEventListener() {}
+        }
+      },
+      camera: {
+        moveEnd: {
+          addEventListener() {}
+        }
+      },
     },
     styleManager: {
       controlCockpit(action, options) {
         seen.push(options.aircraftClass);
-        return { ok: true, state: { active: true, navigation: { canNext: true, canPrevious: true, canFocus: true } } };
+        return {
+          ok: true,
+          state: {
+            active: true,
+            navigation: {
+              canNext: true,
+              canPrevious: true,
+              canFocus: true
+            }
+          }
+        };
       },
     },
-    dataManager: { layers: new Map(), getAll: () => [] },
+    dataManager: {
+      layers: new Map(),
+      getAll: () => []
+    },
   });
-  await runner('control_cockpit', { action: 'next', aircraftClass: 'TR-3B' });
-  await runner('control_cockpit', { action: 'next', aircraftClass: 'airliner' });
+  await runner('control_cockpit', {
+    action: 'next',
+    aircraftClass: 'TR-3B'
+  });
+  await runner('control_cockpit', {
+    action: 'next',
+    aircraftClass: 'airliner'
+  });
   const [spokenTr3b, spokenAirliner] = seen;
   assert.equal(spokenTr3b, TR3B_CLASS);
   assert.equal(spokenAirliner, 'airliner');
@@ -464,18 +618,36 @@ test('cockpit class filter matches a converted contact end to end', async () => 
       color: Cesium.Color.WHITE,
       show: true,
     },
-    billboardCollection: { show: true, remove() {} },
-    viewer: { camera: { positionCartographic: null }, scene: {} },
+    billboardCollection: {
+      show: true,
+      remove() {}
+    },
+    viewer: {
+      camera: {
+        positionCartographic: null
+      },
+      scene: {}
+    },
     tracked: false,
-    meta: { callsign: 'SWA696 ', altitude: 10_668, klass: 'airliner', onGround: false },
+    meta: {
+      callsign: 'SWA696 ',
+      altitude: 10_668,
+      klass: 'airliner',
+      onGround: false
+    },
   });
   const recordFor = () => flightsLayer.getNearby(center, 250_000, 25)
     .find((r) => r.icao24 === icao24);
 
   // 3) Real filter matcher over that record, via the exported navigation helper.
   const matches = (record, aircraftClass) => findCompatibleHistoryIndex(
-    [{ layerId: 'flights', id: icao24 }], -1, 1,
-    { aircraftClass, resolveItem: () => record },
+    [{
+      layerId: 'flights',
+      id: icao24
+    }], -1, 1, {
+      aircraftClass,
+      resolveItem: () => record
+    },
   ) === 0;
 
   setTr3b(icao24, true);
@@ -510,17 +682,33 @@ test('military records and detection cards agree with the conversion', () => {
       color: Cesium.Color.WHITE,
       show: true,
     },
-    billboardCollection: { show: true, remove() {} },
-    viewer: { camera: { positionCartographic: null }, scene: {} },
+    billboardCollection: {
+      show: true,
+      remove() {}
+    },
+    viewer: {
+      camera: {
+        positionCartographic: null
+      },
+      scene: {}
+    },
     tracked: false,
-    meta: { callsign: 'RCH451', altitudeFt: 35_000, klass: 'quadjet', type: 'C-17A', onGround: false },
+    meta: {
+      callsign: 'RCH451',
+      altitudeFt: 35_000,
+      klass: 'quadjet',
+      type: 'C-17A',
+      onGround: false
+    },
   });
 
   seed();
   const before = militaryFlightsLayer.getNearby(center, 250_000, 25).find((r) => r.icao24 === icao24);
   assert.equal(before.aircraftClass, 'quadjet');
   assert.equal(before.type, 'C-17A');
-  const cardBefore = militaryFlightsLayer.getDetectableObjects({ maxCount: 50 })
+  const cardBefore = militaryFlightsLayer.getDetectableObjects({
+      maxCount: 50
+    })
     .find((o) => o.sourceId === icao24);
   assert.equal(cardBefore.klass, 'C-17A', 'the card names the real airframe');
 
@@ -530,7 +718,9 @@ test('military records and detection cards agree with the conversion', () => {
   assert.equal(after.aircraftClass, TR3B_CLASS, 'filter field follows the conversion');
   assert.equal(after.type, TR3B_TYPE_LABEL,
     'the display type cannot still name the airframe the triangle replaced');
-  const cardAfter = militaryFlightsLayer.getDetectableObjects({ maxCount: 50 })
+  const cardAfter = militaryFlightsLayer.getDetectableObjects({
+      maxCount: 50
+    })
     .find((o) => o.sourceId === icao24);
   assert.equal(cardAfter.klass, TR3B_TYPE_LABEL,
     'detectionDraw composes its card line from src.klass — it must read TR-3B');
