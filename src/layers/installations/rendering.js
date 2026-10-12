@@ -107,19 +107,17 @@ export function createRendering({
           outlineWidth: 1,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
-        polygon: record.footprint ?
-          {
-            hierarchy: new Cesium.PolygonHierarchy(
-              record.footprint.map(([longitude, latitude]) =>
-                Cesium.Cartesian3.fromDegrees(longitude, latitude),
-              ),
+        polygon: record.footprint ? {
+          hierarchy: new Cesium.PolygonHierarchy(
+            record.footprint.map(([longitude, latitude]) =>
+              Cesium.Cartesian3.fromDegrees(longitude, latitude),
             ),
-            material: color.withAlpha(0.12),
-            outline: true,
-            outlineColor: color.withAlpha(0.65),
-            height: surfaceHeightM,
-          } :
-          undefined,
+          ),
+          material: color.withAlpha(0.12),
+          outline: true,
+          outlineColor: color.withAlpha(0.65),
+          height: surfaceHeightM,
+        } : undefined,
       });
       entity.gevTrackedId = `installations:${record.id}`;
       entity.gevDisplayPosition = () => displayPosition;
@@ -136,8 +134,7 @@ export function createRendering({
         id: record.id,
         layerId: LAYER_ID,
         layerName: record.kind === 'place_candidate' ?
-          'Military Site Search Candidates' :
-          'Mapped Military Installations',
+          'Military Site Search Candidates' : 'Mapped Military Installations',
         source: parts.model.installationSourceLabel(record),
         label: record.name,
         latitude: record.latitude,
