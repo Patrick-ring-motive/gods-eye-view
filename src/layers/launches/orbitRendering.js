@@ -10,7 +10,9 @@ export function createOrbitRendering({
   parts,
   source,
 }) {
-  const { orbitFrameModelMatrix } = services.satellites;
+  const {
+    orbitFrameModelMatrix
+  } = services.satellites;
 
   /**
    * Register the selected-orbit tactical material once. Each group begins with
