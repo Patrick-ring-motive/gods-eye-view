@@ -117,13 +117,11 @@ export function createOverlays({
     const mission = shortMissionLabel(launch?.name, 26).toUpperCase();
     const siteName = compactLaunchSiteName(launch?.launchSite);
     const launchTimeMs = Date.parse(launch?.launchTime);
-    const details = selected ?
-      [
-        siteName ?
-        `LAUNCH SITE · ${shortMissionLabel(siteName, 20).toUpperCase()}` :
-        'LAUNCH SITE',
-      ] :
-      [];
+    const details = selected ? [
+      siteName ?
+      `LAUNCH SITE · ${shortMissionLabel(siteName, 20).toUpperCase()}` :
+      'LAUNCH SITE',
+    ] : [];
     return {
       id: `launch:${launch?.id}`,
       position,
@@ -132,10 +130,8 @@ export function createOverlays({
       details,
       accent: '#22e6e6',
       priority: selected ?
-        Number.MAX_SAFE_INTEGER :
-        Number.isFinite(launchTimeMs) ?
-        Math.floor(launchTimeMs / 1000) :
-        0,
+        Number.MAX_SAFE_INTEGER : Number.isFinite(launchTimeMs) ?
+        Math.floor(launchTimeMs / 1000) : 0,
       selected,
       protected: selected,
       paintLane: selected ? 'selected' : 'ambient-label',
