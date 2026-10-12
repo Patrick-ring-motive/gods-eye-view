@@ -88,8 +88,7 @@ export function navigateContext(direction, options = {}) {
   const method = direction < 0 ? 'navigatePrevious' : 'navigateNext';
   const wasActive = this.active;
   if (wasActive) this.contextNavigationDeadlineMs = performance.now() + 1500;
-  const navigationOptions = wasActive ?
-    {
+  const navigationOptions = wasActive ? {
       ...options,
       aircraftOnly: true
     } :
