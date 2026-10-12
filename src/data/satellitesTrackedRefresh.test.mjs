@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as Cesium from 'cesium';
-import { twoline2satrec } from 'satellite.js';
+import {
+  twoline2satrec
+} from 'satellite.js';
 import {
   ISS_OVERLAY_SOURCE_OPTIONS,
   _applyPendingSatelliteTrackingRestoreForTest,
@@ -17,7 +19,9 @@ import {
   createIssOverlayEntry,
 } from './satellites.js';
 import satellitesLayer from './satellites.js';
-import { createTrackedOverlayEntry } from './trackedReadout.js';
+import {
+  createTrackedOverlayEntry
+} from './trackedReadout.js';
 
 const L1 = '1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927';
 const L2 = '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537';
@@ -32,7 +36,9 @@ test('partial and dense catalogs do not make an early false missing decision', a
   assert.match(partial.reason, /partial CelesTrak catalog/);
 
   let releaseDense;
-  const densePromise = new Promise((resolve) => { releaseDense = resolve; });
+  const densePromise = new Promise((resolve) => {
+    releaseDense = resolve;
+  });
   _setSatelliteTrackingRefreshOutcomeForTest({
     status: 'accepted',
     catalog: 'dense',
@@ -40,12 +46,20 @@ test('partial and dense catalogs do not make an early false missing decision', a
   });
   let settled = false;
   const resolution = satellitesLayer.resolveTrackingRestoreTarget(987654)
-    .then((result) => { settled = true; return result; });
+    .then((result) => {
+      settled = true;
+      return result;
+    });
   await Promise.resolve();
   assert.equal(settled, false, 'dense absence must wait for the dense catalog');
-  releaseDense({ status: 'ready' });
+  releaseDense({
+    status: 'ready'
+  });
   assert.equal((await resolution).status, 'missing');
-  _setSatelliteTrackingRefreshOutcomeForTest({ status: 'accepted', catalog: 'core' });
+  _setSatelliteTrackingRefreshOutcomeForTest({
+    status: 'accepted',
+    catalog: 'core'
+  });
 });
 
 test('satellite first update aborts every parallel catalog request', async () => {
@@ -55,15 +69,21 @@ test('satellite first update aborts every parallel catalog request', async () =>
     observedSignals.push(options.signal);
     options.signal?.addEventListener('abort', () => {
       reject(new DOMException('aborted', 'AbortError'));
-    }, { once: true });
+    }, {
+      once: true
+    });
   });
   try {
     const controller = new AbortController();
-    const work = satellitesLayer.update({}, { signal: controller.signal });
+    const work = satellitesLayer.update({}, {
+      signal: controller.signal
+    });
     await Promise.resolve();
     assert.ok(observedSignals.length > 1);
     controller.abort();
-    await assert.rejects(work, { name: 'AbortError' });
+    await assert.rejects(work, {
+      name: 'AbortError'
+    });
     assert.equal(observedSignals.every((signal) => signal?.aborted), true);
   } finally {
     globalThis.fetch = realFetch;
@@ -84,8 +104,12 @@ test('selected satellite params survive delayed arrival and yield to newer expli
     entities: new Cesium.EntityCollection(),
     trackedEntity: undefined,
     scene: {
-      frameState: { frameNumber: 1 },
-      primitives: { remove() {} },
+      frameState: {
+        frameNumber: 1
+      },
+      primitives: {
+        remove() {}
+      },
     },
   };
   _setSatelliteLabelLifecycleStateForTest({
@@ -94,16 +118,19 @@ test('selected satellite params survive delayed arrival and yield to newer expli
     point,
   });
   try {
-    assert.doesNotThrow(() => satellitesLayer.setParams({ selectedSatTrackingId: 25544 }));
+    assert.doesNotThrow(() => satellitesLayer.setParams({
+      selectedSatTrackingId: 25544
+    }));
     assert.equal(satellitesLayer.getParams().selectedSatTrackingId, 25544);
     assert.equal(viewer.trackedEntity?.gevTrackedId, 'satellites:25544');
 
     satellitesLayer.stopTracking();
     _removeSatelliteTrackingCandidateForTest(25544);
-    satellitesLayer.setParams(
-      { selectedSatTrackingId: 25544 },
-      { origin: 'share-restore' },
-    );
+    satellitesLayer.setParams({
+      selectedSatTrackingId: 25544
+    }, {
+      origin: 'share-restore'
+    }, );
     assert.equal(_pendingSatelliteTrackingRestoreForTest(), 25544);
     _setSatelliteLabelLifecycleStateForTest({
       viewer,
@@ -114,24 +141,30 @@ test('selected satellite params survive delayed arrival and yield to newer expli
     assert.equal(_applyPendingSatelliteTrackingRestoreForTest(), true);
     assert.equal(satellitesLayer.getParams().selectedSatTrackingId, 25544);
 
-    satellitesLayer.setParams(
-      { selectedSatTrackingId: 99999 },
-      { origin: 'share-restore' },
-    );
+    satellitesLayer.setParams({
+      selectedSatTrackingId: 99999
+    }, {
+      origin: 'share-restore'
+    }, );
     assert.equal(_pendingSatelliteTrackingRestoreForTest(), 99999);
-    assert.equal(satellitesLayer.trackById(25544, { origin: 'user' }), true);
+    assert.equal(satellitesLayer.trackById(25544, {
+      origin: 'user'
+    }), true);
     assert.equal(_pendingSatelliteTrackingRestoreForTest(), null, 'new user selection cancels stale restore');
     _applyPendingSatelliteTrackingRestoreForTest();
     assert.equal(satellitesLayer.getParams().selectedSatTrackingId, 25544);
 
     satellitesLayer.stopTracking();
     _removeSatelliteTrackingCandidateForTest(25544);
-    satellitesLayer.setParams(
-      { selectedSatTrackingId: 25544 },
-      { origin: 'local-restore' },
-    );
+    satellitesLayer.setParams({
+      selectedSatTrackingId: 25544
+    }, {
+      origin: 'local-restore'
+    }, );
     assert.equal(_pendingSatelliteTrackingRestoreForTest(), 25544);
-    satellitesLayer.stopTracking({ origin: 'user' });
+    satellitesLayer.stopTracking({
+      origin: 'user'
+    });
     assert.equal(_pendingSatelliteTrackingRestoreForTest(), null, 'explicit clear cancels stale restore');
     _setSatelliteLabelLifecycleStateForTest({
       viewer,
@@ -142,12 +175,17 @@ test('selected satellite params survive delayed arrival and yield to newer expli
     _applyPendingSatelliteTrackingRestoreForTest();
     assert.equal(satellitesLayer.getParams().selectedSatTrackingId, null);
 
-    satellitesLayer.setParams(
-      { selectedSatTrackingId: 50003 },
-      { origin: 'share-restore' },
-    );
+    satellitesLayer.setParams({
+      selectedSatTrackingId: 50003
+    }, {
+      origin: 'share-restore'
+    }, );
     assert.equal(_pendingSatelliteTrackingRestoreForTest(), 50003);
-    satellitesLayer.setParams({ showPoints: true }, { origin: 'tool' });
+    satellitesLayer.setParams({
+      showPoints: true
+    }, {
+      origin: 'tool'
+    });
     assert.equal(
       _pendingSatelliteTrackingRestoreForTest(),
       null,
@@ -165,9 +203,23 @@ test('a tracked docked cluster consolidates its companions onto one card', () =>
   // so their ambient labels stack underneath the tracked card. Owner ruling:
   // consolidate them as secondary info on that card, and suppress only those
   // members — never unrelated satellites that merely happen to be nearby.
-  const entity = { gevLabelModel: { title: 'OLD', details: ['? km'] } };
-  const point = { position: new Cesium.Cartesian3() };
-  const viewer = { camera: null, scene: { frameState: { frameNumber: 1 } } };
+  const entity = {
+    gevLabelModel: {
+      title: 'OLD',
+      details: ['? km']
+    }
+  };
+  const point = {
+    position: new Cesium.Cartesian3()
+  };
+  const viewer = {
+    camera: null,
+    scene: {
+      frameState: {
+        frameNumber: 1
+      }
+    }
+  };
   let nowMs = Date.UTC(2008, 8, 20, 12, 30);
   // The tracked satellite moves ~7.6 km/s, so neighbours are defined RELATIVE to
   // wherever it is at scan time rather than pinned to a stale sample.
@@ -186,10 +238,21 @@ test('a tracked docked cluster consolidates its companions onto one card', () =>
     point,
     viewer,
     now: () => nowMs,
-    neighbours: [
-      { noradId: 55555, name: 'PROGRESS-MS 34', point: near(120) },   // berthed
-      { noradId: 55556, name: 'SOYUZ-MS 12', point: near(-90) },      // berthed
-      { noradId: 99999, name: 'UNRELATED SAT', point: near(50_000) }, // 50 km away
+    neighbours: [{
+        noradId: 55555,
+        name: 'PROGRESS-MS 34',
+        point: near(120)
+      }, // berthed
+      {
+        noradId: 55556,
+        name: 'SOYUZ-MS 12',
+        point: near(-90)
+      }, // berthed
+      {
+        noradId: 99999,
+        name: 'UNRELATED SAT',
+        point: near(50_000)
+      }, // 50 km away
     ],
   });
 
@@ -216,11 +279,22 @@ test('a tracked docked cluster consolidates its companions onto one card', () =>
   assert.doesNotMatch(details[2], /\+2/);
 });
 test('satellite pre-render refreshes the tracked altitude on each propagated frame', () => {
-  const entity = { gevLabelModel: { title: 'OLD', details: ['? km'] } };
-  const point = { position: new Cesium.Cartesian3() };
+  const entity = {
+    gevLabelModel: {
+      title: 'OLD',
+      details: ['? km']
+    }
+  };
+  const point = {
+    position: new Cesium.Cartesian3()
+  };
   const viewer = {
     camera: null,
-    scene: { frameState: { frameNumber: 1 } },
+    scene: {
+      frameState: {
+        frameNumber: 1
+      }
+    },
   };
   const epochs = [
     Date.UTC(2008, 8, 20, 12, 30),
@@ -270,8 +344,12 @@ test('ISS ambient and tracked lifecycle uses cached host entries with no native 
     entities: new Cesium.EntityCollection(),
     trackedEntity: undefined,
     scene: {
-      frameState: { frameNumber: 1 },
-      primitives: { remove() {} },
+      frameState: {
+        frameNumber: 1
+      },
+      primitives: {
+        remove() {}
+      },
     },
   };
   let cleaned = false;
