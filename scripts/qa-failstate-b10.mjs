@@ -84,7 +84,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* ignore */ }
+      /* ignore */
+    }
   }
   return null;
 }
@@ -300,8 +301,7 @@ async function main() {
           managerRefreshError: entry.managerRefreshError,
         };
         const baseStats = typeof original.getStats === 'function' ?
-          original.getStats.call(entry.module) :
-          {
+          original.getStats.call(entry.module) : {
             count: 0,
             lastUpdate: null
           };
@@ -536,7 +536,8 @@ async function main() {
           try {
             await dm.setEnabled(id, false);
           } catch {
-            /* ignore */ }
+            /* ignore */
+          }
         }
       }
       // Enable panoptic detection via the styleManager facade (the UI path).
