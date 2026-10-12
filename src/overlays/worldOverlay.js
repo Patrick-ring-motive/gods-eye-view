@@ -448,8 +448,7 @@ export function normalizeOverlayEntry(sourceId, entry) {
     // accessor the source put on its entry (a throwing one would abort
     // normalization for the whole batch).
     zIndex: Number.isFinite(Number(entry.zIndex)) ?
-      Number(entry.zIndex) :
-      paintLaneForOverlayEntry({
+      Number(entry.zIndex) : paintLaneForOverlayEntry({
         paintLane: entry.paintLane,
         tracked: entry.tracked,
         selected: entry.selected,
@@ -461,17 +460,14 @@ export function normalizeOverlayEntry(sourceId, entry) {
     minDistance: Number.isFinite(Number(entry.minDistance)) ? Math.max(0, Number(entry.minDistance)) : 0,
     maxDistance: Number.isFinite(Number(entry.maxDistance)) ? Math.max(0, Number(entry.maxDistance)) : Number.POSITIVE_INFINITY,
     distanceFadeStartRatio: Number.isFinite(Number(entry.distanceFadeStartRatio)) ?
-      Math.max(0, Math.min(1, Number(entry.distanceFadeStartRatio))) :
-      0.7,
+      Math.max(0, Math.min(1, Number(entry.distanceFadeStartRatio))) : 0.7,
     distanceScale: normalizeDistanceScale(entry.distanceScale),
     altitudeScale: normalizeAltitudeScale(entry.altitudeScale),
     minAltitude: Number.isFinite(Number(entry.minAltitude)) ? Number(entry.minAltitude) : Number.NEGATIVE_INFINITY,
     altitudeFadeStart: Number.isFinite(Number(entry.altitudeFadeStart)) ?
-      Number(entry.altitudeFadeStart) :
-      Number.POSITIVE_INFINITY,
+      Number(entry.altitudeFadeStart) : Number.POSITIVE_INFINITY,
     altitudeFadeEnd: Number.isFinite(Number(entry.altitudeFadeEnd)) ?
-      Number(entry.altitudeFadeEnd) :
-      Number.POSITIVE_INFINITY,
+      Number(entry.altitudeFadeEnd) : Number.POSITIVE_INFINITY,
     edgeFade: entry.edgeFade === false || entry.edgeFade === 'none' ? 'none' : 'keyhole',
     horizonCull: entry.horizonCull !== false,
     terrainOcclusion: entry.terrainOcclusion === true,
@@ -479,18 +475,14 @@ export function normalizeOverlayEntry(sourceId, entry) {
     temporalAlpha: clamp01(entry.temporalAlpha, 1),
     gapPx: Number.isFinite(Number(entry.gapPx)) ? Math.max(0, Number(entry.gapPx)) : 12,
     leaderOffsetPx: Number.isFinite(Number(entry.leaderOffsetPx)) ?
-      Math.max(0, Number(entry.leaderOffsetPx)) :
-      0,
+      Math.max(0, Number(entry.leaderOffsetPx)) : 0,
     anchorRadiusPx: Number.isFinite(Number(entry.anchorRadiusPx)) ?
-      Math.max(0, Number(entry.anchorRadiusPx)) :
-      0,
+      Math.max(0, Number(entry.anchorRadiusPx)) : 0,
     anchorRadiusScale: normalizeDistanceScale(entry.anchorRadiusScale),
     minAnchorGapPx: Number.isFinite(Number(entry.minAnchorGapPx)) ?
-      Math.max(0, Number(entry.minAnchorGapPx)) :
-      0,
+      Math.max(0, Number(entry.minAnchorGapPx)) : 0,
     anchorGapPaddingPx: Number.isFinite(Number(entry.anchorGapPaddingPx)) ?
-      Math.max(0, Number(entry.anchorGapPaddingPx)) :
-      0,
+      Math.max(0, Number(entry.anchorGapPaddingPx)) : 0,
     verticalOnly: entry.verticalOnly === true,
     // Opt out of the arbiter's statefulness (min-lifetime pinning, re-entry
     // cooldown, enter/exit fades, sticky corner). Sources whose shipped
@@ -501,21 +493,16 @@ export function normalizeOverlayEntry(sourceId, entry) {
     // shipped anchor-separation pass did, because the leader gap does not shrink
     // with the card. 0 disables.
     minAnchorSeparationPx: Number.isFinite(Number(entry.minAnchorSeparationPx)) ?
-      Math.max(0, Number(entry.minAnchorSeparationPx)) :
-      0,
+      Math.max(0, Number(entry.minAnchorSeparationPx)) : 0,
     viewportMargin: Number.isFinite(Number(entry.viewportMargin)) ?
-      Math.max(0, Number(entry.viewportMargin)) :
-      4,
+      Math.max(0, Number(entry.viewportMargin)) : 4,
     viewportPadding: Number.isFinite(Number(entry.viewportPadding)) ?
-      Math.max(0, Number(entry.viewportPadding)) :
-      64,
+      Math.max(0, Number(entry.viewportPadding)) : 64,
     requireImage: entry.requireImage === true,
     safeTopRatio: Number.isFinite(Number(entry.safeTopRatio)) ?
-      Math.max(0, Number(entry.safeTopRatio)) :
-      0,
+      Math.max(0, Number(entry.safeTopRatio)) : 0,
     safeTopMaxPx: Number.isFinite(Number(entry.safeTopMaxPx)) ?
-      Math.max(0, Number(entry.safeTopMaxPx)) :
-      Number.POSITIVE_INFINITY,
+      Math.max(0, Number(entry.safeTopMaxPx)) : Number.POSITIVE_INFINITY,
     pinnedBypassesSafeTop: entry.pinnedBypassesSafeTop === true,
     placement: String(entry.placement || 'auto'),
     cardStyle: entry.cardStyle,
@@ -544,8 +531,7 @@ export function normalizeOverlayEntry(sourceId, entry) {
       String(entry.title ?? '').toUpperCase().slice(
         0,
         Math.max(0, Math.floor(Number(entry.thumbnailTitleChars) || 0)) || undefined,
-      ) :
-      '',
+      ) : '',
   };
   normalized._overlayKey = entryKey(source, id);
   normalized._cohortPriority = normalized.priority;
@@ -598,16 +584,14 @@ function normalizeSourceOptions(options = {}, previous = {}) {
   return {
     visible: options.visible !== undefined ? options.visible !== false : previous.visible !== false,
     hideInCockpit: options.hideInCockpit !== undefined ?
-      options.hideInCockpit === true :
-      previous.hideInCockpit === true,
+      options.hideInCockpit === true : previous.hideInCockpit === true,
     alpha: clamp01(options.alpha, previous.alpha ?? 1),
     cohortLimit: Math.max(1, Math.min(
       MAX_SOURCE_COHORT_LIMIT,
       Math.floor(Number(options.cohortLimit ?? previous.cohortLimit) || DEFAULT_COHORT_LIMIT),
     )),
     collisionCapacity: Number.isFinite(requestedCapacity) ?
-      Math.max(0, Math.floor(requestedCapacity)) :
-      DEFAULT_COLLISION_CAPACITY,
+      Math.max(0, Math.floor(requestedCapacity)) : DEFAULT_COLLISION_CAPACITY,
     moving: options.moving !== undefined ? options.moving === true : previous.moving === true,
     solveIntervalMs: Math.max(0, Number(
       options.solveIntervalMs ?? previous.solveIntervalMs ?? DEFAULT_MOVING_SOLVE_MS,
@@ -784,8 +768,7 @@ export function registerWorldOverlayPaintLane(laneId, painter, options = {}) {
     painter,
     active: options.active === true,
     target: options.target === PAINT_TARGET_DETECTION ?
-      PAINT_TARGET_DETECTION :
-      PAINT_TARGET_SHARED,
+      PAINT_TARGET_DETECTION : PAINT_TARGET_SHARED,
     shouldPaint: typeof options.shouldPaint === 'function' ? options.shouldPaint : null,
   };
   _customPaintLanes.set(id, record);
@@ -1283,8 +1266,7 @@ function refreshUiOccluders(timestamp, force = false) {
   };
   const seen = new Set();
   for (const selector of WORLD_OVERLAY_OCCLUDER_SELECTORS) {
-    const matches = document.querySelectorAll?.(selector) ||
-      [document.querySelector?.(selector)].filter(Boolean);
+    const matches = document.querySelectorAll?.(selector) || [document.querySelector?.(selector)].filter(Boolean);
     for (const element of matches) {
       if (seen.has(element) || !elementIsVisible(element)) continue;
       seen.add(element);
