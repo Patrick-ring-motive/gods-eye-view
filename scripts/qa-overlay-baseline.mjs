@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Phase 0 world-overlay baseline harness.
  *
@@ -24,7 +25,10 @@ import puppeteer from 'puppeteer';
 
 const CHROME_EXECUTABLE = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const DEFAULT_URL = 'http://localhost:4176';
-const VIEWPORT = Object.freeze({ width: 1440, height: 900 });
+const VIEWPORT = Object.freeze({
+  width: 1440,
+  height: 900
+});
 const SAMPLE_MS = 5_000;
 const BETWEEN_PHASE_SETTLE_MS = 1_000;
 const DEFAULT_SETTLE_MS = 3_000;
@@ -37,22 +41,88 @@ const KNOWN_OVERLAY_CANVASES = new Set([
   'cctv-cards',
 ]);
 
-const SCENES = Object.freeze([
-  { id: 'datacenters', layers: ['local-datacenters'], camera: [-98, 38, 6_000_000, 0, -Math.PI / 2] },
-  { id: 'dams', layers: ['local-dams'], camera: [-98, 38, 6_000_000, 0, -Math.PI / 2] },
-  { id: 'datacenters+dams', layers: ['local-datacenters', 'local-dams'], camera: [-98, 38, 6_000_000, 0, -Math.PI / 2] },
-  { id: 'submarine-cables', layers: ['telegeography-submarine-cables'], camera: [-20, 12, 11_000_000, 0, -Math.PI / 2] },
-  { id: 'cctv-street', layers: ['cctv'], cctvHeightM: 1_500 },
-  { id: 'cctv-city', layers: ['cctv'], cctvHeightM: 6_000 },
-  { id: 'cctv-high', layers: ['cctv'], cctvHeightM: 12_000 },
-  { id: 'firms', layers: ['local-firms'], camera: [-110, 45, 5_000_000, 0, -Math.PI / 2] },
-  { id: 'vessels', layers: ['ais-live-vessels'], camera: [4.05, 51.93, 18_000, 0.3, -1.25] },
-  { id: 'detection-25', layers: ['flights', 'satellites'], detectionDensity: 25, camera: [-98, 38, 2_500_000, 0, -Math.PI / 2] },
-  { id: 'detection-50', layers: ['flights', 'satellites'], detectionDensity: 50, camera: [-98, 38, 2_500_000, 0, -Math.PI / 2] },
-  { id: 'detection-100', layers: ['flights', 'satellites'], detectionDensity: 100, camera: [-98, 38, 2_500_000, 0, -Math.PI / 2] },
-  { id: 'tracked-civil-aircraft', layers: ['flights'], trackedFlight: true, camera: [-98, 38, 2_500_000, 0, -Math.PI / 2] },
-  { id: 'missions-selected', layers: ['rocket-launches'], missionSelected: true, camera: [0, 15, 18_000_000, 0, -Math.PI / 2] },
-  { id: 'cockpit-mode', layers: ['flights'], trackedFlight: true, cockpit: true, camera: [-98, 38, 2_500_000, 0, -Math.PI / 2] },
+const SCENES = Object.freeze([{
+    id: 'datacenters',
+    layers: ['local-datacenters'],
+    camera: [-98, 38, 6_000_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'dams',
+    layers: ['local-dams'],
+    camera: [-98, 38, 6_000_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'datacenters+dams',
+    layers: ['local-datacenters', 'local-dams'],
+    camera: [-98, 38, 6_000_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'submarine-cables',
+    layers: ['telegeography-submarine-cables'],
+    camera: [-20, 12, 11_000_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'cctv-street',
+    layers: ['cctv'],
+    cctvHeightM: 1_500
+  },
+  {
+    id: 'cctv-city',
+    layers: ['cctv'],
+    cctvHeightM: 6_000
+  },
+  {
+    id: 'cctv-high',
+    layers: ['cctv'],
+    cctvHeightM: 12_000
+  },
+  {
+    id: 'firms',
+    layers: ['local-firms'],
+    camera: [-110, 45, 5_000_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'vessels',
+    layers: ['ais-live-vessels'],
+    camera: [4.05, 51.93, 18_000, 0.3, -1.25]
+  },
+  {
+    id: 'detection-25',
+    layers: ['flights', 'satellites'],
+    detectionDensity: 25,
+    camera: [-98, 38, 2_500_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'detection-50',
+    layers: ['flights', 'satellites'],
+    detectionDensity: 50,
+    camera: [-98, 38, 2_500_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'detection-100',
+    layers: ['flights', 'satellites'],
+    detectionDensity: 100,
+    camera: [-98, 38, 2_500_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'tracked-civil-aircraft',
+    layers: ['flights'],
+    trackedFlight: true,
+    camera: [-98, 38, 2_500_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'missions-selected',
+    layers: ['rocket-launches'],
+    missionSelected: true,
+    camera: [0, 15, 18_000_000, 0, -Math.PI / 2]
+  },
+  {
+    id: 'cockpit-mode',
+    layers: ['flights'],
+    trackedFlight: true,
+    cockpit: true,
+    camera: [-98, 38, 2_500_000, 0, -Math.PI / 2]
+  },
 ]);
 
 const SCENE_ALIASES = Object.freeze({
@@ -127,18 +197,27 @@ async function installStaticDist(page, distDir) {
           await request.respond({
             status: 503,
             contentType: 'application/json',
-            body: JSON.stringify({ error: 'offline_dist_capture', message: 'Dev-server proxies unavailable' }),
+            body: JSON.stringify({
+              error: 'offline_dist_capture',
+              message: 'Dev-server proxies unavailable'
+            }),
           });
           return;
         }
         const relativePath = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname).replace(/^\/+/, '');
         const filePath = path.resolve(root, relativePath);
         if (filePath !== root && !filePath.startsWith(`${root}${path.sep}`)) {
-          await request.respond({ status: 403, body: 'Forbidden' });
+          await request.respond({
+            status: 403,
+            body: 'Forbidden'
+          });
           return;
         }
         if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-          await request.respond({ status: 404, body: 'Not found' });
+          await request.respond({
+            status: 404,
+            body: 'Not found'
+          });
           return;
         }
         await request.respond({
@@ -152,13 +231,20 @@ async function installStaticDist(page, distDir) {
         await request.respond({
           status: 403,
           contentType: 'application/json',
-          body: JSON.stringify({ error: { message: 'Offline dist capture: Google tiles unavailable' } }),
+          body: JSON.stringify({
+            error: {
+              message: 'Offline dist capture: Google tiles unavailable'
+            }
+          }),
         });
         return;
       }
       await request.continue();
     } catch {
-      try { await request.abort(); } catch { /* request already resolved */ }
+      try {
+        await request.abort();
+      } catch {
+        /* request already resolved */ }
     }
   });
 }
@@ -176,7 +262,9 @@ async function installDeterministicDevEndpoints(page) {
       await request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ summary: 'QA globe ready' }),
+        body: JSON.stringify({
+          summary: 'QA globe ready'
+        }),
       });
       return;
     }
@@ -184,7 +272,11 @@ async function installDeterministicDevEndpoints(page) {
       await request.respond({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ status: 'connected', rows: [], lastMessageAt: null }),
+        body: JSON.stringify({
+          status: 'connected',
+          rows: [],
+          lastMessageAt: null
+        }),
       });
       return;
     }
@@ -208,7 +300,14 @@ function percentile(values, fraction) {
 function summarizeFrameIntervals(intervals) {
   const usable = intervals.filter((value) => Number.isFinite(value) && value > 0);
   if (!usable.length) {
-    return { samples: 0, meanMs: null, p50Ms: null, p95Ms: null, p99Ms: null, maxMs: null };
+    return {
+      samples: 0,
+      meanMs: null,
+      p50Ms: null,
+      p95Ms: null,
+      p99Ms: null,
+      maxMs: null
+    };
   }
   const mean = usable.reduce((sum, value) => sum + value, 0) / usable.length;
   return {
@@ -248,9 +347,9 @@ function printContext(context) {
   console.log(`  Viewport   : ${context.viewport.width}×${context.viewport.height} CSS px · DPR ${context.viewport.dpr}`);
   console.log(`  WebGL      : ${context.browser.webglVendor} · ${context.browser.webglRenderer}`);
   console.log(`  Capture    : ${context.captureMode}`);
-  console.log(context.gpuMode === 'hardware'
-    ? '  Timing note: hardware-GPU run; retain the renderer string with every comparison.\n'
-    : '  Timing note: SwiftShader absolute FPS is non-representative; compare motion/rest and before/after only.\n');
+  console.log(context.gpuMode === 'hardware' ?
+    '  Timing note: hardware-GPU run; retain the renderer string with every comparison.\n' :
+    '  Timing note: SwiftShader absolute FPS is non-representative; compare motion/rest and before/after only.\n');
 }
 
 function printScene(result) {
@@ -298,7 +397,13 @@ async function installPageInstrumentation(page) {
       const id = canvas?.id || '(anonymous-canvas)';
       let metric = metrics.get(id);
       if (!metric) {
-        metric = { id, calls: 0, totalSyncMs: 0, maxSyncMs: 0, methods: {} };
+        metric = {
+          id,
+          calls: 0,
+          totalSyncMs: 0,
+          maxSyncMs: 0,
+          methods: {}
+        };
         metrics.set(id, metric);
       }
       return metric;
@@ -318,17 +423,27 @@ async function installPageInstrumentation(page) {
             metric.calls++;
             metric.totalSyncMs += elapsed;
             metric.maxSyncMs = Math.max(metric.maxSyncMs, elapsed);
-            const methodMetric = metric.methods[method] || (metric.methods[method] = { calls: 0, totalSyncMs: 0 });
+            const methodMetric = metric.methods[method] || (metric.methods[method] = {
+              calls: 0,
+              totalSyncMs: 0
+            });
             methodMetric.calls++;
             methodMetric.totalSyncMs += elapsed;
           }
         };
-        Object.defineProperty(wrapped, '__gevBaselineWrapped', { value: true });
-        try { proto[method] = wrapped; } catch { /* A non-writable method stays uninstrumented. */ }
+        Object.defineProperty(wrapped, '__gevBaselineWrapped', {
+          value: true
+        });
+        try {
+          proto[method] = wrapped;
+        } catch {
+          /* A non-writable method stays uninstrumented. */ }
       }
     }
     globalThis.__overlayBaselineInstrumentation = {
-      reset() { metrics.clear(); },
+      reset() {
+        metrics.clear();
+      },
       snapshot() {
         return Array.from(metrics.values()).map((metric) => ({
           id: metric.id,
@@ -343,15 +458,25 @@ async function installPageInstrumentation(page) {
 }
 
 async function waitForApp(page) {
-  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.goto(APP_URL, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000
+  });
   await page.waitForFunction(
-    () => Boolean(window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager),
-    { timeout: 60_000 },
+    () => Boolean(window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager), {
+      timeout: 60_000
+    },
   );
   await page.evaluate(() => {
     const viewer = window.__godsEyeView.viewer;
-    try { viewer.camera.cancelFlight(); } catch { /* no flight */ }
-    try { viewer.scene.tweens?.removeAll?.(); } catch { /* no tween collection */ }
+    try {
+      viewer.camera.cancelFlight();
+    } catch {
+      /* no flight */ }
+    try {
+      viewer.scene.tweens?.removeAll?.();
+    } catch {
+      /* no tween collection */ }
   });
   await sleep(1_250);
 }
@@ -369,7 +494,11 @@ async function setCamera(page, camera) {
         latitude: lat * Math.PI / 180,
         height,
       }),
-      orientation: { heading, pitch, roll: 0 },
+      orientation: {
+        heading,
+        pitch,
+        roll: 0
+      },
     });
     viewer.scene.requestRender?.();
   }, camera);
@@ -381,8 +510,18 @@ async function readLayerState(page, layerId) {
     const entry = manager.layers.get(id);
     if (!entry) return null;
     let stats = {};
-    try { stats = entry.initialized ? entry.module.getStats?.() || {} : {}; } catch (error) { stats = { error: error.message }; }
-    return { enabled: entry.enabled, initialized: entry.initialized, stats };
+    try {
+      stats = entry.initialized ? entry.module.getStats?.() || {} : {};
+    } catch (error) {
+      stats = {
+        error: error.message
+      };
+    }
+    return {
+      enabled: entry.enabled,
+      initialized: entry.initialized,
+      stats
+    };
   }, layerId);
 }
 
@@ -397,11 +536,18 @@ async function waitForLayer(page, layerId) {
       const entry = window.__godsEyeView?.dataManager?.layers?.get(id);
       if (!entry?.enabled || !entry.initialized) return false;
       let stats;
-      try { stats = entry.module.getStats?.() || {}; } catch { return false; }
+      try {
+        stats = entry.module.getStats?.() || {};
+      } catch {
+        return false;
+      }
       if (stats.loading === true) return false;
       if (stats.error) return true;
       return Number(stats.count || 0) > 0;
-    }, { timeout: LAYER_WAIT_MS, polling: 250 }, layerId);
+    }, {
+      timeout: LAYER_WAIT_MS,
+      polling: 250
+    }, layerId);
   } catch {
     // The caller records the final state and decides whether live-data absence
     // makes the specialized scene skippable.
@@ -494,7 +640,11 @@ async function readEntityInventory(page) {
       const length = Number(collection.length || 0);
       for (let index = 0; index < length; index++) {
         let primitive;
-        try { primitive = collection.get(index); } catch { primitive = null; }
+        try {
+          primitive = collection.get(index);
+        } catch {
+          primitive = null;
+        }
         if (!primitive || seen.has(primitive)) continue;
         const type = primitive.constructor?.name || '(anonymous)';
         primitiveTypes[type] = (primitiveTypes[type] || 0) + 1;
@@ -509,7 +659,11 @@ async function readEntityInventory(page) {
     };
     visitPrimitiveCollection(viewer.scene.primitives);
 
-    return { totals, collections, primitiveTypes };
+    return {
+      totals,
+      collections,
+      primitiveTypes
+    };
   });
 }
 
@@ -519,9 +673,13 @@ async function activateLayers(page, layerIds) {
     const before = await readEntityInventory(page);
     const toggleResult = await page.evaluate(async (id) => {
       const manager = window.__godsEyeView.dataManager;
-      if (!manager.layers.has(id)) return { error: `unregistered layer: ${id}` };
+      if (!manager.layers.has(id)) return {
+        error: `unregistered layer: ${id}`
+      };
       if (!manager.isEnabled(id)) await manager.toggle(id);
-      return { enabled: manager.isEnabled(id) };
+      return {
+        enabled: manager.isEnabled(id)
+      };
     }, layerId);
     const state = await waitForLayer(page, layerId);
     const after = await readEntityInventory(page);
@@ -555,7 +713,10 @@ async function prepareFirms(page) {
     const layer = window.__godsEyeView.dataManager.layers.get('local-firms')?.module;
     const stats = layer?.getStats?.() || {};
     const fire = layer?.getStrongestFire?.();
-    return { stats, fire };
+    return {
+      stats,
+      fire
+    };
   });
   if (!result.fire) return `FIRMS unavailable (${result.stats.error || 'no detections'})`;
   await setCamera(page, [result.fire.longitude, result.fire.latitude, 60_000, 0, -1.45]);
@@ -587,8 +748,9 @@ async function prepareDetection(page, densityPct) {
 async function prepareTrackedFlight(page, cockpit) {
   if (cockpit) {
     const contacts = await page.evaluate(() => window.__godsEyeView.styleManager.setContextMode(
-      'contacts',
-      { origin: 'user' },
+      'contacts', {
+        origin: 'user'
+      },
     ));
     if (!contacts?.ok) {
       return `Contacts activation failed (${contacts?.error || 'unknown error'})`;
@@ -599,13 +761,23 @@ async function prepareTrackedFlight(page, cockpit) {
     const layer = entry?.module;
     const candidates = layer?.getAllPositions?.(500) || [];
     const airborne = candidates.find((candidate) => Number(candidate.altitudeM) > 1_000) || candidates[0];
-    if (!airborne) return { ok: false, reason: 'no rendered civil aircraft' };
+    if (!airborne) return {
+      ok: false,
+      reason: 'no rendered civil aircraft'
+    };
     const ok = layer.trackById?.(airborne.id);
-    return { ok: Boolean(ok), id: airborne.id, label: airborne.label, reason: ok ? null : 'trackById rejected candidate' };
+    return {
+      ok: Boolean(ok),
+      id: airborne.id,
+      label: airborne.label,
+      reason: ok ? null : 'trackById rejected candidate'
+    };
   });
   if (!tracked.ok) return `Civil tracking unavailable (${tracked.reason})`;
   try {
-    await page.waitForFunction(() => Boolean(window.__godsEyeView.viewer.trackedEntity?.position), { timeout: 10_000 });
+    await page.waitForFunction(() => Boolean(window.__godsEyeView.viewer.trackedEntity?.position), {
+      timeout: 10_000
+    });
   } catch {
     return 'Civil tracking did not create a tracked entity';
   }
@@ -619,7 +791,9 @@ async function prepareTrackedFlight(page, cockpit) {
   });
   if (!entryAvailable) return 'Cockpit entry control was unavailable for the tracked aircraft';
   try {
-    await page.waitForFunction(() => document.body.classList.contains('cockpit-mode'), { timeout: 5_000 });
+    await page.waitForFunction(() => document.body.classList.contains('cockpit-mode'), {
+      timeout: 5_000
+    });
   } catch {
     return 'Cockpit entry control did not enter cockpit mode';
   }
@@ -638,7 +812,9 @@ async function prepareMission(page) {
   });
   if (!selected) return 'Mission roster did not expose a selectable mission';
   try {
-    await page.waitForFunction(() => String(window.__godsEyeView.viewer.selectedEntity?.id || '').startsWith('rocket-launch:'), { timeout: 10_000 });
+    await page.waitForFunction(() => String(window.__godsEyeView.viewer.selectedEntity?.id || '').startsWith('rocket-launch:'), {
+      timeout: 10_000
+    });
   } catch {
     return 'Mission selection did not reach the Cesium selected entity';
   }
@@ -657,7 +833,10 @@ async function prepareScene(page, scene) {
   if (!skipReason && scene.trackedFlight) skipReason = await prepareTrackedFlight(page, scene.cockpit);
   if (!skipReason && scene.missionSelected) skipReason = await prepareMission(page);
   await sleep(DEFAULT_SETTLE_MS);
-  return { layerActivations, skipReason };
+  return {
+    layerActivations,
+    skipReason
+  };
 }
 
 async function readCanvasSummary(page) {
@@ -677,7 +856,10 @@ async function readCanvasSummary(page) {
 }
 
 async function samplePhase(page, moving) {
-  const raw = await page.evaluate(async ({ durationMs, movingCamera }) => {
+  const raw = await page.evaluate(async ({
+    durationMs,
+    movingCamera
+  }) => {
     const viewer = window.__godsEyeView.viewer;
     const instrumentation = window.__overlayBaselineInstrumentation;
     instrumentation?.reset?.();
@@ -718,7 +900,10 @@ async function samplePhase(page, moving) {
       },
       elapsedMs: performance.now() - startedAt,
     };
-  }, { durationMs: SAMPLE_MS, movingCamera: moving });
+  }, {
+    durationMs: SAMPLE_MS,
+    movingCamera: moving
+  });
 
   const canvases = raw.canvasMetrics
     .filter((metric) => KNOWN_OVERLAY_CANVASES.has(metric.id))
@@ -751,25 +936,38 @@ async function samplePhase(page, moving) {
 
 async function captureShot(page, shotsDir, sceneId, suffix) {
   if (!shotsDir) return null;
-  fs.mkdirSync(shotsDir, { recursive: true });
+  fs.mkdirSync(shotsDir, {
+    recursive: true
+  });
   const safeScene = sceneId.replace(/[^a-z0-9-]+/gi, '-');
   const outPath = path.join(shotsDir, `${safeScene}-${suffix}.png`);
-  await page.screenshot({ path: outPath });
+  await page.screenshot({
+    path: outPath
+  });
   return outPath;
 }
 
 async function runScene(browser, scene, shotsDir) {
   const page = await browser.newPage();
-  await page.setViewport({ ...VIEWPORT, deviceScaleFactor: DPR });
+  await page.setViewport({
+    ...VIEWPORT,
+    deviceScaleFactor: DPR
+  });
   await installStaticDist(page, DIST_DIR);
   await installDeterministicDevEndpoints(page);
   const consoleMessages = [];
   page.on('console', (message) => {
     if (['error', 'warning', 'warn'].includes(message.type())) {
-      consoleMessages.push({ type: message.type(), text: message.text() });
+      consoleMessages.push({
+        type: message.type(),
+        text: message.text()
+      });
     }
   });
-  page.on('pageerror', (error) => consoleMessages.push({ type: 'pageerror', text: error.message }));
+  page.on('pageerror', (error) => consoleMessages.push({
+    type: 'pageerror',
+    text: error.message
+  }));
   await installPageInstrumentation(page);
 
   const result = {
@@ -801,7 +999,10 @@ async function runScene(browser, scene, shotsDir) {
     if (afterMotionShot) result.screenshots.push(afterMotionShot);
     await sleep(BETWEEN_PHASE_SETTLE_MS);
     const rest = await samplePhase(page, false);
-    result.samples = { motion, rest };
+    result.samples = {
+      motion,
+      rest
+    };
     result.entityInventoryAfter = await readEntityInventory(page);
     return result;
   } catch (error) {
@@ -839,7 +1040,10 @@ async function main() {
     throw new Error(`--dist-dir is not a directory: ${DIST_DIR}`);
   }
   if (!DIST_DIR) {
-    const response = await fetch(APP_URL).catch((error) => ({ ok: false, statusText: error.message }));
+    const response = await fetch(APP_URL).catch((error) => ({
+      ok: false,
+      statusText: error.message
+    }));
     if (!response.ok) throw new Error(`Dev server unavailable at ${APP_URL}: ${response.status || response.statusText}`);
   }
 
@@ -857,12 +1061,22 @@ async function main() {
     ],
   });
 
-  const run = { generatedAt: new Date().toISOString(), context: null, scenes: [] };
+  const run = {
+    generatedAt: new Date().toISOString(),
+    context: null,
+    scenes: []
+  };
   try {
     const contextPage = await browser.newPage();
-    await contextPage.setViewport({ ...VIEWPORT, deviceScaleFactor: DPR });
+    await contextPage.setViewport({
+      ...VIEWPORT,
+      deviceScaleFactor: DPR
+    });
     await installStaticDist(contextPage, DIST_DIR);
-    await contextPage.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await contextPage.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60_000
+    });
     const browserContext = await contextPage.evaluate(() => {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -877,9 +1091,9 @@ async function main() {
     await contextPage.close();
     const cpus = os.cpus();
     if (HARDWARE_GPU && (
-      unavailableRenderer(browserContext.webglRenderer)
-      || softwareRenderer(browserContext.webglRenderer)
-    )) {
+        unavailableRenderer(browserContext.webglRenderer) ||
+        softwareRenderer(browserContext.webglRenderer)
+      )) {
       throw new Error(`Hardware GPU requested but Chrome reported ${browserContext.webglRenderer}`);
     }
     run.context = {
@@ -899,12 +1113,15 @@ async function main() {
         webglVendor: browserContext.webglVendor,
         webglRenderer: browserContext.webglRenderer,
       },
-      viewport: { ...VIEWPORT, dpr: browserContext.dpr },
+      viewport: {
+        ...VIEWPORT,
+        dpr: browserContext.dpr
+      },
       gpuMode: HARDWARE_GPU ? 'hardware' : 'swiftshader',
       chromeExecutable: CHROME_EXECUTABLE,
-      chromeArgs: HARDWARE_GPU
-        ? ['--no-sandbox']
-        : ['--enable-unsafe-swiftshader', '--use-gl=swiftshader', '--no-sandbox'],
+      chromeArgs: HARDWARE_GPU ?
+        ['--no-sandbox'] :
+        ['--enable-unsafe-swiftshader', '--use-gl=swiftshader', '--no-sandbox'],
       sampleMs: SAMPLE_MS,
       captureMode: DIST_DIR ? `static-dist:${path.resolve(DIST_DIR)}` : 'dev-server',
     };
@@ -926,7 +1143,9 @@ async function main() {
   };
   console.log(`Summary: ${run.summary.ok} measured · ${run.summary.skipped} skipped · ${run.summary.errors} errors`);
   if (JSON_PATH) {
-    fs.mkdirSync(path.dirname(path.resolve(JSON_PATH)), { recursive: true });
+    fs.mkdirSync(path.dirname(path.resolve(JSON_PATH)), {
+      recursive: true
+    });
     fs.writeFileSync(JSON_PATH, `${JSON.stringify(run, null, 2)}\n`);
     console.log(`JSON: ${path.resolve(JSON_PATH)}`);
   }
