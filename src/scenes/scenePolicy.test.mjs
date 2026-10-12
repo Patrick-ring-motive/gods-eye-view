@@ -1,4 +1,6 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -12,8 +14,12 @@ import {
   sceneRequiresContextModeExit,
   stripSceneTrackingParams,
 } from './scenePolicy.js';
-import { SCENE_RECIPES } from './recipes.js';
-import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
+import {
+  SCENE_RECIPES
+} from './recipes.js';
+import {
+  LAYER_STATE_REGISTRY
+} from '../data/layerState.js';
 
 /**
  * Every key each layer publishes from getParams() — the exact surface
@@ -48,16 +54,30 @@ const REGISTERED = new Set([
 ]);
 
 test('a shot only reconciles the layers it declares', () => {
-  const plan = sceneLayerPlan({ flights: { enabled: true } }, REGISTERED);
-  assert.deepEqual(plan, [{ id: 'flights', enabled: true, params: undefined }]);
+  const plan = sceneLayerPlan({
+    flights: {
+      enabled: true
+    }
+  }, REGISTERED);
+  assert.deepEqual(plan, [{
+    id: 'flights',
+    enabled: true,
+    params: undefined
+  }]);
 });
 
 test('undeclared layers are never torn down by a four-layer recipe', () => {
   // Regression: the reconcile used to walk the live registry and force every
   // absent layer off, so a recipe authored against four layers destroyed the
   // twelve added since — with no restore pass to put them back.
-  const plan = sceneLayerPlan(
-    { flights: { enabled: true }, satellites: { enabled: false } },
+  const plan = sceneLayerPlan({
+      flights: {
+        enabled: true
+      },
+      satellites: {
+        enabled: false
+      }
+    },
     REGISTERED,
   );
   const touched = plan.map((entry) => entry.id);
@@ -68,8 +88,17 @@ test('undeclared layers are never torn down by a four-layer recipe', () => {
 });
 
 test('an explicit false in a recipe still disables that layer', () => {
-  const plan = sceneLayerPlan(
-    { earthquakes: { enabled: true }, flights: { enabled: false }, traffic: { enabled: false } },
+  const plan = sceneLayerPlan({
+      earthquakes: {
+        enabled: true
+      },
+      flights: {
+        enabled: false
+      },
+      traffic: {
+        enabled: false
+      }
+    },
     REGISTERED,
   );
   assert.deepEqual(
@@ -81,7 +110,9 @@ test('an explicit false in a recipe still disables that layer', () => {
 test('an operator-captured shot declaring every layer still reconciles in full', () => {
   // captureShot() snapshots the whole registry, so full reconcile is preserved.
   const captured = Object.fromEntries(
-    [...REGISTERED].map((id) => [id, { enabled: id === 'cctv' }]),
+    [...REGISTERED].map((id) => [id, {
+      enabled: id === 'cctv'
+    }]),
   );
   const plan = sceneLayerPlan(captured, REGISTERED);
   assert.equal(plan.length, REGISTERED.size);
@@ -89,28 +120,53 @@ test('an operator-captured shot declaring every layer still reconciles in full',
 });
 
 test('layers no longer registered are skipped, not pushed at the data manager', () => {
-  const plan = sceneLayerPlan(
-    { flights: { enabled: true }, 'retired-layer': { enabled: true } },
+  const plan = sceneLayerPlan({
+      flights: {
+        enabled: true
+      },
+      'retired-layer': {
+        enabled: true
+      }
+    },
     REGISTERED,
   );
   assert.deepEqual(plan.map((entry) => entry.id), ['flights']);
 });
 
 test('per-layer params ride along only when the shot carries them', () => {
-  const plan = sceneLayerPlan(
-    { satellites: { enabled: true, params: { catalog: 'dense' } }, flights: { enabled: true } },
+  const plan = sceneLayerPlan({
+      satellites: {
+        enabled: true,
+        params: {
+          catalog: 'dense'
+        }
+      },
+      flights: {
+        enabled: true
+      }
+    },
     REGISTERED,
   );
-  assert.deepEqual(plan[0], { id: 'satellites', enabled: true, params: { catalog: 'dense' } });
+  assert.deepEqual(plan[0], {
+    id: 'satellites',
+    enabled: true,
+    params: {
+      catalog: 'dense'
+    }
+  });
   assert.equal(plan[1].params, undefined);
 });
 
 test('missing or malformed target maps produce an empty plan', () => {
   assert.deepEqual(sceneLayerPlan(undefined, REGISTERED), []);
   assert.deepEqual(sceneLayerPlan({}, REGISTERED), []);
-  assert.deepEqual(sceneLayerPlan({ flights: null }, REGISTERED), [
-    { id: 'flights', enabled: false, params: undefined },
-  ]);
+  assert.deepEqual(sceneLayerPlan({
+    flights: null
+  }, REGISTERED), [{
+    id: 'flights',
+    enabled: false,
+    params: undefined
+  }, ]);
 });
 
 test('every shipped recipe declares only registered layer ids', () => {
@@ -123,16 +179,32 @@ test('every shipped recipe declares only registered layer ids', () => {
 
 test('camera-tracking params never survive into the plan', () => {
   const plan = sceneLayerPlan({
-    flights: { enabled: true, params: { models3d: true, selectedFlightsTrackingId: 'a835af' } },
-    military: { enabled: true, params: { selectedMilitaryTrackingId: 'ae1460' } },
+    flights: {
+      enabled: true,
+      params: {
+        models3d: true,
+        selectedFlightsTrackingId: 'a835af'
+      }
+    },
+    military: {
+      enabled: true,
+      params: {
+        selectedMilitaryTrackingId: 'ae1460'
+      }
+    },
   }, REGISTERED);
-  assert.deepEqual(plan[0].params, { models3d: true });
+  assert.deepEqual(plan[0].params, {
+    models3d: true
+  });
   // A params bag that was tracking and nothing else leaves nothing to push.
   assert.equal(plan[1].params, undefined);
 });
 
 test('stripping leaves a tracking-free params object untouched', () => {
-  const params = { catalog: 'dense', showOrbits: true };
+  const params = {
+    catalog: 'dense',
+    showOrbits: true
+  };
   assert.equal(stripSceneTrackingParams(params), params);
   assert.equal(stripSceneTrackingParams(undefined), undefined);
   assert.equal(stripSceneTrackingParams(null), undefined);
@@ -156,8 +228,8 @@ test('every selection-shaped layer param is classified, whatever its spelling', 
       seen.add(key);
       assert.ok(
         classified.has(key),
-        `${file} publishes selection param "${key}" — strip it (SCENE_TRACKING_PARAM_KEYS) `
-        + 'or record why it is safe (SCENE_KEPT_SELECTION_PARAM_KEYS)',
+        `${file} publishes selection param "${key}" — strip it (SCENE_TRACKING_PARAM_KEYS) ` +
+        'or record why it is safe (SCENE_KEPT_SELECTION_PARAM_KEYS)',
       );
     }
   }
@@ -205,7 +277,9 @@ test('an isolating context mode must be exited before a shot applies', () => {
 test('shipped recipes touch only their four declared layers', () => {
   for (const recipe of SCENE_RECIPES) {
     const declared = Object.entries(recipe.layers || {})
-      .map(([id, enabled]) => [id, { enabled }]);
+      .map(([id, enabled]) => [id, {
+        enabled
+      }]);
     const plan = sceneLayerPlan(Object.fromEntries(declared), REGISTERED);
     assert.equal(plan.length, Object.keys(recipe.layers || {}).length, recipe.id);
     assert.ok(plan.length <= 4, `${recipe.id} should not reach beyond its declared layers`);
