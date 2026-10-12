@@ -34,10 +34,10 @@ export function createClustering({
     return [...(candidates || [])]
       .sort(
         (a, b) =>
-          distance(a) - distance(b) ||
-          String(a?.station?.id || a?.id || '').localeCompare(
-            String(b?.station?.id || b?.id || ''),
-          ),
+        distance(a) - distance(b) ||
+        String(a?.station?.id || a?.id || '').localeCompare(
+          String(b?.station?.id || b?.id || ''),
+        ),
       )
       .slice(0, Math.max(0, Math.floor(Number(limit) || 0)));
   }
@@ -51,8 +51,8 @@ export function createClustering({
     return [...(candidates || [])]
       .sort(
         (a, b) =>
-          (Number(b?.stationCount) || 0) - (Number(a?.stationCount) || 0) ||
-          String(a?.id || '').localeCompare(String(b?.id || '')),
+        (Number(b?.stationCount) || 0) - (Number(a?.stationCount) || 0) ||
+        String(a?.id || '').localeCompare(String(b?.id || '')),
       )
       .slice(0, Math.max(0, Math.floor(Number(limit) || 0)));
   }
@@ -119,9 +119,7 @@ export function createClustering({
     const greatestOverlapByCurrent = new Map();
     const greatestOverlapByPrior = new Map();
     for (
-      let currentIndex = 0;
-      currentIndex < current.length;
-      currentIndex += 1
+      let currentIndex = 0; currentIndex < current.length; currentIndex += 1
     ) {
       const overlapByPrior = new Map();
       for (const stationId of current[currentIndex].stationIds) {
@@ -143,7 +141,13 @@ export function createClustering({
         );
         const score = smaller > 0 ? overlap / smaller : 0;
         const similarity = union > 0 ? overlap / union : 0;
-        edges.push({ currentIndex, priorIndex, overlap, score, similarity });
+        edges.push({
+          currentIndex,
+          priorIndex,
+          overlap,
+          score,
+          similarity
+        });
         greatestOverlapByCurrent.set(
           currentIndex,
           Math.max(greatestOverlapByCurrent.get(currentIndex) || 0, overlap),
@@ -156,23 +160,23 @@ export function createClustering({
     }
     const eligibleEdges = edges.filter(
       (edge) =>
-        edge.overlap === greatestOverlapByCurrent.get(edge.currentIndex) &&
-        edge.overlap === greatestOverlapByPrior.get(edge.priorIndex),
+      edge.overlap === greatestOverlapByCurrent.get(edge.currentIndex) &&
+      edge.overlap === greatestOverlapByPrior.get(edge.priorIndex),
     );
     eligibleEdges.sort(
       (a, b) =>
-        // Identity follows the contributor representing the largest share of the
-        // new cluster. Overlap-coefficient-first incorrectly lets a fully retained
-        // two-station minority beat a larger partial contributor during a merge.
-        b.overlap - a.overlap ||
-        b.score - a.score ||
-        b.similarity - a.similarity ||
-        current[a.currentIndex]._reconcileCanonicalKey.localeCompare(
-          current[b.currentIndex]._reconcileCanonicalKey,
-        ) ||
-        prior[a.priorIndex].identityId.localeCompare(
-          prior[b.priorIndex].identityId,
-        ),
+      // Identity follows the contributor representing the largest share of the
+      // new cluster. Overlap-coefficient-first incorrectly lets a fully retained
+      // two-station minority beat a larger partial contributor during a merge.
+      b.overlap - a.overlap ||
+      b.score - a.score ||
+      b.similarity - a.similarity ||
+      current[a.currentIndex]._reconcileCanonicalKey.localeCompare(
+        current[b.currentIndex]._reconcileCanonicalKey,
+      ) ||
+      prior[a.priorIndex].identityId.localeCompare(
+        prior[b.priorIndex].identityId,
+      ),
     );
 
     const inheritedByCurrent = new Map();
@@ -194,14 +198,23 @@ export function createClustering({
     const generatedByCurrent = new Map();
     if (typeof createId === 'function') {
       const freshIndices = current
-        .map((candidate, index) => ({ candidate, index }))
-        .filter(({ index }) => !inheritedByCurrent.has(index))
+        .map((candidate, index) => ({
+          candidate,
+          index
+        }))
+        .filter(({
+          index
+        }) => !inheritedByCurrent.has(index))
         .sort((a, b) =>
           a.candidate._reconcileCanonicalKey.localeCompare(
             b.candidate._reconcileCanonicalKey,
           ),
         );
-      for (const { candidate, index } of freshIndices) {
+      for (const {
+          candidate,
+          index
+        }
+        of freshIndices) {
         generatedByCurrent.set(index, String(createId(candidate, index) || ''));
       }
     }
@@ -217,7 +230,12 @@ export function createClustering({
         _reconcileCanonicalKey,
         ...rest
       } = candidate;
-      return { ...rest, membershipId, identityId, id: identityId };
+      return {
+        ...rest,
+        membershipId,
+        identityId,
+        id: identityId
+      };
     });
   }
 
@@ -242,16 +260,16 @@ export function createClustering({
   function retainRadioClusterIdentitiesForStations(previous, stations) {
     const stationIds = new Set(
       (stations || [])
-        .map((station) => String(station?.id || ''))
-        .filter(Boolean),
+      .map((station) => String(station?.id || ''))
+      .filter(Boolean),
     );
     return (previous || []).filter(
       (candidate) =>
-        Array.isArray(candidate?.stationIds) &&
-        candidate.stationIds.length > 0 &&
-        candidate.stationIds.every((stationId) =>
-          stationIds.has(String(stationId)),
-        ),
+      Array.isArray(candidate?.stationIds) &&
+      candidate.stationIds.length > 0 &&
+      candidate.stationIds.every((stationId) =>
+        stationIds.has(String(stationId)),
+      ),
     );
   }
   return {
