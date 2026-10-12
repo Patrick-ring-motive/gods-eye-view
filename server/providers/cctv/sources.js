@@ -99,8 +99,7 @@ export async function loadAustinSourcesFromOpenData() {
     }
     const payload = await resp.json();
     const columns = Array.isArray(payload?.meta?.view?.columns) ?
-      payload.meta.view.columns :
-      [];
+      payload.meta.view.columns : [];
     const rows = Array.isArray(payload?.data) ? payload.data : [];
     if (!columns.length || !rows.length) return [];
 
@@ -762,8 +761,7 @@ export async function loadDriveBcSourcesFromOpenData() {
       if (!Number.isSafeInteger(row.id) || row.id <= 0) continue;
       // GeoJSON point order: [longitude, latitude].
       const [lon, lat] = Array.isArray(row.location?.coordinates) ?
-        row.location.coordinates :
-        [];
+        row.location.coordinates : [];
       if (!isLikelyBcCoordinate(lat, lon)) continue;
 
       const cameraId = `drivebc-${row.id}`;
@@ -798,8 +796,7 @@ export async function loadDriveBcSourcesFromOpenData() {
         // Clamped like Caltrans so a garbage value can't fling a camera
         // kilometres up; sea level is the prior for the coastal default anchors.
         groundElevationM: Number.isFinite(row.elevation) ?
-          Math.max(-100, Math.min(4000, row.elevation)) :
-          0,
+          Math.max(-100, Math.min(4000, row.elevation)) : 0,
         feedType: 'image',
         url: imageUrl,
         snapshotUrl: imageUrl,
