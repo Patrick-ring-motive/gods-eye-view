@@ -54,7 +54,10 @@ function normalizeDetectionState(state) {
 export function contactsDetectionEnterPlan(current, restore) {
   if (restore) return null;
   const state = normalizeDetectionState(current);
-  return { restore: state, turnOn: state.mode === 'OFF' };
+  return {
+    restore: state,
+    turnOn: state.mode === 'OFF'
+  };
 }
 
 /**
@@ -115,13 +118,22 @@ export function applyContactsDetection({
 }) {
   if (active) {
     const plan = contactsDetectionEnterPlan(getState(), restore);
-    if (!plan) return { restore, changed: false };
+    if (!plan) return {
+      restore,
+      changed: false
+    };
     if (plan.turnOn) applyPreset();
-    return { restore: plan.restore, changed: plan.turnOn };
+    return {
+      restore: plan.restore,
+      changed: plan.turnOn
+    };
   }
   const plan = contactsDetectionExitPlan(restore, getState(), styleOwnsDetection);
   if (plan) restoreState(plan);
-  return { restore: null, changed: Boolean(plan) };
+  return {
+    restore: null,
+    changed: Boolean(plan)
+  };
 }
 
 /**
@@ -141,8 +153,15 @@ export function applyContactsDetection({
  * @param {number} input.liveDensityPct Current density percent.
  * @returns {{mode: string, densityPct: number}} Values safe to serialize.
  */
-export function shareableDetectionState({ owned, liveMode, liveDensityPct }) {
-  if (!owned) return { mode: liveMode, densityPct: liveDensityPct };
+export function shareableDetectionState({
+  owned,
+  liveMode,
+  liveDensityPct
+}) {
+  if (!owned) return {
+    mode: liveMode,
+    densityPct: liveDensityPct
+  };
   return {
     mode: owned.mode ?? liveMode,
     densityPct: Number.isFinite(owned.densityPct) ? owned.densityPct : liveDensityPct,
@@ -168,6 +187,10 @@ export function shareableDetectionState({ owned, liveMode, liveDensityPct }) {
  * @param {boolean} input.hasOwnership Contacts owns detection now.
  * @returns {boolean} True when the share cache must be re-synced.
  */
-export function shareCacheNeedsHeal({ changed, hadOwnership, hasOwnership }) {
+export function shareCacheNeedsHeal({
+  changed,
+  hadOwnership,
+  hasOwnership
+}) {
   return Boolean(changed) || Boolean(hadOwnership) !== Boolean(hasOwnership);
 }
