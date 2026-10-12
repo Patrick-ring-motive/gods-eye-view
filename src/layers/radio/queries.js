@@ -38,8 +38,7 @@ export function createQueries({
         index,
         distance: radioAngularDistance(station, anchor),
         languageTier: preferEnglish && !parts.categories.isEnglishRadioStation(station) ?
-          1 :
-          0,
+          1 : 0,
       }))
       .sort(
         (a, b) =>
