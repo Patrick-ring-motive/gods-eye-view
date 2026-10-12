@@ -1,7 +1,11 @@
-export { RadioControls } from './radioControls.js';
+export {
+  RadioControls
+}
+from './radioControls.js';
 export {
   radioTunerSlot,
   radioTunerCommitSlot,
   radioTunerPointerPosition,
   buildRadioTunerTicks,
-} from './radioTunerModel.js';
+}
+from './radioTunerModel.js';
