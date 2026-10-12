@@ -1,5 +1,9 @@
-import { fireDetectionKey } from '../../data/firmsLabels.js';
-import { REFRESH_INTERVAL_MS } from './policy.js';
+import {
+  fireDetectionKey
+} from '../../data/firmsLabels.js';
+import {
+  REFRESH_INTERVAL_MS
+} from './policy.js';
 
 export function createQueries({
   layerState,
@@ -8,7 +12,12 @@ export function createQueries({
   config,
   feed,
 }) {
-  const { id, name, icon, source } = config;
+  const {
+    id,
+    name,
+    icon,
+    source
+  } = config;
 
   const methods = {
     /** Return the selected detection as a plain record for application consumers. */
@@ -21,11 +30,10 @@ export function createQueries({
         latitude: fire.lat,
         longitude: fire.lon,
         frp: fire.frp,
-        confidencePct: Number.isFinite(fire.confidence)
-          ? fire.confidence * 100
-          : null,
-        observedAt:
-          Number.isFinite(fire.acqMs) && fire.acqMs > 0 ? fire.acqMs : null,
+        confidencePct: Number.isFinite(fire.confidence) ?
+          fire.confidence * 100 :
+          null,
+        observedAt: Number.isFinite(fire.acqMs) && fire.acqMs > 0 ? fire.acqMs : null,
         source: fire.sensor || fire.satellite || null,
       };
     },
@@ -52,14 +60,14 @@ export function createQueries({
      */
     getStats() {
       const now = Date.now();
-      const staleText = layerState._lastUpdate
-        ? `STALE · cached ${components.model.formatAge(now - layerState._lastUpdate) || '<1h'}`
-        : 'STALE';
+      const staleText = layerState._lastUpdate ?
+        `STALE · cached ${components.model.formatAge(now - layerState._lastUpdate) || '<1h'}` :
+        'STALE';
       let loadingLabel = '';
       if (layerState._loading) {
-        loadingLabel = layerState._fires.length
-          ? 'refreshing...'
-          : 'loading...';
+        loadingLabel = layerState._fires.length ?
+          'refreshing...' :
+          'loading...';
       } else if (layerState._keyRequired) {
         loadingLabel = 'KEY REQUIRED';
       } else if (layerState._stale) {
@@ -75,11 +83,11 @@ export function createQueries({
         lastUpdate: layerState._lastUpdate,
         loading: layerState._loading,
         stale: layerState._stale,
-        error: layerState._keyRequired
-          ? 'KEY REQUIRED'
-          : layerState._stale
-            ? staleText
-            : layerState._error,
+        error: layerState._keyRequired ?
+          'KEY REQUIRED' :
+          layerState._stale ?
+          staleText :
+          layerState._error,
         loadingLabel,
       };
     },
@@ -90,9 +98,9 @@ export function createQueries({
      * @returns {{latitude: number, longitude: number, frp: number, label: string}|null}
      */
     getStrongestFire() {
-      const strongest = layerState._firesByFrp.length
-        ? layerState._firesByFrp[0]
-        : null;
+      const strongest = layerState._firesByFrp.length ?
+        layerState._firesByFrp[0] :
+        null;
       if (!strongest) return null;
       return {
         latitude: strongest.lat,
@@ -114,9 +122,9 @@ export function createQueries({
      */
     getDetectableObjects(options = {}) {
       if (!layerState._enabled || !layerState._firesByFrp.length) return [];
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : 250;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        250;
       const result = [];
       for (const fire of layerState._firesByFrp) {
         result.push({
@@ -141,9 +149,9 @@ export function createQueries({
      */
     getAnalystRecords(maxCount = 2000) {
       if (!layerState._enabled || !layerState._firesByFrp.length) return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 2000;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        2000;
       const result = [];
       for (const fire of layerState._firesByFrp) {
         result.push(components.model.mapAnalystRecord(fire));
@@ -162,7 +170,10 @@ export function createQueries({
       layerState._labelLodDistance = 1e7;
       layerState._labelCandidates = fires.map((fire) => {
         layerState._pickIndexById.set(`firms-${fire.index}`, fire);
-        return { fire, position: components.model.firePosition(fire) };
+        return {
+          fire,
+          position: components.model.firePosition(fire)
+        };
       });
       components.cards.rebuildAmbientLabels();
       components.selection.installClickHandler();
@@ -170,5 +181,7 @@ export function createQueries({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
