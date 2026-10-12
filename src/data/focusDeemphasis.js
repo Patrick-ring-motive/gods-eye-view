@@ -27,7 +27,9 @@ export const DEFAULT_FOCUS_DEEMPHASIS_PARAMS = Object.freeze({
   writeEpsilon: 0.005,
 });
 
-let _params = { ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS };
+let _params = {
+  ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS
+};
 let _focusTarget = null;
 const _spriteStates = new WeakMap();
 const _scratchScreen = new Cesium.Cartesian2();
@@ -45,7 +47,10 @@ function clamp(value, min, max) {
 
 function resolvedParams(overrides) {
   if (!overrides || overrides === _params) return _params;
-  return { ..._params, ...overrides };
+  return {
+    ..._params,
+    ...overrides
+  };
 }
 
 function focusTargetEmphasisResolved(
@@ -68,29 +73,29 @@ function focusTargetEmphasisResolved(
   // yields even when its center remains just outside it.
   const paddingDelta = tuning.paddingPx - (Number.isFinite(target.paddingPx) ? target.paddingPx : 0);
   const hysteresis = previouslyCompeting ? tuning.hysteresisPx : 0;
-  const expansionX = paddingDelta + hysteresis
-    + Math.max(0, Number.isFinite(spriteHalfWidthPx) ? spriteHalfWidthPx : 0);
-  const expansionY = paddingDelta + hysteresis
-    + Math.max(0, Number.isFinite(spriteHalfHeightPx) ? spriteHalfHeightPx : 0);
+  const expansionX = paddingDelta + hysteresis +
+    Math.max(0, Number.isFinite(spriteHalfWidthPx) ? spriteHalfWidthPx : 0);
+  const expansionY = paddingDelta + hysteresis +
+    Math.max(0, Number.isFinite(spriteHalfHeightPx) ? spriteHalfHeightPx : 0);
   const rect = target.screenRect;
-  const inside = spriteScreenPosition.x >= rect.left - expansionX
-    && spriteScreenPosition.x <= rect.right + expansionX
-    && spriteScreenPosition.y >= rect.top - expansionY
-    && spriteScreenPosition.y <= rect.bottom + expansionY;
+  const inside = spriteScreenPosition.x >= rect.left - expansionX &&
+    spriteScreenPosition.x <= rect.right + expansionX &&
+    spriteScreenPosition.y >= rect.top - expansionY &&
+    spriteScreenPosition.y <= rect.bottom + expansionY;
   if (!inside) return 1;
 
   const floor = clamp(tuning.dimFloor, 0.01, 1);
   if (tuning.nearerBehavior === 'dim') return floor;
 
-  const distanceBand = Number.isFinite(target.cameraDistance)
-    ? Math.max(0, target.cameraDistance * tuning.distanceHysteresisRatio)
-    : 0;
-  const fartherThreshold = Number.isFinite(target.cameraDistance)
-    ? target.cameraDistance + (previouslyFarther ? -distanceBand : distanceBand)
-    : Number.NaN;
-  const farther = !Number.isFinite(spriteCameraDistance)
-    || !Number.isFinite(fartherThreshold)
-    || spriteCameraDistance >= fartherThreshold;
+  const distanceBand = Number.isFinite(target.cameraDistance) ?
+    Math.max(0, target.cameraDistance * tuning.distanceHysteresisRatio) :
+    0;
+  const fartherThreshold = Number.isFinite(target.cameraDistance) ?
+    target.cameraDistance + (previouslyFarther ? -distanceBand : distanceBand) :
+    Number.NaN;
+  const farther = !Number.isFinite(spriteCameraDistance) ||
+    !Number.isFinite(fartherThreshold) ||
+    spriteCameraDistance >= fartherThreshold;
   if (farther) return floor;
   if (tuning.nearerBehavior === 'partial') return floor + (1 - floor) * 0.5;
   return 1;
@@ -117,7 +122,9 @@ function smoothFocusEmphasisResolved(current, target, elapsedMs, tuning) {
  * @returns {typeof DEFAULT_FOCUS_DEEMPHASIS_PARAMS} Current normalized values.
  */
 export function setFocusDeemphasisParams(patch = {}) {
-  const next = { ..._params };
+  const next = {
+    ..._params
+  };
   if (Number.isFinite(patch.paddingPx)) next.paddingPx = Math.max(0, patch.paddingPx);
   if (Number.isFinite(patch.dimFloor)) next.dimFloor = clamp(patch.dimFloor, 0.01, 1);
   if (['allow', 'dim', 'partial'].includes(patch.nearerBehavior)) {
@@ -131,7 +138,9 @@ export function setFocusDeemphasisParams(patch = {}) {
   if (Number.isFinite(patch.releaseMs)) next.releaseMs = Math.max(0, patch.releaseMs);
   if (Number.isFinite(patch.writeEpsilon)) next.writeEpsilon = Math.max(0, patch.writeEpsilon);
   _params = next;
-  return { ..._params };
+  return {
+    ..._params
+  };
 }
 
 /** @returns {typeof DEFAULT_FOCUS_DEEMPHASIS_PARAMS} Current runtime tuning. */
@@ -141,7 +150,9 @@ export function getFocusDeemphasisParams() {
 
 /** Restore production defaults. Primarily useful for deterministic QA. */
 export function resetFocusDeemphasisParams() {
-  _params = { ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS };
+  _params = {
+    ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS
+  };
 }
 
 /**
@@ -200,7 +211,11 @@ export function publishFocusTargetFromCachedPosition({
   };
   if (appeared) {
     for (const listener of _focusAppearListeners) {
-      try { listener(); } catch (e) { console.warn('[focus] appear listener error:', e); }
+      try {
+        listener();
+      } catch (e) {
+        console.warn('[focus] appear listener error:', e);
+      }
     }
   }
   return _focusTarget;
@@ -373,8 +388,8 @@ export function advanceSpriteFocus(sprite, {
   const changed = Math.abs(next - state.factor) > tuning.writeEpsilon;
   state.factor = next;
   state.desired = desired;
-  state.wasFarther = tuning.nearerBehavior !== 'dim'
-    && Math.abs(desired - tuning.dimFloor) <= tuning.writeEpsilon;
+  state.wasFarther = tuning.nearerBehavior !== 'dim' &&
+    Math.abs(desired - tuning.dimFloor) <= tuning.writeEpsilon;
   const transitioning = Math.abs(next - desired) > tuning.writeEpsilon;
   const active = Math.abs(next - 1) > tuning.writeEpsilon;
 
@@ -426,12 +441,12 @@ export function advanceProjectedSpriteFocus(
     _advanceResult.desired = 1;
     return _advanceResult;
   }
-  const screen = position && scene
-    ? Cesium.SceneTransforms.worldToWindowCoordinates(scene, position, _scratchScreen)
-    : null;
-  const cameraDistance = position && camera?.positionWC
-    ? Cesium.Cartesian3.distance(camera.positionWC, position)
-    : Number.NaN;
+  const screen = position && scene ?
+    Cesium.SceneTransforms.worldToWindowCoordinates(scene, position, _scratchScreen) :
+    null;
+  const cameraDistance = position && camera?.positionWC ?
+    Cesium.Cartesian3.distance(camera.positionWC, position) :
+    Number.NaN;
   return advanceSpriteFocus(sprite, {
     screenPosition: screen,
     cameraDistance,
@@ -451,8 +466,8 @@ export function advanceProjectedSpriteFocus(
  * @returns {boolean}
  */
 export function focusPassIsNeeded(target, activeCount) {
-  return target !== null && target !== undefined
-    || (Number.isFinite(activeCount) && activeCount > 0);
+  return target !== null && target !== undefined ||
+    (Number.isFinite(activeCount) && activeCount > 0);
 }
 
 /**
@@ -507,6 +522,6 @@ export function forgetSpriteFocus(sprite) {
  */
 export function focusAlphaNeedsWrite(currentAlpha, nextAlpha, params) {
   const tuning = resolvedParams(params);
-  return !Number.isFinite(currentAlpha)
-    || Math.abs(currentAlpha - nextAlpha) > tuning.writeEpsilon;
+  return !Number.isFinite(currentAlpha) ||
+    Math.abs(currentAlpha - nextAlpha) > tuning.writeEpsilon;
 }
