@@ -212,8 +212,7 @@ export function createSubject({
           // different tracked entity says nothing about this subject.
           presence: String(layerState.viewer?.trackedEntity?.gevTrackedId || '') ===
             subjectKey(subject) ?
-            SUBJECT_PRESENCE.LIVE :
-            SUBJECT_PRESENCE.UNCHECKED,
+            SUBJECT_PRESENCE.LIVE : SUBJECT_PRESENCE.UNCHECKED,
         };
       }
       // Cockpit already materializes its tracked position on a fixed 20 Hz loop.
@@ -284,8 +283,7 @@ export function createSubject({
       SUBJECT_PRESENCE.UNCHECKED;
     return {
       position: current?.position ?
-        Cesium.Cartesian3.clone(current.position) :
-        Cesium.Cartesian3.clone(subject.position),
+        Cesium.Cartesian3.clone(current.position) : Cesium.Cartesian3.clone(subject.position),
       presence,
     };
   }
