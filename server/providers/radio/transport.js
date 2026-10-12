@@ -1,6 +1,10 @@
 import https from 'node:https';
-import { Readable } from 'node:stream';
-import { isNonGlobalIpv4 } from './stations.js';
+import {
+  Readable
+} from 'node:stream';
+import {
+  isNonGlobalIpv4
+} from './stations.js';
 export function radioMirrorOrigin(value) {
   const hostname = String(value ?? '')
     .toLowerCase()
@@ -50,11 +54,11 @@ export function isPublicRadioAddress(value) {
   };
   const base = (text) =>
     text
-      .split(':')
-      .reduce(
-        (total, group) => (total << 16n) | BigInt(`0x${group || '0'}`),
-        0n,
-      );
+    .split(':')
+    .reduce(
+      (total, group) => (total << 16n) | BigInt(`0x${group || '0'}`),
+      0n,
+    );
   const cidr = (text, prefix) => inCidr(base(text), prefix);
   return (
     cidr('2000:0:0:0:0:0:0:0', 3) &&
@@ -92,7 +96,10 @@ export function radioProxyDestination(value) {
 }
 
 export async function resolveRadioProxyAddresses(hostname, lookupImpl) {
-  const resolved = await lookupImpl(hostname, { all: true, verbatim: true });
+  const resolved = await lookupImpl(hostname, {
+    all: true,
+    verbatim: true
+  });
   const rows = Array.isArray(resolved) ? resolved : [resolved];
   const addresses = rows
     .map((row) => ({
@@ -113,8 +120,7 @@ export function fetchPinnedRadioResponse(url, options, addresses) {
   return new Promise((resolve, reject) => {
     const address = addresses[0];
     const request = https.request(
-      url,
-      {
+      url, {
         method: 'GET',
         headers: options.headers,
         signal: options.signal,
