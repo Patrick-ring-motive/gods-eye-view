@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * sat-ortho.mjs
  *
@@ -30,9 +31,17 @@
  * Dependencies: sharp (devDependency)
  */
 
-import { readFileSync, mkdirSync } from 'node:fs';
-import { resolve, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  readFileSync,
+  mkdirSync
+} from 'node:fs';
+import {
+  resolve,
+  join
+} from 'node:path';
+import {
+  fileURLToPath
+} from 'node:url';
 import sharp from 'sharp';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -46,16 +55,32 @@ const MAX_CONCURRENT = 8;
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { zoom: 21, size: 2048, outdir: 'output' };
+  const opts = {
+    zoom: 21,
+    size: 2048,
+    outdir: 'output'
+  };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--lat':    opts.lat = parseFloat(args[++i]); break;
-      case '--lon':    opts.lon = parseFloat(args[++i]); break;
-      case '--zoom':   opts.zoom = parseInt(args[++i], 10); break;
-      case '--size':   opts.size = parseInt(args[++i], 10); break;
-      case '--outdir': opts.outdir = args[++i]; break;
-      case '--key':    opts.key = args[++i]; break;
+      case '--lat':
+        opts.lat = parseFloat(args[++i]);
+        break;
+      case '--lon':
+        opts.lon = parseFloat(args[++i]);
+        break;
+      case '--zoom':
+        opts.zoom = parseInt(args[++i], 10);
+        break;
+      case '--size':
+        opts.size = parseInt(args[++i], 10);
+        break;
+      case '--outdir':
+        opts.outdir = args[++i];
+        break;
+      case '--key':
+        opts.key = args[++i];
+        break;
       case '--help':
         console.log([
           'Usage: node tools/sat-ortho.mjs --lat <lat> --lon <lon> [options]',
@@ -101,7 +126,8 @@ function loadApiKey(overrideKey) {
       const val = trimmed.slice(eqIdx + 1).trim();
       if (key === 'GOOGLE_MAPS_API_KEY' && val) return val;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */ }
 
   console.error('Error: No API key found. Set GOOGLE_MAPS_API_KEY in .env or pass --key.');
   process.exit(1);
@@ -117,7 +143,10 @@ function latLonToTile(lat, lon, zoom) {
   const x = ((lon + 180) / 360) * n;
   const latRad = lat * Math.PI / 180;
   const y = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
-  return { x, y };
+  return {
+    x,
+    y
+  };
 }
 
 /** Convert tile x/y (integer) + pixel offset back to lat/lon. */
@@ -126,7 +155,10 @@ function tilePxToLatLon(tileX, tileY, pxX, pxY, zoom) {
   const lon = ((tileX + pxX / TILE_SIZE) / n) * 360 - 180;
   const latRad = Math.atan(Math.sinh(Math.PI * (1 - 2 * (tileY + pxY / TILE_SIZE) / n)));
   const lat = latRad * 180 / Math.PI;
-  return { lat, lon };
+  return {
+    lat,
+    lon
+  };
 }
 
 /** Compute meters per pixel at a given latitude and zoom. */
@@ -164,7 +196,9 @@ async function createSession(apiKey) {
 async function fetchTile(zoom, x, y, session, apiKey) {
   const url = `https://tile.googleapis.com/v1/2dtiles/${zoom}/${x}/${y}?session=${session}&key=${apiKey}`;
   const res = await fetch(url, {
-    headers: { 'Referer': 'http://localhost:4173/' },
+    headers: {
+      'Referer': 'http://localhost:4173/'
+    },
   });
 
   if (!res.ok) {
@@ -190,7 +224,11 @@ async function fetchTiles(tileCoords, session, apiKey) {
   async function worker() {
     while (idx < tileCoords.length) {
       const i = idx++;
-      const { zoom, x, y } = tileCoords[i];
+      const {
+        zoom,
+        x,
+        y
+      } = tileCoords[i];
       try {
         const buf = await fetchTile(zoom, x, y, session, apiKey);
         results.set(`${x},${y}`, buf);
@@ -236,7 +274,7 @@ async function main() {
   const center = latLonToTile(opts.lat, opts.lon, opts.zoom);
   const centerTileX = Math.floor(center.x);
   const centerTileY = Math.floor(center.y);
-  const centerPxX = (center.x - centerTileX) * TILE_SIZE;  // pixel offset within center tile
+  const centerPxX = (center.x - centerTileX) * TILE_SIZE; // pixel offset within center tile
   const centerPxY = (center.y - centerTileY) * TILE_SIZE;
 
   // How many tiles we need on each side to cover --size/2 pixels from center
@@ -266,7 +304,11 @@ async function main() {
   const tileCoords = [];
   for (let ty = minTileY; ty <= maxTileY; ty++) {
     for (let tx = minTileX; tx <= maxTileX; tx++) {
-      tileCoords.push({ zoom: opts.zoom, x: tx, y: ty });
+      tileCoords.push({
+        zoom: opts.zoom,
+        x: tx,
+        y: ty
+      });
     }
   }
 
@@ -296,7 +338,11 @@ async function main() {
       if (!buf) continue;
       const left = (tx - minTileX) * TILE_SIZE;
       const top = (ty - minTileY) * TILE_SIZE;
-      compositeInputs.push({ input: buf, left, top });
+      compositeInputs.push({
+        input: buf,
+        left,
+        top
+      });
     }
   }
 
@@ -306,7 +352,11 @@ async function main() {
       width: stitchW,
       height: stitchH,
       channels: 3,
-      background: { r: 0, g: 0, b: 0 },
+      background: {
+        r: 0,
+        g: 0,
+        b: 0
+      },
     },
   }).jpeg();
 
@@ -323,12 +373,16 @@ async function main() {
       width: opts.size,
       height: opts.size,
     })
-    .jpeg({ quality: 92 })
+    .jpeg({
+      quality: 92
+    })
     .toBuffer();
 
   // Save
   const outdir = resolve(PROJECT_ROOT, opts.outdir);
-  mkdirSync(outdir, { recursive: true });
+  mkdirSync(outdir, {
+    recursive: true
+  });
 
   const outName = `sat_${opts.lat}_${opts.lon}_z${opts.zoom}_${opts.size}x${opts.size}.jpg`;
   const outPath = join(outdir, outName);
