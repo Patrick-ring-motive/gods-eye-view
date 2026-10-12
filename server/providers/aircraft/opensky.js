@@ -403,14 +403,11 @@ export function openSkyProxy() {
               requestedMode: cachedMeta.requestedMode || requestedMode,
               usedMode: cachedMeta.usedMode || 'unknown',
               reason: isStale ?
-                'rate_limited_serving_stale' :
-                cachedMeta.reason || 'cached',
+                'rate_limited_serving_stale' : cachedMeta.reason || 'cached',
               staleSeconds: isStale ?
-                (now - _openskyCacheTime) / 1000 :
-                undefined,
+                (now - _openskyCacheTime) / 1000 : undefined,
               retryAfterSeconds: inCooldown ?
-                (_openskyCooldownUntil - now) / 1000 :
-                undefined,
+                (_openskyCooldownUntil - now) / 1000 : undefined,
             }),
           );
           res.end(_openskyCacheBody);
