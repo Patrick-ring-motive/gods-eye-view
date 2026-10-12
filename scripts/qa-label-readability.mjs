@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-label-readability.mjs — before/after evidence capture for ambient label
  * legibility over bright ground.
@@ -52,7 +53,13 @@ const SETTLE_MIN_MS = 4_000;
  * contact cloud dropped around the camera target.
  */
 /** Sunlit airport apron — the brightest ground the product routinely flies over. */
-const APRON = { lon: -97.6664, lat: 30.1975, height: 1100, heading: 0.35, pitch: -0.85 };
+const APRON = {
+  lon: -97.6664,
+  lat: 30.1975,
+  height: 1100,
+  heading: 0.35,
+  pitch: -0.85
+};
 
 /**
  * Cockpit pose: cruise altitude, level, looking out at the horizon. From 10 km
@@ -60,55 +67,107 @@ const APRON = { lon: -97.6664, lat: 30.1975, height: 1100, heading: 0.35, pitch:
  * camera puts the horizon line just under frame centre and everything the
  * `horizon-*` field lands on is open sky.
  */
-const COCKPIT = { lon: -98.35, lat: 30.05, height: 10_000, heading: 1.42, pitch: 0 };
+const COCKPIT = {
+  lon: -98.35,
+  lat: 30.05,
+  height: 10_000,
+  heading: 1.42,
+  pitch: 0
+};
 
 /** Contacts biased into the upper frame: every one of them backs onto sky. */
 const SKY_FIELD = {
-  kind: 'air', count: 30, near: 40_000, far: 120_000, spanY: 0.9, biasY: 0.3,
+  kind: 'air',
+  count: 30,
+  near: 40_000,
+  far: 120_000,
+  spanY: 0.9,
+  biasY: 0.3,
 };
 
-const SCENES = [
-  {
+const SCENES = [{
     id: 'bright-normal',
     style: 'normal',
     note: 'sunlit apron concrete — the failure case from the field report',
     camera: APRON,
-    field: { kind: 'air', count: 30, near: 700, far: 2600 },
+    field: {
+      kind: 'air',
+      count: 30,
+      near: 700,
+      far: 2600
+    },
   },
   {
     id: 'bright-retro',
     style: 'retro',
     note: 'CRT amber over the same sunlit ground',
     camera: APRON,
-    field: { kind: 'air', count: 30, near: 700, far: 2600 },
+    field: {
+      kind: 'air',
+      count: 30,
+      near: 700,
+      far: 2600
+    },
   },
   {
     id: 'bright-surveillance',
     style: 'surveillance',
     note: 'NVG green over the same sunlit ground',
     camera: APRON,
-    field: { kind: 'air', count: 30, near: 700, far: 2600 },
+    field: {
+      kind: 'air',
+      count: 30,
+      near: 700,
+      far: 2600
+    },
   },
   {
     id: 'bright-thermal',
     style: 'thermal',
     note: 'FLIR over the same sunlit ground',
     camera: APRON,
-    field: { kind: 'air', count: 30, near: 700, far: 2600 },
+    field: {
+      kind: 'air',
+      count: 30,
+      near: 700,
+      far: 2600
+    },
   },
   {
     id: 'dark-normal',
     style: 'normal',
     note: 'dark water — a plate here must stay a whisper, not a box',
-    camera: { lon: 139.05, lat: 34.45, height: 9000, heading: 0.2, pitch: -0.62 },
-    field: { kind: 'air', count: 30, near: 6000, far: 26_000 },
+    camera: {
+      lon: 139.05,
+      lat: 34.45,
+      height: 9000,
+      heading: 0.2,
+      pitch: -0.62
+    },
+    field: {
+      kind: 'air',
+      count: 30,
+      near: 6000,
+      far: 26_000
+    },
   },
   {
     id: 'sats-normal',
     style: 'normal',
     note: 'space tier over the lit Earth disc',
-    camera: { lon: -60, lat: 20, height: 21_000_000, heading: 0, pitch: -Math.PI / 2 },
-    field: { kind: 'sat', count: 30, near: 14_000_000, far: 20_000_000 },
+    camera: {
+      lon: -60,
+      lat: 20,
+      height: 21_000_000,
+      heading: 0,
+      pitch: -Math.PI / 2
+    },
+    field: {
+      kind: 'sat',
+      count: 30,
+      near: 14_000_000,
+      far: 20_000_000
+    },
   },
   {
     id: 'horizon-normal',
@@ -146,10 +205,20 @@ const SCENES = [
     // Shallower depths keep the low contacts above ground rather than inside it,
     // so the frame carries genuine terrain-backed AND sky-backed labels.
     field: {
-      kind: 'air', count: 30, near: 15_000, far: 60_000, spanY: 1.0, biasY: -0.1,
+      kind: 'air',
+      count: 30,
+      near: 15_000,
+      far: 60_000,
+      spanY: 1.0,
+      biasY: -0.1,
     },
     // The band scene's contacts sit lower in the frame than the default crop.
-    crop: { x: 0.16, y: 0.28, w: 0.52, h: 0.54 },
+    crop: {
+      x: 0.16,
+      y: 0.28,
+      w: 0.52,
+      h: 0.54
+    },
   },
 ];
 
@@ -162,7 +231,10 @@ const CHROME_CANDIDATES = [
 
 function findChrome() {
   for (const candidate of CHROME_CANDIDATES) {
-    try { if (fs.existsSync(candidate)) return candidate; } catch { /* fall through */ }
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      /* fall through */ }
   }
   return null;
 }
@@ -194,7 +266,13 @@ async function measureShot(page, base64) {
     }
     values.sort((a, b) => a - b);
     const at = (q) => Math.round(values[Math.min(values.length - 1, Math.floor(values.length * q))]);
-    return { p05: at(0.05), p25: at(0.25), p50: at(0.5), p95: at(0.95), samples: values.length };
+    return {
+      p05: at(0.05),
+      p25: at(0.25),
+      p50: at(0.5),
+      p95: at(0.95),
+      samples: values.length
+    };
   }, base64);
 }
 
@@ -205,7 +283,10 @@ async function settle(page) {
   while (Date.now() - started < SETTLE_MAX_MS) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     const state = await page.evaluate(() => {
-      const { viewer, tileset } = window.__godsEyeView;
+      const {
+        viewer,
+        tileset
+      } = window.__godsEyeView;
       return {
         tilesLoaded: tileset?.tilesLoaded !== false,
         pending: viewer.scene.globe?._surface?._tileLoadQueueHigh?.length ?? 0,
@@ -232,11 +313,15 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(SHOT_DIR, { recursive: true });
+  fs.mkdirSync(SHOT_DIR, {
+    recursive: true
+  });
   const executablePath = findChrome();
   const browser = await puppeteer.launch({
     headless: 'new',
-    ...(executablePath ? { executablePath } : {}),
+    ...(executablePath ? {
+      executablePath
+    } : {}),
     args: [
       '--no-sandbox', '--disable-setuid-sandbox',
       '--use-gl=angle', '--use-angle=swiftshader',
@@ -249,27 +334,40 @@ async function main() {
   const results = [];
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+    await page.setViewport({
+      width: 1280,
+      height: 800,
+      deviceScaleFactor: 1
+    });
     page.on('pageerror', (error) => console.warn(`  ! pageerror: ${error.message}`));
 
-    await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60_000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.styleManager,
-      { timeout: 60_000, polling: 100 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.styleManager, {
+        timeout: 60_000,
+        polling: 100
+      },
     );
     // flyToAustin arrives ~500 ms after init; let it start and land before any
     // scene sets its own pose, or the arrival overwrites the first camera.
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
-    const selected = SCENE_FILTER.length
-      ? SCENES.filter((scene) => SCENE_FILTER.some((prefix) => scene.id.startsWith(prefix)))
-      : SCENES;
+    const selected = SCENE_FILTER.length ?
+      SCENES.filter((scene) => SCENE_FILTER.some((prefix) => scene.id.startsWith(prefix))) :
+      SCENES;
     if (selected.length === 0) throw new Error(`--scenes matched nothing: ${SCENE_FILTER}`);
 
     for (const scene of selected) {
       process.stdout.write(`  ${scene.id} … `);
       await page.evaluate((spec) => {
-        const { viewer, dataManager, styleManager } = window.__godsEyeView;
+        const {
+          viewer,
+          dataManager,
+          styleManager
+        } = window.__godsEyeView;
         viewer.camera.cancelFlight();
         const Cartesian3 = viewer.camera.position.constructor;
 
@@ -295,10 +393,18 @@ async function main() {
         const halfHeight = Math.tan((frustum.fovy ?? frustum.fov ?? 1.0) / 2);
         const halfWidth = halfHeight * (frustum.aspectRatio || 1.6);
         const basis = {
-          px: camera.position.x, py: camera.position.y, pz: camera.position.z,
-          dx: camera.direction.x, dy: camera.direction.y, dz: camera.direction.z,
-          ux: camera.up.x, uy: camera.up.y, uz: camera.up.z,
-          rx: camera.right.x, ry: camera.right.y, rz: camera.right.z,
+          px: camera.position.x,
+          py: camera.position.y,
+          pz: camera.position.z,
+          dx: camera.direction.x,
+          dy: camera.direction.y,
+          dz: camera.direction.z,
+          ux: camera.up.x,
+          uy: camera.up.y,
+          uz: camera.up.z,
+          rx: camera.right.x,
+          ry: camera.right.y,
+          rz: camera.right.z,
         };
         // A 6x5 jittered lattice over the central 76% of the frame. Deterministic
         // by construction — no RNG anywhere in the harness.
@@ -326,10 +432,10 @@ async function main() {
             const spanY = spec.field.spanY ?? 1.34;
             const biasY = spec.field.biasY ?? 0;
             const ndcX = ((col + 0.5) / cols - 0.5) * spanX + jitter * 0.06;
-            const ndcY = ((row + 0.5) / Math.ceil(spec.field.count / cols) - 0.5)
-              * spanY + biasY + jitter * 0.05;
-            const depth = spec.field.near
-              + (spec.field.far - spec.field.near) * (((i * 53) % 17) / 17);
+            const ndcY = ((row + 0.5) / Math.ceil(spec.field.count / cols) - 0.5) *
+              spanY + biasY + jitter * 0.05;
+            const depth = spec.field.near +
+              (spec.field.far - spec.field.near) * (((i * 53) % 17) / 17);
             const flightLevel = 20 + ((i * 29) % 380);
             rows.push({
               sourceId: `${prefix}-${String(i).padStart(3, '0')}`,
@@ -343,9 +449,17 @@ async function main() {
           return rows;
         };
 
-        const assignment = spec.field.kind === 'sat'
-          ? { satellites: build('s'), flights: [], military: [] }
-          : { flights: build('f'), military: [], satellites: [] };
+        const assignment = spec.field.kind === 'sat' ?
+          {
+            satellites: build('s'),
+            flights: [],
+            military: []
+          } :
+          {
+            flights: build('f'),
+            military: [],
+            satellites: []
+          };
         window.__LABEL_EVIDENCE = assignment;
         for (const layerId of Object.keys(assignment)) {
           const entry = dataManager.layers.get(layerId);
@@ -354,7 +468,9 @@ async function main() {
           }
         }
 
-        styleManager.setStyle(spec.style, { applyPreset: false });
+        styleManager.setStyle(spec.style, {
+          applyPreset: false
+        });
         // Set detection AFTER the style: military presets auto-arm Panoptic at
         // 0% density, which would otherwise leave the frame without callouts.
         styleManager.setDetection({
@@ -365,14 +481,19 @@ async function main() {
       }, scene);
 
       const converged = await settle(page);
-      const base64 = await page.screenshot({ encoding: 'base64' });
+      const base64 = await page.screenshot({
+        encoding: 'base64'
+      });
       fs.writeFileSync(
         path.join(SHOT_DIR, `${TAG}-${scene.id}.png`),
         Buffer.from(base64, 'base64'),
       );
       // A 2x blow-up of the label field. Ambient callouts are 10px mono, and
       // the taste call this evidence exists for cannot be made at 1:1.
-      const crop = await page.evaluate(async ({ b64, box }) => {
+      const crop = await page.evaluate(async ({
+        b64,
+        box
+      }) => {
         const image = new Image();
         await new Promise((resolve, reject) => {
           image.onload = resolve;
@@ -390,7 +511,15 @@ async function main() {
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(image, sx, sy, sw, sh, 0, 0, sw * 2, sh * 2);
         return canvas.toDataURL('image/png').split(',')[1];
-      }, { b64: base64, box: scene.crop ?? { x: 0.16, y: 0.14, w: 0.52, h: 0.5 } });
+      }, {
+        b64: base64,
+        box: scene.crop ?? {
+          x: 0.16,
+          y: 0.14,
+          w: 0.52,
+          h: 0.5
+        }
+      });
       fs.writeFileSync(
         path.join(SHOT_DIR, `${TAG}-${scene.id}-crop.png`),
         Buffer.from(crop, 'base64'),
@@ -399,11 +528,15 @@ async function main() {
       const diagnostics = await page.evaluate(
         () => window.__godsEyeView.styleManager.getDetectionState?.() || {},
       );
-      results.push({ scene: scene.id, converged, ...stats });
+      results.push({
+        scene: scene.id,
+        converged,
+        ...stats
+      });
       console.log(
-        `p05=${stats.p05} p25=${stats.p25} p50=${stats.p50} p95=${stats.p95}`
-        + `${converged ? '' : '  (tiles did not fully settle)'}`
-        + `  [${diagnostics.detectionMode || '?'}]`,
+        `p05=${stats.p05} p25=${stats.p25} p50=${stats.p50} p95=${stats.p95}` +
+        `${converged ? '' : '  (tiles did not fully settle)'}` +
+        `  [${diagnostics.detectionMode || '?'}]`,
       );
     }
   } finally {
