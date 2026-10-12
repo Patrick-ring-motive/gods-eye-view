@@ -6,7 +6,9 @@ export function apiNotFoundPlugin() {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store',
       });
-      res.end(JSON.stringify({ error: 'Unknown API route' }));
+      res.end(JSON.stringify({
+        error: 'Unknown API route'
+      }));
     });
   };
   return {
