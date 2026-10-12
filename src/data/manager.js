@@ -1,7 +1,17 @@
-import { governorRequestRender } from '../renderGovernor.js';
-import { LayerPanel } from '../ui/layers.js';
-export { layerFeedState } from '../ui/layers.js';
-import { markDetectionSourcesChanged } from './detection.js';
+import {
+  governorRequestRender
+} from '../renderGovernor.js';
+import {
+  LayerPanel
+} from '../ui/layers.js';
+export {
+  layerFeedState
+}
+from '../ui/layers.js';
+import {
+  markDetectionSourcesChanged
+} from './detection.js';
+
 function cloneLayerParams(value) {
   if (Array.isArray(value)) return value.map(cloneLayerParams);
   if (value && typeof value === 'object') {
@@ -42,7 +52,10 @@ function isExplicitLayerIntentOrigin(origin) {
 function cancelPendingLayerRestore(entry, origin, reason) {
   if (!isExplicitLayerIntentOrigin(origin)) return;
   try {
-    (entry.module?.cancelPendingRestore || entry.module?.cancelPendingTrackingRestore)?.({ origin, reason });
+    (entry.module?.cancelPendingRestore || entry.module?.cancelPendingTrackingRestore)?.({
+      origin,
+      reason
+    });
   } catch (error) {
     console.warn(`[Data] ${entry.module?.id || 'layer'} pending restore cancellation error:`, error);
   }
@@ -62,7 +75,9 @@ function refreshFailureFromStats(stats, label) {
  * for real-time data overlays on the CesiumJS globe.
  */
 export class DataLayerManager {
-  constructor(viewer, { allowQaRegistration = false } = {}) {
+  constructor(viewer, {
+    allowQaRegistration = false
+  } = {}) {
     this.viewer = viewer;
     this.layers = new Map(); // id → { module, enabled, initialized, intervalId, lifecycleState, lifecycleUncertain }
     this._listeners = new Set();
@@ -191,14 +206,24 @@ export class DataLayerManager {
 
   _moduleStats(entry) {
     if (!entry?.initialized || typeof entry.module?.getStats !== 'function') {
-      return { count: 0, lastUpdate: null };
+      return {
+        count: 0,
+        lastUpdate: null
+      };
     }
     try {
       const stats = entry.module.getStats();
-      return stats && typeof stats === 'object' ? stats : { count: 0, lastUpdate: null };
+      return stats && typeof stats === 'object' ? stats : {
+        count: 0,
+        lastUpdate: null
+      };
     } catch (error) {
       console.warn(`[Data] ${entry.module.id} getStats error:`, error);
-      return { count: 0, lastUpdate: null, error };
+      return {
+        count: 0,
+        lastUpdate: null,
+        error
+      };
     }
   }
 
@@ -232,13 +257,15 @@ export class DataLayerManager {
     }
   }
 
-  async _runPeriodicUpdate(layerId, entry, { signal = null } = {}) {
+  async _runPeriodicUpdate(layerId, entry, {
+    signal = null
+  } = {}) {
     if (
-      !entry.enabled
-      || entry.lifecycleState !== 'enabled'
-      || entry.destroying
-      || entry.refreshing
-      || signal?.aborted
+      !entry.enabled ||
+      entry.lifecycleState !== 'enabled' ||
+      entry.destroying ||
+      entry.refreshing ||
+      signal?.aborted
     ) return false;
     const refreshEpoch = ++entry.refreshEpoch;
     entry.refreshing = true;
@@ -253,7 +280,9 @@ export class DataLayerManager {
     let result;
     let failure = null;
     try {
-      result = await entry.module.update(this.viewer, { signal });
+      result = await entry.module.update(this.viewer, {
+        signal
+      });
       // Poll-tick entity refreshes don't auto-render in idle mode. Fires on
       // any non-throwing update — a rejected/partial refresh may still have
       // mutated scene state. (perf wave 2; moved into _runPeriodicUpdate
@@ -273,10 +302,10 @@ export class DataLayerManager {
 
     if (signal?.aborted) {
       if (
-        this.layers.get(layerId) === entry
-        && !entry.destroying
-        && entry.enabled
-        && entry.refreshEpoch === refreshEpoch
+        this.layers.get(layerId) === entry &&
+        !entry.destroying &&
+        entry.enabled &&
+        entry.refreshEpoch === refreshEpoch
       ) {
         entry.refreshing = false;
         entry.managerRefreshError = null;
@@ -292,10 +321,10 @@ export class DataLayerManager {
     }
 
     if (
-      this.layers.get(layerId) !== entry
-      || entry.destroying
-      || !entry.enabled
-      || entry.refreshEpoch !== refreshEpoch
+      this.layers.get(layerId) !== entry ||
+      entry.destroying ||
+      !entry.enabled ||
+      entry.refreshEpoch !== refreshEpoch
     ) {
       return false;
     }
@@ -334,14 +363,16 @@ export class DataLayerManager {
    * @param {AbortSignal|null} [options.signal] Caller cancellation authority.
    * @returns {Promise<boolean>} True only when the requested fresh update settles successfully.
    */
-  async refreshLayer(layerId, { signal = null } = {}) {
+  async refreshLayer(layerId, {
+    signal = null
+  } = {}) {
     const entry = this.layers.get(layerId);
     if (
-      !entry
-      || !entry.enabled
-      || entry.lifecycleState !== 'enabled'
-      || entry.destroying
-      || signal?.aborted
+      !entry ||
+      !entry.enabled ||
+      entry.lifecycleState !== 'enabled' ||
+      entry.destroying ||
+      signal?.aborted
     ) return false;
 
     if (entry.refreshing) {
@@ -357,28 +388,32 @@ export class DataLayerManager {
         const onAbort = () => finish(false);
         const unsubscribe = this.subscribe((change) => {
           if (
-            change?.layerId === layerId
-            && ['refresh', 'refresh-failed', 'refresh-cancelled'].includes(change.type)
+            change?.layerId === layerId &&
+            ['refresh', 'refresh-failed', 'refresh-cancelled'].includes(change.type)
           ) {
             finish(true);
           }
         });
-        signal?.addEventListener?.('abort', onAbort, { once: true });
+        signal?.addEventListener?.('abort', onAbort, {
+          once: true
+        });
         queueMicrotask(() => {
           if (!entry.refreshing) finish(true);
         });
       });
       if (
-        !settled
-        || signal?.aborted
-        || this.layers.get(layerId) !== entry
-        || !entry.enabled
-        || entry.lifecycleState !== 'enabled'
-        || entry.destroying
+        !settled ||
+        signal?.aborted ||
+        this.layers.get(layerId) !== entry ||
+        !entry.enabled ||
+        entry.lifecycleState !== 'enabled' ||
+        entry.destroying
       ) return false;
     }
 
-    return this._runPeriodicUpdate(layerId, entry, { signal });
+    return this._runPeriodicUpdate(layerId, entry, {
+      signal
+    });
   }
 
   /**
@@ -398,16 +433,30 @@ export class DataLayerManager {
       refreshSucceeded: false,
     };
     if (!entry || !entry.enabled || entry.destroying) {
-      return { ...base, status: 'unavailable', reason: 'layer-unavailable' };
+      return {
+        ...base,
+        status: 'unavailable',
+        reason: 'layer-unavailable'
+      };
     }
     if (typeof entry.module?.resolveTrackingRestoreTarget !== 'function') {
-      return { ...base, status: 'unsupported', reason: 'tracking-restore-unsupported' };
+      return {
+        ...base,
+        status: 'unsupported',
+        reason: 'tracking-restore-unsupported'
+      };
     }
     if (signal?.aborted) {
-      return { ...base, status: 'cancelled', reason: String(signal.reason || 'aborted') };
+      return {
+        ...base,
+        status: 'cancelled',
+        reason: String(signal.reason || 'aborted')
+      };
     }
 
-    const refreshSucceeded = await this.refreshLayer(layerId, { signal });
+    const refreshSucceeded = await this.refreshLayer(layerId, {
+      signal
+    });
     if (signal?.aborted) {
       return {
         ...base,
@@ -440,11 +489,16 @@ export class DataLayerManager {
         };
       }
       const status = [
-        'found', 'missing', 'source-unavailable', 'cancelled', 'superseded', 'destroyed',
-      ].includes(resolution?.status)
-        ? resolution.status
-        : 'source-unavailable';
-      return { ...base, refreshSucceeded, ...resolution, status };
+          'found', 'missing', 'source-unavailable', 'cancelled', 'superseded', 'destroyed',
+        ].includes(resolution?.status) ?
+        resolution.status :
+        'source-unavailable';
+      return {
+        ...base,
+        refreshSucceeded,
+        ...resolution,
+        status
+      };
     } catch (error) {
       if (signal?.aborted || isAbortError(error)) {
         return {
@@ -468,9 +522,9 @@ export class DataLayerManager {
   _armUpdateLoop(layerId, entry) {
     const configuredRefreshInterval = Number(entry.module.refreshInterval);
     const updateInterval = Number(entry.module.updateInterval);
-    const refreshInterval = configuredRefreshInterval > 0
-      ? configuredRefreshInterval
-      : (updateInterval > 0 ? updateInterval : 0);
+    const refreshInterval = configuredRefreshInterval > 0 ?
+      configuredRefreshInterval :
+      (updateInterval > 0 ? updateInterval : 0);
     if (refreshInterval > 0) {
       entry.intervalId = setInterval(() => {
         void this._runPeriodicUpdate(layerId, entry);
@@ -483,7 +537,10 @@ export class DataLayerManager {
     }
   }
 
-  toggle(layerId, { origin = 'programmatic', notificationToken = null } = {}) {
+  toggle(layerId, {
+    origin = 'programmatic',
+    notificationToken = null
+  } = {}) {
     const entry = this.layers.get(layerId);
     if (!entry || entry.destroying) return Promise.resolve(false);
     // A relative user action still needs the same revocable authority as an
@@ -538,13 +595,15 @@ export class DataLayerManager {
   _visibilityCancellationMetadata(entry, intentEpoch, signal, phase, resourceAbort = false) {
     const hasSuccessor = Number.isInteger(intentEpoch) && entry.visibilityIntentEpoch > intentEpoch;
     const metadata = {
-      ...(Number.isInteger(intentEpoch) ? { intentEpoch } : {}),
+      ...(Number.isInteger(intentEpoch) ? {
+        intentEpoch
+      } : {}),
       phase,
-      cancellationReason: resourceAbort
-        ? 'resource-abort'
-        : (hasSuccessor || signal?.reason === SUPERSEDED_VISIBILITY_INTENT
-          ? 'superseded'
-          : 'caller-abort'),
+      cancellationReason: resourceAbort ?
+        'resource-abort' :
+        (hasSuccessor || signal?.reason === SUPERSEDED_VISIBILITY_INTENT ?
+          'superseded' :
+          'caller-abort'),
       ...(hasSuccessor ? {
         successorIntentEpoch: entry.visibilityIntentEpoch,
         successorEnabled: entry.visibilityIntentEnabled,
@@ -605,8 +664,12 @@ export class DataLayerManager {
       layerId,
       enabled: desiredState,
       origin,
-      ...(Number.isInteger(intentEpoch) ? { intentEpoch } : {}),
-      ...(notificationToken ? { notificationToken } : {}),
+      ...(Number.isInteger(intentEpoch) ? {
+        intentEpoch
+      } : {}),
+      ...(notificationToken ? {
+        notificationToken
+      } : {}),
     };
     if (signal?.aborted) return false;
     if (!suppressWillChangeNotification) this._notifyListeners(requestedChange);
@@ -680,9 +743,9 @@ export class DataLayerManager {
         this._notifyListeners({
           ...requestedChange,
           type: compensated ? 'visibility-cancelled' : 'visibility-failed',
-          ...(compensated
-            ? this._visibilityCancellationMetadata(entry, intentEpoch, signal, phase, resourceAbort)
-            : {}),
+          ...(compensated ?
+            this._visibilityCancellationMetadata(entry, intentEpoch, signal, phase, resourceAbort) :
+            {}),
           ...(compensated ? {} : {
             phase: 'cancel-disable-compensation',
             error: compensationError,
@@ -691,7 +754,9 @@ export class DataLayerManager {
         return false;
       };
       try {
-        const disabled = await entry.module.disable(this.viewer, { signal });
+        const disabled = await entry.module.disable(this.viewer, {
+          signal
+        });
         if (disabled === false) throw lifecycleRejectedError(layerId, 'disable');
       } catch (e) {
         if (signal?.aborted || isAbortError(e)) {
@@ -754,7 +819,9 @@ export class DataLayerManager {
         }
         await abortCleanup;
         let cleanupConfirmed = false;
-        try { cleanupConfirmed = await entry.module.disable(this.viewer) !== false; } catch (error) {
+        try {
+          cleanupConfirmed = await entry.module.disable(this.viewer) !== false;
+        } catch (error) {
           console.warn(`[Data] ${layerId} cancelled-enable final cleanup error:`, error);
         }
         entry.enabled = !cleanupConfirmed;
@@ -770,10 +837,12 @@ export class DataLayerManager {
         this._notifyListeners({
           ...requestedChange,
           type: cleanupConfirmed ? 'visibility-cancelled' : 'visibility-failed',
-          ...(cleanupConfirmed
-            ? this._visibilityCancellationMetadata(entry, intentEpoch, signal, phase, resourceAbort)
-            : {}),
-          ...(cleanupConfirmed ? {} : { phase: 'cancel-enable-cleanup' }),
+          ...(cleanupConfirmed ?
+            this._visibilityCancellationMetadata(entry, intentEpoch, signal, phase, resourceAbort) :
+            {}),
+          ...(cleanupConfirmed ? {} : {
+            phase: 'cancel-enable-cleanup'
+          }),
         });
         return false;
       };
@@ -783,7 +852,9 @@ export class DataLayerManager {
           entry.intervalId = null;
         }
         let cleanupConfirmed = false;
-        try { cleanupConfirmed = await entry.module.disable(this.viewer) !== false; } catch (cleanupError) {
+        try {
+          cleanupConfirmed = await entry.module.disable(this.viewer) !== false;
+        } catch (cleanupError) {
           console.warn(`[Data] ${layerId} failed-enable cleanup error:`, cleanupError);
         }
         entry.enabled = !cleanupConfirmed;
@@ -801,11 +872,15 @@ export class DataLayerManager {
         signal?.removeEventListener('abort', cancelEnable);
         return false;
       };
-      signal?.addEventListener('abort', cancelEnable, { once: true });
+      signal?.addEventListener('abort', cancelEnable, {
+        once: true
+      });
       if (!entry.initialized) {
         this._setVisibilityIntentPhase(entry, intentEpoch, 'init');
         try {
-          const initialized = await entry.module.init(this.viewer, { signal });
+          const initialized = await entry.module.init(this.viewer, {
+            signal
+          });
           if (initialized === false) throw lifecycleRejectedError(layerId, 'init');
           entry.initialized = true;
         } catch (e) {
@@ -820,8 +895,7 @@ export class DataLayerManager {
         this._setVisibilityIntentPhase(entry, intentEpoch, 'params');
         const paramsResult = this._applyLayerParamsIntent(
           layerId,
-          beforeEnableParams.params,
-          {
+          beforeEnableParams.params, {
             origin: beforeEnableParams.origin,
             paramsIntentEpoch: beforeEnableParams.paramsIntentEpoch,
           },
@@ -838,7 +912,9 @@ export class DataLayerManager {
       entry.lifecycleUncertain = false;
       this._setVisibilityIntentPhase(entry, intentEpoch, 'enable');
       try {
-        const enabled = await entry.module.enable(this.viewer, { signal });
+        const enabled = await entry.module.enable(this.viewer, {
+          signal
+        });
         if (enabled === false) throw lifecycleRejectedError(layerId, 'enable');
       } catch (e) {
         if (signal?.aborted || isAbortError(e)) {
@@ -851,7 +927,9 @@ export class DataLayerManager {
       // First update immediately
       this._setVisibilityIntentPhase(entry, intentEpoch, 'update');
       try {
-        const updated = await entry.module.update(this.viewer, { signal });
+        const updated = await entry.module.update(this.viewer, {
+          signal
+        });
         if (updated === false) throw lifecycleRejectedError(layerId, 'update');
       } catch (e) {
         if (signal?.aborted || isAbortError(e)) {
@@ -891,8 +969,12 @@ export class DataLayerManager {
       layerId,
       enabled: entry.enabled,
       origin,
-      ...(Number.isInteger(intentEpoch) ? { intentEpoch } : {}),
-      ...(notificationToken ? { notificationToken } : {}),
+      ...(Number.isInteger(intentEpoch) ? {
+        intentEpoch
+      } : {}),
+      ...(notificationToken ? {
+        notificationToken
+      } : {}),
     });
     return true;
   }
@@ -925,17 +1007,25 @@ export class DataLayerManager {
     beforeEnableParams = null,
   } = {}) {
     const entry = this.layers.get(layerId);
-    if (!entry) return { intentEpoch: null, promise: Promise.resolve() };
+    if (!entry) return {
+      intentEpoch: null,
+      promise: Promise.resolve()
+    };
     const desiredState = Boolean(shouldEnable);
     if (entry.destroying) {
-      return { intentEpoch: null, promise: Promise.resolve(desiredState === false) };
+      return {
+        intentEpoch: null,
+        promise: Promise.resolve(desiredState === false)
+      };
     }
     cancelPendingLayerRestore(entry, origin, 'explicit-visibility');
     const intentEpoch = ++entry.visibilityIntentEpoch;
     entry.visibilityIntentEnabled = desiredState;
     entry.visibilityIntentOrigin = origin;
     let resolveIntentRecord;
-    const settled = new Promise((resolve) => { resolveIntentRecord = resolve; });
+    const settled = new Promise((resolve) => {
+      resolveIntentRecord = resolve;
+    });
     const intentRecord = {
       intentEpoch,
       enabled: desiredState,
@@ -960,7 +1050,9 @@ export class DataLayerManager {
         enabled: desiredState,
         origin,
         intentEpoch,
-        ...(notificationToken ? { notificationToken } : {}),
+        ...(notificationToken ? {
+          notificationToken
+        } : {}),
       });
     }
     // Effective visibility must follow the NEWEST absolute intent from the
@@ -968,7 +1060,10 @@ export class DataLayerManager {
     // cleanup updates lifecycleState later, and Context capture can run in
     // between. Cleared by this request's own queue turn when it finishes.
     if (entry.visibilityIntentEpoch === intentEpoch) {
-      entry.latestQueuedAbsoluteIntent = { intentEpoch, enabled: desiredState };
+      entry.latestQueuedAbsoluteIntent = {
+        intentEpoch,
+        enabled: desiredState
+      };
     }
     this._notifyVisibilityRequest({
       type: 'visibility-requested',
@@ -976,7 +1071,9 @@ export class DataLayerManager {
       enabled: desiredState,
       origin,
       intentEpoch,
-      ...(notificationToken ? { notificationToken } : {}),
+      ...(notificationToken ? {
+        notificationToken
+      } : {}),
     });
     // Advance absolute intent before aborting so the obsolete transaction's
     // cleanup can defer settlement to this exact latest epoch. Supersede even
@@ -998,7 +1095,9 @@ export class DataLayerManager {
         enabled: desiredState,
         origin,
         intentEpoch,
-        ...(notificationToken ? { notificationToken } : {}),
+        ...(notificationToken ? {
+          notificationToken
+        } : {}),
       };
       if (intentEpoch !== entry.visibilityIntentEpoch) {
         this._notifyListeners({
@@ -1026,9 +1125,9 @@ export class DataLayerManager {
         return false;
       }
       if (
-        entry.pendingVisibilityAdoptionEpoch === intentEpoch
-        && entry.enabled === desiredState
-        && !entry.lifecycleUncertain
+        entry.pendingVisibilityAdoptionEpoch === intentEpoch &&
+        entry.enabled === desiredState &&
+        !entry.lifecycleUncertain
       ) {
         // Adoption publishes a successful settled visibility, so it must pass
         // the same guards a fresh transition would — a guard installed after
@@ -1086,7 +1185,10 @@ export class DataLayerManager {
               controller: compensationController,
             };
             entry.activeVisibilityIntent = compensationIntent;
-            entry.latestQueuedAbsoluteIntent = { intentEpoch, enabled: !desiredState };
+            entry.latestQueuedAbsoluteIntent = {
+              intentEpoch,
+              enabled: !desiredState
+            };
             this._notifyListeners({
               ...requestedChange,
               type: 'visibility-blocked',
@@ -1096,8 +1198,8 @@ export class DataLayerManager {
             // owns reconciliation now — defer exactly like an obsolete
             // transaction instead of installing an already-doomed compensation.
             if (
-              intentEpoch !== entry.visibilityIntentEpoch
-              || compensationController.signal.aborted
+              intentEpoch !== entry.visibilityIntentEpoch ||
+              compensationController.signal.aborted
             ) {
               if (entry.activeVisibilityIntent === compensationIntent) {
                 entry.activeVisibilityIntent = null;
@@ -1144,7 +1246,9 @@ export class DataLayerManager {
           enabled: desiredState,
           origin,
           intentEpoch,
-          ...(notificationToken ? { notificationToken } : {}),
+          ...(notificationToken ? {
+            notificationToken
+          } : {}),
         });
         return true;
       }
@@ -1166,7 +1270,9 @@ export class DataLayerManager {
           enabled: desiredState,
           origin,
           intentEpoch,
-          ...(notificationToken ? { notificationToken } : {}),
+          ...(notificationToken ? {
+            notificationToken
+          } : {}),
         });
         return true;
       }
@@ -1174,8 +1280,14 @@ export class DataLayerManager {
       entry.pendingVisibilityAdoptionEpoch = 0;
       const controller = new AbortController();
       const forwardCallerAbort = () => controller.abort(signal?.reason);
-      signal?.addEventListener('abort', forwardCallerAbort, { once: true });
-      const activeIntent = { intentEpoch, enabled: desiredState, controller };
+      signal?.addEventListener('abort', forwardCallerAbort, {
+        once: true
+      });
+      const activeIntent = {
+        intentEpoch,
+        enabled: desiredState,
+        controller
+      };
       entry.activeVisibilityIntent = activeIntent;
       try {
         return await this._doToggle(entry, layerId, origin, {
@@ -1217,7 +1329,9 @@ export class DataLayerManager {
         origin,
         phase: failure?.phase || intentRecord.phase,
         result,
-        ...(failure?.error ? { error: failure.error } : {}),
+        ...(failure?.error ? {
+          error: failure.error
+        } : {}),
         settledEnabled: entry.enabled,
         uncertain: entry.lifecycleUncertain,
         succeeded: result !== false && entry.enabled === desiredState && !entry.lifecycleUncertain,
@@ -1246,7 +1360,10 @@ export class DataLayerManager {
         successorOrigin: intentRecord.successorOrigin ?? null,
       });
     });
-    return { intentEpoch, promise };
+    return {
+      intentEpoch,
+      promise
+    };
   }
 
   /** Wait for one exact absolute visibility intent to complete. */
@@ -1268,9 +1385,9 @@ export class DataLayerManager {
     while (Number.isInteger(epoch)) {
       outcome = await this._waitForVisibilityIntent(layerId, epoch);
       if (!outcome) return null;
-      const newerEpoch = entry.visibilityIntentEpoch > epoch
-        ? entry.visibilityIntentEpoch
-        : outcome.successorIntentEpoch;
+      const newerEpoch = entry.visibilityIntentEpoch > epoch ?
+        entry.visibilityIntentEpoch :
+        outcome.successorIntentEpoch;
       if (!Number.isInteger(newerEpoch) || newerEpoch <= epoch) break;
       if (outcome.cancellationReason !== 'superseded') return null;
       epoch = newerEpoch;
@@ -1289,8 +1406,8 @@ export class DataLayerManager {
     // the synchronous moment it is made, even while a superseded transaction
     // has not yet updated lifecycleState.
     if (
-      entry.clearVisibilityReservation
-      && entry.visibilityIntentEpoch === entry.clearVisibilityReservation.intentEpoch
+      entry.clearVisibilityReservation &&
+      entry.visibilityIntentEpoch === entry.clearVisibilityReservation.intentEpoch
     ) return false;
     if (entry.latestQueuedAbsoluteIntent) return entry.latestQueuedAbsoluteIntent.enabled;
     if (entry.lifecycleState === 'enabling') return true;
@@ -1320,8 +1437,8 @@ export class DataLayerManager {
   getEnabledLayerIds() {
     return new Set(
       [...this.layers]
-        .filter(([, entry]) => this._effectiveEnabled(entry))
-        .map(([layerId]) => layerId),
+      .filter(([, entry]) => this._effectiveEnabled(entry))
+      .map(([layerId]) => layerId),
     );
   }
 
@@ -1337,7 +1454,10 @@ export class DataLayerManager {
    * @param {symbol|null} [options.notificationToken] Shared notification owner.
    * @returns {Promise<{targetIds:string[],items:object[],clearedIds:string[],notClearedIds:string[]}>}
    */
-  async clearSelectedLayers({ origin = 'user', notificationToken = null } = {}) {
+  async clearSelectedLayers({
+    origin = 'user',
+    notificationToken = null
+  } = {}) {
     const clearBatchId = Symbol('clear-selected-layers');
     const targets = [...this.layers]
       .filter(([, entry]) => this._effectiveEnabled(entry))
@@ -1350,36 +1470,58 @@ export class DataLayerManager {
     // All's global OFF authority observable synchronously while preserving
     // reverse-order lifecycle teardown. Any later absolute intent advances
     // the epoch and therefore owns that layer instead.
-    for (const { layerId, intentEpoch } of targets) {
+    for (const {
+        layerId,
+        intentEpoch
+      }
+      of targets) {
       const entry = this.layers.get(layerId);
-      if (entry) entry.clearVisibilityReservation = { clearBatchId, intentEpoch };
+      if (entry) entry.clearVisibilityReservation = {
+        clearBatchId,
+        intentEpoch
+      };
     }
-    const targetIds = targets.map(({ layerId }) => layerId);
+    const targetIds = targets.map(({
+      layerId
+    }) => layerId);
     const attempts = new Map();
     try {
-      for (const { layerId, intentEpoch } of targets) {
+      for (const {
+          layerId,
+          intentEpoch
+        }
+        of targets) {
         const entry = this.layers.get(layerId);
         const superseded = entry && entry.visibilityIntentEpoch !== intentEpoch;
         if (superseded) {
-          attempts.set(layerId, { superseded: true });
+          attempts.set(layerId, {
+            superseded: true
+          });
           continue;
         }
         try {
           const clearIntentEpoch = entry.visibilityIntentEpoch + 1;
           const result = await this.setEnabled(layerId, false, {
             origin,
-            ...(notificationToken ? { notificationToken } : {}),
+            ...(notificationToken ? {
+              notificationToken
+            } : {}),
           });
           attempts.set(layerId, {
             result,
             superseded: entry.visibilityIntentEpoch !== clearIntentEpoch,
           });
         } catch (error) {
-          attempts.set(layerId, { error });
+          attempts.set(layerId, {
+            error
+          });
         }
       }
     } finally {
-      for (const { layerId } of targets) {
+      for (const {
+          layerId
+        }
+        of targets) {
         const entry = this.layers.get(layerId);
         if (entry?.clearVisibilityReservation?.clearBatchId === clearBatchId) {
           entry.clearVisibilityReservation = null;
@@ -1428,8 +1570,7 @@ export class DataLayerManager {
    * @returns {Promise<void>} Resolves after every registered layer settles.
    */
   async restoreEnabledLayerIds(
-    enabledLayerIds,
-    {
+    enabledLayerIds, {
       origin = 'programmatic',
       excludeLayerIds = [],
       notificationToken = null,
@@ -1448,8 +1589,12 @@ export class DataLayerManager {
     });
     const transitionOptions = {
       origin,
-      ...(notificationToken ? { notificationToken } : {}),
-      ...(signal ? { signal } : {}),
+      ...(notificationToken ? {
+        notificationToken
+      } : {}),
+      ...(signal ? {
+        signal
+      } : {}),
     };
     const handles = layerIds.map((layerId) => this._setEnabledWithIntent(
       layerId,
@@ -1465,21 +1610,21 @@ export class DataLayerManager {
       const layerId = layerIds[index];
       const state = this.getLayerLifecycleState(layerId);
       const desiredState = target.has(layerId);
-      const failed = !outcome
-        || outcome.error
-        || !state
-        || state.enabled !== desiredState
-        || state.lifecycleState !== (desiredState ? 'enabled' : 'disabled')
-        || state.uncertain
-        || this.layers.get(layerId)?.latestQueuedAbsoluteIntent;
+      const failed = !outcome ||
+        outcome.error ||
+        !state ||
+        state.enabled !== desiredState ||
+        state.lifecycleState !== (desiredState ? 'enabled' : 'disabled') ||
+        state.uncertain ||
+        this.layers.get(layerId)?.latestQueuedAbsoluteIntent;
       return failed ? [layerId] : [];
     });
     if (failedLayerIds.length === 0) return;
     const failedIndex = layerIds.indexOf(failedLayerIds[0]);
     const failed = results[failedIndex];
-    const error = failed.status === 'rejected'
-      ? failed.reason
-      : new Error(`Failed to restore layer "${layerIds[failedIndex]}" visibility`);
+    const error = failed.status === 'rejected' ?
+      failed.reason :
+      new Error(`Failed to restore layer "${layerIds[failedIndex]}" visibility`);
     error.failedLayerIds = [...new Set([
       ...(Array.isArray(error.failedLayerIds) ? error.failedLayerIds : []),
       ...failedLayerIds,
@@ -1521,10 +1666,18 @@ export class DataLayerManager {
   } = {}) {
     const entry = this.layers.get(layerId);
     if (!entry || !entry.module || typeof entry.module.setParams !== 'function') {
-      return { succeeded: false, error: paramsRejectedError(layerId), params: null };
+      return {
+        succeeded: false,
+        error: paramsRejectedError(layerId),
+        params: null
+      };
     }
     if (!Number.isInteger(paramsIntentEpoch) || entry.paramsIntentEpoch !== paramsIntentEpoch) {
-      const result = { succeeded: false, cancellationReason: 'superseded', params: null };
+      const result = {
+        succeeded: false,
+        cancellationReason: 'superseded',
+        params: null
+      };
       this._notifyListeners({
         type: 'params-cancelled',
         layerId,
@@ -1537,10 +1690,17 @@ export class DataLayerManager {
       return result;
     }
     try {
-      const accepted = entry.module.setParams(params || {}, { origin, paramsIntentEpoch });
+      const accepted = entry.module.setParams(params || {}, {
+        origin,
+        paramsIntentEpoch
+      });
       if (accepted === false) throw paramsRejectedError(layerId);
       if (entry.paramsIntentEpoch !== paramsIntentEpoch) {
-        const result = { succeeded: false, cancellationReason: 'superseded', params: null };
+        const result = {
+          succeeded: false,
+          cancellationReason: 'superseded',
+          params: null
+        };
         this._notifyListeners({
           type: 'params-cancelled',
           layerId,
@@ -1563,7 +1723,11 @@ export class DataLayerManager {
         origin,
         paramsIntentEpoch,
       });
-      return { succeeded: true, params: appliedParams, paramsIntentEpoch };
+      return {
+        succeeded: true,
+        params: appliedParams,
+        paramsIntentEpoch
+      };
     } catch (error) {
       console.warn(`[Data] ${layerId} setParams error:`, error);
       this._notifyListeners({
@@ -1574,15 +1738,25 @@ export class DataLayerManager {
         paramsIntentEpoch,
         error,
       });
-      return { succeeded: false, error, params: null, paramsIntentEpoch };
+      return {
+        succeeded: false,
+        error,
+        params: null,
+        paramsIntentEpoch
+      };
     }
   }
 
   /** Apply runtime parameters through an origin-bearing intent lane. */
-  setLayerParams(layerId, params, { origin = 'programmatic' } = {}) {
+  setLayerParams(layerId, params, {
+    origin = 'programmatic'
+  } = {}) {
     const paramsIntentEpoch = this._reserveLayerParamsIntent(layerId, params, origin);
     if (!Number.isInteger(paramsIntentEpoch)) return false;
-    return this._applyLayerParamsIntent(layerId, params, { origin, paramsIntentEpoch }).succeeded;
+    return this._applyLayerParamsIntent(layerId, params, {
+      origin,
+      paramsIntentEpoch
+    }).succeeded;
   }
 
   /** Cancel a module-owned pending restore without creating a parameter intent. */
@@ -1591,11 +1765,14 @@ export class DataLayerManager {
     reason = 'cancelled',
   } = {}) {
     const entry = this.layers.get(layerId);
-    const cancel = entry?.module?.cancelPendingRestore
-      || entry?.module?.cancelPendingTrackingRestore;
+    const cancel = entry?.module?.cancelPendingRestore ||
+      entry?.module?.cancelPendingTrackingRestore;
     if (typeof cancel !== 'function') return false;
     try {
-      cancel.call(entry.module, { origin, reason });
+      cancel.call(entry.module, {
+        origin,
+        reason
+      });
       return true;
     } catch (error) {
       console.warn(`[Data] ${layerId} pending restore cancellation error:`, error);
@@ -1604,7 +1781,9 @@ export class DataLayerManager {
   }
 
   /** Publish parameters already applied by a layer's direct interaction. */
-  adoptLayerParams(layerId, params, { origin = 'programmatic' } = {}) {
+  adoptLayerParams(layerId, params, {
+    origin = 'programmatic'
+  } = {}) {
     const requestedParams = cloneLayerParams(params || {});
     const paramsIntentEpoch = this._reserveLayerParamsIntent(layerId, requestedParams, origin);
     if (!Number.isInteger(paramsIntentEpoch)) return false;
@@ -1614,14 +1793,24 @@ export class DataLayerManager {
     if (!matches) {
       const error = paramsRejectedError(layerId);
       this._notifyListeners({
-        type: 'params-failed', layerId, params: requestedParams, origin, paramsIntentEpoch, error,
+        type: 'params-failed',
+        layerId,
+        params: requestedParams,
+        origin,
+        paramsIntentEpoch,
+        error,
       });
       return false;
     }
     this._refreshTogglePanel();
     governorRequestRender(`layer-params:${layerId}`);
     this._notifyListeners({
-      type: 'params', layerId, params: appliedParams, requestedParams, origin, paramsIntentEpoch,
+      type: 'params',
+      layerId,
+      params: appliedParams,
+      requestedParams,
+      origin,
+      paramsIntentEpoch,
     });
     return true;
   }
@@ -1633,8 +1822,10 @@ export class DataLayerManager {
    */
   adoptLayerVisibility(
     layerId,
-    enabled,
-    { origin = 'programmatic', adoptedFromSelection = false } = {},
+    enabled, {
+      origin = 'programmatic',
+      adoptedFromSelection = false
+    } = {},
   ) {
     const entry = this.layers.get(layerId);
     const desiredState = Boolean(enabled);
@@ -1658,7 +1849,10 @@ export class DataLayerManager {
    * init and before enable, with a terminal envelope that never writes local
    * persistence.
    */
-  async restoreLayerState(layerId, { enabled = false, params = null } = {}, {
+  async restoreLayerState(layerId, {
+    enabled = false,
+    params = null
+  } = {}, {
     origin = 'programmatic',
     signal = null,
   } = {}) {
@@ -1681,16 +1875,21 @@ export class DataLayerManager {
       };
     }
 
-    const requestedParams = params && typeof params === 'object' && Object.keys(params).length
-      ? cloneLayerParams(params)
-      : null;
+    const requestedParams = params && typeof params === 'object' && Object.keys(params).length ?
+      cloneLayerParams(params) :
+      null;
     let paramsEnvelope = null;
     let beforeEnableParams = null;
     if (requestedParams) {
       const paramsIntentEpoch = this._reserveLayerParamsIntent(layerId, requestedParams, origin);
       if (Number.isInteger(paramsIntentEpoch)) {
         if (targetEnabled && !entry.enabled) {
-          beforeEnableParams = { params: requestedParams, origin, paramsIntentEpoch, result: null };
+          beforeEnableParams = {
+            params: requestedParams,
+            origin,
+            paramsIntentEpoch,
+            result: null
+          };
         } else {
           paramsEnvelope = this._applyLayerParamsIntent(layerId, requestedParams, {
             origin,
@@ -1698,7 +1897,10 @@ export class DataLayerManager {
           });
         }
       } else {
-        paramsEnvelope = { succeeded: false, error: paramsRejectedError(layerId) };
+        paramsEnvelope = {
+          succeeded: false,
+          error: paramsRejectedError(layerId)
+        };
       }
     }
 
@@ -1708,17 +1910,17 @@ export class DataLayerManager {
       beforeEnableParams,
     });
     const requestedVisibility = await this._waitForVisibilityIntent(layerId, handle.intentEpoch);
-    const authoritativeVisibility = requestedVisibility?.cancellationReason === 'superseded'
-      ? await this._waitForAuthoritativeVisibilityIntent(layerId, handle.intentEpoch)
-      : requestedVisibility;
+    const authoritativeVisibility = requestedVisibility?.cancellationReason === 'superseded' ?
+      await this._waitForAuthoritativeVisibilityIntent(layerId, handle.intentEpoch) :
+      requestedVisibility;
     paramsEnvelope = paramsEnvelope || beforeEnableParams?.result;
     const state = this.getLayerLifecycleState(layerId);
     const paramsSucceeded = !requestedParams || paramsEnvelope?.succeeded === true;
-    const visibilitySucceeded = authoritativeVisibility?.succeeded === true
-      && state?.enabled === targetEnabled
-      && state?.uncertain === false;
-    const error = paramsEnvelope?.error || authoritativeVisibility?.error
-      || requestedVisibility?.error || null;
+    const visibilitySucceeded = authoritativeVisibility?.succeeded === true &&
+      state?.enabled === targetEnabled &&
+      state?.uncertain === false;
+    const error = paramsEnvelope?.error || authoritativeVisibility?.error ||
+      requestedVisibility?.error || null;
     return {
       layerId,
       targetEnabled,
@@ -1734,13 +1936,15 @@ export class DataLayerManager {
       authoritativeEnabled: authoritativeVisibility?.enabled ?? null,
       authoritativeOrigin: authoritativeVisibility?.origin ?? null,
       paramsIntentEpoch: paramsEnvelope?.paramsIntentEpoch ?? beforeEnableParams?.paramsIntentEpoch ?? null,
-      cancellationReason: requestedVisibility?.cancellationReason
-        || paramsEnvelope?.cancellationReason || null,
+      cancellationReason: requestedVisibility?.cancellationReason ||
+        paramsEnvelope?.cancellationReason || null,
       successorIntentEpoch: requestedVisibility?.successorIntentEpoch ?? null,
       successorEnabled: requestedVisibility?.successorEnabled ?? null,
       successorOrigin: requestedVisibility?.successorOrigin ?? null,
       errorClass: error?.name || (signal?.aborted ? 'AbortError' : null),
-      ...(error ? { error: String(error.message || error) } : {}),
+      ...(error ? {
+        error: String(error.message || error)
+      } : {}),
       persistenceWrite: false,
       succeeded: paramsSucceeded && visibilitySucceeded,
     };
@@ -1779,7 +1983,10 @@ export class DataLayerManager {
     const teardownIntentEpoch = ++entry.visibilityIntentEpoch;
     entry.visibilityIntentEnabled = false;
     entry.visibilityIntentOrigin = 'teardown';
-    entry.latestQueuedAbsoluteIntent = { intentEpoch: teardownIntentEpoch, enabled: false };
+    entry.latestQueuedAbsoluteIntent = {
+      intentEpoch: teardownIntentEpoch,
+      enabled: false
+    };
     entry.clearVisibilityReservation = null;
     entry.activeVisibilityIntent?.controller.abort(SUPERSEDED_VISIBILITY_INTENT);
     entry.paramsIntentEpoch += 1;
@@ -1790,7 +1997,10 @@ export class DataLayerManager {
     // this callback safe to run before the old queue drains.
     for (const callback of this._beforeDestroyListeners) {
       try {
-        await callback({ type: 'before-destroy', layerId });
+        await callback({
+          type: 'before-destroy',
+          layerId
+        });
       } catch (error) {
         console.warn('[Data] before-destroy listener error:', error);
       }
@@ -1991,12 +2201,22 @@ export class DataLayerManager {
         module?.setRowControlsListener?.(listener);
         return () => module?.setRowControlsListener?.(null);
       },
-      onHiddenRefresh: () => { this._panelRefreshPendingOnVisible = true; },
+      onHiddenRefresh: () => {
+        this._panelRefreshPendingOnVisible = true;
+      },
     });
     return this._layerPanel;
   }
-  _renderToggles() { this._getLayerPanel().mount(this._toggleContainer); }
-  _refreshTogglePanel() { this._layerPanel?._refreshTogglePanel(); }
-  _buildMetaText(layer) { return this._getLayerPanel()._buildMetaText(layer); }
-  _syncToggleButton(button, layer) { this._getLayerPanel()._syncToggleButton(button, layer); }
+  _renderToggles() {
+    this._getLayerPanel().mount(this._toggleContainer);
+  }
+  _refreshTogglePanel() {
+    this._layerPanel?._refreshTogglePanel();
+  }
+  _buildMetaText(layer) {
+    return this._getLayerPanel()._buildMetaText(layer);
+  }
+  _syncToggleButton(button, layer) {
+    this._getLayerPanel()._syncToggleButton(button, layer);
+  }
 }
