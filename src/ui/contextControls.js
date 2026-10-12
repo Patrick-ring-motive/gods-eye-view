@@ -1,5 +1,9 @@
-import { _initGlobalContextPanel } from './contextBindings.js';
-import { _syncContextModeButtons } from './contextPresentation.js';
+import {
+  _initGlobalContextPanel
+} from './contextBindings.js';
+import {
+  _syncContextModeButtons
+} from './contextPresentation.js';
 import {
   _trackContextLayerReaction,
   _waitForContextLayerSettlement,
@@ -12,7 +16,9 @@ import {
   _deactivateContextForLayerChange,
   _clearLayersOutsideContextMode,
 } from './contextTransactions.js';
-import { _handleContextLayerChange } from './contextLayerChanges.js';
+import {
+  _handleContextLayerChange
+} from './contextLayerChanges.js';
 import {
   _runUserFacingContextAction,
   _claimContextVisualAuthority,
@@ -20,11 +26,17 @@ import {
   setContextMode,
   clearSelectedLayers,
 } from './contextActions.js';
-import { connectContextManager } from './contextSubscriptions.js';
+import {
+  connectContextManager
+} from './contextSubscriptions.js';
 
 /** Own Context transactions and controls through explicit layer and presentation ports. */
 export class ContextControls {
-  constructor({ elements, installations, actions }) {
+  constructor({
+    elements,
+    installations,
+    actions
+  }) {
     Object.assign(this, elements);
     this.installations = installations;
     this.actions = actions;
@@ -67,11 +79,11 @@ export class ContextControls {
   }
   disconnect() {
     for (const field of [
-      '_contextManagerUnsubscribe',
-      '_dataManagerBeforeDestroyUnsubscribe',
-      '_dataManagerVisibilityGuardUnsubscribe',
-      '_dataManagerVisibilityRequestUnsubscribe',
-    ]) {
+        '_contextManagerUnsubscribe',
+        '_dataManagerBeforeDestroyUnsubscribe',
+        '_dataManagerVisibilityGuardUnsubscribe',
+        '_dataManagerVisibilityRequestUnsubscribe',
+      ]) {
       this[field]?.();
       this[field] = null;
     }
