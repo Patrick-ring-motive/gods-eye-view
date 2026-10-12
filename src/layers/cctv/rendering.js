@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { horizonOccluder } from '../../data/iconOrientation.js';
+import {
+  horizonOccluder
+} from '../../data/iconOrientation.js';
 import {
   ACTIVE_CAMERA_COLOR,
   IDLE_CAMERA_COLOR,
@@ -58,9 +60,9 @@ export function createRendering({
       cameraDistanceFor: (position) =>
         Cesium.Cartesian3.distance(camera.positionWC, position),
       baseColorFor: (record) =>
-        record.camera.id === layerState._activeCameraId
-          ? ACTIVE_CAMERA_COLOR
-          : IDLE_CAMERA_COLOR,
+        record.camera.id === layerState._activeCameraId ?
+        ACTIVE_CAMERA_COLOR :
+        IDLE_CAMERA_COLOR,
     });
     layerState._activeFocusStyleCount = result.activeCount;
   }
@@ -82,7 +84,12 @@ export function createRendering({
     params,
   }) {
     if (!focusPassIsNeeded(target, previousActiveCount)) {
-      return { writes: 0, transitioning: false, activeCount: 0, ran: false };
+      return {
+        writes: 0,
+        transitioning: false,
+        activeCount: 0,
+        ran: false
+      };
     }
     let writes = 0;
     let transitioning = false;
@@ -95,8 +102,7 @@ export function createRendering({
       const focus = advanceSpriteFocus(bb, {
         // Keep hidden icons in the state/release pass so the active count cannot
         // drop while a stale dim alpha remains waiting to reappear.
-        screenPosition:
-          bb.show === false || !position ? null : screenPositionFor(position),
+        screenPosition: bb.show === false || !position ? null : screenPositionFor(position),
         cameraDistance: position ? cameraDistanceFor(position) : Number.NaN,
         nowMs,
         target,
@@ -115,7 +121,12 @@ export function createRendering({
         writes += 1;
       }
     }
-    return { writes, transitioning, activeCount, ran: true };
+    return {
+      writes,
+      transitioning,
+      activeCount,
+      ran: true
+    };
   }
 
   /**
@@ -207,9 +218,9 @@ export function createRendering({
     for (const record of layerState._records) {
       const isActive = record.camera.id === activeId;
       if (record.billboard) {
-        record.billboard.color = isActive
-          ? ACTIVE_CAMERA_COLOR
-          : IDLE_CAMERA_COLOR;
+        record.billboard.color = isActive ?
+          ACTIVE_CAMERA_COLOR :
+          IDLE_CAMERA_COLOR;
         record.billboard.scale = isActive ? 1.25 : 1.0;
         // disableDepthTestDistance stays POSITIVE_INFINITY for every billboard
         // (set at creation) — see the field-test far-zoom submerge fix there.
@@ -242,33 +253,33 @@ export function createRendering({
         // active camera keeps its width/alpha emphasis in both schemes.
         const hue = viewshedOn ? record.viewshedColors : null;
         if (entity._coverageRole === 'cap') {
-          entity.polyline.material = hue
-            ? isActive
-              ? hue.lineActive
-              : hue.line
-            : isActive
-              ? ACTIVE_COVERAGE_CENTER
-              : IDLE_COVERAGE_CENTER_MUTED;
+          entity.polyline.material = hue ?
+            isActive ?
+            hue.lineActive :
+            hue.line :
+            isActive ?
+            ACTIVE_COVERAGE_CENTER :
+            IDLE_COVERAGE_CENTER_MUTED;
           entity.polyline.width = isActive ? 2.2 : 1.0;
-          entity.polyline.depthFailMaterial = planeShowing
-            ? hue
-              ? hue.line.withAlpha(0.26)
-              : ACTIVE_COVERAGE_CENTER_DEPTHFAIL
-            : undefined;
+          entity.polyline.depthFailMaterial = planeShowing ?
+            hue ?
+            hue.line.withAlpha(0.26) :
+            ACTIVE_COVERAGE_CENTER_DEPTHFAIL :
+            undefined;
         } else {
-          entity.polyline.material = hue
-            ? isActive
-              ? hue.lineActive
-              : hue.line.withAlpha(0.6)
-            : isActive
-              ? ACTIVE_COVERAGE_EDGE
-              : IDLE_COVERAGE_EDGE_MUTED;
+          entity.polyline.material = hue ?
+            isActive ?
+            hue.lineActive :
+            hue.line.withAlpha(0.6) :
+            isActive ?
+            ACTIVE_COVERAGE_EDGE :
+            IDLE_COVERAGE_EDGE_MUTED;
           entity.polyline.width = isActive ? 1.8 : 0.9;
-          entity.polyline.depthFailMaterial = planeShowing
-            ? hue
-              ? hue.line.withAlpha(0.18)
-              : ACTIVE_COVERAGE_EDGE_DEPTHFAIL
-            : undefined;
+          entity.polyline.depthFailMaterial = planeShowing ?
+            hue ?
+            hue.line.withAlpha(0.18) :
+            ACTIVE_COVERAGE_EDGE_DEPTHFAIL :
+            undefined;
         }
       }
 
