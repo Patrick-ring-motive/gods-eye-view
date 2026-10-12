@@ -1,9 +1,13 @@
 // src/data/earthquakes.test.mjs
 // Focused tests for the pure analyst-record mapper (analyst query engine seam).
 // Pure function — no viewer/DOM needed; imported directly.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import * as Cesium from 'cesium';
 import {
   EARTHQUAKE_OVERLAY_COHORT_LIMIT,
@@ -13,7 +17,9 @@ import {
   mapAnalystRecord,
   selectEarthquakeOverlayCohort,
 } from './earthquakes.js';
-import { DataLayerManager } from './manager.js';
+import {
+  DataLayerManager
+} from './manager.js';
 import {
   getRenderGovernorDiagnostics,
   installRenderGovernor,
@@ -44,13 +50,24 @@ test('earthquake analyst record: full record maps every contract field', () => {
 });
 
 test('earthquake analyst record: missing USGS id falls back to index-based id', () => {
-  assert.equal(mapAnalystRecord({ ...FULL_RAW, id: null }, 3).id, 'QUAKE-0003');
-  assert.equal(mapAnalystRecord({ ...FULL_RAW, id: '  ' }, 41).id, 'QUAKE-0041');
+  assert.equal(mapAnalystRecord({
+    ...FULL_RAW,
+    id: null
+  }, 3).id, 'QUAKE-0003');
+  assert.equal(mapAnalystRecord({
+    ...FULL_RAW,
+    id: '  '
+  }, 41).id, 'QUAKE-0041');
   assert.equal(mapAnalystRecord(undefined).id, 'QUAKE-0000');
 });
 
 test('earthquake analyst record: missing fields become null, never NaN/undefined', () => {
-  const r = mapAnalystRecord({ id: 'us1', mag: NaN, depth: undefined, place: '' }, 0);
+  const r = mapAnalystRecord({
+    id: 'us1',
+    mag: NaN,
+    depth: undefined,
+    place: ''
+  }, 0);
   assert.equal(r.magnitude, null);
   assert.equal(r.depthKm, null);
   assert.equal(r.place, null);
@@ -82,7 +99,9 @@ test('earthquake overlay copy keeps source-side magnitude formatting and bounded
   assert.equal(entry.edgeFade, 'keyhole');
   assert.equal(entry.horizonCull, true);
 
-  const entries = Array.from({ length: EARTHQUAKE_OVERLAY_COHORT_LIMIT + 20 }, (_, index) => ({
+  const entries = Array.from({
+    length: EARTHQUAKE_OVERLAY_COHORT_LIMIT + 20
+  }, (_, index) => ({
     id: `quake-${String(index).padStart(3, '0')}`,
     priority: index,
   }));
@@ -103,7 +122,10 @@ test('real earthquake lifecycle publishes host labels while runtime entities car
   };
   const viewer = {
     dataSources: {
-      add(dataSource) { dataSources.push(dataSource); return dataSource; },
+      add(dataSource) {
+        dataSources.push(dataSource);
+        return dataSource;
+      },
       remove(dataSource) {
         const index = dataSources.indexOf(dataSource);
         if (index >= 0) dataSources.splice(index, 1);
@@ -114,21 +136,34 @@ test('real earthquake lifecycle publishes host labels while runtime entities car
   globalThis.fetch = async () => ({
     ok: true,
     json: async () => ({
-      features: [
-        {
+      features: [{
           id: 'us-runtime-1',
-          geometry: { coordinates: [-150.41, 61.02, 41.7] },
-          properties: { mag: 5.24, place: 'Runtime One', time: 1_753_600_000_000 },
+          geometry: {
+            coordinates: [-150.41, 61.02, 41.7]
+          },
+          properties: {
+            mag: 5.24,
+            place: 'Runtime One',
+            time: 1_753_600_000_000
+          },
         },
         {
           id: 'us-runtime-2',
-          geometry: { coordinates: [139.7, 35.6, 310] },
-          properties: { mag: 3.01, place: 'Runtime Two', time: 1_753_600_100_000 },
+          geometry: {
+            coordinates: [139.7, 35.6, 310]
+          },
+          properties: {
+            mag: 3.01,
+            place: 'Runtime Two',
+            time: 1_753_600_100_000
+          },
         },
       ],
     }),
   });
-  const layer = createEarthquakesLayer({ overlayHost });
+  const layer = createEarthquakesLayer({
+    overlayHost
+  });
   try {
     layer.init(viewer);
     layer.enable(viewer);
@@ -139,7 +174,9 @@ test('real earthquake lifecycle publishes host labels while runtime entities car
     assert.ok(entities.every((entity) => entity.label === undefined));
     const publication = hostCalls.find(([type]) => type === 'entries');
     assert.ok(publication, 'real update path must publish the overlay source');
-    assert.deepEqual(publication[2].map(({ title }) => title), ['M5.2', 'M3.0']);
+    assert.deepEqual(publication[2].map(({
+      title
+    }) => title), ['M5.2', 'M3.0']);
     assert.deepEqual(publication[3], {
       cohortLimit: EARTHQUAKE_OVERLAY_COHORT_LIMIT,
       collisionCapacity: EARTHQUAKE_OVERLAY_COLLISION_CAPACITY,
@@ -174,20 +211,35 @@ test('quake disc axes are STATIC — a per-frame callback re-tessellates ground 
   const dataSources = [];
   const viewer = {
     dataSources: {
-      add(dataSource) { dataSources.push(dataSource); return dataSource; },
-      remove() { return true; },
+      add(dataSource) {
+        dataSources.push(dataSource);
+        return dataSource;
+      },
+      remove() {
+        return true;
+      },
     },
   };
   const layer = createEarthquakesLayer({
-    overlayHost: { setEntries() {}, setVisible() {}, clearSource() {} },
+    overlayHost: {
+      setEntries() {},
+      setVisible() {},
+      clearSource() {}
+    },
   });
   globalThis.fetch = async () => ({
     ok: true,
     json: async () => ({
       features: [{
         id: 'us-static-1',
-        geometry: { coordinates: [-122.4, 37.79, 8.2] },
-        properties: { mag: 5.5, place: 'Static One', time: 1_753_600_000_000 },
+        geometry: {
+          coordinates: [-122.4, 37.79, 8.2]
+        },
+        properties: {
+          mag: 5.5,
+          place: 'Static One',
+          time: 1_753_600_000_000
+        },
       }],
     }),
   });
@@ -225,22 +277,40 @@ test('a quake poll still reaches the screen with the render loop idle', async ()
   const renderRequests = [];
   const dataSources = [];
   const viewer = {
-    scene: { requestRenderMode: false, requestRender: () => renderRequests.push(Date.now()) },
+    scene: {
+      requestRenderMode: false,
+      requestRender: () => renderRequests.push(Date.now())
+    },
     dataSources: {
-      add(dataSource) { dataSources.push(dataSource); return dataSource; },
-      remove() { return true; },
+      add(dataSource) {
+        dataSources.push(dataSource);
+        return dataSource;
+      },
+      remove() {
+        return true;
+      },
     },
   };
   const layer = createEarthquakesLayer({
-    overlayHost: { setEntries() {}, setVisible() {}, clearSource() {} },
+    overlayHost: {
+      setEntries() {},
+      setVisible() {},
+      clearSource() {}
+    },
   });
   globalThis.fetch = async () => ({
     ok: true,
     json: async () => ({
       features: [{
         id: 'us-idle-1',
-        geometry: { coordinates: [-122.4, 37.79, 8.2] },
-        properties: { mag: 4.2, place: 'Idle One', time: 1_753_600_000_000 },
+        geometry: {
+          coordinates: [-122.4, 37.79, 8.2]
+        },
+        properties: {
+          mag: 4.2,
+          place: 'Idle One',
+          time: 1_753_600_000_000
+        },
       }],
     }),
   });
@@ -253,9 +323,14 @@ test('a quake poll still reaches the screen with the render loop idle', async ()
   renderRequests.length = 0;
   const manager = new DataLayerManager(viewer);
   // updateInterval -1 keeps the poll loop unarmed; we drive one tick by hand.
-  manager.register({ ...layer, updateInterval: -1 });
+  manager.register({
+    ...layer,
+    updateInterval: -1
+  });
   try {
-    await manager.setEnabled('earthquakes', true, { origin: 'test' });
+    await manager.setEnabled('earthquakes', true, {
+      origin: 'test'
+    });
 
     // The whole point of the change: enabling quakes must not pin the loop on.
     assert.equal(getRenderGovernorDiagnostics().mode, 'idle', 'quakes must not force continuous render');
@@ -269,7 +344,9 @@ test('a quake poll still reaches the screen with the render loop idle', async ()
     // Named, not merely counted: the frame has to come from the manager's
     // visibility request, not from some incidental repaint.
     assert.ok(
-      getRenderGovernorDiagnostics().recentRequests.some(({ reason }) => reason === 'layer-visibility'),
+      getRenderGovernorDiagnostics().recentRequests.some(({
+        reason
+      }) => reason === 'layer-visibility'),
       'the enable frame must be the manager\'s layer-visibility request',
     );
 
@@ -281,14 +358,18 @@ test('a quake poll still reaches the screen with the render loop idle', async ()
       renderRequests.length > beforeRefresh,
       'each refresh tick must request its own render while the loop is idle',
     );
-    const reasons = getRenderGovernorDiagnostics().recentRequests.map(({ reason }) => reason);
+    const reasons = getRenderGovernorDiagnostics().recentRequests.map(({
+      reason
+    }) => reason);
     assert.ok(
       reasons.includes('layer-tick:earthquakes'),
       `the tick request must be attributed to the layer, got ${JSON.stringify(reasons)}`,
     );
   } finally {
     globalThis.fetch = originalFetch;
-    await manager.setEnabled('earthquakes', false, { origin: 'test' }).catch(() => {});
+    await manager.setEnabled('earthquakes', false, {
+      origin: 'test'
+    }).catch(() => {});
     _resetRenderGovernorForTest();
   }
 });
@@ -313,23 +394,37 @@ test('earthquake refresh reports failure and clears it only after a successful r
   const dataSources = [];
   const viewer = {
     dataSources: {
-      add(dataSource) { dataSources.push(dataSource); return dataSource; },
-      remove() { return true; },
+      add(dataSource) {
+        dataSources.push(dataSource);
+        return dataSource;
+      },
+      remove() {
+        return true;
+      },
     },
   };
   const layer = createEarthquakesLayer({
-    overlayHost: { setEntries() {}, setVisible() {}, clearSource() {} },
+    overlayHost: {
+      setEntries() {},
+      setVisible() {},
+      clearSource() {}
+    },
   });
   try {
     layer.init(viewer);
     layer.enable(viewer);
-    globalThis.fetch = async () => ({ ok: false, status: 503 });
+    globalThis.fetch = async () => ({
+      ok: false,
+      status: 503
+    });
     assert.equal(await layer.update(viewer), false);
     assert.equal(layer.getStats().error, 'USGS HTTP 503');
 
     globalThis.fetch = async () => ({
       ok: true,
-      json: async () => ({ features: [] }),
+      json: async () => ({
+        features: []
+      }),
     });
     assert.equal(await layer.update(viewer), true);
     assert.equal(layer.getStats().error, null);
@@ -344,15 +439,45 @@ test('malformed earthquake refresh preserves entities, overlays, count and times
   const originalFetch = globalThis.fetch;
   const dataSources = [];
   const publications = [];
-  const viewer = { dataSources: {
-    add(source) { dataSources.push(source); }, remove() { return true; },
-  } };
-  const layer = createEarthquakesLayer({ overlayHost: {
-    setEntries(...args) { publications.push(args); }, setVisible() {}, clearSource() {},
-  } });
-  const good = { id: 'good', geometry: { type: 'Point', coordinates: [10, 20, 5] },
-    properties: { mag: 4, time: 100, place: 'Fixture' } };
-  const respond = (features) => { globalThis.fetch = async () => ({ ok: true, json: async () => ({ features }) }); };
+  const viewer = {
+    dataSources: {
+      add(source) {
+        dataSources.push(source);
+      },
+      remove() {
+        return true;
+      },
+    }
+  };
+  const layer = createEarthquakesLayer({
+    overlayHost: {
+      setEntries(...args) {
+        publications.push(args);
+      },
+      setVisible() {},
+      clearSource() {},
+    }
+  });
+  const good = {
+    id: 'good',
+    geometry: {
+      type: 'Point',
+      coordinates: [10, 20, 5]
+    },
+    properties: {
+      mag: 4,
+      time: 100,
+      place: 'Fixture'
+    }
+  };
+  const respond = (features) => {
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({
+        features
+      })
+    });
+  };
   try {
     layer.init(viewer);
     layer.enable(viewer);
@@ -361,8 +486,15 @@ test('malformed earthquake refresh preserves entities, overlays, count and times
     const entity = dataSources[0].entities.values[0];
     const stats = layer.getStats();
     for (const properties of ['invalid', 123, [], true]) {
-      const bad = { ...good, id: 'bad-properties', properties };
-      for (const features of [[bad], [good, bad]]) {
+      const bad = {
+        ...good,
+        id: 'bad-properties',
+        properties
+      };
+      for (const features of [
+          [bad],
+          [good, bad]
+        ]) {
         respond(features);
         assert.equal(await layer.update(viewer), false);
         assert.equal(dataSources[0].entities.values.length, 1);
@@ -373,13 +505,49 @@ test('malformed earthquake refresh preserves entities, overlays, count and times
         assert.equal(publications.length, 1);
       }
     }
-    for (const bad of [null, { ...good, geometry: null },
-      { ...good, geometry: { type: 'LineString', coordinates: [1, 2] } },
-      { ...good, geometry: { coordinates: [181, 20] } },
-      { ...good, geometry: { coordinates: [10, -91] } },
-      { ...good, geometry: { coordinates: [null, 20] } },
-      { ...good, properties: { mag: '4' } },
-      { ...good, properties: { mag: Infinity } }, good]) {
+    for (const bad of [null, {
+          ...good,
+          geometry: null
+        },
+        {
+          ...good,
+          geometry: {
+            type: 'LineString',
+            coordinates: [1, 2]
+          }
+        },
+        {
+          ...good,
+          geometry: {
+            coordinates: [181, 20]
+          }
+        },
+        {
+          ...good,
+          geometry: {
+            coordinates: [10, -91]
+          }
+        },
+        {
+          ...good,
+          geometry: {
+            coordinates: [null, 20]
+          }
+        },
+        {
+          ...good,
+          properties: {
+            mag: '4'
+          }
+        },
+        {
+          ...good,
+          properties: {
+            mag: Infinity
+          }
+        },
+        good
+      ]) {
       respond([good, bad]);
       assert.equal(await layer.update(viewer), false);
       assert.equal(dataSources[0].entities.values.length, 1);
@@ -389,7 +557,12 @@ test('malformed earthquake refresh preserves entities, overlays, count and times
       assert.equal(layer.getStats().error, 'Malformed USGS response');
       assert.equal(publications.length, 1);
     }
-    respond([{ ...good, properties: { mag: null } }]);
+    respond([{
+      ...good,
+      properties: {
+        mag: null
+      }
+    }]);
     assert.equal(await layer.update(viewer), true);
     assert.equal(dataSources[0].entities.values.length, 0);
     assert.equal(layer.getStats().error, null);
