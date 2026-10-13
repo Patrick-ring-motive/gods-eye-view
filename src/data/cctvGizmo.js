@@ -167,7 +167,11 @@ function viewAxesFor(headingDeg, pitchDeg, axes) {
   const forwardHoriz = combine2(axes.east, Math.sin(h), axes.north, Math.cos(h));
   const right = combine2(axes.east, Math.cos(h), axes.north, -Math.sin(h));
   const view = combine2(forwardHoriz, Math.cos(p), axes.up, Math.sin(p));
-  return { forwardHoriz, right, view };
+  return {
+    forwardHoriz,
+    right,
+    view
+  };
 }
 
 /** Circle polyline positions around `center` in the (basisA, basisB) plane. */
@@ -201,7 +205,12 @@ function ringPositions(center, radius, basisA, basisB) {
  *   destroy: function(): void, isDragging: function(): boolean,
  *   isEnabled: function(): boolean}}
  */
-export function createCalibrationGizmo({ viewer, getActiveRecord, applyPatch, endPatch }) {
+export function createCalibrationGizmo({
+  viewer,
+  getActiveRecord,
+  applyPatch,
+  endPatch
+}) {
   let enabled = false;
   let drag = null; // { part, startCal, basePose, refs... }
   let hoveredId = null;
@@ -217,7 +226,11 @@ export function createCalibrationGizmo({ viewer, getActiveRecord, applyPatch, en
     const id = `${GIZMO_ID_PREFIX}${part}`;
     const stale = viewer.entities.getById(id);
     if (stale) viewer.entities.remove(stale);
-    const entity = viewer.entities.add({ id, show: false, ...options });
+    const entity = viewer.entities.add({
+      id,
+      show: false,
+      ...options
+    });
     entities.set(part, entity);
     return entity;
   }
@@ -285,7 +298,11 @@ export function createCalibrationGizmo({ viewer, getActiveRecord, applyPatch, en
     }
     const mount = positions.mount;
     const axes = enuAxes(mount);
-    const { forwardHoriz, right, view } = viewAxesFor(camera.headingDeg, camera.pitchDeg, axes);
+    const {
+      forwardHoriz,
+      right,
+      view
+    } = viewAxesFor(camera.headingDeg, camera.pitchDeg, axes);
     const rangeM = Math.max(1, Number(camera.rangeM) || 1);
     const radius = Math.min(RING_RADIUS_MAX_M, Math.max(RING_RADIUS_MIN_M, rangeM * RING_RADIUS_FACTOR));
     const arrowLen = radius * ARROW_LENGTH_FACTOR;
@@ -396,15 +413,31 @@ export function createCalibrationGizmo({ viewer, getActiveRecord, applyPatch, en
     const mount = Cesium.Cartesian3.clone(positions.mount);
     const capCenter = Cesium.Cartesian3.clone(positions.capCenter);
     const axes = enuAxes(mount);
-    const { forwardHoriz, right, view } = viewAxesFor(camera.headingDeg, camera.pitchDeg, axes);
-    const startCal = { ...camera.calibration };
-    const basePose = { ...camera.basePose };
+    const {
+      forwardHoriz,
+      right,
+      view
+    } = viewAxesFor(camera.headingDeg, camera.pitchDeg, axes);
+    const startCal = {
+      ...camera.calibration
+    };
+    const basePose = {
+      ...camera.basePose
+    };
     const state = {
       // The drag is PINNED to this record: patches must never follow a
       // mid-drag active-camera switch (voice select / auto-hop) onto a
       // different camera — its basePose makes the captured offsets wrong.
       record,
-      part, startCal, basePose, mount, capCenter, axes, forwardHoriz, right, view,
+      part,
+      startCal,
+      basePose,
+      mount,
+      capCenter,
+      axes,
+      forwardHoriz,
+      right,
+      view,
       effectiveRangeM: geometry.rangeM,
       startAngle: null,
       startParam: null,
@@ -447,32 +480,54 @@ export function createCalibrationGizmo({ viewer, getActiveRecord, applyPatch, en
   function dragPatch(windowPosition) {
     const ray = pickRay(windowPosition);
     if (!ray || !drag) return null;
-    const { part, startCal, basePose, mount, capCenter, axes, forwardHoriz, right, view } = drag;
+    const {
+      part,
+      startCal,
+      basePose,
+      mount,
+      capCenter,
+      axes,
+      forwardHoriz,
+      right,
+      view
+    } = drag;
 
     if (part === 'ring-heading') {
       const hit = rayPlaneIntersect(ray.origin, ray.direction, mount, axes.up);
       if (!hit) return null;
       const angle = ringAngle(hit, mount, axes.north, axes.east);
-      return { headingDeg: startCal.headingDeg + toDeg(signedAngleDelta(drag.startAngle, angle)) };
+      return {
+        headingDeg: startCal.headingDeg + toDeg(signedAngleDelta(drag.startAngle, angle))
+      };
     }
     if (part === 'ring-pitch') {
       const hit = rayPlaneIntersect(ray.origin, ray.direction, mount, right);
       if (!hit) return null;
       const angle = ringAngle(hit, mount, forwardHoriz, axes.up);
-      return { pitchDeg: startCal.pitchDeg + toDeg(signedAngleDelta(drag.startAngle, angle)) };
+      return {
+        pitchDeg: startCal.pitchDeg + toDeg(signedAngleDelta(drag.startAngle, angle))
+      };
     }
     if (part === 'move-east' || part === 'move-north' || part === 'move-up') {
       const t = closestParamOnAxis(ray.origin, ray.direction, mount, drag.axisDir);
       if (t === null) return null;
       const delta = t - drag.startParam;
-      if (part === 'move-east') return { offsetEastM: startCal.offsetEastM + delta };
-      if (part === 'move-north') return { offsetNorthM: startCal.offsetNorthM + delta };
-      return { heightM: startCal.heightM + delta };
+      if (part === 'move-east') return {
+        offsetEastM: startCal.offsetEastM + delta
+      };
+      if (part === 'move-north') return {
+        offsetNorthM: startCal.offsetNorthM + delta
+      };
+      return {
+        heightM: startCal.heightM + delta
+      };
     }
     if (part === 'handle-range') {
       const t = closestParamOnAxis(ray.origin, ray.direction, mount, view);
       if (t === null || !(basePose.rangeM > 0)) return null;
-      return { rangeScale: Math.max(0.01, t) / basePose.rangeM };
+      return {
+        rangeScale: Math.max(0.01, t) / basePose.rangeM
+      };
     }
     if (part === 'handle-fov-l' || part === 'handle-fov-r') {
       const hit = rayPlaneIntersect(ray.origin, ray.direction, capCenter, view);
@@ -482,7 +537,9 @@ export function createCalibrationGizmo({ viewer, getActiveRecord, applyPatch, en
       ));
       const halfW = Math.max(0.5, lateral);
       const fovDeg = toDeg(2 * Math.atan(halfW / Math.max(1, drag.effectiveRangeM)));
-      return { fovDeg: fovDeg - basePose.fovDeg };
+      return {
+        fovDeg: fovDeg - basePose.fovDeg
+      };
     }
     return null;
   }
