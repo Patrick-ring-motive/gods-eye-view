@@ -1,4 +1,6 @@
-import { keySetupRequirement } from '../keySetupCore.mjs';
+import {
+  keySetupRequirement
+} from '../keySetupCore.mjs';
 /**
  * Why Google 3D is unavailable, phrased so the tooltip and toast recommend the
  * RIGHT fix. With no credentials the fix is a key (or the ion route); with a
