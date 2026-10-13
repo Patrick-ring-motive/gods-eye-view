@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { readDotenvValue } from '../scripts/read-dotenv-value.mjs';
+import {
+  readDotenvValue
+} from '../scripts/read-dotenv-value.mjs';
 
 test('dotenv reader preserves values without executing shell metacharacters', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'gev-dotenv-'));
@@ -22,7 +24,10 @@ test('dotenv reader preserves values without executing shell metacharacters', as
     assert.equal(readDotenvValue('BACKTICK_PAYLOAD', root), 'printf owned');
     await assert.rejects(fs.access(marker));
   } finally {
-    await fs.rm(root, { recursive: true, force: true });
+    await fs.rm(root, {
+      recursive: true,
+      force: true
+    });
   }
 });
 
@@ -53,7 +58,10 @@ test('an inherited export never masks the value written in the file', async () =
   } finally {
     if (had) process.env.GEV_INHERIT_PROBE = previous;
     else delete process.env.GEV_INHERIT_PROBE;
-    await fs.rm(root, { recursive: true, force: true });
+    await fs.rm(root, {
+      recursive: true,
+      force: true
+    });
   }
 });
 
@@ -70,10 +78,10 @@ test('dev-fresh passes names-only boot provenance before resolving file fallback
   const dotenvResolution = source.indexOf('GOOGLE_MAPS_API_KEY_ENV="${GOOGLE_MAPS_API_KEY:-}"');
   assert.ok(capture >= 0 && capture < dotenvResolution, 'parent-shell provenance must be captured first');
   for (const name of [
-    'GOOGLE_MAPS_API_KEY', 'CESIUM_ION_TOKEN', 'OPENAI_API_KEY', 'AISSTREAM_API_KEY',
-    'FIRMS_MAP_KEY', 'TOMTOM_API_KEY', 'OPENSKY_CLIENT_ID',
-    'OPENSKY_CLIENT_SECRET', 'LL2_API_TOKEN',
-  ]) {
+      'GOOGLE_MAPS_API_KEY', 'CESIUM_ION_TOKEN', 'OPENAI_API_KEY', 'AISSTREAM_API_KEY',
+      'FIRMS_MAP_KEY', 'TOMTOM_API_KEY', 'OPENSKY_CLIENT_ID',
+      'OPENSKY_CLIENT_SECRET', 'LL2_API_TOKEN',
+    ]) {
     assert.match(source, new RegExp(`KEY_SETUP_EXTERNAL_KEYS\\+=\\(${name}\\)`));
   }
   assert.match(source, /put_env GEV_LAUNCHER "dev-fresh"/);
@@ -90,8 +98,12 @@ bashTest('dev-fresh reports the real keyless startup map and fallback', async ()
   const block = script.slice(start, end + 3);
   assert.doesNotMatch(block, /Startup map: OpenStreetMap with keyless terrain/);
 
-  const { execFile } = await import('node:child_process');
-  const { promisify } = await import('node:util');
+  const {
+    execFile
+  } = await import('node:child_process');
+  const {
+    promisify
+  } = await import('node:util');
   const run = promisify(execFile);
   const keyless = await run('bash', ['-c', block], {
     env: {
@@ -105,7 +117,6 @@ bashTest('dev-fresh reports the real keyless startup map and fallback', async ()
     'Startup map: Esri World Imagery with keyless terrain (OpenStreetMap fallback)',
   );
 });
-
 
 // Stock macOS ships bash 3.2, where expanding an EMPTY array under `set -u`
 // is a fatal "unbound variable" — the `:-` guard on the provenance CSV is what
@@ -121,14 +132,26 @@ bashTest('the external-keys provenance block survives set -u keyless and joins n
   const block = script.slice(start, end);
   assert.match(block, /\$\{KEY_SETUP_EXTERNAL_KEYS\[\*\]:-\}/);
 
-  const { execFile } = await import('node:child_process');
-  const { promisify } = await import('node:util');
+  const {
+    execFile
+  } = await import('node:child_process');
+  const {
+    promisify
+  } = await import('node:util');
   const run = promisify(execFile);
   const probe = `set -u\n${block}\nprintf '%s' "$KEY_SETUP_EXTERNAL_KEYS_CSV"`;
-  const keyless = await run('bash', ['-c', probe], { env: { PATH: process.env.PATH } });
+  const keyless = await run('bash', ['-c', probe], {
+    env: {
+      PATH: process.env.PATH
+    }
+  });
   assert.equal(keyless.stdout, '');
   const keyed = await run('bash', ['-c', probe], {
-    env: { PATH: process.env.PATH, FIRMS_MAP_KEY: 'x', TOMTOM_API_KEY: 'y' },
+    env: {
+      PATH: process.env.PATH,
+      FIRMS_MAP_KEY: 'x',
+      TOMTOM_API_KEY: 'y'
+    },
   });
   assert.equal(keyed.stdout, 'FIRMS_MAP_KEY,TOMTOM_API_KEY');
 });
