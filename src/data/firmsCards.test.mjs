@@ -1,4 +1,6 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
 import {
@@ -13,8 +15,13 @@ import {
   FIRMS_AMBIENT_COHORT_LIMIT,
   FIRMS_OVERLAY_SOURCE_ID,
 } from './firmsLabels.js';
-import { FIRE_ANCHOR_LIFT_M } from './fireAnchors.js';
-import { reportMeshFloorCell, setMeshFloorPreferred } from './groundFloor.js';
+import {
+  FIRE_ANCHOR_LIFT_M
+} from './fireAnchors.js';
+import {
+  reportMeshFloorCell,
+  setMeshFloorPreferred
+} from './groundFloor.js';
 
 const NOW = Date.UTC(2026, 6, 17, 4, 0);
 const H = 3600000;
@@ -39,22 +46,45 @@ function fire(overrides = {}) {
 }
 
 test('buildFireCard: title carries FRP, detail carries conf/age/satellite', () => {
-  const card = buildFireCard({ fire: fire(), position: { x: 1, y: 2, z: 3 } }, NOW);
+  const card = buildFireCard({
+    fire: fire(),
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    }
+  }, NOW);
   assert.equal(card.title, '▲ 1520 MW');
   assert.equal(card.details.length, 1);
   assert.equal(card.details[0], 'high · 2h · N20');
   assert.equal(card.selected, false);
   assert.equal(card.accent, accentForSeverity('red'), 'FRP 1520 is red-hot');
-  assert.deepEqual(card.position, { x: 1, y: 2, z: 3 }, 'uses the candidate position untouched');
+  assert.deepEqual(card.position, {
+    x: 1,
+    y: 2,
+    z: 3
+  }, 'uses the candidate position untouched');
 });
 
 test('buildFireCard: missing acquisition time omits the age segment', () => {
-  const card = buildFireCard({ fire: fire({ acqMs: 0 }), position: {} }, NOW);
+  const card = buildFireCard({
+    fire: fire({
+      acqMs: 0
+    }),
+    position: {}
+  }, NOW);
   assert.equal(card.details[0], 'high · N20');
 });
 
 test('buildFireCard: SNPP satellite code renders as SNPP, weak fire is not red', () => {
-  const card = buildFireCard({ fire: fire({ satellite: 'N', frp: 0.8, confidence: 0.3 }), position: {} }, NOW);
+  const card = buildFireCard({
+    fire: fire({
+      satellite: 'N',
+      frp: 0.8,
+      confidence: 0.3
+    }),
+    position: {}
+  }, NOW);
   assert.match(card.details[0], /SNPP$/);
   assert.equal(card.title, '▲ 0.8 MW');
   assert.notEqual(card.accent, accentForSeverity('red'));
@@ -69,14 +99,25 @@ test('buildSelectedFireCard: full detail card with coords, selected flag, no fad
 });
 
 test('buildSelectedFireCard: night detections are tagged', () => {
-  const card = buildSelectedFireCard(fire({ night: true }), NOW);
+  const card = buildSelectedFireCard(fire({
+    night: true
+  }), NOW);
   assert.match(card.details[1], / · NIGHT$/);
 });
 
 test('buildCellCard: plural noun, max FRP and newest age, accent passthrough', () => {
   const candidate = {
-    cell: { count: 14, maxFrp: 210.4, newestAcqMs: NOW - 3 * H, night: 2 },
-    position: { x: 0, y: 0, z: 0 },
+    cell: {
+      count: 14,
+      maxFrp: 210.4,
+      newestAcqMs: NOW - 3 * H,
+      night: 2
+    },
+    position: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
     accent: accentForSeverity('orange'),
   };
   const card = buildCellCard(candidate, NOW);
@@ -90,7 +131,10 @@ test('buildCellCard: plural noun, max FRP and newest age, accent passthrough', (
 // the floor lands AFTER the first (cold, height-0) render. Distinct coords
 // from every other test in this file (module caches persist across tests).
 test('fire anchor: cold floor renders at 0, then re-grounds when the floor warms', () => {
-  const f = fire({ lat: 55.501, lon: -120.501 });
+  const f = fire({
+    lat: 55.501,
+    lon: -120.501
+  });
   const before = buildSelectedFireCard(f, NOW);
   const cartoBefore = Cesium.Cartographic.fromCartesian(before.position);
   assert.ok(Math.abs(cartoBefore.height) < 0.5, `cold floor anchors at ellipsoid 0, got ${cartoBefore.height}`);
@@ -106,7 +150,15 @@ test('fire anchor: cold floor renders at 0, then re-grounds when the floor warms
 });
 
 test('buildCellCard: singular noun and missing-age omission', () => {
-  const candidate = { cell: { count: 1, maxFrp: 9.9, newestAcqMs: 0 }, position: {}, accent: undefined };
+  const candidate = {
+    cell: {
+      count: 1,
+      maxFrp: 9.9,
+      newestAcqMs: 0
+    },
+    position: {},
+    accent: undefined
+  };
   const card = buildCellCard(candidate, NOW);
   assert.equal(card.title, '1 FIRE');
   assert.equal(card.details[0], 'max 9.9 MW');
@@ -126,7 +178,10 @@ test('FIRMS host policy keeps ambient cards bounded and selected cards protected
   assert.equal(ambient.edgeFade, 'keyhole');
   assert.equal(ambient.cardStyle, 'tactical');
   assert.equal(ambient.verticalOnly, true);
-  assert.equal(ambient.gapPx, Math.max(12, buildFireCard({ fire: fire(), position: {} }, NOW).gapPx + 8));
+  assert.equal(ambient.gapPx, Math.max(12, buildFireCard({
+    fire: fire(),
+    position: {}
+  }, NOW).gapPx + 8));
   assert.equal(ambient.leaderOffsetPx, ambient.gapPx - 6);
 
   const selected = applyFirmsOverlayPolicy(buildSelectedFireCard(fire(), NOW), 4_500_000);
@@ -136,7 +191,9 @@ test('FIRMS host policy keeps ambient cards bounded and selected cards protected
 });
 
 class MockEvent {
-  constructor() { this.listeners = new Set(); }
+  constructor() {
+    this.listeners = new Set();
+  }
 
   addEventListener(listener) {
     this.listeners.add(listener);
@@ -153,13 +210,18 @@ test('real FIRMS lifecycle clears host entries on disable and destroy', async ()
   globalThis.fetch = async () => ({
     ok: false,
     status: 503,
-    json: async () => ({ error: 'no_key' }),
+    json: async () => ({
+      error: 'no_key'
+    }),
   });
   globalThis.window = new EventTarget();
   const dataSources = [];
   const viewer = {
     dataSources: {
-      add(value) { dataSources.push(value); return value; },
+      add(value) {
+        dataSources.push(value);
+        return value;
+      },
       remove(value) {
         const index = dataSources.indexOf(value);
         if (index >= 0) dataSources.splice(index, 1);
@@ -168,12 +230,21 @@ test('real FIRMS lifecycle clears host entries on disable and destroy', async ()
     camera: {
       moveEnd,
       positionWC: Cesium.Cartesian3.fromDegrees(-97.7, 30.2, 1_000_000),
-      positionCartographic: { height: 1_000_000 },
+      positionCartographic: {
+        height: 1_000_000
+      },
     },
     scene: {
-      canvas: { clientWidth: 800, clientHeight: 600 },
+      canvas: {
+        clientWidth: 800,
+        clientHeight: 600
+      },
       preRender,
-      primitives: { contains() { return false; } },
+      primitives: {
+        contains() {
+          return false;
+        }
+      },
     },
   };
   const layer = createFirmsHeatmapLayer({
@@ -184,7 +255,10 @@ test('real FIRMS lifecycle clears host entries on disable and destroy', async ()
       setVisible: (...args) => calls.push(['visible', ...args]),
       clearSource: (...args) => calls.push(['clear', ...args]),
     },
-    screenSpaceEventHandlerFactory: () => ({ setInputAction() {}, destroy() {} }),
+    screenSpaceEventHandlerFactory: () => ({
+      setInputAction() {},
+      destroy() {}
+    }),
   });
   try {
     layer.init(viewer);
