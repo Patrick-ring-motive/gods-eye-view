@@ -1,7 +1,11 @@
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 
 const css = readStylesheet(new URL('../style.css', import.meta.url));
 
@@ -35,13 +39,13 @@ test('the global keyboard ring survives local active and outline-reset rules', (
   const rule = ruleText(':where(\n  button,');
   assert.match(rule, /outline:\s*2px solid var\(--text-primary\) !important;/);
   for (const selector of [
-    "[role='button']",
-    "[role='radio']",
-    "[role='slider']",
-    "[role='tab']",
-    '[tabindex]',
-    'a[href]',
-  ]) assert.ok(rule.includes(selector), `${selector} receives the global ring`);
+      "[role='button']",
+      "[role='radio']",
+      "[role='slider']",
+      "[role='tab']",
+      '[tabindex]',
+      'a[href]',
+    ]) assert.ok(rule.includes(selector), `${selector} receives the global ring`);
 });
 
 test('Location city, POI, search toggle and search field use an inset ring', () => {
@@ -65,12 +69,12 @@ test('Cockpit Display and Radio launcher glyphs have a complete inset ring', () 
 
 test('focusable controls do not animate the global outline', () => {
   for (const selector of [
-    '.panel-collapse-btn {',
-    '#top-center-actions button {',
-    '.data-toggle-chip {',
-    '.scene-btn {',
-    '.scene-shot-btn {',
-  ]) {
+      '.panel-collapse-btn {',
+      '#top-center-actions button {',
+      '.data-toggle-chip {',
+      '.scene-btn {',
+      '.scene-shot-btn {',
+    ]) {
     assert.doesNotMatch(
       ruleBody(selector),
       /transition:\s*all\b/,
