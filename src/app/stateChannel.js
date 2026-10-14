@@ -15,14 +15,14 @@ function copyState(value, ancestors = new Set()) {
     throw new TypeError('Product state must contain plain records');
   }
   const next = new Set(ancestors).add(value);
-  const copy = Array.isArray(value)
-    ? value.map((item) => copyState(item, next))
-    : Object.fromEntries(
-        Object.entries(value).map(([key, item]) => [
-          key,
-          copyState(item, next),
-        ]),
-      );
+  const copy = Array.isArray(value) ?
+    value.map((item) => copyState(item, next)) :
+    Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        copyState(item, next),
+      ]),
+    );
   return Object.freeze(copy);
 }
 
@@ -51,12 +51,17 @@ export function createStateChannel(readSnapshot) {
   };
   return Object.freeze({
     getSnapshot,
-    subscribe(listener, { emitCurrent = true } = {}) {
+    subscribe(listener, {
+      emitCurrent = true
+    } = {}) {
       if (typeof listener !== 'function')
         throw new TypeError('Expected a state listener');
       if (destroyed) return () => {};
       const state = emitCurrent ? getSnapshot() : null;
-      const entry = { listener, revision };
+      const entry = {
+        listener,
+        revision
+      };
       listeners.add(entry);
       if (emitCurrent)
         deliver(
