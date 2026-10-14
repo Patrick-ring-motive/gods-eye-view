@@ -12,7 +12,12 @@ import {
   JAM_DOT_DEPTH_PUNCH,
 } from './policy.js';
 
-export function createModel({ state: layerState, services, parts, source }) {
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   // ─── Overpass API ──────────────────────────────────────────
 
   /**
@@ -62,9 +67,9 @@ export function createModel({ state: layerState, services, parts, source }) {
 
       // Sub-sample long polylines: keep every Nth vertex to stay within budget
       const simplifyStep =
-        rawCoords.length > MAX_WAYPOINTS_PER_ROAD
-          ? Math.ceil(rawCoords.length / MAX_WAYPOINTS_PER_ROAD)
-          : 1;
+        rawCoords.length > MAX_WAYPOINTS_PER_ROAD ?
+        Math.ceil(rawCoords.length / MAX_WAYPOINTS_PER_ROAD) :
+        1;
       const coords = [];
       for (let i = 0; i < rawCoords.length; i += simplifyStep) {
         coords.push(rawCoords[i]);
@@ -89,11 +94,11 @@ export function createModel({ state: layerState, services, parts, source }) {
         onewayTag === 'yes' ||
         onewayTag === '1' ||
         onewayTag === 'true' ||
-        el.tags?.junction === 'roundabout'
-          ? 1
-          : onewayTag === '-1'
-            ? -1
-            : 0;
+        el.tags?.junction === 'roundabout' ?
+        1 :
+        onewayTag === '-1' ?
+        -1 :
+        0;
 
       // Sample terrain height once at the road start to avoid per-vertex cost
       let baseHeight = 0;
@@ -121,7 +126,13 @@ export function createModel({ state: layerState, services, parts, source }) {
         );
       }
 
-      roads.push({ coords, type, oneway, waypoints, segmentDist });
+      roads.push({
+        coords,
+        type,
+        oneway,
+        waypoints,
+        segmentDist
+      });
     }
 
     return roads;
@@ -187,9 +198,11 @@ export function createModel({ state: layerState, services, parts, source }) {
     const mult =
       (DENSITY_MULT[road.type] || 1) *
       layerState._densityScale *
-      (flow
-        ? flowDensityMult(flow.level, { jamBoost: parts.style.jamDensityOn() })
-        : 1);
+      (flow ?
+        flowDensityMult(flow.level, {
+          jamBoost: parts.style.jamDensityOn()
+        }) :
+        1);
     return Math.max(1, Math.floor((lengthM / spacing) * mult));
   }
 
@@ -219,7 +232,10 @@ export function createModel({ state: layerState, services, parts, source }) {
 
     // Pass 1 — fairness seed: give one dot to every road (highest-demand first)
     const firstPassOrder = planned
-      .map((count, index) => ({ count, index }))
+      .map((count, index) => ({
+        count,
+        index
+      }))
       .sort((a, b) => b.count - a.count);
 
     for (const entry of firstPassOrder) {
@@ -247,7 +263,10 @@ export function createModel({ state: layerState, services, parts, source }) {
       const add = Math.min(cap, Math.floor(ideal));
       budgets[i] += add;
       assigned += add;
-      residuals.push({ index: i, residual: ideal - add });
+      residuals.push({
+        index: i,
+        residual: ideal - add
+      });
     }
 
     // Pass 3 — largest-remainder: hand out leftover dots from floor rounding
@@ -306,15 +325,19 @@ export function createModel({ state: layerState, services, parts, source }) {
       // has to BE the error text or the steady state reverts to a bare
       // "TomTom daily budget reached" that never says what is on screen.
       const degraded = `SIMULATED — ${flowError}`;
-      return { mode, error: degraded, loadingLabel: degraded };
+      return {
+        mode,
+        error: degraded,
+        loadingLabel: degraded
+      };
     }
     if (liveMode) {
       return {
         mode,
         error: null,
-        loadingLabel: fetching
-          ? 'syncing LIVE traffic flow'
-          : `LIVE · TomTom flow · ${coveragePct}% cov`,
+        loadingLabel: fetching ?
+          'syncing LIVE traffic flow' :
+          `LIVE · TomTom flow · ${coveragePct}% cov`,
       };
     }
     // Keyless simulation — one terse line that names the mode and the remedy
@@ -323,9 +346,9 @@ export function createModel({ state: layerState, services, parts, source }) {
     return {
       mode,
       error: null,
-      loadingLabel: statusUnavailable
-        ? 'SIMULATED — traffic service unreachable'
-        : 'SIMULATED — add TomTom key for live',
+      loadingLabel: statusUnavailable ?
+        'SIMULATED — traffic service unreachable' :
+        'SIMULATED — add TomTom key for live',
     };
   }
 
@@ -339,7 +362,12 @@ export function createModel({ state: layerState, services, parts, source }) {
 
   function recolorDotsInPlace(label) {
     if (!layerState._liveMode || !layerState._dots.length) return;
-    layerState._bucketCounts = { free: 0, slow: 0, jam: 0, sim: 0 };
+    layerState._bucketCounts = {
+      free: 0,
+      slow: 0,
+      jam: 0,
+      sim: 0
+    };
     let closedDots = 0;
     const now = Date.now();
     for (const dot of layerState._dots) {
@@ -351,9 +379,9 @@ export function createModel({ state: layerState, services, parts, source }) {
       }
       const bucket = flow ? flowBucket(flow.level) : null;
       dot.bucket = bucket;
-      dot.point.color = bucket
-        ? layerState._activeBucketColors[bucket]
-        : Cesium.Color.WHITE.withAlpha(0.85);
+      dot.point.color = bucket ?
+        layerState._activeBucketColors[bucket] :
+        Cesium.Color.WHITE.withAlpha(0.85);
       if (bucket === 'jam') {
         dot.point.pixelSize =
           parts.style.baseDotSize(dot.road?.type, bucket) +
