@@ -5,7 +5,9 @@ import {
   isHudSummaryUnconfigured,
   keylessHudSummaryResponse,
 } from './hudSummaryResponse.js';
-import { openAiRealtimeProxy } from '../vite.config.js';
+import {
+  openAiRealtimeProxy
+} from '../vite.config.js';
 
 const UNCONFIGURED_PAYLOAD = {
   configured: false,
@@ -26,14 +28,20 @@ function installOpenAiRoutes() {
   return routes;
 }
 
-function invokeRoute(handler, { method = 'GET', url = '/', remoteAddress = '127.0.0.1' } = {}) {
+function invokeRoute(handler, {
+  method = 'GET',
+  url = '/',
+  remoteAddress = '127.0.0.1'
+} = {}) {
   return new Promise((resolve, reject) => {
     const headers = new Map();
     const req = {
       method,
       url,
       headers: {},
-      socket: { remoteAddress },
+      socket: {
+        remoteAddress
+      },
     };
     const res = {
       statusCode: 200,
@@ -93,7 +101,9 @@ test('does not hide real provider and HTTP failures', () => {
     code: HUD_SUMMARY_UNCONFIGURED_CODE,
   }), false);
   assert.equal(isHudSummaryUnconfigured(503, UNCONFIGURED_PAYLOAD), false);
-  assert.equal(isHudSummaryUnconfigured(200, { error: 'provider failed' }), false);
+  assert.equal(isHudSummaryUnconfigured(200, {
+    error: 'provider failed'
+  }), false);
 });
 
 test('the installed keyless HUD route stays successful after the voice quota is exhausted', async () => {
@@ -111,11 +121,15 @@ test('the installed keyless HUD route stays successful after the voice quota is 
     const firstToken = await invokeRoute(token);
     const secondToken = await invokeRoute(token);
     assert.equal(firstToken.statusCode, 503);
-    assert.deepEqual(firstToken.body, { error: 'OPENAI_API_KEY is not set' });
+    assert.deepEqual(firstToken.body, {
+      error: 'OPENAI_API_KEY is not set'
+    });
     assert.equal(secondToken.statusCode, 429);
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const response = await invokeRoute(hud, { method: 'POST' });
+      const response = await invokeRoute(hud, {
+        method: 'POST'
+      });
       assert.equal(response.statusCode, 200);
       assert.equal(response.headers['content-type'], 'application/json; charset=utf-8');
       assert.equal(response.headers['cache-control'], 'no-store');
