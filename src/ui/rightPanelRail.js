@@ -182,8 +182,7 @@ export function layoutRightPanelRail({
   // Match the left lane: allocation order follows the latest explicit
   // disclosure, not DOM order. A focused panel is the fallback owner so
   // temporary presentation collapse never strands keyboard focus.
-  const expandedPanels = preferredExpandedPanel ?
-    [
+  const expandedPanels = preferredExpandedPanel ? [
       preferredExpandedPanel,
       ...expandedPanelsInDomOrder.filter(
         (panel) => panel !== preferredExpandedPanel,
@@ -213,8 +212,7 @@ export function layoutRightPanelRail({
       ),
       allocatedHeights: expandedHeights,
       collapseLaterPanels: shouldFocus && hud.variant === 'tactical',
-    }) :
-    [];
+    }) : [];
   if (autoCollapseIndices.length) {
     for (const index of autoCollapseIndices) {
       const panel = expandedPanels[index];
