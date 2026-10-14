@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /** Browser acceptance for Map Source control lifecycle and truthful selection. */
 import fs from 'node:fs';
 import puppeteer from 'puppeteer';
@@ -7,9 +8,9 @@ const browser = await puppeteer.launch({
   headless: true,
   args: [
     '--no-sandbox',
-    ...(process.platform === 'darwin'
-      ? ['--use-angle=metal', '--enable-gpu']
-      : ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ?
+      ['--use-angle=metal', '--enable-gpu'] :
+      ['--use-gl=angle', '--use-angle=swiftshader']),
   ],
 });
 const page = await browser.newPage();
@@ -21,10 +22,15 @@ const check = (name, ok) => {
   if (!ok) failures++;
 };
 try {
-  await page.setViewport({ width: 1440, height: 900 });
+  await page.setViewport({
+    width: 1440,
+    height: 900
+  });
   const url = new URL(process.env.QA_BASE_URL || 'http://127.0.0.1:4173');
   url.searchParams.set('welcome', '0');
-  await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+  await page.goto(url.href, {
+    waitUntil: 'domcontentloaded'
+  });
   await page.waitForFunction(
     () => {
       const cover = document.getElementById('loading-screen');
@@ -33,15 +39,16 @@ try {
         cover?.classList.contains('hidden') &&
         Number(getComputedStyle(cover).opacity) === 0
       );
+    }, {
+      timeout: 60_000
     },
-    { timeout: 60_000 },
   );
   await page.evaluate(() => {
     const manager = window.__godsEyeView.styleManager;
     const controller = manager.mapStackController;
     const original = controller.setStack;
     window.__qaMapSelections = [];
-    controller.setStack = function (id) {
+    controller.setStack = function(id) {
       window.__qaMapSelections.push(id);
       return original.call(this, id);
     };
@@ -53,15 +60,15 @@ try {
   await page.click('[data-stack-id="osm"]');
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.styleManager.mapStackController.getActiveId() ===
-      'osm',
+    window.__godsEyeView.styleManager.mapStackController.getActiveId() ===
+    'osm',
   );
   check(
     'a native chip click requests OSM exactly once',
     await page.evaluate(
       () =>
-        window.__qaMapSelections.length === 1 &&
-        window.__qaMapSelections[0] === 'osm',
+      window.__qaMapSelections.length === 1 &&
+      window.__qaMapSelections[0] === 'osm',
     ),
   );
   check(
@@ -70,9 +77,9 @@ try {
       const manager = window.__godsEyeView.styleManager;
       return (
         manager._mapStackChips.querySelector('[aria-pressed="true"]')?.dataset
-          .stackId === 'osm' &&
+        .stackId === 'osm' &&
         manager._mapStackStatus.textContent ===
-          manager.mapStackController.getState().activeStack.shortLabel
+        manager.mapStackController.getState().activeStack.shortLabel
       );
     }),
   );
@@ -85,7 +92,7 @@ try {
       return (
         window.__qaMapSelections.at(-1) === 'esri-imagery' &&
         manager._mapStackChips.querySelector('[aria-pressed="true"]')?.dataset
-          .stackId === active &&
+        .stackId === active &&
         (result.ok || !!manager.mapStackController.getState().lastError)
       );
     }),
@@ -113,8 +120,8 @@ try {
   );
   await page.waitForFunction(
     () =>
-      window.__godsEyeView.styleManager.mapStackController.getActiveId() ===
-      'osm',
+    window.__godsEyeView.styleManager.mapStackController.getActiveId() ===
+    'osm',
   );
   await page.evaluate(async () => {
     const manager = window.__godsEyeView.styleManager;
@@ -135,15 +142,19 @@ try {
         latitude: (30.2568 * Math.PI) / 180,
         height: 1200,
       }),
-      orientation: { heading: 0, pitch: -0.85, roll: 0 },
+      orientation: {
+        heading: 0,
+        pitch: -0.85,
+        roll: 0
+      },
     });
     viewer.scene.requestRender();
   });
   await page.evaluate(
     () =>
-      new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      ),
+    new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    ),
   );
   const settled = await page
     .waitForFunction(
@@ -158,30 +169,42 @@ try {
             return false;
         }
         return true;
+      }, {
+        timeout: 60_000
       },
-      { timeout: 60_000 },
     )
     .then(
       () => true,
       () => false,
     );
   check('visible tile content settles before visual captures', settled);
-  fs.mkdirSync('qa-shots/map-source-controls', { recursive: true });
-  await page.screenshot({ path: 'qa-shots/map-source-controls/desktop.png' });
-  await page.setViewport({ width: 620, height: 900 });
+  fs.mkdirSync('qa-shots/map-source-controls', {
+    recursive: true
+  });
+  await page.screenshot({
+    path: 'qa-shots/map-source-controls/desktop.png'
+  });
+  await page.setViewport({
+    width: 620,
+    height: 900
+  });
   await page.waitForFunction(
     () =>
-      document.getElementById('left-panel-stack')?.dataset.layoutMode ===
-      'mobile',
+    document.getElementById('left-panel-stack')?.dataset.layoutMode ===
+    'mobile',
   );
   await page.evaluate(() =>
     window.__godsEyeView.styleManager.setPanelCollapsed(
       'control-panel',
-      false,
-      { persist: false, syncShare: false },
+      false, {
+        persist: false,
+        syncShare: false
+      },
     ),
   );
-  await page.screenshot({ path: 'qa-shots/map-source-controls/narrow.png' });
+  await page.screenshot({
+    path: 'qa-shots/map-source-controls/narrow.png'
+  });
   check(
     'destroyed controls cannot issue requests from retained chips',
     await page.evaluate(async () => {
