@@ -1,5 +1,12 @@
-import { CCTV_FRAME_FETCH_TIMEOUT_MS, CCTV_FRAME_MAX_BODY_BYTES, CCTV_MEDIA_FETCH_TIMEOUT_MS, CCTV_MEDIA_MAX_BODY_BYTES } from '../../server/providers/cctv/constants.js';
-import { test } from 'node:test';
+import {
+  CCTV_FRAME_FETCH_TIMEOUT_MS,
+  CCTV_FRAME_MAX_BODY_BYTES,
+  CCTV_MEDIA_FETCH_TIMEOUT_MS,
+  CCTV_MEDIA_MAX_BODY_BYTES
+} from '../../server/providers/cctv/constants.js';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   fetchCctvImageFromUpstream,
@@ -7,7 +14,10 @@ import {
 } from '../../server/providers/cctv/media.js';
 
 /** A body that arrives in chunks and never declares a Content-Length. */
-function chunkedImageResponse(chunkBytes, chunkCount, { onChunk = () => {}, onCancel = () => {} } = {}) {
+function chunkedImageResponse(chunkBytes, chunkCount, {
+  onChunk = () => {},
+  onCancel = () => {}
+} = {}) {
   const stream = new ReadableStream({
     async pull(controller) {
       if (chunkCount <= 0) {
@@ -20,7 +30,12 @@ function chunkedImageResponse(chunkBytes, chunkCount, { onChunk = () => {}, onCa
     },
     cancel: onCancel,
   });
-  return new Response(stream, { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      'Content-Type': 'image/jpeg'
+    }
+  });
 }
 
 test('CCTV upstream frame fetch supplies a bounded abort signal', async () => {
@@ -30,7 +45,9 @@ test('CCTV upstream frame fetch supplies a bounded abort signal', async () => {
     timeoutMs: 20,
     fetchImpl: (_url, options) => new Promise((_resolve, reject) => {
       observedSignal = options.signal;
-      options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true });
+      options.signal.addEventListener('abort', () => reject(options.signal.reason), {
+        once: true
+      });
     }),
   });
 
@@ -46,7 +63,9 @@ test('CCTV upstream frame fetch returns a valid image response', async () => {
     timeoutMs: 100,
     fetchImpl: async () => new Response(Uint8Array.from([1, 2, 3]), {
       status: 200,
-      headers: { 'Content-Type': 'image/jpeg' },
+      headers: {
+        'Content-Type': 'image/jpeg'
+      },
     }),
   });
 
@@ -64,8 +83,12 @@ test('CCTV upstream frame fetch rejects a declared oversize body without drainin
     maxBytes: chunkBytes * 4,
     fetchImpl: async () => {
       const response = chunkedImageResponse(chunkBytes, 64, {
-        onChunk: () => { pulled += 1; },
-        onCancel: () => { cancelled = true; },
+        onChunk: () => {
+          pulled += 1;
+        },
+        onCancel: () => {
+          cancelled = true;
+        },
       });
       response.headers.set('Content-Length', String(chunkBytes * 64));
       return response;
@@ -91,8 +114,12 @@ test('CCTV upstream frame fetch aborts an undeclared body once it crosses the ca
     // Sixty-four chunks are offered with no Content-Length; a proxy that
     // buffers first would take all of them.
     fetchImpl: async () => chunkedImageResponse(chunkBytes, 64, {
-      onChunk: () => { pulled += 1; },
-      onCancel: () => { cancelled = true; },
+      onChunk: () => {
+        pulled += 1;
+      },
+      onCancel: () => {
+        cancelled = true;
+      },
     }),
   });
 
@@ -123,9 +150,13 @@ test('CCTV media upstream fetch aborts when response headers never arrive', asyn
   await assert.rejects(
     fetchCctvMediaUpstream('https://example.com/stream.m3u8', {
       timeoutMs: 25,
-      fetchImpl: (url, { signal }) => new Promise((resolve, reject) => {
+      fetchImpl: (url, {
+        signal
+      }) => new Promise((resolve, reject) => {
         observedSignal = signal;
-        signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+        signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), {
+          name: 'AbortError'
+        })));
       }),
     }),
     (error) => error.name === 'AbortError',
@@ -139,9 +170,18 @@ test('CCTV media upstream fetch never cuts a stream whose headers arrived in tim
   let observedSignal = null;
   const upstream = await fetchCctvMediaUpstream('https://example.com/stream.m3u8', {
     timeoutMs: 20,
-    fetchImpl: async (url, { signal }) => {
+    fetchImpl: async (url, {
+      signal
+    }) => {
       observedSignal = signal;
-      return { ok: true, status: 200, headers: new Map([['content-type', 'video/mp2t']]), body: null };
+      return {
+        ok: true,
+        status: 200,
+        headers: new Map([
+          ['content-type', 'video/mp2t']
+        ]),
+        body: null
+      };
     },
   });
   assert.equal(upstream.ok, true);
@@ -169,7 +209,11 @@ test('CCTV upstream frame fetch ignores a garbage Content-Length and still caps 
     timeoutMs: 1000,
     maxBytes: chunkBytes * 2,
     fetchImpl: async () => {
-      const response = chunkedImageResponse(chunkBytes, 8, { onCancel: () => { cancelled = true; } });
+      const response = chunkedImageResponse(chunkBytes, 8, {
+        onCancel: () => {
+          cancelled = true;
+        }
+      });
       response.headers.set('Content-Length', 'not-a-number');
       return response;
     },
@@ -190,7 +234,12 @@ test('CCTV upstream frame fetch retains owned bytes, not the chunk\'s backing al
         controller.enqueue(view);
         controller.close();
       },
-    }), { status: 200, headers: { 'Content-Type': 'image/jpeg' } }),
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/jpeg'
+      }
+    }),
   });
   assert.equal(result?.ok, true);
   assert.deepEqual(Array.from(result.body), [7, 8, 9]);
@@ -205,9 +254,14 @@ test('CCTV upstream frame fetch refuses a body it cannot stream instead of buffe
     fetchImpl: async () => ({
       ok: true,
       status: 200,
-      headers: new Map([['content-type', 'image/jpeg']]),
-      body: { /* neither async-iterable nor reader-backed */ },
-      arrayBuffer: async () => { throw new Error('arrayBuffer must never be used as an uncapped fallback'); },
+      headers: new Map([
+        ['content-type', 'image/jpeg']
+      ]),
+      body: {
+        /* neither async-iterable nor reader-backed */ },
+      arrayBuffer: async () => {
+        throw new Error('arrayBuffer must never be used as an uncapped fallback');
+      },
     }),
   });
   assert.equal(result, null);
@@ -218,13 +272,24 @@ test('reader-only snapshots release their lock on success, overflow and read fai
     const body = new ReadableStream({
       pull(controller) {
         if (mode === 'failure') controller.error(new Error('read failed'));
-        else { controller.enqueue(new Uint8Array(4)); controller.close(); }
+        else {
+          controller.enqueue(new Uint8Array(4));
+          controller.close();
+        }
       },
     });
-    Object.defineProperty(body, Symbol.asyncIterator, { value: undefined });
+    Object.defineProperty(body, Symbol.asyncIterator, {
+      value: undefined
+    });
     const result = await fetchCctvImageFromUpstream('https://example.com/frame.jpg', {
       maxBytes: mode === 'overflow' ? 2 : 8,
-      fetchImpl: async () => ({ ok: true, headers: new Headers({ 'content-type': 'image/jpeg' }), body }),
+      fetchImpl: async () => ({
+        ok: true,
+        headers: new Headers({
+          'content-type': 'image/jpeg'
+        }),
+        body
+      }),
     });
     assert.equal(body.locked, false, mode);
     assert.equal(result?.body.length ?? null, mode === 'success' ? 4 : null);
@@ -237,9 +302,17 @@ test('the snapshot deadline remains active after headers while reading a stalled
     timeoutMs: 20,
     fetchImpl: async (_url, init) => {
       signal = init.signal;
-      return new Response(new ReadableStream({ start(controller) {
-        signal.addEventListener('abort', () => controller.error(signal.reason), { once: true });
-      }}), { headers: { 'content-type': 'image/jpeg' } });
+      return new Response(new ReadableStream({
+        start(controller) {
+          signal.addEventListener('abort', () => controller.error(signal.reason), {
+            once: true
+          });
+        }
+      }), {
+        headers: {
+          'content-type': 'image/jpeg'
+        }
+      });
     },
   });
   assert.equal(result, null);
@@ -247,12 +320,20 @@ test('the snapshot deadline remains active after headers while reading a stalled
 });
 
 test('rejected snapshot responses abort the upstream download', async () => {
-  for (const [status, contentType] of [[503, 'image/jpeg'], [200, 'text/html']]) {
+  for (const [status, contentType] of [
+      [503, 'image/jpeg'],
+      [200, 'text/html']
+    ]) {
     let signal;
     const result = await fetchCctvImageFromUpstream('https://example.com/frame.jpg', {
       fetchImpl: async (_url, init) => {
         signal = init.signal;
-        return new Response('rejected', { status, headers: { 'content-type': contentType } });
+        return new Response('rejected', {
+          status,
+          headers: {
+            'content-type': contentType
+          }
+        });
       },
     });
     assert.equal(result, null);
