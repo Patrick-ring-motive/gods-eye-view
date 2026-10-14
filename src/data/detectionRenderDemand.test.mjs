@@ -1,4 +1,6 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 // src/data/detectionRenderDemand.test.mjs
 //
 // Detection must not hold the render loop open — and must not drop work on the
@@ -33,7 +35,9 @@ import { readLayerSource } from '../testSupport/readLayerSource.mjs';
 // either way, and the overlay still painting — is `scripts/qa-perf.mjs` §1b.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {
+  readFile
+} from 'node:fs/promises';
 
 import {
   DETECTION_ENABLE_FADE_MS,
@@ -52,33 +56,74 @@ import {
 // ---------------------------------------------------------------------------
 
 test('a follow-up frame is owed only while work spans frames', () => {
-  const base = { active: true, enabledAtMs: 1_000, fadeMs: DETECTION_ENABLE_FADE_MS };
+  const base = {
+    active: true,
+    enabledAtMs: 1_000,
+    fadeMs: DETECTION_ENABLE_FADE_MS
+  };
 
   // Enable fade-in: open during the window, closed at and after its end. The
   // boundary IS the termination condition — at exactly `fadeMs` the fade has
   // landed on its final alpha, and asking for a frame to repaint an unchanged
   // pixel is the off-by-one that never lets the chain stop.
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 1_000 }), true);
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 1_000 + DETECTION_ENABLE_FADE_MS - 1 }), true);
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 1_000 + DETECTION_ENABLE_FADE_MS }), false,
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 1_000
+  }), true);
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 1_000 + DETECTION_ENABLE_FADE_MS - 1
+  }), true);
+  assert.equal(detectionNeedsFollowUpFrame({
+      ...base,
+      nowMs: 1_000 + DETECTION_ENABLE_FADE_MS
+    }), false,
     'the chain must terminate exactly when the fade lands');
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 9_999_999 }), false);
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 9_999_999
+  }), false);
 
   // Labels mid-fade, in EITHER direction, owe a frame regardless of how long
   // detection has been on.
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 9_999_999, animatingLabelCount: 3 }), true);
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 9_999_999, animatingLabelCount: 0 }), false);
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 9_999_999,
+    animatingLabelCount: 3
+  }), true);
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 9_999_999,
+    animatingLabelCount: 0
+  }), false);
 
   // A solve the frame could not run is outstanding work too: the frame that
   // carried its request cannot be the last one.
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 9_999_999, solvePending: true }), true);
-  assert.equal(detectionNeedsFollowUpFrame({ ...base, nowMs: 9_999_999, solvePending: false }), false);
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 9_999_999,
+    solvePending: true
+  }), true);
+  assert.equal(detectionNeedsFollowUpFrame({
+    ...base,
+    nowMs: 9_999_999,
+    solvePending: false
+  }), false);
 });
 
 test('nothing is owed while detection is off or suspended — that is the whole point', () => {
-  for (const extra of [{}, { animatingLabelCount: 5 }, { solvePending: true }]) {
+  for (const extra of [{}, {
+      animatingLabelCount: 5
+    }, {
+      solvePending: true
+    }]) {
     assert.equal(
-      detectionNeedsFollowUpFrame({ active: false, nowMs: 1_000, enabledAtMs: 1_000, ...extra }),
+      detectionNeedsFollowUpFrame({
+        active: false,
+        nowMs: 1_000,
+        enabledAtMs: 1_000,
+        ...extra
+      }),
       false,
       'an inactive overlay must never keep the scene awake',
     );
@@ -89,10 +134,18 @@ test('a broken or backward clock terminates demand instead of extending it', () 
   // The failure mode that matters is the one that keeps rendering, so it is the
   // one pinned. A non-finite timestamp reads as "no animation".
   for (const nowMs of [undefined, null, NaN, Infinity]) {
-    assert.equal(detectionNeedsFollowUpFrame({ active: true, nowMs, enabledAtMs: 0 }), false);
+    assert.equal(detectionNeedsFollowUpFrame({
+      active: true,
+      nowMs,
+      enabledAtMs: 0
+    }), false);
   }
   for (const enabledAtMs of [undefined, null, NaN, Infinity]) {
-    assert.equal(detectionNeedsFollowUpFrame({ active: true, nowMs: 1_000, enabledAtMs }), false);
+    assert.equal(detectionNeedsFollowUpFrame({
+      active: true,
+      nowMs: 1_000,
+      enabledAtMs
+    }), false);
   }
   assert.equal(detectionNeedsFollowUpFrame(), false, 'no argument at all is still not an animation');
 
@@ -100,12 +153,20 @@ test('a broken or backward clock terminates demand instead of extending it', () 
   // this is fed, but the answer must be "stop", not "ask until time catches up",
   // which is what a wall-clock jump used to produce.
   assert.equal(
-    detectionNeedsFollowUpFrame({ active: true, nowMs: 500, enabledAtMs: 1_000 }),
+    detectionNeedsFollowUpFrame({
+      active: true,
+      nowMs: 500,
+      enabledAtMs: 1_000
+    }),
     false,
     'a backward clock must fail toward idle',
   );
   assert.equal(
-    detectionNeedsFollowUpFrame({ active: true, nowMs: -5_000, enabledAtMs: 1_000 }),
+    detectionNeedsFollowUpFrame({
+      active: true,
+      nowMs: -5_000,
+      enabledAtMs: 1_000
+    }),
     false,
   );
 });
@@ -119,31 +180,62 @@ test('a label fading IN is animating, not just one fading out', () => {
   // a freshly selected label registered no demand at all. On a parked scene it
   // was painted once at a partial alpha and then left invisible until some
   // unrelated frame happened along.
-  assert.equal(renderEntryIsAnimating({ selected: true, temporalAlpha: 0.01 }), true,
+  assert.equal(renderEntryIsAnimating({
+      selected: true,
+      temporalAlpha: 0.01
+    }), true,
     'a label that has just been selected is still climbing');
-  assert.equal(renderEntryIsAnimating({ selected: true, temporalAlpha: 0.5 }), true);
-  assert.equal(renderEntryIsAnimating({ selected: true, temporalAlpha: 1 }), false,
+  assert.equal(renderEntryIsAnimating({
+    selected: true,
+    temporalAlpha: 0.5
+  }), true);
+  assert.equal(renderEntryIsAnimating({
+      selected: true,
+      temporalAlpha: 1
+    }), false,
     'a settled label is done — otherwise every visible label would demand frames forever');
 
   // Unselected rows only survive the arbiter's render pass while their exit tail
   // is above zero, so any that reaches here is still moving.
-  assert.equal(renderEntryIsAnimating({ selected: false, temporalAlpha: 1 }), true);
-  assert.equal(renderEntryIsAnimating({ selected: false, temporalAlpha: 0.2 }), true);
+  assert.equal(renderEntryIsAnimating({
+    selected: false,
+    temporalAlpha: 1
+  }), true);
+  assert.equal(renderEntryIsAnimating({
+    selected: false,
+    temporalAlpha: 0.2
+  }), true);
 
   assert.equal(renderEntryIsAnimating(null), false);
   assert.equal(renderEntryIsAnimating(undefined), false);
 
   assert.equal(countAnimatingRenderEntries([]), 0);
-  assert.equal(countAnimatingRenderEntries([
-    { selected: true, temporalAlpha: 1 },      // settled — no demand
-    { selected: true, temporalAlpha: 0.4 },    // fading IN
-    { selected: false, temporalAlpha: 0.7 },   // fading out
-    { selected: true, temporalAlpha: 1 },      // settled
+  assert.equal(countAnimatingRenderEntries([{
+      selected: true,
+      temporalAlpha: 1
+    }, // settled — no demand
+    {
+      selected: true,
+      temporalAlpha: 0.4
+    }, // fading IN
+    {
+      selected: false,
+      temporalAlpha: 0.7
+    }, // fading out
+    {
+      selected: true,
+      temporalAlpha: 1
+    }, // settled
   ]), 2);
 
   // A screen full of settled labels must demand nothing — this is the property
   // that keeps a parked scene at zero renders.
-  const settled = Array.from({ length: 40 }, () => ({ selected: true, temporalAlpha: 1 }));
+  const settled = Array.from({
+    length: 40
+  }, () => ({
+    selected: true,
+    temporalAlpha: 1
+  }));
   assert.equal(countAnimatingRenderEntries(settled), 0);
 });
 
@@ -163,18 +255,43 @@ test('a skipped paint always hands its frame forward — skip and re-request are
   const heavy = DETECTION_PAINT_SKIP_THRESHOLD_MS + 13; // a 35 ms paint
 
   // The one case that skips: expensive previous paint, odd frame, stable layout.
-  const skipped = detectionPaintSkipDecision({ layoutChanged: false, lastPaintMs: heavy, frameCount: 1 });
-  assert.deepEqual(skipped, { skip: true, requestFollowUp: true },
+  const skipped = detectionPaintSkipDecision({
+    layoutChanged: false,
+    lastPaintMs: heavy,
+    frameCount: 1
+  });
+  assert.deepEqual(skipped, {
+      skip: true,
+      requestFollowUp: true
+    },
     'a skip must carry its own follow-up request');
 
   // Every other case paints, and a paint needs no deferral.
-  for (const input of [
-    { layoutChanged: true, lastPaintMs: heavy, frameCount: 1 },   // layout moved — never skip
-    { layoutChanged: false, lastPaintMs: heavy, frameCount: 2 },  // even frame — the valve's duty cycle
-    { layoutChanged: false, lastPaintMs: 1, frameCount: 1 },      // cheap paint — no relief needed
-    { layoutChanged: false, lastPaintMs: DETECTION_PAINT_SKIP_THRESHOLD_MS, frameCount: 1 }, // at the threshold, not past it
-  ]) {
-    assert.deepEqual(detectionPaintSkipDecision(input), { skip: false, requestFollowUp: false },
+  for (const input of [{
+        layoutChanged: true,
+        lastPaintMs: heavy,
+        frameCount: 1
+      }, // layout moved — never skip
+      {
+        layoutChanged: false,
+        lastPaintMs: heavy,
+        frameCount: 2
+      }, // even frame — the valve's duty cycle
+      {
+        layoutChanged: false,
+        lastPaintMs: 1,
+        frameCount: 1
+      }, // cheap paint — no relief needed
+      {
+        layoutChanged: false,
+        lastPaintMs: DETECTION_PAINT_SKIP_THRESHOLD_MS,
+        frameCount: 1
+      }, // at the threshold, not past it
+    ]) {
+    assert.deepEqual(detectionPaintSkipDecision(input), {
+        skip: false,
+        requestFollowUp: false
+      },
       `expected a paint for ${JSON.stringify(input)}`);
   }
 
@@ -184,7 +301,11 @@ test('a skipped paint always hands its frame forward — skip and re-request are
   for (const layoutChanged of [true, false]) {
     for (const lastPaintMs of [0, 1, 22, 23, 35, 500, NaN]) {
       for (const frameCount of [0, 1, 2, 3, 41, 100]) {
-        const d = detectionPaintSkipDecision({ layoutChanged, lastPaintMs, frameCount });
+        const d = detectionPaintSkipDecision({
+          layoutChanged,
+          lastPaintMs,
+          frameCount
+        });
         assert.equal(d.requestFollowUp, d.skip,
           `skip/re-request diverged at ${JSON.stringify({ layoutChanged, lastPaintMs, frameCount })}`);
       }
@@ -193,12 +314,23 @@ test('a skipped paint always hands its frame forward — skip and re-request are
 
   // And the deferral is bounded: consecutive frames cannot both skip, so the
   // work waits one frame rather than forever.
-  const first = detectionPaintSkipDecision({ layoutChanged: false, lastPaintMs: heavy, frameCount: 7 });
-  const second = detectionPaintSkipDecision({ layoutChanged: false, lastPaintMs: heavy, frameCount: 8 });
+  const first = detectionPaintSkipDecision({
+    layoutChanged: false,
+    lastPaintMs: heavy,
+    frameCount: 7
+  });
+  const second = detectionPaintSkipDecision({
+    layoutChanged: false,
+    lastPaintMs: heavy,
+    frameCount: 8
+  });
   assert.equal(first.skip, true);
   assert.equal(second.skip, false, 'the very next frame paints — a skip costs one frame, not the work');
 
-  assert.deepEqual(detectionPaintSkipDecision(), { skip: false, requestFollowUp: false },
+  assert.deepEqual(detectionPaintSkipDecision(), {
+      skip: false,
+      requestFollowUp: false
+    },
     'no input is not a reason to drop a frame');
 });
 
@@ -218,7 +350,9 @@ test('the scanline scrolls off the clock, at an exact 60 fps cadence', () => {
   assert.equal(scanlineOffsetPx(SCANLINE_STEP_MS * 3), 2);
 
   // At an ideal 60 fps the offset alternates on EVERY frame — no repeats.
-  const walk = Array.from({ length: 12 }, (_, i) => scanlineOffsetPx(SCANLINE_STEP_MS * i + 0.001));
+  const walk = Array.from({
+    length: 12
+  }, (_, i) => scanlineOffsetPx(SCANLINE_STEP_MS * i + 0.001));
   for (let i = 1; i < walk.length; i++) {
     assert.notEqual(walk[i], walk[i - 1], `frame ${i} repeated the previous offset`);
   }
@@ -247,13 +381,18 @@ test('paint and demand share one timestamp, so the terminal frame is painted', a
   // With ONE timestamp the two cannot disagree. Walk the boundary: every frame
   // whose alpha is still short of 1 must also be owed a successor, and the first
   // frame that reaches alpha 1 must be the one that ends demand.
-  const { acquireAlpha } = await import('./detectionDraw.js');
+  const {
+    acquireAlpha
+  } = await import('./detectionDraw.js');
   const enabledAtMs = 10_000;
   for (const age of [0, 1, 100, 219, 219.9, DETECTION_ENABLE_FADE_MS, DETECTION_ENABLE_FADE_MS + 1]) {
     const nowMs = enabledAtMs + age;
     const alpha = acquireAlpha(enabledAtMs, nowMs, DETECTION_ENABLE_FADE_MS);
     const owed = detectionNeedsFollowUpFrame({
-      active: true, nowMs, enabledAtMs, fadeMs: DETECTION_ENABLE_FADE_MS,
+      active: true,
+      nowMs,
+      enabledAtMs,
+      fadeMs: DETECTION_ENABLE_FADE_MS,
     });
     if (alpha < 1) {
       assert.equal(owed, true, `age ${age}: painted alpha ${alpha} but no successor frame was owed`);
