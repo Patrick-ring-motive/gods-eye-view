@@ -215,7 +215,8 @@ const measure = () => page.evaluate(async (icao) => {
   try {
     walk(v.scene.primitives);
   } catch {
-    /* mid-teardown */ }
+    /* mid-teardown */
+  }
   if (!bb?.position) return {
     error: 'contact billboard not found'
   };
@@ -232,11 +233,13 @@ const measure = () => page.evaluate(async (icao) => {
     try {
       window.__godsEyeView.requestRender?.();
     } catch {
-      /* no governor */ }
+      /* no governor */
+    }
     try {
       v.scene.requestRender();
     } catch {
-      /* explicit-render off */ }
+      /* explicit-render off */
+    }
     requestAnimationFrame(() => requestAnimationFrame(resolve));
   });
   let mesh = null;
@@ -257,7 +260,8 @@ const measure = () => page.evaluate(async (icao) => {
             break;
           }
         } catch {
-          /* mid-stream */ }
+          /* mid-stream */
+        }
       }
       if (mesh != null) break;
     }
@@ -291,7 +295,8 @@ async function demTruth(lat, lon) {
       if (Number.isFinite(v)) h = v;
     }
   } catch {
-    /* the oracle is best-effort too */ }
+    /* the oracle is best-effort too */
+  }
   truth.set(key, h);
   return h;
 }
