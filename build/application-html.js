@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 
 export const APPLICATION_TEMPLATES = Object.freeze([
   'scene-chrome',
