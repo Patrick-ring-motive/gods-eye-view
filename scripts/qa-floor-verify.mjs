@@ -31,32 +31,51 @@ const chrome = [
 ].filter(Boolean).find((p) => fs.existsSync(p));
 
 const browser = await puppeteer.launch({
-  headless: 'new', executablePath: chrome,
+  headless: 'new',
+  executablePath: chrome,
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--no-sandbox'],
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1400, height: 900 });
+await page.setViewport({
+  width: 1400,
+  height: 900
+});
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-await page.waitForFunction(() => window.__godsEyeView?.dataManager && window.__godsEyeView?.viewer, { timeout: 150000 });
+await page.goto(APP_URL, {
+  waitUntil: 'domcontentloaded',
+  timeout: 120000
+});
+await page.waitForFunction(() => window.__godsEyeView?.dataManager && window.__godsEyeView?.viewer, {
+  timeout: 150000
+});
 await sleep(2000);
 
 // Let the app's boot fly-to fully settle FIRST (it was overriding an early
 // setView, leaving the camera away from Austin — every probe then read
 // coarse global tiles at ~25 m and the oracle was garbage).
 await sleep(12000);
-await page.evaluate((site) => { window.__QA_SITE = site; }, SITE);
+await page.evaluate((site) => {
+  window.__QA_SITE = site;
+}, SITE);
 const camPin = async () => page.evaluate(() => {
   const v = window.__godsEyeView.viewer;
   const C = v.camera.positionCartographic.constructor;
   v.camera.cancelFlight();
-  v.camera.setView({ destination: v.scene.globe.ellipsoid.cartographicToCartesian(C.fromDegrees(window.__QA_SITE.lon, window.__QA_SITE.lat, 3000)) });
+  v.camera.setView({
+    destination: v.scene.globe.ellipsoid.cartographicToCartesian(C.fromDegrees(window.__QA_SITE.lon, window.__QA_SITE.lat, 3000))
+  });
   v.camera.moveEnd.raiseEvent();
   const c = v.camera.positionCartographic;
-  return { lat: +(c.latitude * 180 / Math.PI).toFixed(3), lon: +(c.longitude * 180 / Math.PI).toFixed(3), h: Math.round(c.height) };
+  return {
+    lat: +(c.latitude * 180 / Math.PI).toFixed(3),
+    lon: +(c.longitude * 180 / Math.PI).toFixed(3),
+    h: Math.round(c.height)
+  };
 });
 console.log('camera pinned:', JSON.stringify(await camPin()));
-await page.evaluate(async () => { await window.__godsEyeView.dataManager.toggle('flights'); });
+await page.evaluate(async () => {
+  await window.__godsEyeView.dataManager.toggle('flights');
+});
 console.log('waiting 100s: tiles stream + 3 polls...');
 await sleep(100000);
 // re-pin + report readiness right before probing
@@ -66,9 +85,13 @@ const ready = await page.evaluate(() => {
   const prims = v.scene.primitives;
   for (let i = 0; i < prims.length; i++) {
     const p = prims.get(i);
-    if (p && p.tilesLoaded !== undefined && p.show) return { tilesLoaded: !!p.tilesLoaded };
+    if (p && p.tilesLoaded !== undefined && p.show) return {
+      tilesLoaded: !!p.tilesLoaded
+    };
   }
-  return { tilesLoaded: null };
+  return {
+    tilesLoaded: null
+  };
 });
 console.log('tileset ready:', JSON.stringify(ready));
 await sleep(8000);
@@ -77,7 +100,9 @@ const report = await page.evaluate(() => {
   const gev = window.__godsEyeView;
   const v = gev.viewer;
   const layer = gev.dataManager.layers.get('flights')?.module;
-  if (!layer) return { err: 'no flights module' };
+  if (!layer) return {
+    err: 'no flights module'
+  };
   const ell = v.scene.globe.ellipsoid;
   const C = v.camera.positionCartographic.constructor;
   const center = ell.cartographicToCartesian(C.fromDegrees(window.__QA_SITE.lon, window.__QA_SITE.lat, 200));
@@ -93,10 +118,21 @@ const report = await page.evaluate(() => {
   const walk = (coll) => {
     const n = coll.length;
     for (let i = 0; i < n; i++) {
-      let pr; try { pr = coll.get(i); } catch { continue; }
+      let pr;
+      try {
+        pr = coll.get(i);
+      } catch {
+        continue;
+      }
       if (!pr) continue;
-      if (typeof pr.length === 'number' && typeof pr.get === 'function') { walk(pr); continue; }
-      if (pr.image !== undefined && pr.alignedAxis !== undefined) { excludes.push(pr); continue; }
+      if (typeof pr.length === 'number' && typeof pr.get === 'function') {
+        walk(pr);
+        continue;
+      }
+      if (pr.image !== undefined && pr.alignedAxis !== undefined) {
+        excludes.push(pr);
+        continue;
+      }
       if (pr.activeAnimations !== undefined && pr.minimumPixelSize !== undefined) excludes.push(pr);
     }
   };
@@ -104,12 +140,14 @@ const report = await page.evaluate(() => {
   const out = [];
   for (const p of nearby) {
     const c = ell.cartesianToCartographic(p.position);
-    const latDeg = c.latitude * 180 / Math.PI, lonDeg = c.longitude * 180 / Math.PI;
+    const latDeg = c.latitude * 180 / Math.PI,
+      lonDeg = c.longitude * 180 / Math.PI;
     let meshH = null;
     try {
       const h = v.scene.sampleHeight(C.fromDegrees(lonDeg, latDeg), excludes);
       if (Number.isFinite(h)) meshH = h;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */ }
     out.push({
       id: p.id,
       renderAltM: +c.height.toFixed(1),
@@ -120,22 +158,38 @@ const report = await page.evaluate(() => {
   // Visibility census (round 6): getNearby only returns contacts a sprite or a
   // 3D model is actually drawing, so also walk the raw collections — a culled
   // "invisible plane" shows up here.
-  let shown = 0, hidden = 0;
+  let shown = 0,
+    hidden = 0;
   const censusWalk = (coll) => {
     const n = coll.length;
     for (let i = 0; i < n; i++) {
-      let pr; try { pr = coll.get(i); } catch { continue; }
+      let pr;
+      try {
+        pr = coll.get(i);
+      } catch {
+        continue;
+      }
       if (!pr) continue;
-      if (typeof pr.length === 'number' && typeof pr.get === 'function') { censusWalk(pr); continue; }
+      if (typeof pr.length === 'number' && typeof pr.get === 'function') {
+        censusWalk(pr);
+        continue;
+      }
       if (pr.image === undefined || pr.alignedAxis === undefined) continue;
       const cc = ell.cartesianToCartographic(pr.position);
-      const la = cc.latitude * 180 / Math.PI, lo = cc.longitude * 180 / Math.PI;
+      const la = cc.latitude * 180 / Math.PI,
+        lo = cc.longitude * 180 / Math.PI;
       if (Math.abs(la - window.__QA_SITE.lat) > 0.08 || Math.abs(lo - window.__QA_SITE.lon) > 0.10) continue;
-      if (pr.show) shown++; else hidden++;
+      if (pr.show) shown++;
+      else hidden++;
     }
   };
   censusWalk(v.scene.primitives);
-  return { ausContacts: out.length, contacts: out.slice(0, 16), spritesShown: shown, spritesHidden: hidden };
+  return {
+    ausContacts: out.length,
+    contacts: out.slice(0, 16),
+    spritesShown: shown,
+    spritesHidden: hidden
+  };
 });
 console.log(JSON.stringify(report, null, 1));
 
