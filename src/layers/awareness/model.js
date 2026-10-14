@@ -163,11 +163,9 @@ export function createModel({
     return {
       centeredOn: snapshot.subject.label || snapshot.subject.id || null,
       radiusKm: Number.isFinite(snapshot.radiusM) ?
-        Math.round(snapshot.radiusM / 1000) :
-        null,
+        Math.round(snapshot.radiusM / 1000) : null,
       aircraft: Number.isFinite(flights) && Number.isFinite(military) ?
-        flights + military :
-        'unknown',
+        flights + military : 'unknown',
       flights,
       military,
       vessels: countFor('ais-live-vessels'),
