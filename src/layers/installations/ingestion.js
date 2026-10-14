@@ -1,4 +1,6 @@
-import { normalizeMilitaryInstallations } from '../../data/militaryInstallationData.js';
+import {
+  normalizeMilitaryInstallations
+} from '../../data/militaryInstallationData.js';
 
 export function createIngestion({
   state: layerState,
@@ -6,8 +8,12 @@ export function createIngestion({
   parts,
   source,
 }) {
-  const { governorRequestRender } = services.render;
-  const { resolveGroundFloorCellsBounded } = services.ground;
+  const {
+    governorRequestRender
+  } = services.render;
+  const {
+    resolveGroundFloorCellsBounded
+  } = services.ground;
 
   /**
    * Commit a status/error transition and buy the one frame it needs.
@@ -47,12 +53,17 @@ export function createIngestion({
     const requestAbort = new AbortController();
     layerState.abort = requestAbort;
     layerState.loading = true;
-    parts.viewport.clearUnavailableRetry({ resetBackoff: false });
+    parts.viewport.clearUnavailableRetry({
+      resetBackoff: false
+    });
     // The previous attempt's failure is not the outcome of this new attempt.
     setInstallationStatus('loading');
     try {
       const fetchInstallations = (exact) =>
-        source.getMappedSites(box, { exact, signal: requestAbort.signal });
+        source.getMappedSites(box, {
+          exact,
+          signal: requestAbort.signal
+        });
 
       let payload = await fetchInstallations(false);
       // A SATURATED snapped tile was truncated upstream, so features from the
@@ -88,19 +99,22 @@ export function createIngestion({
           ),
         );
         try {
-          const placesPayload = await source.searchNearby(
-            { latitude, longitude, radiusM },
-            { signal: requestAbort.signal },
-          );
+          const placesPayload = await source.searchNearby({
+            latitude,
+            longitude,
+            radiusM
+          }, {
+            signal: requestAbort.signal
+          }, );
           const seen = new Set(
             records.map(
               (record) =>
-                `${record.name.toLowerCase()}|${record.latitude.toFixed(3)}|${record.longitude.toFixed(3)}`,
+              `${record.name.toLowerCase()}|${record.latitude.toFixed(3)}|${record.longitude.toFixed(3)}`,
             ),
           );
-          for (const place of Array.isArray(placesPayload?.places)
-            ? placesPayload.places
-            : []) {
+          for (const place of Array.isArray(placesPayload?.places) ?
+              placesPayload.places :
+              []) {
             if (
               !place?.id ||
               !place?.name ||
@@ -115,10 +129,9 @@ export function createIngestion({
             const retrievedAt = new Date().toISOString();
             records.push({
               id: `google:${place.id}`,
-              kind:
-                placeClass === 'military_land'
-                  ? 'installation'
-                  : 'place_candidate',
+              kind: placeClass === 'military_land' ?
+                'installation' :
+                'place_candidate',
               class: placeClass,
               name: String(place.name).trim(),
               latitude: place.latitude,
@@ -126,9 +139,11 @@ export function createIngestion({
               footprint: null,
               primaryType: place.primaryType || null,
               placeTypes: Array.isArray(place.types) ? place.types : [],
-              sources: [
-                { name: 'Google Maps Places', id: place.id, retrievedAt },
-              ],
+              sources: [{
+                name: 'Google Maps Places',
+                id: place.id,
+                retrievedAt
+              }, ],
               validation: 'unreviewed',
               retrievedAt,
             });
@@ -169,16 +184,16 @@ export function createIngestion({
       layerState.failureReason = null;
       parts.viewport.clearUnavailableRetry();
       setInstallationStatus(
-        layerState.records.length
-          ? layerState.stale
-            ? 'stale'
-            : 'ready'
-          : 'empty',
-        payload.status === 'stale'
-          ? 'Serving cached mapped context'
-          : saturated
-            ? 'Too many mapped sites in view to list them all'
-            : placesError,
+        layerState.records.length ?
+        layerState.stale ?
+        'stale' :
+        'ready' :
+        'empty',
+        payload.status === 'stale' ?
+        'Serving cached mapped context' :
+        saturated ?
+        'Too many mapped sites in view to list them all' :
+        placesError,
       );
       parts.rendering.renderRecords();
       parts.rendering.warmInstallationFloors(layerState.records);
@@ -210,5 +225,9 @@ export function createIngestion({
     },
   };
 
-  return { setInstallationStatus, loadInstallations, methods };
+  return {
+    setInstallationStatus,
+    loadInstallations,
+    methods
+  };
 }
