@@ -139,8 +139,7 @@ export function createCategories({
 
   function isEnglishRadioStation(station) {
     const languages = Array.isArray(station?.languages) ?
-      station.languages :
-      [];
+      station.languages : [];
     return languages.some((language) => {
       const normalized = normalizeRadioTag(language);
       return (
