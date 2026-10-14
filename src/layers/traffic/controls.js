@@ -2,10 +2,19 @@ import {
   trafficBucketTier,
   trafficStyleProfile,
 } from '../../data/trafficPresetStyle.js';
-import { TRAFFIC_TIMING_ENABLED } from './policy.js';
+import {
+  TRAFFIC_TIMING_ENABLED
+} from './policy.js';
 
-export function createControls({ state: layerState, services, parts, source }) {
-  const { getFlowSessionStats } = source;
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
+  const {
+    getFlowSessionStats
+  } = source;
 
   const methods = {
     id: 'traffic',
@@ -92,9 +101,9 @@ export function createControls({ state: layerState, services, parts, source }) {
      */
     getDetectableObjects(options = {}) {
       if (!layerState._enabled || layerState._dots.length === 0) return [];
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : layerState._dots.length;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        layerState._dots.length;
       const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
       // Stride-based sampling: step through dots evenly to get ~maxCount samples
       const stride = Math.max(1, Math.ceil(layerState._dots.length / maxCount));
@@ -157,22 +166,25 @@ export function createControls({ state: layerState, services, parts, source }) {
         error: layerState._roadError || feed.error,
         flowCoveragePct: layerState._flowCoveragePct,
         tilesFetched: getFlowSessionStats().tilesFetched,
-        ...(TRAFFIC_TIMING_ENABLED
-          ? { trafficTiming: parts.timing.getTrafficTimingDiagnostics() }
-          : {}),
+        ...(TRAFFIC_TIMING_ENABLED ?
+          {
+            trafficTiming: parts.timing.getTrafficTimingDiagnostics()
+          } :
+          {}),
         // Per-bucket rendered-dot counts (sim = white ambient). Drives the
         // qa-traffic color assertions and the sync-chip mode label below.
-        flowBuckets: { ...layerState._bucketCounts },
+        flowBuckets: {
+          ...layerState._bucketCounts
+        },
         closedRoads: layerState._closedRoads,
         // Jam-viz prototype diagnostics (additive — harness contract untouched).
         heatLines: layerState._heatLineCount,
         jamViz: layerState._jamViz,
         // Preset-styling diagnostics (additive): active style + profile.
         stylePreset: layerState._stylePreset,
-        styleProfile:
-          layerState._presetDots === 'on'
-            ? trafficStyleProfile(layerState._stylePreset)
-            : 'normal',
+        styleProfile: layerState._presetDots === 'on' ?
+          trafficStyleProfile(layerState._stylePreset) :
+          'normal',
         // Sync-chip text: shown while busy, and flashed on its own for 1.5 s
         // after each completed load (ui.js _updateTrafficSyncChip semantics).
         // The settled flash carries NO progress number beside it — this label's
@@ -185,5 +197,7 @@ export function createControls({ state: layerState, services, parts, source }) {
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
