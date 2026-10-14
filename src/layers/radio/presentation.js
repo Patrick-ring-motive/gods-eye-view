@@ -30,8 +30,7 @@ export function createPresentation({
       filteredCount: visible.length,
       selected,
       selectedIndex: selected ?
-        visible.findIndex((station) => station.id === selected.id) :
-        -1,
+        visible.findIndex((station) => station.id === selected.id) : -1,
       audioState: layerState._audioState,
       audioError: layerState._audioError,
       playingStationId: layerState._audioStationId,
