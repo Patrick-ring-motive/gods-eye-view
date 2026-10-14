@@ -12,7 +12,9 @@ function douglasPeucker(points, toleranceDeg) {
   const keep = new Uint8Array(n);
   keep[0] = 1;
   keep[n - 1] = 1;
-  const stack = [[0, n - 1]];
+  const stack = [
+    [0, n - 1]
+  ];
   while (stack.length) {
     const [a, b] = stack.pop();
     if (b - a < 2) continue;
@@ -44,7 +46,8 @@ function douglasPeucker(points, toleranceDeg) {
     }
   }
   const out = [];
-  for (let i = 0; i < n; i++) if (keep[i]) out.push(points[i]);
+  for (let i = 0; i < n; i++)
+    if (keep[i]) out.push(points[i]);
   return out;
 }
 
@@ -98,4 +101,6 @@ function simplifyOverpassPayloadBody(bodyText, opts = {}) {
   }
 }
 
-export { simplifyOverpassPayloadBody };
+export {
+  simplifyOverpassPayloadBody
+};
