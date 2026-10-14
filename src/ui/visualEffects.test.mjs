@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { VisualEffects } from './visualEffects.js';
+import {
+  VisualEffects
+} from './visualEffects.js';
 import {
   GLOBAL_POST_DEFAULTS,
   STYLE_PRESET_DEFAULTS,
@@ -36,7 +38,11 @@ function fixture() {
     },
   };
   const effects = new VisualEffects({
-    viewer: { scene: { postProcessStages: pipeline } },
+    viewer: {
+      scene: {
+        postProcessStages: pipeline
+      }
+    },
     requestRender: (reason) => requests.push(reason),
     holdRender: (reason) => holds.add(reason),
     releaseRender: (reason) => holds.delete(reason),
@@ -48,8 +54,12 @@ function fixture() {
     cancelFrame: (id) => frames.delete(id),
     now: () => time,
     wallNow: () => 10_000 + time,
-    createStage: (options) => ({ ...options, enabled: true }),
+    createStage: (options) => ({
+      ...options,
+      enabled: true
+    }),
   });
+
   function tick(value) {
     time = value;
     const pending = [...frames.values()];
