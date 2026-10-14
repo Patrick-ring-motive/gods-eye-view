@@ -59,8 +59,7 @@ export function locationMiniStatus({
       // Tokyo, Japan"); the readout is ellipsised in CSS, so a long tail is
       // safe. A one-segment geocode ("Japan") has no context to show.
       poi: segments.length > 1 ?
-        segments.slice(1).join(', ') :
-        'Searched location',
+        segments.slice(1).join(', ') : 'Searched location',
     };
   }
 
