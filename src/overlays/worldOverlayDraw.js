@@ -5,7 +5,9 @@
  * fetching, Cesium scene queries, or source selection policy belongs here.
  */
 
-import { WORLD_OVERLAY_STYLE } from './worldOverlayTokens.js';
+import {
+  WORLD_OVERLAY_STYLE
+} from './worldOverlayTokens.js';
 
 // Two high-cardinality infrastructure sources share this cache; 1024 avoids
 // repeated O(n) eviction scans while keeping host-lifetime retention bounded.
@@ -93,7 +95,10 @@ export function measureWorldOverlayText(ctx, text, font) {
     fontCache = new Map();
     _textMeasureCache.set(normalizedFont, fontCache);
   }
-  fontCache.set(normalizedText, { width, usedAt: ++_textMeasureClock });
+  fontCache.set(normalizedText, {
+    width,
+    usedAt: ++_textMeasureClock
+  });
   _textMeasureCacheSize++;
   if (_textMeasureCacheSize > TEXT_MEASURE_CACHE_LIMIT) evictOldestTextMeasureEntry();
   return width;
@@ -192,8 +197,8 @@ export function altitudeScale(altitudeM, curve = null) {
   const end = Number(curve.end);
   const midValue = Number(curve.midValue);
   const endValue = Number(curve.endValue);
-  if (!Number.isFinite(fullEnd) || !Number.isFinite(midEnd) || !Number.isFinite(end)
-    || !Number.isFinite(midValue) || !Number.isFinite(endValue)) return 1;
+  if (!Number.isFinite(fullEnd) || !Number.isFinite(midEnd) || !Number.isFinite(end) ||
+    !Number.isFinite(midValue) || !Number.isFinite(endValue)) return 1;
   if (altitudeM <= fullEnd) return 1;
   if (altitudeM <= midEnd) {
     const span = Math.max(1, midEnd - fullEnd);
@@ -238,11 +243,11 @@ export function combinedOverlayAlpha({
   altitudeFade: altitudeAlpha = 1,
   keyholeEdgeFade = 1,
 } = {}) {
-  return clampUnit(sourceAlpha)
-    * clampUnit(temporalFade)
-    * clampUnit(distanceAlpha)
-    * clampUnit(altitudeAlpha)
-    * clampUnit(keyholeEdgeFade);
+  return clampUnit(sourceAlpha) *
+    clampUnit(temporalFade) *
+    clampUnit(distanceAlpha) *
+    clampUnit(altitudeAlpha) *
+    clampUnit(keyholeEdgeFade);
 }
 
 function clampUnit(value) {
@@ -273,9 +278,9 @@ export function measureOverlayEntry(ctx, entry, out = {}) {
   const selected = variant === 'selected';
   const tracked = variant === 'tracked';
   const tactical = entry?.cardStyle === 'tactical';
-  const titleFont = tracked
-    ? WORLD_OVERLAY_STYLE.fontTrackedTitle
-    : selected ? WORLD_OVERLAY_STYLE.fontSelected : WORLD_OVERLAY_STYLE.fontTitle;
+  const titleFont = tracked ?
+    WORLD_OVERLAY_STYLE.fontTrackedTitle :
+    selected ? WORLD_OVERLAY_STYLE.fontSelected : WORLD_OVERLAY_STYLE.fontTitle;
   let titleWidth = measureWorldOverlayText(ctx, entry?.title || '',
     variant === 'label' ? WORLD_OVERLAY_STYLE.fontLabel : titleFont);
   if (variant === 'track' && details[0]) {
@@ -299,9 +304,9 @@ export function measureOverlayEntry(ctx, entry, out = {}) {
 
   out.padX = tracked ? 13 : selected ? 12 : variant === 'label' || variant === 'track' ? 6 : 9;
   out.padY = tracked ? 9 : selected ? 8 : variant === 'label' || variant === 'track' ? 4 : 6;
-  out.titleH = tactical
-    ? (selected ? 14 : 12)
-    : tracked ? 13 : selected ? 15 : variant === 'label' || variant === 'track' ? 11 : 13;
+  out.titleH = tactical ?
+    (selected ? 14 : 12) :
+    tracked ? 13 : selected ? 15 : variant === 'label' || variant === 'track' ? 11 : 13;
   out.lineH = tracked ? 17 : selected ? 15 : 13;
   out.thumbW = 0;
   out.thumbH = 0;
@@ -463,7 +468,12 @@ function drawLeader(ctx, placement, accent) {
 }
 
 function drawCardChrome(ctx, entry, placement, selected = false) {
-  const { x, y, w, h } = placement.rect;
+  const {
+    x,
+    y,
+    w,
+    h
+  } = placement.rect;
   const accent = entry.accent || WORLD_OVERLAY_STYLE.accent;
   drawLeader(ctx, placement, accent);
   ctx.beginPath();
@@ -526,7 +536,12 @@ export function paintTacticalCard(ctx, entry, placement, alpha = 1) {
   const selected = entry.selected || entry.variant === 'selected';
   const details = Array.isArray(entry.details) ? entry.details : [];
   const layout = entry._overlayLayout || {};
-  const { x, y, w, h } = placement.rect;
+  const {
+    x,
+    y,
+    w,
+    h
+  } = placement.rect;
   const accentColors = tacticalAccentColors(entry);
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -618,7 +633,12 @@ export function paintCard(ctx, entry, placement, alpha = 1) {
 /** Paint a thumbnail card. The image slot remains source-owned. */
 export function paintThumbnail(ctx, entry, placement, alpha = 1) {
   const layout = entry._overlayLayout || {};
-  const { x, y, w, h } = placement.rect;
+  const {
+    x,
+    y,
+    w,
+    h
+  } = placement.rect;
   const padX = Number.isFinite(layout.padX) ? layout.padX : 4;
   const padY = Number.isFinite(layout.padY) ? layout.padY : 4;
   const thumbW = layout.thumbW || Number(entry.thumbnailWidth) || 96;
@@ -654,8 +674,8 @@ export function paintThumbnail(ctx, entry, placement, alpha = 1) {
   }
 
   const titleChars = Math.max(0, Math.floor(Number(entry.thumbnailTitleChars) || 0));
-  const title = entry._overlayThumbnailTitle
-    || String(entry.title || '').toUpperCase();
+  const title = entry._overlayThumbnailTitle ||
+    String(entry.title || '').toUpperCase();
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = entry.thumbnailTitleColor || WORLD_OVERLAY_STYLE.title;
@@ -683,7 +703,12 @@ export function paintSelected(ctx, entry, placement, alpha = 1) {
 export function paintTracked(ctx, entry, placement, alpha = 1) {
   const details = Array.isArray(entry.details) ? entry.details : [];
   const layout = entry._overlayLayout || {};
-  const { x, y, w, h } = placement.rect;
+  const {
+    x,
+    y,
+    w,
+    h
+  } = placement.rect;
   const accent = entry.accent || WORLD_OVERLAY_STYLE.accent;
   ctx.save();
   ctx.globalAlpha = alpha;
