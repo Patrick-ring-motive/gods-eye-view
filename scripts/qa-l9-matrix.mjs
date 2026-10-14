@@ -37,16 +37,30 @@
  * Exit codes: 0 = no FAILs · 1 = at least one FAIL · 2 = target unreachable.
  */
 import puppeteer from 'puppeteer';
-import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import {
+  spawn
+} from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync
+} from 'node:fs';
+import {
+  fileURLToPath,
+  pathToFileURL
+} from 'node:url';
+import {
+  dirname,
+  resolve
+} from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
 
 // ── CLI ───────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
+
 function getOpt(flag, def) {
   const i = argv.indexOf(flag);
   return i >= 0 && argv[i + 1] ? argv[i + 1] : def;
@@ -81,7 +95,7 @@ const SKIP_IDS = (getOpt('--skip', '') || '').split(',').map((s) => s.trim()).fi
 const PASS = 'PASS';
 const PASS_SKIPS = 'PASS-WITH-SKIPS'; // green, but the harness left assertions unrun
 const FAIL = 'FAIL';
-const CRASH = 'HARNESS-CRASH';        // the check itself broke — counts against green
+const CRASH = 'HARNESS-CRASH'; // the check itself broke — counts against green
 const SKIP = 'SKIPPED';
 const results = [];
 const C = {
@@ -92,11 +106,28 @@ const C = {
   d: (s) => `\x1b[2m${s}\x1b[0m`,
   b: (s) => `\x1b[1m${s}\x1b[0m`,
 };
-const pass = (detail) => ({ status: PASS, detail });
-const passWithSkips = (detail, unrun) => ({ status: PASS_SKIPS, detail, unrun });
-const fail = (detail) => ({ status: FAIL, detail });
-const crash = (detail) => ({ status: CRASH, detail });
-const skip = (detail, tag = 'OWNER-RUN') => ({ status: SKIP, detail, tag });
+const pass = (detail) => ({
+  status: PASS,
+  detail
+});
+const passWithSkips = (detail, unrun) => ({
+  status: PASS_SKIPS,
+  detail,
+  unrun
+});
+const fail = (detail) => ({
+  status: FAIL,
+  detail
+});
+const crash = (detail) => ({
+  status: CRASH,
+  detail
+});
+const skip = (detail, tag = 'OWNER-RUN') => ({
+  status: SKIP,
+  detail,
+  tag
+});
 
 /** The closed set of outcomes. Anything else is a bug in the runner itself. */
 const OUTCOMES = new Set([PASS, PASS_SKIPS, FAIL, CRASH, SKIP]);
@@ -133,8 +164,8 @@ const env = {
   //           check that depends on it FAILS rather than skipping
   //   null    deliberately not probed (--cheap)
   keys: {},
-  node24: null,      // { bin, label } for the calibrated allocation runtime
-  reachable: false,  // got ANY HTTP response (even a 500) — vs connection refused
+  node24: null, // { bin, label } for the calibrated allocation runtime
+  reachable: false, // got ANY HTTP response (even a 500) — vs connection refused
   shellStatus: null, // the app shell's HTTP status, for the ENV-vs-FAIL split
   browserVersion: null,
   boot: null,
@@ -193,8 +224,12 @@ const CREDIT_EXEMPT_LAYERS = {
 
 /** @returns {{regex: RegExp}|{exempt: string}|null} null = unmapped (fails closed). */
 function requiredCreditFor(layerId) {
-  if (CREDIT_EXPECTATIONS[layerId]) return { regex: CREDIT_EXPECTATIONS[layerId] };
-  if (CREDIT_EXEMPT_LAYERS[layerId]) return { exempt: CREDIT_EXEMPT_LAYERS[layerId] };
+  if (CREDIT_EXPECTATIONS[layerId]) return {
+    regex: CREDIT_EXPECTATIONS[layerId]
+  };
+  if (CREDIT_EXEMPT_LAYERS[layerId]) return {
+    exempt: CREDIT_EXEMPT_LAYERS[layerId]
+  };
   return null;
 }
 
@@ -219,14 +254,23 @@ function satisfiesEngines(version, range) {
     }
     return 0;
   };
-  const ops = { '>=': (c) => c >= 0, '>': (c) => c > 0, '<=': (c) => c <= 0, '<': (c) => c < 0, '=': (c) => c === 0 };
+  const ops = {
+    '>=': (c) => c >= 0,
+    '>': (c) => c > 0,
+    '<=': (c) => c <= 0,
+    '<': (c) => c < 0,
+    '=': (c) => c === 0
+  };
   let unsupported = false;
   const ok = String(range || '').split('||').some((clause) => {
     const parts = clause.trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return false;
     return parts.every((part) => {
       const m = /^(>=|<=|>|<|=)?\s*v?(\d+(?:\.\d+){0,2})$/.exec(part);
-      if (!m) { unsupported = true; return false; }
+      if (!m) {
+        unsupported = true;
+        return false;
+      }
       return ops[m[1] || '='](cmp(version, m[2]));
     });
   });
@@ -260,10 +304,10 @@ function isCalibratedAllocationRuntime(version) {
  */
 function trafficFlowInconclusive(stats) {
   const s = stats || {};
-  return s.mode === 'live'
-    && !(s.tilesFetched > 0)
-    && Boolean(s.loading || s.loadingLabel)
-    && !s.error;
+  return s.mode === 'live' &&
+    !(s.tilesFetched > 0) &&
+    Boolean(s.loading || s.loadingLabel) &&
+    !s.error;
 }
 
 /** Positively-identified "the target is not there at all" (never an HTTP error). */
@@ -272,23 +316,48 @@ const CONNECTION_REFUSED_RE = /ECONNREFUSED|ECONNRESET|EHOSTUNREACH|ENOTFOUND|fe
 const HARNESS_ENV_RE = /Dev server (?:not reachable|unavailable)|Dev server unavailable at|not reachable at http/i;
 
 // ── small helpers ─────────────────────────────────────────────────────────
-async function jget(path, { method = 'GET', timeoutMs = 25000, body = null } = {}) {
+async function jget(path, {
+  method = 'GET',
+  timeoutMs = 25000,
+  body = null
+} = {}) {
   const res = await fetch(`${APP_URL}${path}`, {
     method,
     signal: AbortSignal.timeout(timeoutMs),
-    ...(body ? { body, headers: { 'Content-Type': 'application/json' } } : {}),
+    ...(body ? {
+      body,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } : {}),
   });
   const text = await res.text();
   let json = null;
-  try { json = JSON.parse(text); } catch { /* text payload */ }
-  return { status: res.status, ok: res.ok, headers: res.headers, text, json };
+  try {
+    json = JSON.parse(text);
+  } catch {
+    /* text payload */ }
+  return {
+    status: res.status,
+    ok: res.ok,
+    headers: res.headers,
+    text,
+    json
+  };
 }
 
-function sh(cmd, args, { cwd = REPO_ROOT, env: extraEnv = {}, timeoutMs = 600000 } = {}) {
+function sh(cmd, args, {
+  cwd = REPO_ROOT,
+  env: extraEnv = {},
+  timeoutMs = 600000
+} = {}) {
   return new Promise((resolveP) => {
     const child = spawn(cmd, args, {
       cwd,
-      env: { ...process.env, ...extraEnv },
+      env: {
+        ...process.env,
+        ...extraEnv
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
       // Own process group: killing a timed-out harness must also take its
       // Chromium descendants down. An orphaned browser keeps a GPU context and
@@ -300,21 +369,47 @@ function sh(cmd, args, { cwd = REPO_ROOT, env: extraEnv = {}, timeoutMs = 600000
     const killTree = () => {
       // Negative pid = the whole process group. Fall back to the bare child if
       // the group is already gone.
-      try { process.kill(-child.pid, 'SIGKILL'); } catch { try { child.kill('SIGKILL'); } catch { /* gone */ } }
+      try {
+        process.kill(-child.pid, 'SIGKILL');
+      } catch {
+        try {
+          child.kill('SIGKILL');
+        } catch {
+          /* gone */ }
+      }
     };
     const timer = setTimeout(killTree, timeoutMs);
-    child.stdout.on('data', (d) => { out += d.toString(); });
-    child.stderr.on('data', (d) => { err += d.toString(); });
+    child.stdout.on('data', (d) => {
+      out += d.toString();
+    });
+    child.stderr.on('data', (d) => {
+      err += d.toString();
+    });
     child.on('close', (code, signal) => {
       clearTimeout(timer);
       // Sweep the group again on normal exit too: a harness that leaks its
       // browser would otherwise leave it running for the rest of the matrix.
-      try { process.kill(-child.pid, 'SIGKILL'); } catch { /* already reaped */ }
-      resolveP({ code, signal, out, err, timedOut: signal === 'SIGKILL' });
+      try {
+        process.kill(-child.pid, 'SIGKILL');
+      } catch {
+        /* already reaped */ }
+      resolveP({
+        code,
+        signal,
+        out,
+        err,
+        timedOut: signal === 'SIGKILL'
+      });
     });
     child.on('error', (e) => {
       clearTimeout(timer);
-      resolveP({ code: -1, signal: null, out, err: String(e?.message || e), timedOut: false });
+      resolveP({
+        code: -1,
+        signal: null,
+        out,
+        err: String(e?.message || e),
+        timedOut: false
+      });
     });
   });
 }
@@ -354,7 +449,10 @@ function allVerdictLines(re, text) {
  * Enforce "exactly one complete verdict line" across stdout and stderr.
  * @returns {{matches: RegExpExecArray[], verdict: ?object}} verdict set = stop.
  */
-function soleVerdict(re, kind, { out, err }) {
+function soleVerdict(re, kind, {
+  out,
+  err
+}) {
   const matches = [...allVerdictLines(re, out), ...allVerdictLines(re, err)];
   if (matches.length > 1) {
     const rendered = matches.map((m) => m[0].trim()).join(' || ');
@@ -363,12 +461,15 @@ function soleVerdict(re, kind, { out, err }) {
     const distinct = new Set(matches.map((m) => m[0].trim()));
     return {
       matches,
-      verdict: crash(distinct.size > 1
-        ? `contradictory harness output: ${matches.length} different ${kind} lines — ${rendered}; this check cannot be trusted either way`
-        : `duplicated harness output: the ${kind} line was emitted ${matches.length} times — ${rendered}; it is unclear which run this reports`),
+      verdict: crash(distinct.size > 1 ?
+        `contradictory harness output: ${matches.length} different ${kind} lines — ${rendered}; this check cannot be trusted either way` :
+        `duplicated harness output: the ${kind} line was emitted ${matches.length} times — ${rendered}; it is unclear which run this reports`),
     };
   }
-  return { matches, verdict: null };
+  return {
+    matches,
+    verdict: null
+  };
 }
 
 /**
@@ -377,25 +478,45 @@ function soleVerdict(re, kind, { out, err }) {
  * in words, that the server was not there. Exit code 2 is NOT evidence of
  * environment — several harnesses use it for arbitrary top-level exceptions.
  */
-function classifyNoScoreboard(kind, { code, out, err }) {
+function classifyNoScoreboard(kind, {
+  code,
+  out,
+  err
+}) {
   const blob = `${err}\n${out}`;
   if (HARNESS_ENV_RE.test(blob)) return skip(`harness preflight: target not reachable — ${tail(err) || tail(out)}`, 'ENV');
   return crash(`no ${kind} line (exit ${code}) — the harness did not complete: ${tail(err) || tail(out)}`);
 }
 
-function readResultLine({ code, out, err, timedOut }) {
+function readResultLine({
+  code,
+  out,
+  err,
+  timedOut
+}) {
   if (timedOut) return fail('timed out');
-  const sole = soleVerdict(RESULT_RE, 'RESULT', { out, err });
+  const sole = soleVerdict(RESULT_RE, 'RESULT', {
+    out,
+    err
+  });
   if (sole.verdict) return sole.verdict;
   const m = sole.matches[0];
-  if (!m) return classifyNoScoreboard('RESULT', { code, out, err });
+  if (!m) return classifyNoScoreboard('RESULT', {
+    code,
+    out,
+    err
+  });
   const [, p, f, s] = m;
   const skipped = Number(s || 0);
   const detail = `${p} passed, ${f} failed${skipped ? `, ${skipped} skipped/inconclusive` : ''}`;
   if (Number(f) > 0) return fail(detail);
   // A scoreboard with no assertions at all means the harness bailed before
   // testing anything. It cannot be a pass, and it is not automatically ENV.
-  if (Number(p) === 0) return classifyNoScoreboard('asserting RESULT', { code, out, err: `${err}\nharness asserted nothing (${detail})` });
+  if (Number(p) === 0) return classifyNoScoreboard('asserting RESULT', {
+    code,
+    out,
+    err: `${err}\nharness asserted nothing (${detail})`
+  });
   // Exit 2/3 alongside a clean scoreboard means it broke AFTER reporting
   // (browser teardown, cleanup) — still not a clean pass.
   if (code !== 0) return crash(`${detail}, but the harness exited ${code} after reporting: ${tail(err)}`);
@@ -404,12 +525,24 @@ function readResultLine({ code, out, err, timedOut }) {
   return pass(detail);
 }
 
-function readCockpit({ code, out, err, timedOut }) {
+function readCockpit({
+  code,
+  out,
+  err,
+  timedOut
+}) {
   if (timedOut) return fail('timed out');
-  const sole = soleVerdict(COCKPIT_RE, 'RESULT', { out, err });
+  const sole = soleVerdict(COCKPIT_RE, 'RESULT', {
+    out,
+    err
+  });
   if (sole.verdict) return sole.verdict;
   const m = sole.matches[0];
-  if (!m) return classifyNoScoreboard('RESULT', { code, out, err });
+  if (!m) return classifyNoScoreboard('RESULT', {
+    code,
+    out,
+    err
+  });
   const failures = Number(m[2]);
   if (m[1] !== 'READY') return fail(`NOT_READY, ${failures} failures`);
   // READY with a nonzero failure count is self-contradictory output. Reading
@@ -439,13 +572,25 @@ function applyKnownConditions(verdict, conditions, transcript) {
   return verdict;
 }
 
-function readFloorVerdict({ code, out, err, timedOut }) {
+function readFloorVerdict({
+  code,
+  out,
+  err,
+  timedOut
+}) {
   // qa-floor-verify.mjs never sets an exit code — stdout is the only truth.
   if (timedOut) return fail('timed out');
-  const sole = soleVerdict(FLOOR_RE, 'VERDICT', { out, err });
+  const sole = soleVerdict(FLOOR_RE, 'VERDICT', {
+    out,
+    err
+  });
   if (sole.verdict) return sole.verdict;
   const m = sole.matches[0];
-  if (!m) return classifyNoScoreboard('VERDICT', { code, out, err });
+  if (!m) return classifyNoScoreboard('VERDICT', {
+    code,
+    out,
+    err
+  });
   if (m[1] === 'FAIL') return fail('VERDICT: FAIL — grounded contacts buried below the mesh floor');
   if (m[1] === 'INCONCLUSIVE') {
     // The oracle found nothing to measure. That is a failure of ITS
@@ -465,19 +610,33 @@ function readFloorVerdict({ code, out, err, timedOut }) {
  * and `.delta` (entities / primitiveLabels / nonemptyLabelText). Read that.
  */
 function readOverlaySummary(layerId, jsonPath) {
-  return ({ code, out, err, timedOut }) => {
+  return ({
+    code,
+    out,
+    err,
+    timedOut
+  }) => {
     if (timedOut) return fail('timed out');
-    const sole = soleVerdict(OVERLAY_RE, 'Summary', { out, err });
+    const sole = soleVerdict(OVERLAY_RE, 'Summary', {
+      out,
+      err
+    });
     if (sole.verdict) return sole.verdict;
     const m = sole.matches[0];
-    if (!m) return classifyNoScoreboard('Summary', { code, out, err });
+    if (!m) return classifyNoScoreboard('Summary', {
+      code,
+      out,
+      err
+    });
     const [, measured, skipped, errors] = m;
     if (Number(errors) > 0) return fail(`${measured} measured, ${errors} errors`);
     if (Number(measured) === 0) {
       return fail(`0 measured, ${skipped} skipped — the ${layerId} scene produced nothing to measure, so the layer never activated`);
     }
     let run = null;
-    try { run = JSON.parse(readFileSync(jsonPath, 'utf8')); } catch (e) {
+    try {
+      run = JSON.parse(readFileSync(jsonPath, 'utf8'));
+    } catch (e) {
       return crash(`harness reported ${measured} measured but wrote no readable --json (${String(e?.message || e).slice(0, 80)}); this check cannot prove the ${layerId} overlay was nonempty`);
     }
     const act = (run.scenes || [])
@@ -502,12 +661,25 @@ const HARNESS_LOG_DIR = resolve(REPO_ROOT, '.gev-logs', 'qa-l9-matrix');
 const OVERLAY_JSON = resolve(HARNESS_LOG_DIR, 'D12-overlay-baseline.json');
 
 /** Declarative harness runner: reuses the shipped fleet, never reimplements it. */
-function harness({ id, script, args = [], parse = readResultLine, timeoutMs = 900000, envExtra = {}, knownConditions = [] }) {
+function harness({
+  id,
+  script,
+  args = [],
+  parse = readResultLine,
+  timeoutMs = 900000,
+  envExtra = {},
+  knownConditions = []
+}) {
   return async () => {
-    mkdirSync(HARNESS_LOG_DIR, { recursive: true });
+    mkdirSync(HARNESS_LOG_DIR, {
+      recursive: true
+    });
     const r = await sh(process.execPath, [resolve(REPO_ROOT, 'scripts', script), ...args], {
       timeoutMs,
-      env: { QA_BASE_URL: APP_URL, ...envExtra },
+      env: {
+        QA_BASE_URL: APP_URL,
+        ...envExtra
+      },
     });
     const verdict = applyKnownConditions(parse(r), knownConditions, `${r.out}\n${r.err}`);
     // A dev server whose dependency optimizer re-runs mid-test answers 504
@@ -517,8 +689,8 @@ function harness({ id, script, args = [], parse = readResultLine, timeoutMs = 90
     // "failures". That is a positively identified environment condition (an
     // exact Vite marker, not a guess), so it is an ENV skip rather than a false
     // accusation against the product. It never rescues a run that passed.
-    if ((verdict.status === FAIL || verdict.status === CRASH)
-      && /Outdated Optimize Dep/.test(`${r.out}\n${r.err}`)) {
+    if ((verdict.status === FAIL || verdict.status === CRASH) &&
+      /Outdated Optimize Dep/.test(`${r.out}\n${r.err}`)) {
       verdict.status = SKIP;
       verdict.tag = 'ENV';
       verdict.detail = `${verdict.detail} — but the dev server re-optimized dependencies mid-run (Vite 504 "Outdated Optimize Dep"), so this ran against a broken module graph. Load the app once to warm the server, then re-run this check.`;
@@ -527,11 +699,14 @@ function harness({ id, script, args = [], parse = readResultLine, timeoutMs = 90
     // diagnosing a harness failure costs a whole second run.
     if (verdict.status !== PASS) {
       try {
-        mkdirSync(HARNESS_LOG_DIR, { recursive: true });
+        mkdirSync(HARNESS_LOG_DIR, {
+          recursive: true
+        });
         const logPath = resolve(HARNESS_LOG_DIR, `${id || script.replace(/\.mjs$/, '')}.log`);
         writeFileSync(logPath, `$ node scripts/${script} ${args.join(' ')}\nexit=${r.code} signal=${r.signal}\n\n--- stdout ---\n${r.out}\n--- stderr ---\n${r.err}\n`);
         verdict.detail = `${verdict.detail}  [log: ${logPath.replace(`${REPO_ROOT}/`, '')}]`;
-      } catch { /* logging must never change a verdict */ }
+      } catch {
+        /* logging must never change a verdict */ }
     }
     return verdict;
   };
@@ -542,11 +717,15 @@ function harness({ id, script, args = [], parse = readResultLine, timeoutMs = 90
 // costly: dropped by --cheap (spends third-party API credit)
 // needsKey: SKIPPED/OWNER-RUN when the target server has no such key
 const CHECKS = [];
-const check = (spec) => { CHECKS.push(spec); };
+const check = (spec) => {
+  CHECKS.push(spec);
+};
 
 // ─── A · REPO GATES ───────────────────────────────────────────────────────
 check({
-  id: 'A1', group: 'A', desc: 'Node runtime satisfies package.json engines (allocation budgets are pinned to Node 24)',
+  id: 'A1',
+  group: 'A',
+  desc: 'Node runtime satisfies package.json engines (allocation budgets are pinned to Node 24)',
   run: async () => {
     const pkg = JSON.parse(readFileSync(resolve(REPO_ROOT, 'package.json'), 'utf8'));
     const range = pkg.engines?.node || '(unset)';
@@ -558,28 +737,34 @@ check({
     // An off-range runtime is an environment problem, not a product defect —
     // but it silently disables the allocation gate, so say so loudly. A3 then
     // runs that gate under a discovered Node 24.
-    return env.node24
-      ? skip(`node ${process.versions.node} is OUTSIDE "${range}"; A3 runs the allocation gate under ${env.node24.label}, but prefer running the whole L9 pass on Node 24`, 'ENV')
-      : fail(`node ${process.versions.node} is OUTSIDE "${range}" and no Node 24 runtime was found — the allocation gate cannot run at all`);
+    return env.node24 ?
+      skip(`node ${process.versions.node} is OUTSIDE "${range}"; A3 runs the allocation gate under ${env.node24.label}, but prefer running the whole L9 pass on Node 24`, 'ENV') :
+      fail(`node ${process.versions.node} is OUTSIDE "${range}" and no Node 24 runtime was found — the allocation gate cannot run at all`);
   },
 });
 
 check({
-  id: 'A2', group: 'A', desc: 'npm test — unit suite green',
+  id: 'A2',
+  group: 'A',
+  desc: 'npm test — unit suite green',
   heavy: false,
   run: async () => {
-    const r = await sh('npm', ['test'], { timeoutMs: 600000 });
+    const r = await sh('npm', ['test'], {
+      timeoutMs: 600000
+    });
     const m = /ℹ pass (\d+)[\s\S]*?ℹ fail (\d+)/.exec(r.out) || /pass (\d+)[\s\S]*?fail (\d+)/.exec(r.out);
     if (!m) return fail(`could not parse test output (exit ${r.code}): ${tail(r.err) || tail(r.out)}`);
     const [, p, f] = m;
-    return Number(f) === 0 && r.code === 0
-      ? pass(`${p} passed, ${f} failed`)
-      : fail(`${p} passed, ${f} failed (exit ${r.code})`);
+    return Number(f) === 0 && r.code === 0 ?
+      pass(`${p} passed, ${f} failed`) :
+      fail(`${p} passed, ${f} failed (exit ${r.code})`);
   },
 });
 
 check({
-  id: 'A3', group: 'A', desc: 'Allocation microbenchmarks actually EXECUTE (they silently skip off Node 24)',
+  id: 'A3',
+  group: 'A',
+  desc: 'Allocation microbenchmarks actually EXECUTE (they silently skip off Node 24)',
   run: async () => {
     // npm test prints "[unit] SKIPPED n allocation microbenchmarks" and still
     // exits 0 when the runtime is not Node 24. A green suite is therefore NOT
@@ -594,7 +779,9 @@ check({
     // the very thing A3 exists to catch, so both branches now take the same
     // route and both PIN the runtime they actually invoked.
     const runGate = async (bin, label) => {
-      const v = await sh(bin, ['--version'], { timeoutMs: 60000 });
+      const v = await sh(bin, ['--version'], {
+        timeoutMs: 60000
+      });
       const version = (v.out || '').trim();
       if (!isCalibratedAllocationRuntime(version)) {
         // run-unit-tests.mjs refuses to measure calibrated budgets off Node 24,
@@ -603,11 +790,14 @@ check({
         return crash(`the runtime selected for the allocation gate (${label}) reports ${version || 'no parseable version'}, not Node 24 — the gate would refuse or silently skip, so this check verified nothing`);
       }
       const r = await sh(bin, [resolve(REPO_ROOT, 'scripts/run-unit-tests.mjs')], {
-        timeoutMs: 600000, env: { GEV_REQUIRE_ALLOCATION_GATE: '1' },
+        timeoutMs: 600000,
+        env: {
+          GEV_REQUIRE_ALLOCATION_GATE: '1'
+        },
       });
-      return r.code === 0
-        ? pass(`allocation gate ran under ${label} (${version}) and passed`)
-        : fail(`allocation gate failed under ${label} (${version}): ${tail(r.out) || tail(r.err)}`);
+      return r.code === 0 ?
+        pass(`allocation gate ran under ${label} (${version}) and passed`) :
+        fail(`allocation gate failed under ${label} (${version}): ${tail(r.out) || tail(r.err)}`);
     };
 
     const [maj] = process.versions.node.split('.').map(Number);
@@ -618,20 +808,27 @@ check({
 });
 
 check({
-  id: 'A4', group: 'A', desc: 'npm run build — production build clean',
+  id: 'A4',
+  group: 'A',
+  desc: 'npm run build — production build clean',
   run: async () => {
-    const r = await sh('npm', ['run', 'build'], { timeoutMs: 900000 });
+    const r = await sh('npm', ['run', 'build'], {
+      timeoutMs: 900000
+    });
     return r.code === 0 ? pass('build succeeded') : fail(`build failed: ${tail(r.err) || tail(r.out)}`);
   },
 });
 
 check({
-  id: 'A5', group: 'A',
+  id: 'A5',
+  group: 'A',
   // Named for what it actually does. It is a KNOWN-PREFIX scan, not a general
   // secret detector — a high-entropy blob with no recognised prefix passes it.
   desc: 'No tracked .env, and no known-prefix credential literals (OpenAI/Google/AWS/GitHub/Slack/Stripe/private keys)',
   run: async () => {
-    const tracked = await sh('git', ['ls-files'], { timeoutMs: 60000 });
+    const tracked = await sh('git', ['ls-files'], {
+      timeoutMs: 60000
+    });
     // git ls-files exits non-zero only on real failure — a failed enumeration
     // must not read as "no .env files found".
     if (tracked.code !== 0) return crash(`git ls-files failed (exit ${tracked.code}): ${tail(tracked.err)}`);
@@ -641,27 +838,31 @@ check({
     if (envFiles.length) return fail(`tracked env file(s): ${envFiles.join(', ')}`);
 
     const patterns = [
-      'sk-[A-Za-z0-9]{20,}',                 // OpenAI
-      'AIza[0-9A-Za-z_\\-]{30,}',            // Google
-      'AKIA[0-9A-Z]{16}',                    // AWS access key id
-      'ASIA[0-9A-Z]{16}',                    // AWS session key id
-      'gh[pousr]_[A-Za-z0-9]{30,}',          // GitHub tokens
-      'xox[baprs]-[A-Za-z0-9-]{10,}',        // Slack
+      'sk-[A-Za-z0-9]{20,}', // OpenAI
+      'AIza[0-9A-Za-z_\\-]{30,}', // Google
+      'AKIA[0-9A-Z]{16}', // AWS access key id
+      'ASIA[0-9A-Z]{16}', // AWS session key id
+      'gh[pousr]_[A-Za-z0-9]{30,}', // GitHub tokens
+      'xox[baprs]-[A-Za-z0-9-]{10,}', // Slack
       '(sk|pk|rk)_(live|test)_[A-Za-z0-9]{16,}', // Stripe
       '-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----',
     ];
-    const grep = await sh('git', ['grep', '-nIE', `(${patterns.join('|')})`, '--', ':!*.md', ':!docs/**'], { timeoutMs: 120000 });
+    const grep = await sh('git', ['grep', '-nIE', `(${patterns.join('|')})`, '--', ':!*.md', ':!docs/**'], {
+      timeoutMs: 120000
+    });
     // git grep: 0 = matches found, 1 = no matches (the clean case), >1 = error.
     if (grep.code > 1) return crash(`git grep failed (exit ${grep.code}): ${tail(grep.err)}`);
     const hits = grep.out.split('\n').filter(Boolean);
-    return hits.length === 0
-      ? pass(`no tracked .env; ${patterns.length} credential prefixes scanned across ${files.length} tracked files, no hits`)
-      : fail(`${hits.length} credential literal(s): ${hits.slice(0, 2).join(' | ').slice(0, 200)}`);
+    return hits.length === 0 ?
+      pass(`no tracked .env; ${patterns.length} credential prefixes scanned across ${files.length} tracked files, no hits`) :
+      fail(`${hits.length} credential literal(s): ${hits.slice(0, 2).join(' | ').slice(0, 200)}`);
   },
 });
 
 check({
-  id: 'A6', group: 'A', desc: 'Private-name scan over publicly shipped paths (release checklist)',
+  id: 'A6',
+  group: 'A',
+  desc: 'Private-name scan over publicly shipped paths (release checklist)',
   run: async () => {
     // The public snapshot must not carry the private scenario vocabulary.
     // Maintainer-internal directories are stripped at curation, so they are
@@ -678,20 +879,29 @@ check({
     // The terms are assembled from fragments so THIS file carries no literal
     // copy of the private vocabulary. Spelling them out here would make the
     // scanner its own first hit — and this script ships publicly.
-    const terms = [['horm', 'uz'], ['cease', 'fire'], ['gps-', 'jamming']].map(([a, b]) => a + b);
+    const terms = [
+      ['horm', 'uz'],
+      ['cease', 'fire'],
+      ['gps-', 'jamming']
+    ].map(([a, b]) => a + b);
     const grep = await sh('git', ['grep', '-lIiE', terms.join('|'), '--',
-      ':!docs/inter' + 'nal/**', ':!.cla' + 'ude/**', ':!.gev-logs/**', ':!CLA' + 'UDE.md', ':!AGENTS.md'], { timeoutMs: 120000 });
+      ':!docs/inter' + 'nal/**', ':!.cla' + 'ude/**', ':!.gev-logs/**', ':!CLA' + 'UDE.md', ':!AGENTS.md'
+    ], {
+      timeoutMs: 120000
+    });
     // 0 = matches, 1 = no matches, >1 = the scan itself failed.
     if (grep.code > 1) return crash(`git grep failed (exit ${grep.code}): ${tail(grep.err)}`);
     const hits = grep.out.split('\n').filter(Boolean);
-    return hits.length === 0
-      ? pass(`clean for: ${terms.join(', ')}`)
-      : fail(`${hits.length} file(s) carry private terms: ${hits.slice(0, 4).join(', ')}`);
+    return hits.length === 0 ?
+      pass(`clean for: ${terms.join(', ')}`) :
+      fail(`${hits.length} file(s) carry private terms: ${hits.slice(0, 4).join(', ')}`);
   },
 });
 
 check({
-  id: 'A7', group: 'A', desc: 'Public-facing files present (LICENSE, SECURITY, DATA_SOURCES, README, .env.example)',
+  id: 'A7',
+  group: 'A',
+  desc: 'Public-facing files present (LICENSE, SECURITY, DATA_SOURCES, README, .env.example)',
   run: async () => {
     const want = ['LICENSE', 'SECURITY.md', 'DATA_SOURCES.md', 'README.md', '.env.example', 'CHANGELOG.md'];
     const missing = want.filter((f) => !existsSync(resolve(REPO_ROOT, f)));
@@ -700,7 +910,9 @@ check({
 });
 
 check({
-  id: 'A8', group: 'A', desc: 'Default launch binds localhost; LAN is an explicit opt-in that warns (release bar #3)',
+  id: 'A8',
+  group: 'A',
+  desc: 'Default launch binds localhost; LAN is an explicit opt-in that warns (release bar #3)',
   run: async () => {
     const sh_ = readFileSync(resolve(REPO_ROOT, 'scripts/dev-fresh.sh'), 'utf8');
     const localDefault = /HOST="\$\{HOST:-localhost\}"/.test(sh_);
@@ -712,7 +924,9 @@ check({
 });
 
 check({
-  id: 'A9', group: 'A', desc: '.env.example documents LAN opt-in + the cost-control throttles',
+  id: 'A9',
+  group: 'A',
+  desc: '.env.example documents LAN opt-in + the cost-control throttles',
   run: async () => {
     const t = readFileSync(resolve(REPO_ROOT, '.env.example'), 'utf8');
     const bits = {
@@ -728,19 +942,25 @@ check({
 
 // ─── B · FEED PROBES (server side) ────────────────────────────────────────
 check({
-  id: 'B1', group: 'B', desc: 'Target serves the app shell',
+  id: 'B1',
+  group: 'B',
+  desc: 'Target serves the app shell',
   run: async () => {
     const r = await jget('/');
-    return r.ok && /<div id="cesiumContainer"|<title>/i.test(r.text)
-      ? pass(`HTTP ${r.status}, ${r.text.length} bytes`)
-      : fail(`HTTP ${r.status}`);
+    return r.ok && /<div id="cesiumContainer"|<title>/i.test(r.text) ?
+      pass(`HTTP ${r.status}, ${r.text.length} bytes`) :
+      fail(`HTTP ${r.status}`);
   },
 });
 
 check({
-  id: 'B2', group: 'B', desc: 'Flights proxy returns live contacts (/api/opensky)',
+  id: 'B2',
+  group: 'B',
+  desc: 'Flights proxy returns live contacts (/api/opensky)',
   run: async () => {
-    const r = await jget('/api/opensky?lamin=24&lomin=-125&lamax=50&lomax=-66', { timeoutMs: 45000 });
+    const r = await jget('/api/opensky?lamin=24&lomin=-125&lamax=50&lomax=-66', {
+      timeoutMs: 45000
+    });
     if (!r.ok) return fail(`HTTP ${r.status}: ${r.text.slice(0, 120)}`);
     const n = r.json?.states?.length || 0;
     return n > 0 ? pass(`${n} states, cache=${r.headers.get('x-opensky-cache') || 'n/a'}`) : fail('0 states returned');
@@ -748,9 +968,13 @@ check({
 });
 
 check({
-  id: 'B3', group: 'B', desc: 'OpenSky credentials are actually in use (not the anonymous/fallback path)',
+  id: 'B3',
+  group: 'B',
+  desc: 'OpenSky credentials are actually in use (not the anonymous/fallback path)',
   run: async () => {
-    const r = await jget('/api/opensky?lamin=24&lomin=-125&lamax=50&lomax=-66', { timeoutMs: 45000 });
+    const r = await jget('/api/opensky?lamin=24&lomin=-125&lamax=50&lomax=-66', {
+      timeoutMs: 45000
+    });
     // Header names are exact: X-OpenSky-Auth-Mode-Used / X-OpenSky-Auth-Reason.
     // (An earlier guess at these names made this check pass vacuously.)
     const reason = r.headers.get('X-OpenSky-Auth-Reason') || '';
@@ -771,9 +995,13 @@ check({
 });
 
 check({
-  id: 'B4', group: 'B', desc: 'CelesTrak TLE proxy serves and caches (/api/celestrak/stations)',
+  id: 'B4',
+  group: 'B',
+  desc: 'CelesTrak TLE proxy serves and caches (/api/celestrak/stations)',
   run: async () => {
-    const r = await jget('/api/celestrak/stations', { timeoutMs: 40000 });
+    const r = await jget('/api/celestrak/stations', {
+      timeoutMs: 40000
+    });
     if (!r.ok) return fail(`HTTP ${r.status}`);
     const lines = r.text.split('\n').filter((l) => /^1 /.test(l)).length;
     const cache = r.headers.get('x-tle-cache');
@@ -782,9 +1010,13 @@ check({
 });
 
 check({
-  id: 'B5', group: 'B', desc: 'TLEs are FRESH (epoch under 14 days — a stale catalog silently mis-propagates)',
+  id: 'B5',
+  group: 'B',
+  desc: 'TLEs are FRESH (epoch under 14 days — a stale catalog silently mis-propagates)',
   run: async () => {
-    const r = await jget('/api/celestrak/stations', { timeoutMs: 40000 });
+    const r = await jget('/api/celestrak/stations', {
+      timeoutMs: 40000
+    });
     if (!r.ok) return fail(`HTTP ${r.status}`);
     const line1 = r.text.split('\n').find((l) => /^1 /.test(l));
     if (!line1) return fail('no TLE line 1 found');
@@ -794,41 +1026,53 @@ check({
     const year = yy < 57 ? 2000 + yy : 1900 + yy;
     const epoch = new Date(Date.UTC(year, 0, 1) + (ddd - 1) * 86400000);
     const ageDays = (Date.now() - epoch.getTime()) / 86400000;
-    return ageDays >= 0 && ageDays < 14
-      ? pass(`newest epoch ${epoch.toISOString().slice(0, 10)} (${ageDays.toFixed(1)} d old)`)
-      : fail(`TLE epoch ${epoch.toISOString().slice(0, 10)} is ${ageDays.toFixed(1)} days old`);
+    return ageDays >= 0 && ageDays < 14 ?
+      pass(`newest epoch ${epoch.toISOString().slice(0, 10)} (${ageDays.toFixed(1)} d old)`) :
+      fail(`TLE epoch ${epoch.toISOString().slice(0, 10)} is ${ageDays.toFixed(1)} days old`);
   },
 });
 
 check({
-  id: 'B6', group: 'B', desc: 'FIRMS proxy returns live fires', needsKey: 'FIRMS',
+  id: 'B6',
+  group: 'B',
+  desc: 'FIRMS proxy returns live fires',
+  needsKey: 'FIRMS',
   run: async () => {
-    const r = await jget('/api/firms', { timeoutMs: 60000 });
+    const r = await jget('/api/firms', {
+      timeoutMs: 60000
+    });
     if (!r.ok) return fail(`HTTP ${r.status}: ${r.text.slice(0, 120)}`);
     const n = r.json?.count ?? r.json?.fires?.length ?? 0;
-    return n > 0
-      ? pass(`${n} fires, stale=${r.json?.stale}, sources=${(r.json?.sources || []).length}`)
-      : fail('0 fires from a keyed FIRMS proxy');
+    return n > 0 ?
+      pass(`${n} fires, stale=${r.json?.stale}, sources=${(r.json?.sources || []).length}`) :
+      fail('0 fires from a keyed FIRMS proxy');
   },
 });
 
 check({
-  id: 'B7', group: 'B', desc: 'FIRMS without a key fails HONESTLY (503 no_key, never a healthy-empty)',
+  id: 'B7',
+  group: 'B',
+  desc: 'FIRMS without a key fails HONESTLY (503 no_key, never a healthy-empty)',
   run: async () => {
     const guard = keyGuard('FIRMS', env.keys.FIRMS);
     if (guard) return guard;
     if (env.keys.FIRMS === true) return skip('server HAS a FIRMS key — the keyless path needs an unkeyed server', 'N/A');
     const r = await jget('/api/firms');
-    return r.status === 503 && r.json?.error === 'no_key'
-      ? pass('503 {"error":"no_key"}')
-      : fail(`expected 503 no_key, got ${r.status} ${r.text.slice(0, 120)}`);
+    return r.status === 503 && r.json?.error === 'no_key' ?
+      pass('503 {"error":"no_key"}') :
+      fail(`expected 503 no_key, got ${r.status} ${r.text.slice(0, 120)}`);
   },
 });
 
 check({
-  id: 'B8', group: 'B', desc: 'AIS vessel feed is live (/api/ais-live)', needsKey: 'AIS',
+  id: 'B8',
+  group: 'B',
+  desc: 'AIS vessel feed is live (/api/ais-live)',
+  needsKey: 'AIS',
   run: async () => {
-    const r = await jget('/api/ais-live', { timeoutMs: 40000 });
+    const r = await jget('/api/ais-live', {
+      timeoutMs: 40000
+    });
     const rows = r.json?.rows?.length || 0;
     const status = r.json?.status;
     if (!r.ok) return fail(`HTTP ${r.status} status=${status}`);
@@ -859,86 +1103,111 @@ check({
 });
 
 check({
-  id: 'B9', group: 'B', desc: 'AIS without a key fails HONESTLY (503 + missing-key status, no reconnect loop)',
+  id: 'B9',
+  group: 'B',
+  desc: 'AIS without a key fails HONESTLY (503 + missing-key status, no reconnect loop)',
   run: async () => {
     const guard = keyGuard('AIS', env.keys.AIS);
     if (guard) return guard;
     if (env.keys.AIS === true) return skip('server HAS an AISStream key', 'N/A');
     const r = await jget('/api/ais-live');
-    return r.status === 503 && r.json?.status === 'missing-key' && Array.isArray(r.json?.rows)
-      ? pass(`503 status=missing-key, rows=[] — "${String(r.json?.error).slice(0, 60)}"`)
-      : fail(`expected 503/missing-key, got ${r.status} ${r.text.slice(0, 120)}`);
+    return r.status === 503 && r.json?.status === 'missing-key' && Array.isArray(r.json?.rows) ?
+      pass(`503 status=missing-key, rows=[] — "${String(r.json?.error).slice(0, 60)}"`) :
+      fail(`expected 503/missing-key, got ${r.status} ${r.text.slice(0, 120)}`);
   },
 });
 
 check({
-  id: 'B10', group: 'B', desc: 'TomTom traffic reports LIVE mode with budget accounting', needsKey: 'TOMTOM',
+  id: 'B10',
+  group: 'B',
+  desc: 'TomTom traffic reports LIVE mode with budget accounting',
+  needsKey: 'TOMTOM',
   run: async () => {
     const r = await jget('/api/tomtom/status');
     if (!r.ok) return fail(`HTTP ${r.status}`);
-    return r.json?.hasKey
-      ? pass(`hasKey=true, used ${r.json.dailyCount}/${r.json.budget} tiles today`)
-      : fail('status says hasKey=false on a server that reported a TomTom key');
+    return r.json?.hasKey ?
+      pass(`hasKey=true, used ${r.json.dailyCount}/${r.json.budget} tiles today`) :
+      fail('status says hasKey=false on a server that reported a TomTom key');
   },
 });
 
 check({
-  id: 'B11', group: 'B', desc: 'TomTom without a key identifies SIMULATION honestly (200 hasKey:false)',
+  id: 'B11',
+  group: 'B',
+  desc: 'TomTom without a key identifies SIMULATION honestly (200 hasKey:false)',
   run: async () => {
     const guard = keyGuard('TOMTOM', env.keys.TOMTOM);
     if (guard) return guard;
     if (env.keys.TOMTOM === true) return skip('server HAS a TomTom key', 'N/A');
     const r = await jget('/api/tomtom/status');
     const tile = await jget('/api/tomtom/flow/12/1000/1600.pbf');
-    return r.ok && r.json?.hasKey === false && tile.status === 503 && tile.json?.error === 'no_key'
-      ? pass('status 200 hasKey:false; flow tile 503 no_key')
-      : fail(`status=${r.status} hasKey=${r.json?.hasKey}; tile=${tile.status} ${tile.text.slice(0, 60)}`);
+    return r.ok && r.json?.hasKey === false && tile.status === 503 && tile.json?.error === 'no_key' ?
+      pass('status 200 hasKey:false; flow tile 503 no_key') :
+      fail(`status=${r.status} hasKey=${r.json?.hasKey}; tile=${tile.status} ${tile.text.slice(0, 60)}`);
   },
 });
 
 check({
-  id: 'B12', group: 'B', desc: 'CCTV source packs registered (Austin + at least one more city)',
+  id: 'B12',
+  group: 'B',
+  desc: 'CCTV source packs registered (Austin + at least one more city)',
   run: async () => {
-    const r = await jget('/api/cctv/sources', { timeoutMs: 60000 });
+    const r = await jget('/api/cctv/sources', {
+      timeoutMs: 60000
+    });
     if (!r.ok) return fail(`HTTP ${r.status}`);
     const src = r.json?.sources || [];
     const cities = [...new Set(src.map((s) => s.cityId || s.city))];
     const austin = src.some((s) => /austin/i.test(s.cityId || s.city || ''));
-    return src.length > 0 && austin && cities.length >= 2
-      ? pass(`${src.length} cameras across ${cities.length} packs: ${cities.slice(0, 6).join(', ')}`)
-      : fail(`${src.length} cameras, austin=${austin}, packs=${cities.join(',')}`);
+    return src.length > 0 && austin && cities.length >= 2 ?
+      pass(`${src.length} cameras across ${cities.length} packs: ${cities.slice(0, 6).join(', ')}`) :
+      fail(`${src.length} cameras, austin=${austin}, packs=${cities.join(',')}`);
   },
 });
 
 check({
-  id: 'B13', group: 'B', desc: 'CCTV frame proxy returns real image bytes',
+  id: 'B13',
+  group: 'B',
+  desc: 'CCTV frame proxy returns real image bytes',
   run: async () => {
-    const list = await jget('/api/cctv/sources', { timeoutMs: 60000 });
+    const list = await jget('/api/cctv/sources', {
+      timeoutMs: 60000
+    });
     const first = (list.json?.sources || [])[0];
     if (!first) return fail('no CCTV sources to sample');
-    const res = await fetch(`${APP_URL}/api/cctv/frame/${encodeURIComponent(first.id)}`, { signal: AbortSignal.timeout(45000) });
+    const res = await fetch(`${APP_URL}/api/cctv/frame/${encodeURIComponent(first.id)}`, {
+      signal: AbortSignal.timeout(45000)
+    });
     const ct = res.headers.get('content-type') || '';
     const buf = Buffer.from(await res.arrayBuffer());
-    return res.ok && /^image\//.test(ct) && buf.length > 512
-      ? pass(`${first.id}: ${ct}, ${(buf.length / 1024).toFixed(0)} KB`)
-      : fail(`HTTP ${res.status} content-type=${ct} bytes=${buf.length}`);
+    return res.ok && /^image\//.test(ct) && buf.length > 512 ?
+      pass(`${first.id}: ${ct}, ${(buf.length / 1024).toFixed(0)} KB`) :
+      fail(`HTTP ${res.status} content-type=${ct} bytes=${buf.length}`);
   },
 });
 
 check({
-  id: 'B14', group: 'B', desc: 'CCTV health route answers (per-camera upstream status)',
+  id: 'B14',
+  group: 'B',
+  desc: 'CCTV health route answers (per-camera upstream status)',
   run: async () => {
-    const r = await jget('/api/cctv/health', { timeoutMs: 45000 });
-    return r.ok && Array.isArray(r.json?.cameras)
-      ? pass(`cameras[]=${r.json.cameras.length} tracked`)
-      : fail(`HTTP ${r.status} ${r.text.slice(0, 100)}`);
+    const r = await jget('/api/cctv/health', {
+      timeoutMs: 45000
+    });
+    return r.ok && Array.isArray(r.json?.cameras) ?
+      pass(`cameras[]=${r.json.cameras.length} tracked`) :
+      fail(`HTTP ${r.status} ${r.text.slice(0, 100)}`);
   },
 });
 
 check({
-  id: 'B15', group: 'B', desc: 'Radio directory proxy returns stations (or a labelled degraded state)',
+  id: 'B15',
+  group: 'B',
+  desc: 'Radio directory proxy returns stations (or a labelled degraded state)',
   run: async () => {
-    const r = await jget('/api/radio/stations?limit=20', { timeoutMs: 45000 });
+    const r = await jget('/api/radio/stations?limit=20', {
+      timeoutMs: 45000
+    });
     const rows = Array.isArray(r.json) ? r.json.length : (r.json?.stations?.length || 0);
     if (r.ok && rows > 0) return pass(`${rows} stations`);
     if (r.status === 503 && r.json?.degraded) return skip(`upstream Radio Browser degraded: ${r.json.degradedReason}`, 'ENV');
@@ -947,9 +1216,13 @@ check({
 });
 
 check({
-  id: 'B16', group: 'B', desc: 'Launch Library proxy returns upcoming missions',
+  id: 'B16',
+  group: 'B',
+  desc: 'Launch Library proxy returns upcoming missions',
   run: async () => {
-    const r = await jget('/api/launches', { timeoutMs: 45000 });
+    const r = await jget('/api/launches', {
+      timeoutMs: 45000
+    });
     const n = r.json?.results?.length ?? r.json?.launches?.length ?? (Array.isArray(r.json) ? r.json.length : 0);
     if (r.ok && n > 0) return pass(`${n} launches`);
     if (r.ok) return skip('proxy up but no upcoming launches listed', 'ENV');
@@ -958,69 +1231,95 @@ check({
 });
 
 check({
-  id: 'B17', group: 'B', desc: 'Terrain height service answers (the height-datum backbone)',
+  id: 'B17',
+  group: 'B',
+  desc: 'Terrain height service answers (the height-datum backbone)',
   run: async () => {
     // Contract: points="lon,lat;lon,lat;…" (longitude first).
-    const r = await jget('/api/terrain/heights?points=-97.7431,30.2672', { timeoutMs: 45000 });
+    const r = await jget('/api/terrain/heights?points=-97.7431,30.2672', {
+      timeoutMs: 45000
+    });
     if (r.status === 502) return skip(`terrain upstream unavailable and no cache: ${r.text.slice(0, 90)}`, 'ENV');
     if (!r.ok) return fail(`HTTP ${r.status} ${r.text.slice(0, 100)}`);
     const first = r.json?.results?.[0];
-    return Number.isFinite(first?.elevation) && Number.isFinite(first?.geoid)
-      ? pass(`Austin: elevation ${first.elevation.toFixed(1)} m, geoid ${first.geoid.toFixed(1)} m, ellipsoid ${first.ellipsoid.toFixed(1)} m`)
-      : fail(`unexpected payload: ${r.text.slice(0, 120)}`);
+    return Number.isFinite(first?.elevation) && Number.isFinite(first?.geoid) ?
+      pass(`Austin: elevation ${first.elevation.toFixed(1)} m, geoid ${first.geoid.toFixed(1)} m, ellipsoid ${first.ellipsoid.toFixed(1)} m`) :
+      fail(`unexpected payload: ${r.text.slice(0, 120)}`);
   },
 });
 
 check({
-  id: 'B18', group: 'B', desc: 'Overpass proxy answers a real query (roads, annotations, installations)',
+  id: 'B18',
+  group: 'B',
+  desc: 'Overpass proxy answers a real query (roads, annotations, installations)',
   heavy: true,
   run: async () => {
     // Contract: a form-encoded body with exactly one bounded `data` query.
     const query = '[out:json][timeout:25];node(30.26,-97.75,30.27,-97.74)["amenity"="cafe"];out 5;';
     const res = await fetch(`${APP_URL}/api/overpass`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ data: query }).toString(),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        data: query
+      }).toString(),
       signal: AbortSignal.timeout(60000),
     });
     const text = await res.text();
-    let json = null; try { json = JSON.parse(text); } catch { /* not json */ }
+    let json = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      /* not json */ }
     if (res.ok && Array.isArray(json?.elements)) return pass(`${json.elements.length} elements`);
-    return res.status === 502
-      ? skip(`Overpass upstream unavailable: ${text.slice(0, 80)}`, 'ENV')
-      : fail(`HTTP ${res.status} ${text.slice(0, 100)}`);
+    return res.status === 502 ?
+      skip(`Overpass upstream unavailable: ${text.slice(0, 80)}`, 'ENV') :
+      fail(`HTTP ${res.status} ${text.slice(0, 100)}`);
   },
 });
 
 check({
-  id: 'B19', group: 'B', desc: 'Realtime token endpoint mints an EPHEMERAL secret and never the raw key',
-  needsKey: 'OPENAI', costly: true,
+  id: 'B19',
+  group: 'B',
+  desc: 'Realtime token endpoint mints an EPHEMERAL secret and never the raw key',
+  needsKey: 'OPENAI',
+  costly: true,
   run: async () => {
-    const r = await jget('/api/realtime/token', { method: 'POST', timeoutMs: 30000 });
+    const r = await jget('/api/realtime/token', {
+      method: 'POST',
+      timeoutMs: 30000
+    });
     if (!r.ok) return fail(`HTTP ${r.status}: ${r.text.slice(0, 120)}`);
     const blob = r.text;
     if (/\bsk-[A-Za-z0-9]{20,}/.test(blob)) return fail('response contains a raw sk- key');
-    return /ek_|client_secret|value/.test(blob)
-      ? pass('ephemeral client secret returned; no raw key in the payload')
-      : fail(`unexpected token payload: ${blob.slice(0, 120)}`);
+    return /ek_|client_secret|value/.test(blob) ?
+      pass('ephemeral client secret returned; no raw key in the payload') :
+      fail(`unexpected token payload: ${blob.slice(0, 120)}`);
   },
 });
 
 check({
-  id: 'B20', group: 'B', desc: 'Voice without a key fails HONESTLY (503, app unaffected)',
+  id: 'B20',
+  group: 'B',
+  desc: 'Voice without a key fails HONESTLY (503, app unaffected)',
   run: async () => {
     const guard = keyGuard('OPENAI', env.keys.OPENAI);
     if (guard) return guard;
     if (env.keys.OPENAI === true) return skip('server HAS an OpenAI key — the keyless path needs an unkeyed server', 'N/A');
-    const r = await jget('/api/realtime/token', { method: 'POST' });
-    return r.status === 503 && /OPENAI_API_KEY is not set/.test(r.text)
-      ? pass('503 "OPENAI_API_KEY is not set"')
-      : fail(`expected 503, got ${r.status} ${r.text.slice(0, 120)}`);
+    const r = await jget('/api/realtime/token', {
+      method: 'POST'
+    });
+    return r.status === 503 && /OPENAI_API_KEY is not set/.test(r.text) ?
+      pass('503 "OPENAI_API_KEY is not set"') :
+      fail(`expected 503, got ${r.status} ${r.text.slice(0, 120)}`);
   },
 });
 
 check({
-  id: 'B21', group: 'B', desc: 'No proxy echoes credential material back to the client (P1-5 acceptance #4)',
+  id: 'B21',
+  group: 'B',
+  desc: 'No proxy echoes credential material back to the client (P1-5 acceptance #4)',
   run: async () => {
     const paths = ['/api/cctv/sources', '/api/tomtom/status', '/api/firms/status', '/api/celestrak/stations', '/api/ais-live'];
     const leaked = [];
@@ -1029,7 +1328,11 @@ check({
       let r;
       // A route this check could not read is a route it did not scan. Swallowing
       // the exception and still reporting "5 routes scanned" is a false PASS.
-      try { r = await jget(p, { timeoutMs: 30000 }); } catch (e) {
+      try {
+        r = await jget(p, {
+          timeoutMs: 30000
+        });
+      } catch (e) {
         unscannable.push(`${p} (${String(e?.message || e).slice(0, 60)})`);
         continue;
       }
@@ -1037,8 +1340,8 @@ check({
       // is trivially true and proves nothing — a broken app must not satisfy a
       // negative assertion. The one documented exception is the keyless
       // 503 {status:'missing-key'} from /api/ais-live, which IS its real shape.
-      const documentedKeyless = r.status === 503
-        && (r.json?.status === 'missing-key' || r.json?.error === 'no_key' || /OPENAI_API_KEY is not set/.test(r.text));
+      const documentedKeyless = r.status === 503 &&
+        (r.json?.status === 'missing-key' || r.json?.error === 'no_key' || /OPENAI_API_KEY is not set/.test(r.text));
       if (!r.ok && !documentedKeyless) {
         unscannable.push(`${p} (HTTP ${r.status})`);
         continue;
@@ -1078,19 +1381,42 @@ const BROWSER_CHECKS = [
   ['C16', 'Reset-to-globe control returns the camera to the global band'],
   ['C17', 'Voice surface degrades honestly without a key'],
 ];
-for (const [id, desc] of BROWSER_CHECKS) check({ id, group: 'C', desc, browser: true });
+for (const [id, desc] of BROWSER_CHECKS) check({
+  id,
+  group: 'C',
+  desc,
+  browser: true
+});
 
 // ─── D · EXISTING HARNESS FLEET ───────────────────────────────────────────
 check({
-  id: 'D1', group: 'D', desc: 'track-regression — the tracking/height-datum invariant gate (P1-7)',
-  heavy: true, run: harness({ id: 'D1', script: 'track-regression.mjs', args: ['--url', APP_URL], timeoutMs: 1200000 }),
+  id: 'D1',
+  group: 'D',
+  desc: 'track-regression — the tracking/height-datum invariant gate (P1-7)',
+  heavy: true,
+  run: harness({
+    id: 'D1',
+    script: 'track-regression.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 1200000
+  }),
 });
 check({
-  id: 'D2', group: 'D', desc: 'qa-heading-b3 — path-derived display heading',
-  heavy: true, run: harness({ id: 'D2', script: 'qa-heading-b3.mjs', args: ['--url', APP_URL], timeoutMs: 900000 }),
+  id: 'D2',
+  group: 'D',
+  desc: 'qa-heading-b3 — path-derived display heading',
+  heavy: true,
+  run: harness({
+    id: 'D2',
+    script: 'qa-heading-b3.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 900000
+  }),
 });
 check({
-  id: 'D3', group: 'D', desc: 'qa-sprites-b5 — per-class billboard silhouettes',
+  id: 'D3',
+  group: 'D',
+  desc: 'qa-sprites-b5 — per-class billboard silhouettes',
   heavy: true,
   run: harness({
     id: 'D3',
@@ -1106,20 +1432,45 @@ check({
   }),
 });
 check({
-  id: 'D4', group: 'D', desc: 'qa-cctv-v2 — camera geometry, projection, ambient cards',
-  heavy: true, run: harness({ id: 'D4', script: 'qa-cctv-v2.mjs', args: ['--url', APP_URL], timeoutMs: 1500000 }),
+  id: 'D4',
+  group: 'D',
+  desc: 'qa-cctv-v2 — camera geometry, projection, ambient cards',
+  heavy: true,
+  run: harness({
+    id: 'D4',
+    script: 'qa-cctv-v2.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 1500000
+  }),
 });
 check({
-  id: 'D5', group: 'D', desc: 'qa-failstate-b10 — fabricated upstream failures degrade honestly',
-  run: harness({ id: 'D5', script: 'qa-failstate-b10.mjs', args: ['--url', APP_URL], timeoutMs: 900000 }),
+  id: 'D5',
+  group: 'D',
+  desc: 'qa-failstate-b10 — fabricated upstream failures degrade honestly',
+  run: harness({
+    id: 'D5',
+    script: 'qa-failstate-b10.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 900000
+  }),
 });
 check({
-  id: 'D6', group: 'D', desc: 'qa-attribution-b12 — per-layer credits + clean/recording credit line',
-  run: harness({ id: 'D6', script: 'qa-attribution-b12.mjs', args: ['--url', APP_URL], timeoutMs: 600000 }),
+  id: 'D6',
+  group: 'D',
+  desc: 'qa-attribution-b12 — per-layer credits + clean/recording credit line',
+  run: harness({
+    id: 'D6',
+    script: 'qa-attribution-b12.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 600000
+  }),
 });
 check({
-  id: 'D7', group: 'D', desc: 'qa-cockpit-utility — cockpit display/radio layout readiness',
-  heavy: true, parseNote: 'READY/NOT_READY',
+  id: 'D7',
+  group: 'D',
+  desc: 'qa-cockpit-utility — cockpit display/radio layout readiness',
+  heavy: true,
+  parseNote: 'READY/NOT_READY',
   run: harness({
     id: 'D7',
     script: 'qa-cockpit-utility.mjs',
@@ -1134,11 +1485,21 @@ check({
   }),
 });
 check({
-  id: 'D8', group: 'D', desc: 'qa-radio — worldwide radio browse/play surface',
-  heavy: true, run: harness({ id: 'D8', script: 'qa-radio.mjs', args: ['--url', APP_URL], timeoutMs: 900000 }),
+  id: 'D8',
+  group: 'D',
+  desc: 'qa-radio — worldwide radio browse/play surface',
+  heavy: true,
+  run: harness({
+    id: 'D8',
+    script: 'qa-radio.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 900000
+  }),
 });
 check({
-  id: 'D9', group: 'D', desc: 'qa-floor-verify — grounded contacts sit ON the rendered mesh floor',
+  id: 'D9',
+  group: 'D',
+  desc: 'qa-floor-verify — grounded contacts sit ON the rendered mesh floor',
   heavy: true,
   run: harness({
     id: 'D9',
@@ -1152,15 +1513,34 @@ check({
   }),
 });
 check({
-  id: 'D10', group: 'D', desc: 'qa-voice-routing (behavior layer) — tool behavior without model turns',
-  heavy: true, run: harness({ id: 'D10', script: 'qa-voice-routing.mjs', args: ['--layer', 'behavior', '--url', APP_URL], timeoutMs: 1500000 }),
+  id: 'D10',
+  group: 'D',
+  desc: 'qa-voice-routing (behavior layer) — tool behavior without model turns',
+  heavy: true,
+  run: harness({
+    id: 'D10',
+    script: 'qa-voice-routing.mjs',
+    args: ['--layer', 'behavior', '--url', APP_URL],
+    timeoutMs: 1500000
+  }),
 });
 check({
-  id: 'D11', group: 'D', desc: 'qa-firms — live fire rendering and interaction', needsKey: 'FIRMS', heavy: true,
-  run: harness({ id: 'D11', script: 'qa-firms.mjs', args: ['--url', APP_URL], timeoutMs: 900000 }),
+  id: 'D11',
+  group: 'D',
+  desc: 'qa-firms — live fire rendering and interaction',
+  needsKey: 'FIRMS',
+  heavy: true,
+  run: harness({
+    id: 'D11',
+    script: 'qa-firms.mjs',
+    args: ['--url', APP_URL],
+    timeoutMs: 900000
+  }),
 });
 check({
-  id: 'D12', group: 'D', desc: 'qa-overlay-baseline (submarine cables scene) — overlay/label baseline',
+  id: 'D12',
+  group: 'D',
+  desc: 'qa-overlay-baseline (submarine cables scene) — overlay/label baseline',
   heavy: true,
   run: harness({
     id: 'D12',
@@ -1185,7 +1565,12 @@ const MANUAL = [
   ['M10', 'Sensor styles + Contacts-owned detection (DENSE/75 on activation-from-OFF; Cockpit inert; restore on deactivation)'],
   ['M11', 'Cancelled cross-mode Context switch rests on Context OFF (contextOff + priorMode, no restoration)'],
 ];
-for (const [id, desc] of MANUAL) check({ id, group: 'M', desc, manual: true });
+for (const [id, desc] of MANUAL) check({
+  id,
+  group: 'M',
+  desc,
+  manual: true
+});
 
 // ── selection ─────────────────────────────────────────────────────────────
 function selected(c) {
@@ -1202,13 +1587,17 @@ const BOOT_JS = () => window.__godsEyeView?.viewer && window.__godsEyeView?.data
 async function runBrowserGroup(record) {
   const ids = BROWSER_CHECKS.map(([id]) => id).filter((id) => selected(CHECKS.find((c) => c.id === id)));
   if (!ids.length) return;
-  const emit = (id, res, ms) => { if (ids.includes(id)) record(CHECKS.find((c) => c.id === id), res, ms); };
+  const emit = (id, res, ms) => {
+    if (ids.includes(id)) record(CHECKS.find((c) => c.id === id), res, ms);
+  };
   const only = (id) => ids.includes(id);
 
   const exe = await puppeteer.executablePath().catch(() => null);
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(exe ? { executablePath: exe } : {}),
+    ...(exe ? {
+      executablePath: exe
+    } : {}),
     // Heavy layers (CCTV fleet admission, traffic road graphs) can block the
     // page's main thread past puppeteer's 180 s default and turn a healthy
     // layer into a bogus "probe threw" FAIL.
@@ -1218,18 +1607,27 @@ async function runBrowserGroup(record) {
       // C17 drives the keyless voice path, which asks for a microphone before
       // it mints a token. A fake device + auto-granted permission keeps the
       // failure under test the MISSING KEY, not a missing microphone.
-      '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+      '--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'
+    ],
   });
   env.browserVersion = await browser.version();
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.setViewport({
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1
+  });
 
   const pageErrors = [];
   const consoleErrors = [];
   const requestUrls = [];
   page.on('pageerror', (e) => pageErrors.push(String(e?.message || e).slice(0, 200)));
-  page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text().slice(0, 200)); });
-  page.on('request', (r) => { requestUrls.push(r.url()); });
+  page.on('console', (m) => {
+    if (m.type() === 'error') consoleErrors.push(m.text().slice(0, 200));
+  });
+  page.on('request', (r) => {
+    requestUrls.push(r.url());
+  });
 
   // A saturated main thread (SwiftShader + ~20k entities) makes every CDP call
   // wait the full protocolTimeout — 7 minutes per call, and a check that never
@@ -1247,8 +1645,18 @@ async function runBrowserGroup(record) {
   const UNRESPONSIVE = Symbol('page-unresponsive');
   const mustEval = async (fn, arg = null, ms = 30000) => {
     const outcome = await Promise.race([
-      page.evaluate(fn, arg).then((value) => ({ ok: true, value }), (e) => ({ ok: false, reason: `page threw: ${String(e?.message || e).slice(0, 140)}` })),
-      new Promise((r) => setTimeout(() => r({ ok: false, reason: `page did not answer within ${ms} ms`, unresponsive: UNRESPONSIVE }), ms)),
+      page.evaluate(fn, arg).then((value) => ({
+        ok: true,
+        value
+      }), (e) => ({
+        ok: false,
+        reason: `page threw: ${String(e?.message || e).slice(0, 140)}`
+      })),
+      new Promise((r) => setTimeout(() => r({
+        ok: false,
+        reason: `page did not answer within ${ms} ms`,
+        unresponsive: UNRESPONSIVE
+      }), ms)),
     ]);
     return outcome;
   };
@@ -1274,8 +1682,14 @@ async function runBrowserGroup(record) {
   let bootNote = '';
   for (let attempt = 1; attempt <= 3 && !booted; attempt += 1) {
     try {
-      await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-      await page.waitForFunction(BOOT_JS, { timeout: 90000, polling: 1000 });
+      await page.goto(APP_URL, {
+        waitUntil: 'domcontentloaded',
+        timeout: 120000
+      });
+      await page.waitForFunction(BOOT_JS, {
+        timeout: 90000,
+        polling: 1000
+      });
       booted = true;
     } catch {
       // A dev server that re-optimizes deps mid-load answers 504 "Outdated
@@ -1302,17 +1716,43 @@ async function runBrowserGroup(record) {
         const stop = g.viewer.scene.postRender.addEventListener(() => {
           if (done) return;
           done = true;
-          setTimeout(() => { try { stop(); } catch { /* removed */ } resolve(true); }, 0);
+          setTimeout(() => {
+            try {
+              stop();
+            } catch {
+              /* removed */ }
+            resolve(true);
+          }, 0);
         });
         g.viewer.scene.requestRender();
-        setTimeout(() => { if (!done) { done = true; try { stop(); } catch { /* removed */ } resolve(false); } }, 20000);
+        setTimeout(() => {
+          if (!done) {
+            done = true;
+            try {
+              stop();
+            } catch {
+              /* removed */ }
+            resolve(false);
+          }
+        }, 20000);
       });
       const canvas = g.viewer.scene.canvas;
-      return { painted, w: canvas?.width ?? 0, h: canvas?.height ?? 0, frames: g.viewer.scene.frameState?.frameNumber ?? null };
+      return {
+        painted,
+        w: canvas?.width ?? 0,
+        h: canvas?.height ?? 0,
+        frames: g.viewer.scene.frameState?.frameNumber ?? null
+      };
     }, null, 45000);
-    paint = paintR.ok ? paintR.value : { probeError: paintR.reason };
+    paint = paintR.ok ? paintR.value : {
+      probeError: paintR.reason
+    };
   }
-  env.boot = { ok: booted, seconds: bootSec, paint };
+  env.boot = {
+    ok: booted,
+    seconds: bootSec,
+    paint
+  };
   const bootDetail = `viewer + dataManager live in ${bootSec.toFixed(1)} s${bootNote ? ` (after ${bootNote})` : ''}; first paint frame=${paint?.frames ?? 'n/a'} canvas=${paint?.w ?? 0}x${paint?.h ?? 0}`;
   emit('C1', (() => {
     if (!booted) return fail(`app never booted in ${bootSec.toFixed(0)} s — ${bootNote}; if 504, clear node_modules/.vite and restart the dev server`);
@@ -1334,7 +1774,12 @@ async function runBrowserGroup(record) {
   }
 
   // Cancel the intro flyTo: it clobbers any setView issued mid-flight.
-  await evalBounded(() => { try { window.__godsEyeView.viewer.camera.cancelFlight(); } catch { /* none */ } });
+  await evalBounded(() => {
+    try {
+      window.__godsEyeView.viewer.camera.cancelFlight();
+    } catch {
+      /* none */ }
+  });
   await new Promise((r) => setTimeout(r, 3000));
 
   // Enable a layer, then poll its stats from THIS side. Polling in Node (many
@@ -1343,19 +1788,32 @@ async function runBrowserGroup(record) {
   const settle = async (layerId, maxSec = 45) => {
     const enabled = (await evalBounded(async (id) => {
       const dm = window.__godsEyeView.dataManager;
-      if (!dm.layers.has(id)) return { missing: true };
+      if (!dm.layers.has(id)) return {
+        missing: true
+      };
       try {
         // setEnabled resolves when the whole lifecycle transaction settles —
         // for a viewport-scoped layer over a huge extent that can be minutes.
         // Race it: the layer is still enabling, and the poll loop below is the
         // real observer. Blocking here just burns the CDP protocol timeout.
         await Promise.race([
-          dm.setEnabled(id, true, { origin: 'user' }),
+          dm.setEnabled(id, true, {
+            origin: 'user'
+          }),
           new Promise((r) => setTimeout(r, 20000)),
         ]);
-      } catch (e) { return { enableError: String(e?.message || e) }; }
-      return { ok: true };
-    }, layerId, 30000)) || { ok: true, enableUnconfirmed: true };
+      } catch (e) {
+        return {
+          enableError: String(e?.message || e)
+        };
+      }
+      return {
+        ok: true
+      };
+    }, layerId, 30000)) || {
+      ok: true,
+      enableUnconfirmed: true
+    };
     if (enabled.missing || enabled.enableError) return enabled;
 
     let stats = null;
@@ -1369,7 +1827,11 @@ async function runBrowserGroup(record) {
         const mod = dm.layers.get(id)?.module;
         const s = mod?.getStats ? mod.getStats() : null;
         const projected = dm.getAll().find((l) => l.id === id) || {};
-        return { stats: s, lifecycleState: projected.lifecycleState, enabled: projected.enabled };
+        return {
+          stats: s,
+          lifecycleState: projected.lifecycleState,
+          enabled: projected.enabled
+        };
       }, layerId);
       if (!snap) continue;
       stats = snap.stats;
@@ -1381,7 +1843,10 @@ async function runBrowserGroup(record) {
       // accept "has data" so one progressive layer cannot eat the budget.
       if (answered && (!stats.loading || i >= Math.min(12, Math.floor(maxSec / 2)))) break;
     }
-    return { stats, lifecycleState };
+    return {
+      stats,
+      lifecycleState
+    };
   };
 
   // The late checks (C16 reset control, C17 voice surface) make claims about
@@ -1397,13 +1862,17 @@ async function runBrowserGroup(record) {
     await evalBounded(async () => {
       const dm = window.__godsEyeView.dataManager;
       const heavy = ['cctv', 'traffic', 'flights', 'satellites', 'telegeography-submarine-cables',
-        'local-datacenters', 'local-dams', 'military-installations', 'earthquakes'];
+        'local-datacenters', 'local-dams', 'military-installations', 'earthquakes'
+      ];
       for (const id of heavy) {
         if (!dm.layers.has(id)) continue;
         try {
           // eslint-disable-next-line no-await-in-loop
-          await Promise.race([dm.setEnabled(id, false, { origin: 'user' }), new Promise((r) => setTimeout(r, 3000))]);
-        } catch { /* teardown is best-effort */ }
+          await Promise.race([dm.setEnabled(id, false, {
+            origin: 'user'
+          }), new Promise((r) => setTimeout(r, 3000))]);
+        } catch {
+          /* teardown is best-effort */ }
       }
     }, null, 45000);
     await new Promise((r) => setTimeout(r, 4000));
@@ -1448,9 +1917,9 @@ async function runBrowserGroup(record) {
     return pass(`Photorealistic 3D attached and ready (mapStack=${info.mapStack}, ${info.tilesets.length} tileset(s), imagery layers=${info.imagery})`);
   });
 
-  await step('C3', async () => (pageErrors.length === 0
-    ? pass(`0 uncaught page errors (${consoleErrors.length} console errors, keyless 503s expected)`)
-    : fail(`${pageErrors.length} uncaught: ${pageErrors.slice(0, 2).join(' | ')}`)));
+  await step('C3', async () => (pageErrors.length === 0 ?
+    pass(`0 uncaught page errors (${consoleErrors.length} console errors, keyless 503s expected)`) :
+    fail(`${pageErrors.length} uncaught: ${pageErrors.slice(0, 2).join(' | ')}`)));
 
   // Snapshot the voice surface NOW, before the layer probes below saturate the
   // main thread. C17 reports from this — a real observation, taken at a moment
@@ -1458,21 +1927,33 @@ async function runBrowserGroup(record) {
   // evaluate can starve for minutes.)
   const voiceSnapshotR = await mustEval(() => {
     const vc = window.__gevVoiceCommands;
-    if (!vc) return { present: false };
+    if (!vc) return {
+      present: false
+    };
     let diag = null;
-    try { diag = vc.getDiagnostics?.(); } catch { /* never started */ }
-    return { present: true, active: !!vc.isActive?.(), status: diag?.status ?? null, hasRunner: typeof vc.runner === 'function' };
+    try {
+      diag = vc.getDiagnostics?.();
+    } catch {
+      /* never started */ }
+    return {
+      present: true,
+      active: !!vc.isActive?.(),
+      status: diag?.status ?? null,
+      hasRunner: typeof vc.runner === 'function'
+    };
   }, null, 30000);
-  const voiceSnapshot = voiceSnapshotR.ok ? voiceSnapshotR.value : { probeError: voiceSnapshotR.reason };
+  const voiceSnapshot = voiceSnapshotR.ok ? voiceSnapshotR.value : {
+    probeError: voiceSnapshotR.reason
+  };
 
   await step('C4', async () => {
     const r = await settle('flights', 40);
     const s = r.stats || {};
     if (!(s.count > 0)) return fail(`0 contacts (status=${s.status || ''} error=${s.error || ''})`);
     const src = String(s.source || '');
-    return /adsb\.lol/i.test(src)
-      ? skip(`${s.count} contacts but via the adsb.lol FALLBACK (source=${src}) — OpenSky credentials needed for the live claim`, 'OWNER-RUN')
-      : pass(`${s.count} contacts, source=${src || 'OpenSky'}, stale=${!!s.stale}`);
+    return /adsb\.lol/i.test(src) ?
+      skip(`${s.count} contacts but via the adsb.lol FALLBACK (source=${src}) — OpenSky credentials needed for the live claim`, 'OWNER-RUN') :
+      pass(`${s.count} contacts, source=${src || 'OpenSky'}, stale=${!!s.stale}`);
   });
 
   await step('C5', async () => {
@@ -1497,7 +1978,12 @@ async function runBrowserGroup(record) {
       // eslint-disable-next-line no-await-in-loop
       ui = await evalBounded(() => {
         const st = window.__godsEyeView.dataManager.layers.get('cctv')?.module?.getUIState?.();
-        return st ? { count: st.count, loading: st.loading, ambient: st.ambientCards, error: st.error } : null;
+        return st ? {
+          count: st.count,
+          loading: st.loading,
+          ambient: st.ambientCards,
+          error: st.error
+        } : null;
       }, null) || ui;
       if (ui && ui.count > 0 && (ui.ambient?.count || 0) > 0 && (ui.ambient?.frameFetches || 0) > 0) break;
       // eslint-disable-next-line no-await-in-loop
@@ -1552,31 +2038,31 @@ async function runBrowserGroup(record) {
     if (live && s.count > 0) {
       // Chip vocabulary: ON / LOADING / DEGRADED / STALE / FALLBACK /
       // UNAVAILABLE (src/data/manager.js:12-19). A live feed with rows reads ON.
-      return /^ON$/i.test(chip.text)
-        ? pass(`${s.count} vessels live: chip="ON", transport=${transport}, lastMessage=${s.lastMessageAt || 'n/a'}`)
-        : fail(`transport=${transport} with ${s.count} vessels, but the chip reads "${chip.text}" — a live feed must present as ON`);
+      return /^ON$/i.test(chip.text) ?
+        pass(`${s.count} vessels live: chip="ON", transport=${transport}, lastMessage=${s.lastMessageAt || 'n/a'}`) :
+        fail(`transport=${transport} with ${s.count} vessels, but the chip reads "${chip.text}" — a live feed must present as ON`);
     }
     if (transport === 'auth-failed') {
       const surfaced = /UNAVAILABLE/i.test(chip.text) && /key rejected/i.test(String(s.error || ''));
-      return surfaced
-        ? fail(`AISStream rejected the key — surfaced correctly (chip="${chip.text}", error="${s.error}", retryInSec=${s.retryInSec}) but a rejected key is a product-blocking failure, not an environment condition`)
-        : fail(`AISStream rejected the key and the UI did not say so: chip="${chip.text}", error="${String(s.error || 'none')}"`);
+      return surfaced ?
+        fail(`AISStream rejected the key — surfaced correctly (chip="${chip.text}", error="${s.error}", retryInSec=${s.retryInSec}) but a rejected key is a product-blocking failure, not an environment condition`) :
+        fail(`AISStream rejected the key and the UI did not say so: chip="${chip.text}", error="${String(s.error || 'none')}"`);
     }
     if (['stale', 'reconnecting', 'down'].includes(transport)) {
       // Degraded is ENV only when it is SURFACED. Cached rows must read STALE;
       // no usable rows must read UNAVAILABLE.
       const expected = s.count > 0 ? /STALE|DEGRADED/i : /UNAVAILABLE|DEGRADED/i;
-      return expected.test(chip.text)
-        ? skip(`feed is ${transport}${s.count > 0 ? ` with ${s.count} CACHED vessels` : ''} and the UI says so (chip="${chip.text}", error="${String(s.error || '').slice(0, 60)}", retryInSec=${s.retryInSec}) — honest degradation, not a live feed`, 'ENV')
-        : fail(`feed is ${transport} with ${s.count} vessels but the chip reads "${chip.text}" — a degraded feed that presents as healthy is exactly the invisible outage this check exists for`);
+      return expected.test(chip.text) ?
+        skip(`feed is ${transport}${s.count > 0 ? ` with ${s.count} CACHED vessels` : ''} and the UI says so (chip="${chip.text}", error="${String(s.error || '').slice(0, 60)}", retryInSec=${s.retryInSec}) — honest degradation, not a live feed`, 'ENV') :
+        fail(`feed is ${transport} with ${s.count} vessels but the chip reads "${chip.text}" — a degraded feed that presents as healthy is exactly the invisible outage this check exists for`);
     }
     if (s.count > 0) {
       return fail(`${s.count} vessels with transport="${transport}" — neither live nor a recognised degraded state, so this cannot be called a live feed (chip="${chip.text}")`);
     }
     // Keyed but empty: honest only if the UI says so.
-    return /UNAVAILABLE|LOADING|DEGRADED|STALE/i.test(chip.text)
-      ? skip(`keyed but 0 vessels and the UI says so (chip="${chip.text}", transport=${transport}, error="${String(s.error || '').slice(0, 60)}") — AISStream connects open-but-silent upstream`, 'ENV')
-      : fail(`keyed, 0 vessels, and the chip claims "${chip.text}" — the layer is empty without surfacing it`);
+    return /UNAVAILABLE|LOADING|DEGRADED|STALE/i.test(chip.text) ?
+      skip(`keyed but 0 vessels and the UI says so (chip="${chip.text}", transport=${transport}, error="${String(s.error || '').slice(0, 60)}") — AISStream connects open-but-silent upstream`, 'ENV') :
+      fail(`keyed, 0 vessels, and the chip claims "${chip.text}" — the layer is empty without surfacing it`);
   });
 
   await step('C9', async () => {
@@ -1585,9 +2071,9 @@ async function runBrowserGroup(record) {
     const r = await settle('local-firms', 30);
     const s = r.stats || {};
     if (env.keys.FIRMS === false) {
-      return s.error === 'KEY REQUIRED'
-        ? pass('keyless and honest: getStats().error === "KEY REQUIRED"')
-        : fail(`keyless but error=${s.error} count=${s.count} — expected "KEY REQUIRED"`);
+      return s.error === 'KEY REQUIRED' ?
+        pass('keyless and honest: getStats().error === "KEY REQUIRED"') :
+        fail(`keyless but error=${s.error} count=${s.count} — expected "KEY REQUIRED"`);
     }
     return s.count > 0 ? pass(`${s.count} fires, cells=${s.cells}`) : fail(`keyed but 0 fires (error=${s.error || ''})`);
   });
@@ -1599,7 +2085,13 @@ async function runBrowserGroup(record) {
     await evalBounded(async () => {
       const g = window.__godsEyeView;
       g.viewer.camera.cancelFlight();
-      g.styleManager.applyCameraState({ lat: 30.2672, lon: -97.7431, alt: 2500, heading: 0, pitch: -40 }, 1.2);
+      g.styleManager.applyCameraState({
+        lat: 30.2672,
+        lon: -97.7431,
+        alt: 2500,
+        heading: 0,
+        pitch: -40
+      }, 1.2);
       await new Promise((r) => setTimeout(r, 3500));
     });
     const guard = keyGuard('TOMTOM', env.keys.TOMTOM);
@@ -1608,9 +2100,9 @@ async function runBrowserGroup(record) {
     const s = r.stats || {};
     if (env.keys.TOMTOM === false) {
       const label = String(s.loadingLabel || '');
-      return s.mode === 'sim' && /SIMULATED/i.test(label)
-        ? pass(`sim mode labelled honestly: "${label.slice(0, 70)}"`)
-        : fail(`mode=${s.mode} label="${label.slice(0, 70)}" — expected sim + a SIMULATED label`);
+      return s.mode === 'sim' && /SIMULATED/i.test(label) ?
+        pass(`sim mode labelled honestly: "${label.slice(0, 70)}"`) :
+        fail(`mode=${s.mode} label="${label.slice(0, 70)}" — expected sim + a SIMULATED label`);
     }
     const colored = (s.flowBuckets?.free || 0) + (s.flowBuckets?.slow || 0) + (s.flowBuckets?.jam || 0);
     if (s.mode === 'live' && s.tilesFetched > 0 && colored > 0) {
@@ -1644,7 +2136,13 @@ async function runBrowserGroup(record) {
     await evalBounded(async () => {
       const g = window.__godsEyeView;
       g.viewer.camera.cancelFlight();
-      g.styleManager.applyCameraState({ lat: 20, lon: 0, alt: 14000000, heading: 0, pitch: -90 }, 1.5);
+      g.styleManager.applyCameraState({
+        lat: 20,
+        lon: 0,
+        alt: 14000000,
+        heading: 0,
+        pitch: -90
+      }, 1.5);
       await new Promise((r) => setTimeout(r, 4000));
     }, null, 30000);
     await new Promise((r) => setTimeout(r, 2000));
@@ -1703,12 +2201,23 @@ async function runBrowserGroup(record) {
     // first, and cross-check the layer against its own API: rows from the API
     // but nothing on the map is a PRODUCT failure; nothing from either is a
     // positively-identified upstream-data condition.
-    const box = { name: 'San Diego / Coronado', lat: 32.70, lon: -117.18, span: 0.6 };
-    const api = await jget(`/api/military-installations?south=${(box.lat - box.span).toFixed(5)}&west=${(box.lon - box.span).toFixed(5)}&north=${(box.lat + box.span).toFixed(5)}&east=${(box.lon + box.span).toFixed(5)}`, { timeoutMs: 60000 })
-      .catch((e) => ({ status: 0, json: null, text: String(e?.message || e) }));
-    const apiRows = Array.isArray(api.json?.features) ? api.json.features.length
-      : (Array.isArray(api.json?.elements) ? api.json.elements.length
-        : (Array.isArray(api.json) ? api.json.length : null));
+    const box = {
+      name: 'San Diego / Coronado',
+      lat: 32.70,
+      lon: -117.18,
+      span: 0.6
+    };
+    const api = await jget(`/api/military-installations?south=${(box.lat - box.span).toFixed(5)}&west=${(box.lon - box.span).toFixed(5)}&north=${(box.lat + box.span).toFixed(5)}&east=${(box.lon + box.span).toFixed(5)}`, {
+        timeoutMs: 60000
+      })
+      .catch((e) => ({
+        status: 0,
+        json: null,
+        text: String(e?.message || e)
+      }));
+    const apiRows = Array.isArray(api.json?.features) ? api.json.features.length :
+      (Array.isArray(api.json?.elements) ? api.json.elements.length :
+        (Array.isArray(api.json) ? api.json.length : null));
     // The layer gates on the camera's COMPUTED VIEW RECTANGLE (<=10 degrees,
     // MAX_VIEWPORT_DEGREES), not on the request box. An oblique camera sees to
     // the horizon and blows past that even from low altitude, so look straight
@@ -1716,7 +2225,13 @@ async function runBrowserGroup(record) {
     await evalBounded(async (b) => {
       const g = window.__godsEyeView;
       g.viewer.camera.cancelFlight();
-      g.styleManager.applyCameraState({ lat: b.lat, lon: b.lon, alt: 25000, heading: 0, pitch: -90 }, 1.2);
+      g.styleManager.applyCameraState({
+        lat: b.lat,
+        lon: b.lon,
+        alt: 25000,
+        heading: 0,
+        pitch: -90
+      }, 1.2);
       await new Promise((r) => setTimeout(r, 4000));
     }, box, 30000);
     // `zoom-in` is a TRANSIENT: the layer evaluates the viewport at enable time
@@ -1732,7 +2247,10 @@ async function runBrowserGroup(record) {
       const snap = await evalBounded(() => {
         const dm = window.__godsEyeView.dataManager;
         // Nudge the viewport-driven reload: the layer reloads on camera settle.
-        try { dm.layers.get('military-installations')?.module?.refresh?.(); } catch { /* optional */ }
+        try {
+          dm.layers.get('military-installations')?.module?.refresh?.();
+        } catch {
+          /* optional */ }
         return dm.layers.get('military-installations')?.module?.getStats?.() ?? null;
       }, null, 10000);
       if (snap) ms = snap;
@@ -1791,7 +2309,11 @@ async function runBrowserGroup(record) {
       viewer.creditDisplay.hideLightbox();
       // getEnabledLayerIds() returns a Set — spread it or it crosses the CDP
       // bridge as {}.
-      return { html, listCount, enabled: [...(dm.getEnabledLayerIds?.() || [])] };
+      return {
+        html,
+        listCount,
+        enabled: [...(dm.getEnabledLayerIds?.() || [])]
+      };
     }, null, 60000);
     if (!credR.ok) return crash(`could not read the credit display: ${credR.reason}`);
     const cred = credR.value;
@@ -1803,8 +2325,14 @@ async function runBrowserGroup(record) {
     const exempted = [];
     for (const id of cred.enabled) {
       const expectation = requiredCreditFor(id);
-      if (!expectation) { unmapped.push(id); continue; }
-      if (expectation.exempt) { exempted.push(id); continue; }
+      if (!expectation) {
+        unmapped.push(id);
+        continue;
+      }
+      if (expectation.exempt) {
+        exempted.push(id);
+        continue;
+      }
       if (!cred.html.some((h) => expectation.regex.test(h))) missing.push(id);
     }
     if (missing.length) {
@@ -1836,15 +2364,24 @@ async function runBrowserGroup(record) {
       const out = {
         clean: document.body.classList.contains('ui-clean-view'),
         present: !!el,
-        display: cs?.display, visibility: cs?.visibility, opacity: cs?.opacity,
-        w: rect?.width, h: rect?.height,
+        display: cs?.display,
+        visibility: cs?.visibility,
+        opacity: cs?.opacity,
+        w: rect?.width,
+        h: rect?.height,
         text: (el?.textContent || '').trim().slice(0, 80),
         hasLogo: !!el?.querySelector('.cesium-credit-logoContainer, img'),
         // The container itself can measure 0x0 while its positioned children
         // paint — report the largest child box so the number means something.
         childBox: [...(el?.querySelectorAll('*') || [])]
           .map((n) => n.getBoundingClientRect())
-          .reduce((best, r) => ((r.width * r.height > best.w * best.h) ? { w: r.width, h: r.height } : best), { w: 0, h: 0 }),
+          .reduce((best, r) => ((r.width * r.height > best.w * best.h) ? {
+            w: r.width,
+            h: r.height
+          } : best), {
+            w: 0,
+            h: 0
+          }),
       };
       window.__godsEyeView.styleManager.setCleanView(false);
       return out;
@@ -1856,9 +2393,9 @@ async function runBrowserGroup(record) {
     const visible = st.present && st.display !== 'none' && st.visibility !== 'hidden' && Number(st.opacity) !== 0;
     const labelled = /Data attribution/i.test(st.text) || st.hasLogo;
     const box = `${Math.round(st.w || 0)}x${Math.round(st.h || 0)} (largest child ${Math.round(st.childBox?.w || 0)}x${Math.round(st.childBox?.h || 0)})`;
-    return visible && labelled && st.clean
-      ? pass(`clean-UI on, #cesium-credits painted ${box} ("${st.text.slice(0, 40)}")`)
-      : fail(`clean=${st.clean} present=${st.present} display=${st.display} opacity=${st.opacity} size=${st.w}x${st.h} text="${st.text.slice(0, 40)}"`);
+    return visible && labelled && st.clean ?
+      pass(`clean-UI on, #cesium-credits painted ${box} ("${st.text.slice(0, 40)}")`) :
+      fail(`clean=${st.clean} present=${st.present} display=${st.display} opacity=${st.opacity} size=${st.w}x${st.h} text="${st.text.slice(0, 40)}"`);
   });
 
   await step('C14', async () => {
@@ -1869,7 +2406,10 @@ async function runBrowserGroup(record) {
         const k = localStorage.key(i);
         ls[k] = String(localStorage.getItem(k)).slice(0, 200);
       }
-      return { storage: JSON.stringify(ls), href: location.href };
+      return {
+        storage: JSON.stringify(ls),
+        href: location.href
+      };
     });
     if (!inPageR.ok) return crash(`could not read browser state for the key-leak scan: ${inPageR.reason}`);
     const inPage = inPageR.value;
@@ -1877,9 +2417,9 @@ async function runBrowserGroup(record) {
     if (/AIza[0-9A-Za-z_\-]{30,}/.test(inPage.storage)) leaked.push('localStorage holds a Google key');
     const keyish = requestUrls.filter((u) => u.startsWith(APP_ORIGIN) && /[?&](key|api_?key|token|client_secret)=[A-Za-z0-9_\-]{12,}/i.test(u));
     if (keyish.length) leaked.push(`${keyish.length} same-origin URL(s) carry a key query param: ${keyish[0].slice(0, 90)}`);
-    return leaked.length === 0
-      ? pass(`${requestUrls.length} requests + localStorage scanned, no credential material`)
-      : fail(leaked.join('; '));
+    return leaked.length === 0 ?
+      pass(`${requestUrls.length} requests + localStorage scanned, no credential material`) :
+      fail(leaked.join('; '));
   });
 
   await step('C15', async () => {
@@ -1887,23 +2427,53 @@ async function runBrowserGroup(record) {
     // surveillance / thermal (src/ui.js STYLE_STATUS_LABELS). Passing the
     // labels made every call a silent no-op that still "passed" — so assert
     // the returned visual state actually changed to the requested style.
-    const wanted = [['retro', 'CRT'], ['surveillance', 'NVG'], ['thermal', 'FLIR'], ['normal', 'Normal']];
+    const wanted = [
+      ['retro', 'CRT'],
+      ['surveillance', 'NVG'],
+      ['thermal', 'FLIR'],
+      ['normal', 'Normal']
+    ];
     const rR = await mustEval(async (styles) => {
       const g = window.__godsEyeView;
       const cam = g.viewer.camera;
-      const before = { x: cam.position.x, y: cam.position.y, z: cam.position.z };
+      const before = {
+        x: cam.position.x,
+        y: cam.position.y,
+        z: cam.position.z
+      };
       const seen = [];
       for (const [style, label] of styles) {
         try {
-          g.styleManager.applyVisualState({ style });
-        } catch (e) { seen.push({ style, label, error: String(e?.message || e).slice(0, 80) }); continue; }
+          g.styleManager.applyVisualState({
+            style
+          });
+        } catch (e) {
+          seen.push({
+            style,
+            label,
+            error: String(e?.message || e).slice(0, 80)
+          });
+          continue;
+        }
         // eslint-disable-next-line no-await-in-loop
         await new Promise((res) => setTimeout(res, 700));
         const vs = g.styleManager.getVisualState?.() ?? null;
-        seen.push({ style, label, observed: vs?.style ?? null, activeStyle: g.styleManager.activeStyle ?? null });
+        seen.push({
+          style,
+          label,
+          observed: vs?.style ?? null,
+          activeStyle: g.styleManager.activeStyle ?? null
+        });
       }
-      const after = { x: cam.position.x, y: cam.position.y, z: cam.position.z };
-      return { seen, drift: Math.hypot(after.x - before.x, after.y - before.y, after.z - before.z) };
+      const after = {
+        x: cam.position.x,
+        y: cam.position.y,
+        z: cam.position.z
+      };
+      return {
+        seen,
+        drift: Math.hypot(after.x - before.x, after.y - before.y, after.z - before.z)
+      };
     }, wanted, 90000);
     if (!rR.ok) return crash(`could not exercise the style presets: ${rR.reason}`);
     const r = rR.value;
@@ -1915,9 +2485,9 @@ async function runBrowserGroup(record) {
       return fail(`style did not take effect for: ${noop.map((s) => `${s.label}/${s.style} → getVisualState().style=${s.observed}`).join('; ')} — the call was a no-op`);
     }
     if (r.seen.length !== wanted.length) return crash(`only ${r.seen.length}/${wanted.length} styles were exercised`);
-    return r.drift < 1
-      ? pass(`${r.seen.map((s) => `${s.label}→${s.observed}`).join(', ')} each confirmed in getVisualState(); camera drift ${r.drift.toFixed(3)} m`)
-      : fail(`styles applied but the camera moved ${r.drift.toFixed(1)} m while switching`);
+    return r.drift < 1 ?
+      pass(`${r.seen.map((s) => `${s.label}→${s.observed}`).join(', ')} each confirmed in getVisualState(); camera drift ${r.drift.toFixed(3)} m`) :
+      fail(`styles applied but the camera moved ${r.drift.toFixed(1)} m while switching`);
   });
 
   await step('C16', async () => {
@@ -1945,9 +2515,17 @@ async function runBrowserGroup(record) {
     const setupR = await mustEval(async () => {
       const g = window.__godsEyeView;
       g.viewer.camera.cancelFlight();
-      g.styleManager.applyCameraState({ lat: 30.2672, lon: -97.7431, alt: 3000, heading: 0, pitch: -35 }, 1.5);
+      g.styleManager.applyCameraState({
+        lat: 30.2672,
+        lon: -97.7431,
+        alt: 3000,
+        heading: 0,
+        pitch: -35
+      }, 1.5);
       await new Promise((r) => setTimeout(r, 3000));
-      return { altKm: g.viewer.camera.positionCartographic.height / 1000 };
+      return {
+        altKm: g.viewer.camera.positionCartographic.height / 1000
+      };
     }, null, 60000);
     if (!setupR.ok) return crash(`could not put the camera at city altitude to test the reset: ${setupR.reason}`);
     const before = setupR.value?.altKm;
@@ -1957,9 +2535,14 @@ async function runBrowserGroup(record) {
     }
     const clickR = await mustEval(() => {
       const el = document.getElementById('reset-globe-view');
-      if (!el) return { clicked: false, reason: 'control vanished before the click' };
+      if (!el) return {
+        clicked: false,
+        reason: 'control vanished before the click'
+      };
       el.click();
-      return { clicked: true };
+      return {
+        clicked: true
+      };
     }, null, 45000);
     if (!clickR.ok) return crash(`could not click the reset-to-globe control: ${clickR.reason}`);
     if (!clickR.value?.clicked) return fail(`the reset control could not be clicked: ${clickR.value?.reason}`);
@@ -1971,9 +2554,9 @@ async function runBrowserGroup(record) {
       altKm = (await evalBounded(() => window.__godsEyeView.viewer.camera.positionCartographic.height / 1000, null, 20000)) ?? altKm;
       if (altKm > 5000) break;
     }
-    return altKm > 5000
-      ? pass(`"${found.label}" ${Math.round(before)} km → ${Math.round(altKm)} km (global band); cockpit twin present=${found.cockpitTwin}`)
-      : fail(`reset left the camera at ${Math.round(altKm)} km (from ${Math.round(before)} km)`);
+    return altKm > 5000 ?
+      pass(`"${found.label}" ${Math.round(before)} km → ${Math.round(altKm)} km (global band); cockpit twin present=${found.cockpitTwin}`) :
+      fail(`reset left the camera at ${Math.round(altKm)} km (from ${Math.round(before)} km)`);
   });
 
   await step('C17', async () => {
@@ -2002,7 +2585,10 @@ async function runBrowserGroup(record) {
     if (!beforeR.value) return fail('#gev-voice-control is absent — the voice surface never rendered');
     const surfacedR = await mustEval(async () => {
       const vc = window.__gevVoiceCommands;
-      try { await vc.start?.(); } catch { /* the rejection is the point */ }
+      try {
+        await vc.start?.();
+      } catch {
+        /* the rejection is the point */ }
       for (let i = 0; i < 20; i += 1) {
         // eslint-disable-next-line no-await-in-loop
         await new Promise((r) => setTimeout(r, 500));
@@ -2010,13 +2596,19 @@ async function runBrowserGroup(record) {
         if (status && status !== 'CONNECTING') break;
       }
       let diag = null;
-      try { diag = vc.getDiagnostics?.(); } catch { /* not started */ }
+      try {
+        diag = vc.getDiagnostics?.();
+      } catch {
+        /* not started */ }
       return {
         status: document.getElementById('gev-voice-status')?.textContent?.trim() || null,
         detail: document.getElementById('gev-voice-detail')?.textContent?.trim() || null,
         errorDetail: document.getElementById('gev-voice-error-detail')?.textContent?.trim() || null,
         dataStatus: document.getElementById('gev-voice-control')?.dataset?.status || null,
-        recentError: diag?.recentErrors?.[0] ? { source: diag.recentErrors[0].source, message: diag.recentErrors[0].message } : null,
+        recentError: diag?.recentErrors?.[0] ? {
+          source: diag.recentErrors[0].source,
+          message: diag.recentErrors[0].message
+        } : null,
         appAlive: !!window.__godsEyeView?.viewer,
       };
     }, null, 60000);
@@ -2044,7 +2636,9 @@ async function preflight() {
   // reason to skip the matrix as an environment problem. Only a refused/failed
   // connection is ENV.
   try {
-    const r = await fetch(APP_URL, { signal: AbortSignal.timeout(15000) });
+    const r = await fetch(APP_URL, {
+      signal: AbortSignal.timeout(15000)
+    });
     env.reachable = true;
     env.shellStatus = r.status;
   } catch (e) {
@@ -2061,7 +2655,9 @@ async function preflight() {
   // rather than quietly skipping as OWNER-RUN.
   const statusKey = async (path) => {
     let r;
-    try { r = await jget(path); } catch (e) {
+    try {
+      r = await jget(path);
+    } catch (e) {
       return CONNECTION_REFUSED_RE.test(String(e?.message || e)) ? 'error' : 'error';
     }
     if (r.status !== 200) return 'error';
@@ -2075,9 +2671,13 @@ async function preflight() {
     if (ais.status === 503 && ais.json?.status === 'missing-key') env.keys.AIS = false;
     else if (ais.status === 200 && ais.json && Array.isArray(ais.json.rows)) env.keys.AIS = true;
     else env.keys.AIS = 'error';
-  } catch { env.keys.AIS = 'error'; }
+  } catch {
+    env.keys.AIS = 'error';
+  }
   try {
-    const os = await jget('/api/opensky?lamin=29&lomin=-99&lamax=31&lomax=-97', { timeoutMs: 40000 });
+    const os = await jget('/api/opensky?lamin=29&lomin=-99&lamax=31&lomax=-97', {
+      timeoutMs: 40000
+    });
     const reason = os.headers.get('X-OpenSky-Auth-Reason') || '';
     const used = os.headers.get('X-OpenSky-Auth-Mode-Used') || os.headers.get('X-OpenSky-Auth') || '';
     if (!os.ok) env.keys.OPENSKY = 'error';
@@ -2085,41 +2685,61 @@ async function preflight() {
     else if (/^(oauth|basic)$/.test(used)) env.keys.OPENSKY = true;
     else if (used === 'anon') env.keys.OPENSKY = false;
     else env.keys.OPENSKY = 'error';
-  } catch { env.keys.OPENSKY = 'error'; }
+  } catch {
+    env.keys.OPENSKY = 'error';
+  }
   if (CHEAP) {
     // Minting a Realtime token is free, but --cheap promises to touch nothing
     // cost-bearing; leave OpenAI presence unknown and let its checks skip.
     env.keys.OPENAI = null;
   } else {
     try {
-      const t = await jget('/api/realtime/token', { method: 'POST' });
+      const t = await jget('/api/realtime/token', {
+        method: 'POST'
+      });
       if (t.status === 503 && /OPENAI_API_KEY is not set/.test(t.text)) env.keys.OPENAI = false;
       else if (t.ok) env.keys.OPENAI = true;
       else env.keys.OPENAI = 'error';
-    } catch { env.keys.OPENAI = 'error'; }
+    } catch {
+      env.keys.OPENAI = 'error';
+    }
   }
 
   // A Node 24 runtime for the allocation gate (mise/nvm), if one exists.
-  const mise = await sh('mise', ['ls', 'node'], { timeoutMs: 20000 });
+  const mise = await sh('mise', ['ls', 'node'], {
+    timeoutMs: 20000
+  });
   const m24 = /node\s+(24\.[0-9.]+)/.exec(mise.out || '');
   if (m24) {
-    const where = await sh('mise', ['where', `node@${m24[1]}`], { timeoutMs: 20000 });
+    const where = await sh('mise', ['where', `node@${m24[1]}`], {
+      timeoutMs: 20000
+    });
     const bin = resolve((where.out || '').trim(), 'bin', 'node');
-    if (existsSync(bin)) env.node24 = { bin, label: `mise node@${m24[1]}` };
+    if (existsSync(bin)) env.node24 = {
+      bin,
+      label: `mise node@${m24[1]}`
+    };
   }
   if (!env.node24) {
     const nvmBin = resolve(process.env.HOME || '', '.nvm/versions/node');
     if (existsSync(nvmBin)) {
-      const listed = await sh('ls', [nvmBin], { timeoutMs: 20000 });
+      const listed = await sh('ls', [nvmBin], {
+        timeoutMs: 20000
+      });
       const v24 = (listed.out || '').split('\n').map((s) => s.trim()).find((s) => /^v?24\./.test(s));
       const bin = v24 ? resolve(nvmBin, v24, 'bin', 'node') : null;
-      if (bin && existsSync(bin)) env.node24 = { bin, label: `nvm ${v24}` };
+      if (bin && existsSync(bin)) env.node24 = {
+        bin,
+        label: `nvm ${v24}`
+      };
     }
   }
 }
 
 // ── main ──────────────────────────────────────────────────────────────────
-function keyLabel(v) { return v === true ? 'present' : v === false ? 'absent' : 'unknown'; }
+function keyLabel(v) {
+  return v === true ? 'present' : v === false ? 'absent' : 'unknown';
+}
 
 async function main() {
   const started = Date.now();
@@ -2152,7 +2772,13 @@ async function main() {
     // Validate before counting: an unrecognised verdict is a runner bug, and a
     // runner bug must never be able to leave the scoreboard green.
     const res = normalizeVerdict(rawRes);
-    const row = { id: c.id, group: c.group, desc: c.desc, ...res, ms };
+    const row = {
+      id: c.id,
+      group: c.group,
+      desc: c.desc,
+      ...res,
+      ms
+    };
     results.push(row);
     const tagStr = {
       [PASS]: C.g('PASS       '),
@@ -2160,7 +2786,7 @@ async function main() {
       [FAIL]: C.r('FAIL       '),
       [CRASH]: C.m('CRASH      '),
       [SKIP]: C.y(`SKIPPED[${res.tag}]`),
-    }[res.status];
+    } [res.status];
     console.log(`  ${c.id.padEnd(4)} ${tagStr} ${c.desc}`);
     if (res.detail) console.log(`       ${C.d(String(res.detail).slice(0, 300))}`);
     if (res.note) console.log(`       ${C.m(`KNOWN CONDITION: ${String(res.note).slice(0, 260)}`)}`);
@@ -2169,8 +2795,14 @@ async function main() {
   const runList = CHECKS.filter(selected);
 
   const runSerial = async (c) => {
-    if (c.manual) { record(c, skip('owner-eyes step — see the maintainers\' release runbook', 'OWNER-RUN'), 0); return; }
-    if (CHEAP && (c.heavy || c.costly)) { record(c, skip('heavy/cost-bearing check omitted by --cheap', 'CHEAP'), 0); return; }
+    if (c.manual) {
+      record(c, skip('owner-eyes step — see the maintainers\' release runbook', 'OWNER-RUN'), 0);
+      return;
+    }
+    if (CHEAP && (c.heavy || c.costly)) {
+      record(c, skip('heavy/cost-bearing check omitted by --cheap', 'CHEAP'), 0);
+      return;
+    }
     if (c.needsKey && env.keys[c.needsKey] !== true) {
       const state = env.keys[c.needsKey];
       if (state === 'error') {
@@ -2200,9 +2832,13 @@ async function main() {
   const recheckTarget = async () => {
     if (!targetAlive) return false;
     try {
-      await fetch(APP_URL, { signal: AbortSignal.timeout(15000) });
+      await fetch(APP_URL, {
+        signal: AbortSignal.timeout(15000)
+      });
       targetAlive = true;
-    } catch { targetAlive = false; }
+    } catch {
+      targetAlive = false;
+    }
     return targetAlive;
   };
   const wrapRun = runSerial;
@@ -2227,7 +2863,10 @@ async function main() {
       }
     } else {
       const emitted = new Set();
-      const recordBrowser = (c, res, ms) => { emitted.add(c.id); record(c, res, ms); };
+      const recordBrowser = (c, res, ms) => {
+        emitted.add(c.id);
+        record(c, res, ms);
+      };
       try {
         await runBrowserGroup(recordBrowser);
       } catch (e) {
@@ -2269,7 +2908,13 @@ async function main() {
     const rows = results.filter((r) => r.group === g);
     if (!rows.length) continue;
     const n = (st) => rows.filter((r) => r.status === st).length;
-    const name = { A: 'REPO GATES', B: 'FEED PROBES', C: 'IN-BROWSER', D: 'HARNESS FLEET', M: 'OWNER-EYES' }[g];
+    const name = {
+      A: 'REPO GATES',
+      B: 'FEED PROBES',
+      C: 'IN-BROWSER',
+      D: 'HARNESS FLEET',
+      M: 'OWNER-EYES'
+    } [g];
     console.log(`  ${g} ${name.padEnd(15)} ${C.g(`${n(PASS)} pass`)}  ${n(PASS_SKIPS) ? C.m(`${n(PASS_SKIPS)} pass*`) : '0 pass*'}  ${n(FAIL) ? C.r(`${n(FAIL)} fail`) : '0 fail'}  ${n(CRASH) ? C.m(`${n(CRASH)} crash`) : '0 crash'}  ${C.y(`${n(SKIP)} skipped`)}   (${rows.length})`);
   }
   console.log(`  ${'─'.repeat(68)}`);
@@ -2303,10 +2948,22 @@ async function main() {
 
   if (JSON_OUT) {
     writeFileSync(resolve(process.cwd(), JSON_OUT), JSON.stringify({
-      target: APP_URL, startedAt: new Date(started).toISOString(), minutes: Number(mins),
-      node: process.versions.node, browser: env.browserVersion, keys: env.keys,
-      shellStatus: env.shellStatus, green,
-      totals: { pass: p, passWithSkips: ps, fail: f, harnessCrash: x, skipped: s, selected: runList.length },
+      target: APP_URL,
+      startedAt: new Date(started).toISOString(),
+      minutes: Number(mins),
+      node: process.versions.node,
+      browser: env.browserVersion,
+      keys: env.keys,
+      shellStatus: env.shellStatus,
+      green,
+      totals: {
+        pass: p,
+        passWithSkips: ps,
+        fail: f,
+        harnessCrash: x,
+        skipped: s,
+        selected: runList.length
+      },
       results,
     }, null, 2));
     console.log(`  JSON: ${resolve(process.cwd(), JSON_OUT)}\n`);
@@ -2327,10 +2984,27 @@ if (import.meta.url === invokedPath) {
 }
 
 export {
-  PASS, PASS_SKIPS, FAIL, CRASH, SKIP, OUTCOMES,
-  normalizeVerdict, classifyNoScoreboard, readResultLine, readCockpit, satisfiesEngines,
-  isCalibratedAllocationRuntime, trafficFlowInconclusive,
-  soleVerdict, RESULT_RE, COCKPIT_RE, FLOOR_RE,
-  readFloorVerdict, keyGuard, applyKnownConditions, requiredCreditFor,
-  CREDIT_EXPECTATIONS, CREDIT_EXEMPT_LAYERS,
+  PASS,
+  PASS_SKIPS,
+  FAIL,
+  CRASH,
+  SKIP,
+  OUTCOMES,
+  normalizeVerdict,
+  classifyNoScoreboard,
+  readResultLine,
+  readCockpit,
+  satisfiesEngines,
+  isCalibratedAllocationRuntime,
+  trafficFlowInconclusive,
+  soleVerdict,
+  RESULT_RE,
+  COCKPIT_RE,
+  FLOOR_RE,
+  readFloorVerdict,
+  keyGuard,
+  applyKnownConditions,
+  requiredCreditFor,
+  CREDIT_EXPECTATIONS,
+  CREDIT_EXEMPT_LAYERS,
 };
