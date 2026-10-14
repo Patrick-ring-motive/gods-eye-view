@@ -39,8 +39,7 @@ const GOLDEN = {
     queue: [2, 2],
     spatialCellCount: 5,
   },
-  stable96: [
-    {
+  stable96: [{
       selected: 'flights:003,flights:009,flights:033,flights:057,flights:087,satellites:055,satellites:067,satellites:073,satellites:079,satellites:085,vessels:017,vessels:029,vessels:035,vessels:083,vessels:095',
       placements: 'flights:003@NE@-214@22@38@16|flights:009@NE@190@-267@38@16|flights:033@NE@-437@237@38@16|flights:057@NE@43@241@38@16|flights:087@NE@384@3@38@16|satellites:055@NE@-343@-236@38@16|satellites:067@NE@420@187@38@16|satellites:073@NE@-380@40@38@16|satellites:079@NE@256@32@38@16|satellites:085@NE@-80@207@38@16|vessels:017@NE@-212@-132@38@16|vessels:029@NE@12@-14@38@16|vessels:035@NE@130@-106@38@16|vessels:083@NE@-43@-289@38@16|vessels:095@NE@439@-262@38@16',
       fades: [],
@@ -81,8 +80,7 @@ const GOLDEN = {
     queue: [3, 18],
     spatialCellCount: 55,
   },
-  fadeSequence12: [
-    {
+  fadeSequence12: [{
       selected: 'tracks:000,tracks:005,tracks:007,tracks:009',
       placements: 'tracks:000@NE@-51@-134@38@16|tracks:005@NE@-179@-256@38@16|tracks:007@NE@347@200@38@16|tracks:009@NE@446@22@38@16',
       fades: [
@@ -123,27 +121,53 @@ function seededRandom(seed) {
 }
 
 function rect(x, y, w = 38, h = 16) {
-  return { x, y, w, h };
+  return {
+    x,
+    y,
+    w,
+    h
+  };
 }
 
 function placementsFor(x, y, shape = 'full') {
   if (shape === 'verticalOnly') {
-    return [
-      { corner: 'above', rect: rect(x - 30, y - 34, 60, 20) },
-      { corner: 'below', rect: rect(x - 30, y + 14, 60, 20) },
+    return [{
+        corner: 'above',
+        rect: rect(x - 30, y - 34, 60, 20)
+      },
+      {
+        corner: 'below',
+        rect: rect(x - 30, y + 14, 60, 20)
+      },
     ];
   }
   if (shape === 'few') {
-    return [
-      { corner: 'NE', rect: rect(x + 8, y - 24) },
-      { corner: 'SW', rect: rect(x - 46, y + 8) },
+    return [{
+        corner: 'NE',
+        rect: rect(x + 8, y - 24)
+      },
+      {
+        corner: 'SW',
+        rect: rect(x - 46, y + 8)
+      },
     ];
   }
-  return [
-    { corner: 'NE', rect: rect(x + 8, y - 24) },
-    { corner: 'NW', rect: rect(x - 46, y - 24) },
-    { corner: 'SE', rect: rect(x + 8, y + 8) },
-    { corner: 'SW', rect: rect(x - 46, y + 8) },
+  return [{
+      corner: 'NE',
+      rect: rect(x + 8, y - 24)
+    },
+    {
+      corner: 'NW',
+      rect: rect(x - 46, y - 24)
+    },
+    {
+      corner: 'SE',
+      rect: rect(x + 8, y + 8)
+    },
+    {
+      corner: 'SW',
+      rect: rect(x - 46, y + 8)
+    },
   ];
 }
 
@@ -156,7 +180,9 @@ function makeCohort(count, {
   spreadY = 560,
 } = {}) {
   const random = seededRandom(seed);
-  return Array.from({ length: count }, (_, index) => {
+  return Array.from({
+    length: count
+  }, (_, index) => {
     const x = Math.floor(random() * spreadX) - Math.floor(spreadX / 2);
     const y = Math.floor(random() * spreadY) - Math.floor(spreadY / 2);
     const layerId = layers[index % layers.length];
@@ -183,27 +209,37 @@ function snapshotSolve(arbiter, candidates, options, fadeTimes = []) {
   const selected = Array.from(arbiter.selectedKeys).sort();
   const placements = selected.map((key) => {
     const state = arbiter.states.get(key);
-    const { x, y, w, h } = state.lastPlacement.rect;
+    const {
+      x,
+      y,
+      w,
+      h
+    } = state.lastPlacement.rect;
     return [key, state.corner, x, y, w, h];
   });
   const current = new Map(candidates.map((candidate) => [candidate.key, candidate]));
   const fades = fadeTimes.map((now) => [
     now,
     ...arbiter.renderEntries(current, now)
-      .map((entry) => {
-        const { x, y, w, h } = entry.placement.rect;
-        return [
-          entry.candidate.key,
-          entry.placement.corner,
-          x,
-          y,
-          w,
-          h,
-          roundedAlpha(entry.temporalAlpha),
-          entry.selected,
-        ];
-      })
-      .sort(([a], [b]) => a.localeCompare(b)),
+    .map((entry) => {
+      const {
+        x,
+        y,
+        w,
+        h
+      } = entry.placement.rect;
+      return [
+        entry.candidate.key,
+        entry.placement.corner,
+        x,
+        y,
+        w,
+        h,
+        roundedAlpha(entry.temporalAlpha),
+        entry.selected,
+      ];
+    })
+    .sort(([a], [b]) => a.localeCompare(b)),
   ]);
   return {
     selected: selected.join(','),
@@ -241,8 +277,7 @@ function buildGoldenBattery() {
     key: `z-duplicates:tail-${String(index).padStart(2, '0')}`,
     priority: 0,
   }));
-  const duplicateCandidates = [
-    {
+  const duplicateCandidates = [{
       key: 'a-blocker:fixed',
       layerId: 'a-blocker',
       sourceId: 'blocker',
@@ -251,7 +286,10 @@ function buildGoldenBattery() {
       keyholeAlpha: 1,
       screenX: 0,
       screenY: 0,
-      placements: [{ corner: 'only', rect: rect(0, 0, 20, 20) }],
+      placements: [{
+        corner: 'only',
+        rect: rect(0, 0, 20, 20)
+      }],
     },
     {
       key: 'z-duplicates:shared',
@@ -262,7 +300,10 @@ function buildGoldenBattery() {
       keyholeAlpha: 1,
       screenX: 4,
       screenY: 4,
-      placements: [{ corner: 'blocked', rect: rect(0, 0, 20, 20) }],
+      placements: [{
+        corner: 'blocked',
+        rect: rect(0, 0, 20, 20)
+      }],
     },
     {
       key: 'z-duplicates:shared',
@@ -273,7 +314,10 @@ function buildGoldenBattery() {
       keyholeAlpha: 1,
       screenX: 300,
       screenY: 300,
-      placements: [{ corner: 'free', rect: rect(300, 300, 20, 20) }],
+      placements: [{
+        corner: 'free',
+        rect: rect(300, 300, 20, 20)
+      }],
     },
     ...duplicateTail,
   ];
@@ -341,14 +385,21 @@ function buildGoldenBattery() {
     weightedFew24: snapshotSolve(weightedArbiter, weightedFew24, {
       capacity: 9,
       strategy: ALLOCATION_WEIGHTED,
-      layerWeights: { cctv: 2, firms: 0.75, vessels: 1.25 },
+      layerWeights: {
+        cctv: 2,
+        firms: 0.75,
+        vessels: 1.25
+      },
       now: 2000,
       preserveIncumbents: false,
     }),
     duplicateKeys48: snapshotSolve(duplicateArbiter, duplicateCandidates, {
       capacity: 2,
       strategy: ALLOCATION_ELASTIC,
-      demandByLayer: { 'a-blocker': 1, 'z-duplicates': 47 },
+      demandByLayer: {
+        'a-blocker': 1,
+        'z-duplicates': 47
+      },
       now: 3000,
       preserveIncumbents: false,
     }),
@@ -375,7 +426,11 @@ function buildGoldenBattery() {
     packedCells400: snapshotSolve(packedArbiter, packed400, {
       capacity: 18,
       strategy: ALLOCATION_WEIGHTED,
-      layerWeights: { air: 1.5, ground: 0.75, sea: 1 },
+      layerWeights: {
+        air: 1.5,
+        ground: 0.75,
+        sea: 1
+      },
       now: 6000,
       preserveIncumbents: false,
     }),
