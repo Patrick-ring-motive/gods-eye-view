@@ -125,14 +125,12 @@ export function normalizeRadioBrowserStation(raw) {
     languages,
     state: cleanRadioText(raw?.state, 80),
     country: normalizedCountry.valid && !normalizedCountry.empty ?
-      normalizedCountry.name :
-      cleanRadioText(raw?.country, 80),
+      normalizedCountry.name : cleanRadioText(raw?.country, 80),
     countryCode: normalizedCountry.valid ? normalizedCountry.code : '',
     metadataTrust: 'untrusted-community',
     codec,
     bitrate: Number.isInteger(bitrate) && bitrate >= 8 && bitrate <= 1024 ?
-      bitrate :
-      null,
+      bitrate : null,
     clickCount: Math.max(0, Math.min(10_000_000, Number(raw?.clickcount) || 0)),
   };
 }
