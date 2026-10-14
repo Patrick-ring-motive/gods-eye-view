@@ -36,8 +36,7 @@ export function loadGroundHeights(sourceRoot = process.cwd()) {
       typeof parsed === 'object' &&
       parsed.cameras &&
       typeof parsed.cameras === 'object' ?
-      parsed.cameras :
-      {};
+      parsed.cameras : {};
     _cache = {
       path: resolved,
       mtimeMs: stat.mtimeMs,
