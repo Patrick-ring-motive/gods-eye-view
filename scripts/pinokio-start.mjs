@@ -1,10 +1,21 @@
 #!/usr/bin/env node
-import { realpathSync } from 'node:fs';
+
+import {
+  realpathSync
+} from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { applyPinokioEnvironment } from './pinokio-environment.mjs';
-import { isDirectInvocation } from './pinokio-install.mjs';
-import { validatePinokioSharing } from './pinokio-preflight.mjs';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  applyPinokioEnvironment
+} from './pinokio-environment.mjs';
+import {
+  isDirectInvocation
+} from './pinokio-install.mjs';
+import {
+  validatePinokioSharing
+} from './pinokio-preflight.mjs';
 
 const MODULE_PATH = fileURLToPath(import.meta.url);
 const ROOT = realpathSync(path.resolve(path.dirname(MODULE_PATH), '..'));
@@ -38,7 +49,9 @@ async function start() {
 
   // Import Vite only after app-scoped blank fields have replaced any merged
   // Pinokio-global values. Vite snapshots process.env during configuration.
-  const { createServer } = await loadViteFromCanonicalRoot();
+  const {
+    createServer
+  } = await loadViteFromCanonicalRoot();
   const server = await createServer({
     root: ROOT,
     server: {
