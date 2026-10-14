@@ -29,9 +29,7 @@ const browser = await puppeteer.launch({
   } : {}),
   // Metal is a macOS-only ANGLE backend; anywhere else it fails WebGL init.
   args: [
-    ...(process.platform === 'darwin' ?
-      ['--use-angle=metal', '--enable-gpu'] :
-      ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu'] : ['--use-gl=angle', '--use-angle=swiftshader']),
     '--no-sandbox',
   ],
 });
@@ -76,8 +74,7 @@ try {
     // These scenarios exercise Context lifecycle and keyboard ownership, not
     // live orbit accuracy. Reuse the tracking suite's fixed element sets so
     // CelesTrak outages cannot invalidate an otherwise clean UI run.
-    if (url.origin === new URL(appUrl).origin &&
-      ['/api/celestrak/active', '/api/celestrak/starlink'].includes(url.pathname)) {
+    if (url.origin === new URL(appUrl).origin && ['/api/celestrak/active', '/api/celestrak/starlink'].includes(url.pathname)) {
       const dense = url.pathname.endsWith('/starlink');
       request.respond({
         status: 200,
