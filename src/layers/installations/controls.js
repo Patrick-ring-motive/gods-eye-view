@@ -127,8 +127,7 @@ export function createControls({
           retrying: layerState.loading && Boolean(layerState.failureReason),
         }),
         loadingLabel: layerState.loading ?
-          'loading mapped installation context' :
-          '',
+          'loading mapped installation context' : '',
       };
     },
   };
