@@ -1,6 +1,12 @@
-import { expandApplicationHtml } from '../build/application-html.js';
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
-import { GEV_REALTIME_TOOLS } from '../server/providers/openai/tools.js';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
+import {
+  GEV_REALTIME_TOOLS
+} from '../server/providers/openai/tools.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -20,7 +26,9 @@ import {
 } from './firstRunExperience.js';
 
 function memoryStorage(key, value = null) {
-  const values = new Map(value == null ? [] : [[key, value]]);
+  const values = new Map(value == null ? [] : [
+    [key, value]
+  ]);
   return {
     getItem: (name) => values.get(name) ?? null,
     setItem: (name, next) => values.set(name, next),
@@ -32,7 +40,9 @@ function memoryStorage(key, value = null) {
 const fresh = () => ({
   storage: memoryStorage(FIRST_RUN_STORAGE_KEY),
   sessionStorageRef: memoryStorage(FIRST_RUN_SESSION_KEY),
-  location: { search: '' },
+  location: {
+    search: ''
+  },
 });
 
 // ── Show policy ──────────────────────────────────────────────────────────────
@@ -52,12 +62,20 @@ test('dismissal is session-scoped; only the checkbox suppresses durably', () => 
   rememberFirstRunSessionDismissed(session);
   assert.equal(session.read(), 'dismissed');
   // Gone for THIS session...
-  assert.equal(shouldShowFirstRun({ storage, sessionStorageRef: session, location: { search: '' } }), false);
+  assert.equal(shouldShowFirstRun({
+    storage,
+    sessionStorageRef: session,
+    location: {
+      search: ''
+    }
+  }), false);
   // ...and back in the next one, because sessionStorage did not survive it.
   assert.equal(shouldShowFirstRun({
     storage,
     sessionStorageRef: memoryStorage(FIRST_RUN_SESSION_KEY),
-    location: { search: '' },
+    location: {
+      search: ''
+    },
   }), true);
   // Session dismissal must never have written the durable key.
   assert.equal(storage.read(), null);
@@ -70,7 +88,9 @@ test('the checkbox writes and clears durable suppression, and a storage reset un
   assert.equal(shouldShowFirstRun({
     storage,
     sessionStorageRef: memoryStorage(FIRST_RUN_SESSION_KEY),
-    location: { search: '' },
+    location: {
+      search: ''
+    },
   }), false);
 
   // Unticking before dismissing takes the suppression back.
@@ -79,7 +99,9 @@ test('the checkbox writes and clears durable suppression, and a storage reset un
   assert.equal(shouldShowFirstRun({
     storage,
     sessionStorageRef: memoryStorage(FIRST_RUN_SESSION_KEY),
-    location: { search: '' },
+    location: {
+      search: ''
+    },
   }), true);
 
   // A cleared/hard-reset profile shows it again — an accepted, documented cost.
@@ -87,7 +109,9 @@ test('the checkbox writes and clears durable suppression, and a storage reset un
   assert.equal(shouldShowFirstRun({
     storage: memoryStorage(FIRST_RUN_STORAGE_KEY),
     sessionStorageRef: memoryStorage(FIRST_RUN_SESSION_KEY),
-    location: { search: '' },
+    location: {
+      search: ''
+    },
   }), true);
 });
 
@@ -96,27 +120,52 @@ test('welcome params work in both directions and outrank both suppressions', () 
   const dismissed = memoryStorage(FIRST_RUN_SESSION_KEY, 'dismissed');
   // ?welcome=1 replays past the checkbox AND past a session dismissal.
   assert.equal(shouldShowFirstRun({
-    storage: suppressed, sessionStorageRef: dismissed, location: { search: '?welcome=1' },
+    storage: suppressed,
+    sessionStorageRef: dismissed,
+    location: {
+      search: '?welcome=1'
+    },
   }), true);
   // ?welcome=0 suppresses a session that would otherwise see it.
-  assert.equal(shouldShowFirstRun({ ...fresh(), location: { search: '?welcome=0' } }), false);
+  assert.equal(shouldShowFirstRun({
+    ...fresh(),
+    location: {
+      search: '?welcome=0'
+    }
+  }), false);
   // A share link outranks everything, including the replay hatch.
   assert.equal(shouldShowFirstRun({
-    hasShareState: true, ...fresh(), location: { search: '?welcome=1' },
+    hasShareState: true,
+    ...fresh(),
+    location: {
+      search: '?welcome=1'
+    },
   }), false);
 });
 
 test('a share link never sees the launcher — its author already chose the view', () => {
-  assert.equal(shouldShowFirstRun({ hasShareState: true, ...fresh() }), false);
+  assert.equal(shouldShowFirstRun({
+    hasShareState: true,
+    ...fresh()
+  }), false);
 });
 
 test('privacy-restricted storage fails open and every write stays best-effort', () => {
   const blocked = {
-    getItem: () => { throw new Error('blocked'); },
-    setItem: () => { throw new Error('blocked'); },
-    removeItem: () => { throw new Error('blocked'); },
+    getItem: () => {
+      throw new Error('blocked');
+    },
+    setItem: () => {
+      throw new Error('blocked');
+    },
+    removeItem: () => {
+      throw new Error('blocked');
+    },
   };
-  assert.equal(shouldShowFirstRun({ storage: blocked, sessionStorageRef: blocked }), true);
+  assert.equal(shouldShowFirstRun({
+    storage: blocked,
+    sessionStorageRef: blocked
+  }), true);
   assert.doesNotThrow(() => setFirstRunSuppressed(true, blocked));
   assert.doesNotThrow(() => rememberFirstRunSessionDismissed(blocked));
 });
@@ -131,18 +180,28 @@ test('a THROWING storage getter still fails open — Safari private mode', () =>
   const savedSession = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
   const hostile = {
     configurable: true,
-    get() { throw new Error('SecurityError: The operation is insecure.'); },
+    get() {
+      throw new Error('SecurityError: The operation is insecure.');
+    },
   };
   Object.defineProperty(globalThis, 'localStorage', hostile);
   Object.defineProperty(globalThis, 'sessionStorage', hostile);
   try {
     // No storage arguments at all: this is exactly how the app calls it.
     assert.doesNotThrow(
-      () => shouldShowFirstRun({ location: { search: '' } }),
+      () => shouldShowFirstRun({
+        location: {
+          search: ''
+        }
+      }),
       'a hostile storage getter must not escape shouldShowFirstRun',
     );
     assert.equal(
-      shouldShowFirstRun({ location: { search: '' } }),
+      shouldShowFirstRun({
+        location: {
+          search: ''
+        }
+      }),
       true,
       'a visitor whose storage throws must still SEE the launcher',
     );
@@ -207,7 +266,13 @@ test('the JS and CSS lists of screen-claiming surfaces stay in step', () => {
 });
 
 test('exclusiveSurfaceActive reads the live body classes', () => {
-  const make = (classes) => ({ body: { classList: { contains: (name) => classes.includes(name) } } });
+  const make = (classes) => ({
+    body: {
+      classList: {
+        contains: (name) => classes.includes(name)
+      }
+    }
+  });
   assert.equal(exclusiveSurfaceActive(make([])), false);
   for (const name of EXCLUSIVE_SURFACE_CLASSES) {
     assert.equal(exclusiveSurfaceActive(make([name])), true, `${name} must count as exclusive`);
@@ -298,8 +363,12 @@ test('a refused write takes the tick back instead of promising "never again"', (
   // while it is already guaranteed to return next session.
   const blocked = {
     getItem: () => null,
-    setItem: () => { throw new Error('blocked'); },
-    removeItem: () => { throw new Error('blocked'); },
+    setItem: () => {
+      throw new Error('blocked');
+    },
+    removeItem: () => {
+      throw new Error('blocked');
+    },
   };
   assert.equal(setFirstRunSuppressed(true, blocked), false);
   assert.equal(setFirstRunSuppressed(false, blocked), false);
@@ -380,14 +449,30 @@ test('the launcher yields on engage and waits when a surface is already up', () 
 
 // ── Per-mission behavior ─────────────────────────────────────────────────────
 
-function missionSpy({ contextOk = true, layerResult = () => true, globe = async () => ({ ok: true }) } = {}) {
-  const calls = { contextModes: [], layerIds: [], globeFlights: 0 };
+function missionSpy({
+  contextOk = true,
+  layerResult = () => true,
+  globe = async () => ({
+    ok: true
+  })
+} = {}) {
+  const calls = {
+    contextModes: [],
+    layerIds: [],
+    globeFlights: 0
+  };
   return {
     calls,
     deps: {
       setContextMode: async (mode) => {
         calls.contextModes.push(mode);
-        return contextOk ? { ok: true, mode } : { ok: false, failedLayerIds: ['rocket-launches'] };
+        return contextOk ? {
+          ok: true,
+          mode
+        } : {
+          ok: false,
+          failedLayerIds: ['rocket-launches']
+        };
       },
       setLayerEnabled: async (layerId) => {
         calls.layerIds.push(layerId);
@@ -415,7 +500,10 @@ test('the menu is the four owner-ordered missions', () => {
 });
 
 test('Live Contacts and Space Missions go through the one setContextMode facade', async () => {
-  for (const [choice, mode] of [['contacts', 'contacts'], ['space-missions', 'space-missions']]) {
+  for (const [choice, mode] of [
+      ['contacts', 'contacts'],
+      ['space-missions', 'space-missions']
+    ]) {
     const spy = missionSpy();
     const outcome = await runFirstRunChoice(choice, spy.deps);
     assert.equal(outcome.ok, true);
@@ -456,7 +544,9 @@ test('every visitor gets the same tile — there is no degraded keyless variant'
   // The mission does not branch on configuration: it asks for both layers for
   // everyone, and a keyless FIRMS reports its own state at its own row rather
   // than changing what the tile does.
-  const spy = missionSpy({ layerResult: () => true });
+  const spy = missionSpy({
+    layerResult: () => true
+  });
   const outcome = await runFirstRunChoice('environmental', spy.deps);
   assert.equal(outcome.ok, true);
   assert.deepEqual(outcome.failedLayerIds, []);
@@ -470,26 +560,42 @@ test('every visitor gets the same tile — there is no degraded keyless variant'
 });
 
 test('a refused layer fails the mission by name, and a stalled flight never does', async () => {
-  const refused = missionSpy({ layerResult: (id) => id !== 'earthquakes' });
+  const refused = missionSpy({
+    layerResult: (id) => id !== 'earthquakes'
+  });
   const outcome = await runFirstRunChoice('environmental', refused.deps);
   assert.equal(outcome.ok, false);
   assert.deepEqual(outcome.failedLayerIds, ['earthquakes']);
 
   // The globe flight is framing. A cancelled or throwing flight is not a failure.
-  const flightDown = missionSpy({ globe: () => { throw new Error('cancelled'); } });
+  const flightDown = missionSpy({
+    globe: () => {
+      throw new Error('cancelled');
+    }
+  });
   assert.equal((await runFirstRunChoice('environmental', flightDown.deps)).ok, true);
 });
 
 test('Explore manually touches nothing at all, and an unknown choice is inert', async () => {
   const spy = missionSpy();
   assert.equal((await runFirstRunChoice('explore', spy.deps)).ok, true);
-  assert.deepEqual(spy.calls, { contextModes: [], layerIds: [], globeFlights: 0 });
+  assert.deepEqual(spy.calls, {
+    contextModes: [],
+    layerIds: [],
+    globeFlights: 0
+  });
   assert.equal((await runFirstRunChoice('nope', spy.deps)).ok, false);
-  assert.deepEqual(spy.calls, { contextModes: [], layerIds: [], globeFlights: 0 });
+  assert.deepEqual(spy.calls, {
+    contextModes: [],
+    layerIds: [],
+    globeFlights: 0
+  });
 });
 
 test('a failed Context mission reports the layers the facade named', async () => {
-  const spy = missionSpy({ contextOk: false });
+  const spy = missionSpy({
+    contextOk: false
+  });
   const outcome = await runFirstRunChoice('space-missions', spy.deps);
   assert.equal(outcome.ok, false);
   assert.deepEqual(outcome.result.failedLayerIds, ['rocket-launches']);
@@ -516,18 +622,18 @@ test('no mission writes a preference the visitor did not choose by picking it', 
   // Detection is owned by the reasonable-defaults landing and, while Contacts is
   // active, by contactsDetectionPolicy. A mission has no opinion on any of it.
   for (const forbidden of [
-    '_detectionUserOverridden',
-    '_setDetectionMode',
-    '_applyDetectionPreset',
-    '_setDetectionAllocation',
-    'setDetectionTuning',
-    // 3D models and feather default to origin 'user' and would persist a choice
-    // nobody made by picking a mission.
-    '_setModels3dEnabled',
-    '_setModels3dMode',
-    '_setModels3dParams',
-    'setFeather',
-  ]) {
+      '_detectionUserOverridden',
+      '_setDetectionMode',
+      '_applyDetectionPreset',
+      '_setDetectionAllocation',
+      'setDetectionTuning',
+      // 3D models and feather default to origin 'user' and would persist a choice
+      // nobody made by picking a mission.
+      '_setModels3dEnabled',
+      '_setModels3dMode',
+      '_setModels3dParams',
+      'setFeather',
+    ]) {
     assert.doesNotMatch(code, new RegExp(forbidden), `a mission must never touch ${forbidden}`);
   }
 
@@ -572,8 +678,8 @@ test('markup, startup ordering and accessibility remain pinned', () => {
   // unspaced em dash included. This is copy, not prose to be improved in a
   // passing edit — changing it needs the owner, not a nicer-sounding rewrite.
   assert.ok(
-    html.includes('<p id="first-run-description">It feels like a forbidden cockpit'
-      + '—then you realize the sources are public and the data is real.</p>'),
+    html.includes('<p id="first-run-description">It feels like a forbidden cockpit' +
+      '—then you realize the sources are public and the data is real.</p>'),
     'the owner-authored first-run line must ship exactly as written',
   );
 
@@ -682,8 +788,8 @@ test('the voice TOOL SCHEMA matches the pinned release — the mission mapping i
   const mapping = instructions.slice(instructions.indexOf('NAMED VIEWS are shorthand'));
   const paragraph = mapping.slice(0, mapping.indexOf("',\n"));
   for (const layerId of [
-    'local-datacenters', 'local-dams', 'telegeography-submarine-cables', 'local-firms', 'earthquakes',
-  ]) {
+      'local-datacenters', 'local-dams', 'telegeography-submarine-cables', 'local-firms', 'earthquakes',
+    ]) {
     assert.ok(paragraph.includes(layerId), `mapping must name the existing ${layerId} enum value`);
   }
   assert.ok(paragraph.includes('zoom_to_globe'));
