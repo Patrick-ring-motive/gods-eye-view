@@ -1,7 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MapSourceController } from './controller.js';
-import { createDefaultMapSources } from './defaultSources.js';
+import {
+  MapSourceController
+} from './controller.js';
+import {
+  createDefaultMapSources
+} from './defaultSources.js';
 
 function event() {
   const listeners = new Set();
@@ -18,6 +22,7 @@ function event() {
     },
   };
 }
+
 function fixture(registry, options = {}) {
   const imagery = [],
     credits = new Set(),
@@ -26,7 +31,9 @@ function fixture(registry, options = {}) {
     changes = [];
   const viewer = {
     scene: {
-      globe: { show: true },
+      globe: {
+        show: true
+      },
       requestRender() {},
       frameState: {
         creditDisplay: {
@@ -54,37 +61,71 @@ function fixture(registry, options = {}) {
       },
       remove(value, destroy) {
         imagery.splice(imagery.indexOf(value), 1);
-        removed.push({ value, destroy });
+        removed.push({
+          value,
+          destroy
+        });
       },
     },
   };
   const controller = new MapSourceController(viewer, {
     registry,
-    createImageryLayer: (provider) => ({ provider }),
+    createImageryLayer: (provider) => ({
+      provider
+    }),
     onChange: (state) => changes.push(state),
     ...options,
   });
-  return { viewer, controller, imagery, credits, primitives, removed, changes };
+  return {
+    viewer,
+    controller,
+    imagery,
+    credits,
+    primitives,
+    removed,
+    changes
+  };
 }
 const settle = async () => {
   for (let i = 0; i < 20; i++) await Promise.resolve();
 };
-const descriptor = (id) => ({ id, label: id, kind: 'imagery' });
+const descriptor = (id) => ({
+  id,
+  label: id,
+  kind: 'imagery'
+});
+
 function publicFixture() {
-  const tileset = { show: true };
-  const registry = createDefaultMapSources({ googleTileset: tileset });
+  const tileset = {
+    show: true
+  };
+  const registry = createDefaultMapSources({
+    googleTileset: tileset
+  });
   const providers = new Map();
   for (const source of registry.sources) {
     if (!source.imagery) continue;
-    const provider = { id: source.descriptor.id, errorEvent: event() };
+    const provider = {
+      id: source.descriptor.id,
+      errorEvent: event()
+    };
     providers.set(source.descriptor.id, provider);
     source.imagery = async () => provider;
     source.terrain = {
       id: 'keyless',
-      create: async () => ({ provider: { id: 'terrain' } }),
+      create: async () => ({
+        provider: {
+          id: 'terrain'
+        }
+      }),
     };
   }
-  return { ...fixture(registry), registry, providers, tileset };
+  return {
+    ...fixture(registry),
+    registry,
+    providers,
+    tileset
+  };
 }
 
 test('an additional imagery source needs no controller branch and owns its cached resources', async () => {
@@ -100,21 +141,23 @@ test('an additional imagery source needs no controller branch and owns its cache
     id: 'custom-floor',
     create: async () => {
       terrainReads++;
-      return { provider: { id: 'terrain' } };
+      return {
+        provider: {
+          id: 'terrain'
+        }
+      };
     },
   };
   const registry = {
     defaultId: 'custom',
-    sources: [
-      {
-        descriptor: descriptor('custom'),
-        imagery: async () => {
-          reads++;
-          return provider;
-        },
-        terrain,
+    sources: [{
+      descriptor: descriptor('custom'),
+      imagery: async () => {
+        reads++;
+        return provider;
       },
-    ],
+      terrain,
+    }, ],
   };
   const env = fixture(registry);
   await env.controller.setStack('custom');
@@ -138,17 +181,15 @@ test('a destroyed controller aborts creation and disposes a late provider withou
     destroyed = 0;
   const env = fixture({
     defaultId: 'slow',
-    sources: [
-      {
-        descriptor: descriptor('slow'),
-        imagery: (request) => {
-          signal = request.signal;
-          return new Promise((done) => {
-            resolve = done;
-          });
-        },
+    sources: [{
+      descriptor: descriptor('slow'),
+      imagery: (request) => {
+        signal = request.signal;
+        return new Promise((done) => {
+          resolve = done;
+        });
       },
-    ],
+    }, ],
   });
   const loading = env.controller.setStack('slow');
   await settle();
@@ -190,7 +231,11 @@ test('slow terrain cannot overwrite a newer source and a 3D view never starts un
   const loading = env.controller.setStack('osm');
   await settle();
   await env.controller.setStack('photoreal');
-  resolve({ provider: { id: 'late-terrain' } });
+  resolve({
+    provider: {
+      id: 'late-terrain'
+    }
+  });
   await loading;
   assert.equal(env.viewer.terrainProvider, undefined);
   assert.equal(env.viewer.scene.globe.show, false);
@@ -235,7 +280,9 @@ test('one Esri tile failure stays put, two fall back, and stale errors cannot re
   );
   assert.equal(errorEvent.size, 0);
   await env.controller.setStack('photoreal');
-  errorEvent.raise({ timesRetried: 9 });
+  errorEvent.raise({
+    timesRetried: 9
+  });
   await settle();
   assert.equal(env.controller.getActiveId(), 'photoreal');
   env.controller.destroy();
@@ -267,15 +314,21 @@ test('a factory-owned 3D tileset is released after late completion and supplied 
   };
   const env = fixture({
     defaultId: 'three',
-    sources: [
-      {
-        descriptor: { id: 'three' },
+    sources: [{
+        descriptor: {
+          id: 'three'
+        },
         createTileset: () =>
           new Promise((done) => {
             resolve = done;
           }),
       },
-      { descriptor: { id: 'supplied' }, tileset: supplied },
+      {
+        descriptor: {
+          id: 'supplied'
+        },
+        tileset: supplied
+      },
     ],
   });
   const loading = env.controller.setStack('three');
@@ -292,11 +345,27 @@ test('a factory-owned 3D tileset is released after late completion and supplied 
 });
 
 test('invalid source graphs fail before constructing or caching a provider', () => {
-  const a = { descriptor: descriptor('a'), constructionFallback: { id: 'b' } };
-  const b = { descriptor: descriptor('b'), constructionFallback: { id: 'a' } };
-  assert.throws(() => fixture({ sources: [a, b] }), /fallback cycle/);
-  assert.throws(() => fixture({ sources: [a, a] }), /unique/);
-  assert.throws(() => fixture({ sources: [a] }), /Unknown map fallback/);
+  const a = {
+    descriptor: descriptor('a'),
+    constructionFallback: {
+      id: 'b'
+    }
+  };
+  const b = {
+    descriptor: descriptor('b'),
+    constructionFallback: {
+      id: 'a'
+    }
+  };
+  assert.throws(() => fixture({
+    sources: [a, b]
+  }), /fallback cycle/);
+  assert.throws(() => fixture({
+    sources: [a, a]
+  }), /unique/);
+  assert.throws(() => fixture({
+    sources: [a]
+  }), /Unknown map fallback/);
 });
 
 for (const reactivate of [false, true]) {
@@ -311,12 +380,15 @@ for (const reactivate of [false, true]) {
         destroyed++;
       },
     };
-    const supplied = { show: true };
+    const supplied = {
+      show: true
+    };
     const env = fixture({
       defaultId: 'slow',
-      sources: [
-        {
-          descriptor: { id: 'slow' },
+      sources: [{
+          descriptor: {
+            id: 'slow'
+          },
           createTileset: () => {
             reads++;
             return new Promise((done) => {
@@ -324,7 +396,12 @@ for (const reactivate of [false, true]) {
             });
           },
         },
-        { descriptor: { id: 'supplied' }, tileset: supplied },
+        {
+          descriptor: {
+            id: 'supplied'
+          },
+          tileset: supplied
+        },
       ],
     });
     const loading = env.controller.setStack('slow');
@@ -352,27 +429,25 @@ for (const reactivate of [false, true]) {
 
 test('a failed recovery reports its error and leaves switching settled', async () => {
   const errors = [];
-  const env = fixture(
-    {
-      defaultId: 'first',
-      recoveryId: 'recovery',
-      sources: [
-        {
-          descriptor: descriptor('first'),
-          imagery: async () => {
-            throw new Error('first offline');
-          },
+  const env = fixture({
+    defaultId: 'first',
+    recoveryId: 'recovery',
+    sources: [{
+        descriptor: descriptor('first'),
+        imagery: async () => {
+          throw new Error('first offline');
         },
-        {
-          descriptor: descriptor('recovery'),
-          imagery: async () => {
-            throw new Error('recovery offline');
-          },
+      },
+      {
+        descriptor: descriptor('recovery'),
+        imagery: async () => {
+          throw new Error('recovery offline');
         },
-      ],
-    },
-    { onError: (message) => errors.push(message) },
-  );
+      },
+    ],
+  }, {
+    onError: (message) => errors.push(message)
+  }, );
   const result = await env.controller.setStack('first');
   assert.equal(result.status, 'ready');
   assert.equal(result.lastError, 'recovery offline');
