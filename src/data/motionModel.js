@@ -141,10 +141,8 @@ export function displayedKinematics({
   reportedTrackDeg,
 } = {}) {
   return {
-    speedMps: Number.isFinite(derivedSpeedMps) ? Math.max(0, derivedSpeedMps) :
-      (Number.isFinite(reportedSpeedMps) ? Math.max(0, reportedSpeedMps) : null),
-    trackDeg: Number.isFinite(derivedTrackDeg) ? derivedTrackDeg :
-      (Number.isFinite(reportedTrackDeg) ? reportedTrackDeg : null),
+    speedMps: Number.isFinite(derivedSpeedMps) ? Math.max(0, derivedSpeedMps) : (Number.isFinite(reportedSpeedMps) ? Math.max(0, reportedSpeedMps) : null),
+    trackDeg: Number.isFinite(derivedTrackDeg) ? derivedTrackDeg : (Number.isFinite(reportedTrackDeg) ? reportedTrackDeg : null),
   };
 }
 
