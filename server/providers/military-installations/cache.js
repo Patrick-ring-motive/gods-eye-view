@@ -52,15 +52,13 @@ async function resolveMilitaryInstallationTier({
     entry: null
   };
   const disk = await readDisk();
-  return disk ?
-    {
-      source: 'DISK',
-      entry: disk
-    } :
-    {
-      source: 'UPSTREAM',
-      entry: null
-    };
+  return disk ? {
+    source: 'DISK',
+    entry: disk
+  } : {
+    source: 'UPSTREAM',
+    entry: null
+  };
 }
 
 /**
@@ -79,8 +77,7 @@ function migrateMilitaryInstallationEntry(entry) {
   if (!entry?.payload || typeof entry.payload.saturated === 'boolean')
     return entry;
   const elements = Array.isArray(entry.payload.elements) ?
-    entry.payload.elements :
-    [];
+    entry.payload.elements : [];
   return {
     ...entry,
     payload: {
