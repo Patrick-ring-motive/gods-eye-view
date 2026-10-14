@@ -5,16 +5,21 @@ import {
   RADIO_CATEGORY_COLORS,
 } from './policy.js';
 
-export function createLabels({ state: layerState, services, parts, source }) {
+export function createLabels({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function compactRadioLabelText(value, maxChars) {
     const text = String(value || '')
       .replace(/\s+/g, ' ')
       .trim();
-    const graphemes = RADIO_LABEL_SEGMENTER
-      ? [...RADIO_LABEL_SEGMENTER.segment(text)].map(
-          (segment) => segment.segment,
-        )
-      : Array.from(text);
+    const graphemes = RADIO_LABEL_SEGMENTER ?
+      [...RADIO_LABEL_SEGMENTER.segment(text)].map(
+        (segment) => segment.segment,
+      ) :
+      Array.from(text);
     if (graphemes.length <= maxChars) return text;
     return `${graphemes
       .slice(0, Math.max(1, maxChars - 1))
@@ -198,9 +203,9 @@ export function createLabels({ state: layerState, services, parts, source }) {
   /** Build the code-native four-corner bracket used by the selected station. */
 
   function radioSelectionBracketSvg(color = RADIO_CATEGORY_COLORS.other) {
-    const stroke = /^#[0-9a-f]{6}$/i.test(String(color))
-      ? String(color)
-      : RADIO_CATEGORY_COLORS.other;
+    const stroke = /^#[0-9a-f]{6}$/i.test(String(color)) ?
+      String(color) :
+      RADIO_CATEGORY_COLORS.other;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M2 13V2H13 M27 2H38V13 M38 27V38H27 M13 38H2V27" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="square"/></svg>`;
   }
   return {
