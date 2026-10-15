@@ -1,9 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
+import {
+  tmpdir
+} from 'node:os';
 import path from 'node:path';
-import { parseEnv } from 'node:util';
+import {
+  parseEnv
+} from 'node:util';
 import {
   applyPinokioEnvironment,
   readPinokioEnvironment,
@@ -73,7 +82,10 @@ test('raw app-file values override Pinokio-global values, including blanks', () 
       PINOKIO_SHARE_PASSCODE: 'global-passcode',
     };
 
-    applyPinokioEnvironment({ environment, filepath });
+    applyPinokioEnvironment({
+      environment,
+      filepath
+    });
 
     assert.equal(environment.GOOGLE_MAPS_API_KEY, 'app-configured');
     assert.equal(environment.CESIUM_ION_TOKEN, '');
@@ -85,7 +97,10 @@ test('raw app-file values override Pinokio-global values, including blanks', () 
     assert.equal(environment.PINOKIO_SHARE_VAR, '__gev_sharing_disabled__');
     assert.equal(environment.PINOKIO_SHARE_PASSCODE, '');
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, {
+      recursive: true,
+      force: true
+    });
   }
 });
 
@@ -103,7 +118,10 @@ test('an existing Pinokio file gains the canonical non-secret sharing boundary',
       PINOKIO_SHARE_PASSCODE: 'global-passcode',
     };
 
-    applyPinokioEnvironment({ environment, filepath });
+    applyPinokioEnvironment({
+      environment,
+      filepath
+    });
 
     assert.equal(environment.OPENAI_API_KEY, 'app-value');
     assert.equal(environment.GOOGLE_MAPS_API_KEY, '');
@@ -119,7 +137,10 @@ test('an existing Pinokio file gains the canonical non-secret sharing boundary',
     assert.doesNotMatch(persisted, /^GEV_RATELIMIT_OPENAI_PER_MIN=/m);
     assert.doesNotMatch(persisted, /^GEV_RATELIMIT_GOOGLE_PER_MIN=/m);
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, {
+      recursive: true,
+      force: true
+    });
   }
 });
 
@@ -148,7 +169,10 @@ test('blank and duplicate sharing controls are canonicalized before Pinokio re-r
       PINOKIO_SHARE_PASSCODE: 'global-passcode',
     };
 
-    applyPinokioEnvironment({ environment, filepath });
+    applyPinokioEnvironment({
+      environment,
+      filepath
+    });
 
     assert.equal(environment.PINOKIO_SHARE_CLOUDFLARE, 'false');
     assert.equal(environment.PINOKIO_SHARE_LOCAL, 'false');
@@ -165,14 +189,22 @@ test('blank and duplicate sharing controls are canonicalized before Pinokio re-r
     assert.match(persisted, /^PINOKIO_SHARE_LOCAL=false$/m);
     assert.match(persisted, /^PINOKIO_SHARE_VAR=__gev_sharing_disabled__$/m);
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, {
+      recursive: true,
+      force: true
+    });
   }
 });
 
-for (const fixture of [
-  { name: 'UTF-16LE', encode: (source) => Buffer.from(source, 'utf16le') },
-  { name: 'UTF-16BE', encode: encodeUtf16be },
-]) {
+for (const fixture of [{
+      name: 'UTF-16LE',
+      encode: (source) => Buffer.from(source, 'utf16le')
+    },
+    {
+      name: 'UTF-16BE',
+      encode: encodeUtf16be
+    },
+  ]) {
   test(`${fixture.name} Pinokio configuration preserves provider values during migration`, () => {
     const root = mkdtempSync(path.join(tmpdir(), 'gev-pinokio-env-utf16-'));
     try {
@@ -192,7 +224,10 @@ for (const fixture of [
         PINOKIO_SHARE_PASSCODE: 'global-passcode',
       };
 
-      applyPinokioEnvironment({ environment, filepath });
+      applyPinokioEnvironment({
+        environment,
+        filepath
+      });
 
       assert.equal(environment.OPENAI_API_KEY, 'provider-value');
       assert.equal(environment.PINOKIO_SHARE_CLOUDFLARE, 'false');
@@ -203,7 +238,10 @@ for (const fixture of [
       const persisted = readFileSync(filepath);
       assert.equal(persisted.includes(0), false, 'migration writes one coherent UTF-8 file');
     } finally {
-      rmSync(root, { recursive: true, force: true });
+      rmSync(root, {
+        recursive: true,
+        force: true
+      });
     }
   });
 }
@@ -213,16 +251,24 @@ test('server Google key follows app values, blanks and absence instead of inheri
   try {
     const filepath = path.join(root, 'ENVIRONMENT');
     for (const [source, expected] of [
-      ['GOOGLE_MAPS_SERVER_API_KEY=app-server\n', 'app-server'],
-      ['GOOGLE_MAPS_SERVER_API_KEY=\n', ''],
-      ['', ''],
-    ]) {
+        ['GOOGLE_MAPS_SERVER_API_KEY=app-server\n', 'app-server'],
+        ['GOOGLE_MAPS_SERVER_API_KEY=\n', ''],
+        ['', ''],
+      ]) {
       writeFileSync(filepath, source);
-      const environment = { GOOGLE_MAPS_SERVER_API_KEY: 'global-server' };
-      applyPinokioEnvironment({ environment, filepath });
+      const environment = {
+        GOOGLE_MAPS_SERVER_API_KEY: 'global-server'
+      };
+      applyPinokioEnvironment({
+        environment,
+        filepath
+      });
       assert.equal(environment.GOOGLE_MAPS_SERVER_API_KEY, expected);
     }
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    rmSync(root, {
+      recursive: true,
+      force: true
+    });
   }
 });
