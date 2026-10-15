@@ -15,8 +15,7 @@ export function createLabels({
     const text = String(value || '')
       .replace(/\s+/g, ' ')
       .trim();
-    const graphemes = RADIO_LABEL_SEGMENTER ?
-      [...RADIO_LABEL_SEGMENTER.segment(text)].map(
+    const graphemes = RADIO_LABEL_SEGMENTER ? [...RADIO_LABEL_SEGMENTER.segment(text)].map(
         (segment) => segment.segment,
       ) :
       Array.from(text);
