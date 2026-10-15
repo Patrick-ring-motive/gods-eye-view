@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-traffic-jamviz-ab.mjs — A/B screenshot capture for the jam-viz
  * congestion prototypes (feat/traffic-jam-viz).
@@ -21,7 +22,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -34,21 +37,32 @@ const getOpt = (name, dflt) => {
 const APP_URL = getOpt('--url', 'http://localhost:4412');
 const OUT_DIR = path.resolve(REPO_ROOT, getOpt('--out', 'qa-shots/jamviz'));
 
-const VIEWS = [
-  {
+const VIEWS = [{
     id: 'i35-city',
     label: 'Austin I-35 corridor — city scale',
-    lon: -97.7365, lat: 30.235, height: 3000, heading: 8, pitch: -38,
+    lon: -97.7365,
+    lat: 30.235,
+    height: 3000,
+    heading: 8,
+    pitch: -38,
   },
   {
     id: 'i35-detail',
     label: 'Austin I-35 at downtown — queue detail',
-    lon: -97.735, lat: 30.262, height: 1100, heading: 10, pitch: -45,
+    lon: -97.735,
+    lat: 30.262,
+    height: 1100,
+    heading: 10,
+    pitch: -45,
   },
   {
     id: 'mumbai-wexp',
     label: 'Mumbai Western Express Hwy — live morning rush',
-    lon: 72.851, lat: 19.115, height: 3200, heading: 0, pitch: -40,
+    lon: 72.851,
+    lat: 19.115,
+    height: 3200,
+    heading: 0,
+    pitch: -40,
   },
 ];
 const MODES = ['none', 'density', 'heatline', 'both'];
@@ -67,7 +81,13 @@ const CHROME_EXECUTABLE_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
 ].filter(Boolean);
 const findChromeExecutable = () =>
-  CHROME_EXECUTABLE_CANDIDATES.find((c) => { try { return fs.existsSync(c); } catch { return false; } }) || null;
+  CHROME_EXECUTABLE_CANDIDATES.find((c) => {
+    try {
+      return fs.existsSync(c);
+    } catch {
+      return false;
+    }
+  }) || null;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -83,8 +103,9 @@ function waitForTilesLoaded(page, timeoutMs) {
         }
       }
       return true;
-    },
-    { timeout: timeoutMs }
+    }, {
+      timeout: timeoutMs
+    }
   ).then(() => true).catch(() => false);
 }
 
@@ -92,12 +113,17 @@ function waitForTilesLoaded(page, timeoutMs) {
 function setView(page, v) {
   return page.evaluate((view) => {
     const gev = window.__godsEyeView;
-    try { gev.viewer.camera.cancelFlight(); } catch { /* no flight */ }
+    try {
+      gev.viewer.camera.cancelFlight();
+    } catch {
+      /* no flight */ }
     const ell = gev.viewer.scene.globe.ellipsoid;
     const d2r = Math.PI / 180;
     gev.viewer.camera.setView({
       destination: ell.cartographicToCartesian({
-        longitude: view.lon * d2r, latitude: view.lat * d2r, height: view.height,
+        longitude: view.lon * d2r,
+        latitude: view.lat * d2r,
+        height: view.height,
       }),
       orientation: {
         heading: (view.heading || 0) * d2r,
@@ -128,7 +154,10 @@ function waitForFreshRender(page, sinceLastUpdate, timeoutS = 40) {
         break;
       }
     }
-    return { ...s, renderSettled };
+    return {
+      ...s,
+      renderSettled
+    };
   }, sinceLastUpdate, timeoutS);
 }
 
@@ -150,10 +179,14 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.mkdirSync(OUT_DIR, {
+    recursive: true
+  });
   const browser = await puppeteer.launch({
     headless: 'new',
-    ...(findChromeExecutable() ? { executablePath: findChromeExecutable() } : {}),
+    ...(findChromeExecutable() ? {
+      executablePath: findChromeExecutable()
+    } : {}),
     args: [
       '--no-sandbox', '--disable-setuid-sandbox', '--use-gl=angle', '--use-angle=swiftshader',
       '--disable-dev-shm-usage', '--disable-web-security',
@@ -166,12 +199,19 @@ async function main() {
   let exitCode = 0;
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1600, height: 900 });
+    await page.setViewport({
+      width: 1600,
+      height: 900
+    });
     console.log('Loading app...');
-    await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-      { timeout: 60000 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+        timeout: 60000
+      },
     );
     await page.evaluate(() => window.__godsEyeView.dataManager.setEnabled('traffic', true));
     await sleep(1500);
@@ -187,12 +227,17 @@ async function main() {
         // shot captures the away render), then return — the comeback load
         // re-spawns with the new mode active.
         await page.evaluate((m) => {
-          window.__godsEyeView.dataManager.layers.get('traffic').module.setParams({ jamViz: m });
+          window.__godsEyeView.dataManager.layers.get('traffic').module.setParams({
+            jamViz: m
+          });
         }, mode);
         const preHop = await page.evaluate(
           () => window.__godsEyeView.dataManager.layers.get('traffic').module.getStats().lastUpdate,
         );
-        await setView(page, { ...view, lon: view.lon + 0.09 });
+        await setView(page, {
+          ...view,
+          lon: view.lon + 0.09
+        });
         const hop = await waitForFreshRender(page, preHop, 30);
         const since = await page.evaluate(
           () => window.__godsEyeView.dataManager.layers.get('traffic').module.getStats().lastUpdate,
@@ -204,10 +249,15 @@ async function main() {
 
         const final = await page.evaluate(() => {
           const mod = window.__godsEyeView.dataManager.layers.get('traffic').module;
-          return { stats: mod.getStats(), params: mod.getParams() };
+          return {
+            stats: mod.getStats(),
+            params: mod.getParams()
+          };
         });
         const shot = `${view.id}--${mode}.png`;
-        await page.screenshot({ path: path.join(OUT_DIR, shot) });
+        await page.screenshot({
+          path: path.join(OUT_DIR, shot)
+        });
 
         const b = final.stats.flowBuckets || {};
         // `mode` is the CONFIGURED source, not feed health: a keyed run whose
@@ -216,21 +266,25 @@ async function main() {
         const colored = (b.free || 0) + (b.slow || 0) + (b.jam || 0);
         // A capture whose waits timed out shows the PREVIOUS view's dots.
         // That is a failed capture, not a footnote in the manifest.
-        const renderSettled = Boolean(hop.renderSettled && stats.renderSettled)
-          && !final.stats.loading;
-        const ok = renderSettled && final.stats.mode === 'live' && !final.stats.error
-          && final.stats.count > 0 && colored > 0
-          && final.params.jamViz === mode
-          && (mode !== 'none' || final.stats.heatLines === 0);
+        const renderSettled = Boolean(hop.renderSettled && stats.renderSettled) &&
+          !final.stats.loading;
+        const ok = renderSettled && final.stats.mode === 'live' && !final.stats.error &&
+          final.stats.count > 0 && colored > 0 &&
+          final.params.jamViz === mode &&
+          (mode !== 'none' || final.stats.heatLines === 0);
         if (!ok) exitCode = 1;
-        console.log(`  [${ok ? 'OK' : 'FAIL'}] ${shot}  dots=${final.stats.count} `
-          + `free=${b.free} slow=${b.slow} jam=${b.jam} sim=${b.sim} `
-          + `heatLines=${final.stats.heatLines} cov=${final.stats.flowCoveragePct}% `
-          + `err=${final.stats.error || 'none'} settled=${renderSettled}`);
+        console.log(`  [${ok ? 'OK' : 'FAIL'}] ${shot}  dots=${final.stats.count} ` +
+          `free=${b.free} slow=${b.slow} jam=${b.jam} sim=${b.sim} ` +
+          `heatLines=${final.stats.heatLines} cov=${final.stats.flowCoveragePct}% ` +
+          `err=${final.stats.error || 'none'} settled=${renderSettled}`);
         manifest.push({
-          view: view.id, label: view.label, mode, shot,
+          view: view.id,
+          label: view.label,
+          mode,
+          shot,
           capturedAt: new Date().toISOString(),
-          count: final.stats.count, flowBuckets: b,
+          count: final.stats.count,
+          flowBuckets: b,
           heatLines: final.stats.heatLines,
           closedRoads: final.stats.closedRoads,
           coveragePct: final.stats.flowCoveragePct,
@@ -251,4 +305,7 @@ async function main() {
   process.exit(exitCode);
 }
 
-main().catch((e) => { console.error(e); process.exit(3); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(3);
+});
