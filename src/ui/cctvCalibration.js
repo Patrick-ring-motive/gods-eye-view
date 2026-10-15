@@ -23,14 +23,18 @@ const CCTV_CAL_FIELDS = {
     unit: '°',
     decimals: 1,
     get: (cam) => cam.pitchDeg,
-    toPatch: (value, base) => ({ pitchDeg: value - base.pitchDeg }),
+    toPatch: (value, base) => ({
+      pitchDeg: value - base.pitchDeg
+    }),
   },
   fov: {
     label: 'FOV',
     unit: '°',
     decimals: 0,
     get: (cam) => cam.fovDeg,
-    toPatch: (value, base) => ({ fovDeg: value - base.fovDeg }),
+    toPatch: (value, base) => ({
+      fovDeg: value - base.fovDeg
+    }),
   },
   range: {
     label: 'RANGE',
@@ -46,21 +50,27 @@ const CCTV_CAL_FIELDS = {
     unit: 'm',
     decimals: 0,
     get: (cam) => cam.mountHeightM,
-    toPatch: (value, base) => ({ heightM: value - base.mountHeightM }),
+    toPatch: (value, base) => ({
+      heightM: value - base.mountHeightM
+    }),
   },
   north: {
     label: 'ΔN',
     unit: 'm',
     decimals: 1,
     get: (cam) => cam.calibration?.offsetNorthM || 0,
-    toPatch: (value) => ({ offsetNorthM: value }),
+    toPatch: (value) => ({
+      offsetNorthM: value
+    }),
   },
   east: {
     label: 'ΔE',
     unit: 'm',
     decimals: 1,
     get: (cam) => cam.calibration?.offsetEastM || 0,
-    toPatch: (value) => ({ offsetEastM: value }),
+    toPatch: (value) => ({
+      offsetEastM: value
+    }),
   },
 };
 
@@ -71,16 +81,15 @@ export function _activeCctvCameraId() {
 export function _resetCctvCalibration() {
   const cameraId = this._activeCctvCameraId();
   if (!cameraId || !this.actions.setParams) return;
-  this.actions.setParams(
-    {
-      selectedCameraId: cameraId,
-      calibration: {
-        cameraId,
-        reset: true,
-      },
+  this.actions.setParams({
+    selectedCameraId: cameraId,
+    calibration: {
+      cameraId,
+      reset: true,
     },
-    { origin: 'user' },
-  );
+  }, {
+    origin: 'user'
+  }, );
   this.actions.showToast('CCTV calibration reset');
 }
 
@@ -91,7 +100,9 @@ export function _beginCctvCalValueEdit(chip) {
   const activeCamera = this._cctvState?.activeCamera;
   if (!field || !activeCamera?.basePose) return;
   const cameraId = this._activeCctvCameraId();
-  const basePose = { ...activeCamera.basePose };
+  const basePose = {
+    ...activeCamera.basePose
+  };
   const editListeners = new AbortController();
   const startValue = field.get(activeCamera);
   const input = document.createElement('input');
@@ -121,13 +132,15 @@ export function _beginCctvCalValueEdit(chip) {
       cameraId === this._activeCctvCameraId()
     ) {
       if (cameraId && this.actions.setParams) {
-        this.actions.setParams(
-          {
-            selectedCameraId: cameraId,
-            calibration: { cameraId, patch: field.toPatch(typed, basePose) },
+        this.actions.setParams({
+          selectedCameraId: cameraId,
+          calibration: {
+            cameraId,
+            patch: field.toPatch(typed, basePose)
           },
-          { origin: 'user' },
-        );
+        }, {
+          origin: 'user'
+        }, );
         return; // re-render restores the chip text from fresh state
       }
     }
@@ -146,8 +159,9 @@ export function _beginCctvCalValueEdit(chip) {
         finish(false);
       }
       event.stopPropagation();
+    }, {
+      signal: editListeners.signal
     },
-    { signal: editListeners.signal },
   );
   input.addEventListener('blur', () => finish(true), {
     signal: editListeners.signal,
@@ -167,15 +181,15 @@ export function _syncCctvCalReadout(enabled, activeCamera) {
   }
   if (this._cctvCalReadout) {
     for (const chip of this._cctvCalReadout.querySelectorAll(
-      '.cctv-cal-value',
-    )) {
+        '.cctv-cal-value',
+      )) {
       if (chip.querySelector('input')) continue; // an edit is in flight — don't clobber
       const field = CCTV_CAL_FIELDS[chip.dataset.calField];
       if (!field) continue;
       const value = canCalibrate ? field.get(activeCamera) : null;
-      chip.textContent = Number.isFinite(value)
-        ? `${field.label} ${Number(value).toFixed(field.decimals)}${field.unit}`
-        : `${field.label} --`;
+      chip.textContent = Number.isFinite(value) ?
+        `${field.label} ${Number(value).toFixed(field.decimals)}${field.unit}` :
+        `${field.label} --`;
       chip.disabled = !canCalibrate;
     }
   }
