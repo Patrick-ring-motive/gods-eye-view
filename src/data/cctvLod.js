@@ -49,16 +49,22 @@ const PROVIDER_STATIC_REFRESH_MS = Object.freeze({
  * @returns {{cardLimit:number}}
  */
 export function cctvLodBudgets(cameraHeightM) {
-  const height = Number.isFinite(cameraHeightM)
-    ? Math.max(0, cameraHeightM)
-    : CITY_HEIGHT_M;
+  const height = Number.isFinite(cameraHeightM) ?
+    Math.max(0, cameraHeightM) :
+    CITY_HEIGHT_M;
   if (height <= STREET_HEIGHT_M) {
-    return { cardLimit: CCTV_AMBIENT_CARD_MIN };
+    return {
+      cardLimit: CCTV_AMBIENT_CARD_MIN
+    };
   }
   if (height <= CITY_HEIGHT_M) {
-    return { cardLimit: CCTV_AMBIENT_CARD_MID };
+    return {
+      cardLimit: CCTV_AMBIENT_CARD_MID
+    };
   }
-  return { cardLimit: CCTV_AMBIENT_CARD_MAX };
+  return {
+    cardLimit: CCTV_AMBIENT_CARD_MAX
+  };
 }
 
 /**
@@ -156,9 +162,9 @@ export function blendCenterRankKm(
   if (!Number.isFinite(km)) return Infinity;
   const w = Math.min(1, Math.max(0, Number.isFinite(weight) ? weight : 0));
   const spread = Number.isFinite(spreadKm) && spreadKm > 0 ? spreadKm : 0;
-  const fraction = Number.isFinite(centerFraction)
-    ? Math.min(1, Math.max(0, centerFraction))
-    : 1;
+  const fraction = Number.isFinite(centerFraction) ?
+    Math.min(1, Math.max(0, centerFraction)) :
+    1;
   return (1 - w) * km + w * spread * fraction;
 }
 
@@ -194,8 +200,7 @@ export const CCTV_CARD_GRID_ROWS = 4;
  *   global-rank fill).
  */
 export function distributeCctvCards(
-  candidates,
-  {
+  candidates, {
     budget = CCTV_AMBIENT_CARD_MAX,
     viewW = 0,
     viewH = 0,
@@ -206,11 +211,11 @@ export function distributeCctvCards(
   const cap = Number.isFinite(budget) ? Math.max(0, Math.floor(budget)) : 0;
   const valid = (Array.isArray(candidates) ? candidates : []).filter(
     (c) =>
-      c &&
-      typeof c.id === 'string' &&
-      c.id &&
-      Number.isFinite(c.sx) &&
-      Number.isFinite(c.sy),
+    c &&
+    typeof c.id === 'string' &&
+    c.id &&
+    Number.isFinite(c.sx) &&
+    Number.isFinite(c.sy),
   );
   if (!cap || !valid.length) return [];
   const validViewport = hasFiniteCctvViewport(viewW, viewH);
@@ -220,7 +225,7 @@ export function distributeCctvCards(
   const nRows = Math.max(1, Math.floor(rows));
   const byRank = (a, b) =>
     (Number.isFinite(a.rankKm) ? a.rankKm : Infinity) -
-      (Number.isFinite(b.rankKm) ? b.rankKm : Infinity) ||
+    (Number.isFinite(b.rankKm) ? b.rankKm : Infinity) ||
     a.id.localeCompare(b.id);
 
   /** @type {Map<number, Array>} occupied cell -> its candidates */
@@ -282,8 +287,12 @@ export function distributeCctvCards(
  * @returns {{cardIds:string[],budgets:{cardLimit:number}}}
  */
 export function selectCctvLod(
-  candidates,
-  { cameraHeightM, incumbentIds, viewW, viewH } = {},
+  candidates, {
+    cameraHeightM,
+    incumbentIds,
+    viewW,
+    viewH
+  } = {},
 ) {
   const budgets = cctvLodBudgets(cameraHeightM);
   const incumbents =
@@ -296,13 +305,13 @@ export function selectCctvLod(
     const inView = (Array.isArray(candidates) ? candidates : [])
       .filter(
         (candidate) =>
-          candidate && typeof candidate.id === 'string' && candidate.id,
+        candidate && typeof candidate.id === 'string' && candidate.id,
       )
       .map((candidate) => ({
         id: candidate.id,
-        distanceKm: Number.isFinite(candidate.distanceKm)
-          ? Math.max(0, candidate.distanceKm)
-          : Infinity,
+        distanceKm: Number.isFinite(candidate.distanceKm) ?
+          Math.max(0, candidate.distanceKm) :
+          Infinity,
         rankKm: incumbentRankKm(
           candidate.distanceKm,
           incumbents.has(candidate.id),
@@ -313,9 +322,9 @@ export function selectCctvLod(
       .filter((candidate) => candidate.inView)
       .sort(
         (a, b) =>
-          a.rankKm - b.rankKm ||
-          a.distanceKm - b.distanceKm ||
-          a.id.localeCompare(b.id),
+        a.rankKm - b.rankKm ||
+        a.distanceKm - b.distanceKm ||
+        a.id.localeCompare(b.id),
       );
     const cardIds = [];
     const seen = new Set();
@@ -325,7 +334,10 @@ export function selectCctvLod(
       seen.add(candidate.id);
       if (cardIds.length >= budgets.cardLimit) break;
     }
-    return { cardIds, budgets };
+    return {
+      cardIds,
+      budgets
+    };
   }
   const eligibleById = new Map();
   for (const candidate of Array.isArray(candidates) ? candidates : []) {
@@ -375,9 +387,9 @@ export function selectCctvLod(
   }
   stills.sort(
     (a, b) =>
-      a.rankKm - b.rankKm ||
-      a.distanceKm - b.distanceKm ||
-      a.id.localeCompare(b.id),
+    a.rankKm - b.rankKm ||
+    a.distanceKm - b.distanceKm ||
+    a.id.localeCompare(b.id),
   );
 
   let cardIds;
@@ -397,10 +409,17 @@ export function selectCctvLod(
     }
   }
 
-  return { cardIds, budgets };
+  return {
+    cardIds,
+    budgets
+  };
 }
 
-function compareCctvRepresentative(a, b, { screened, viewW, viewH }) {
+function compareCctvRepresentative(a, b, {
+  screened,
+  viewW,
+  viewH
+}) {
   if (a.distanceKm !== b.distanceKm)
     return a.distanceKm < b.distanceKm ? -1 : 1;
   if (screened) {
@@ -474,7 +493,11 @@ export function applyEvictionGrace({
     if (misses > gracePasses || nowMs - since >= graceMs) {
       evictIds.push(id);
     } else {
-      graced.push({ id, misses, since });
+      graced.push({
+        id,
+        misses,
+        since
+      });
     }
   }
 
@@ -483,7 +506,7 @@ export function applyEvictionGrace({
   // misses, then id for determinism.
   graced.sort(
     (a, b) =>
-      a.since - b.since || b.misses - a.misses || a.id.localeCompare(b.id),
+    a.since - b.since || b.misses - a.misses || a.id.localeCompare(b.id),
   );
   const capacity = Math.max(0, cardLimit - keepIds.length);
   const overflow = Math.max(0, graced.length - capacity);
@@ -499,7 +522,11 @@ export function applyEvictionGrace({
     });
   }
 
-  return { keepIds, evictIds, graceState: nextGrace };
+  return {
+    keepIds,
+    evictIds,
+    graceState: nextGrace
+  };
 }
 
 /**
