@@ -1,6 +1,5 @@
 import * as Cesium from 'cesium';
-export const MAP_STACKS = [
-  {
+export const MAP_STACKS = [{
     id: 'photoreal',
     label: 'Google 3D',
     shortLabel: '3D',
