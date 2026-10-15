@@ -11,7 +11,9 @@ import {
   cableReferencePriority,
 } from './overlay.js';
 
-export function createRendering({ state }) {
+export function createRendering({
+  state
+}) {
   function resetPublishSignature() {
     state._lastPublishedIds.length = 0;
     state._lastPublishedPriorities.length = 0;
@@ -68,9 +70,9 @@ export function createRendering({ state }) {
 
   function styleCableEntity(entity, feature) {
     if (!entity?.polyline) return;
-    const color = feature?.properties?.color
-      ? Cesium.Color.fromCssColorString(String(feature.properties.color))
-      : state.cableColor;
+    const color = feature?.properties?.color ?
+      Cesium.Color.fromCssColorString(String(feature.properties.color)) :
+      state.cableColor;
     entity.polyline.material = color.withAlpha(0.92);
     entity.polyline.width = 2.5;
     entity.polyline.clampToGround = true;
@@ -99,8 +101,8 @@ export function createRendering({ state }) {
         state._markerBlendInvariantWarned = true;
         console.error(
           '[Data:telegeography-submarine-cables] EntityCluster marker-collection ' +
-            'shape changed — single-pass translucent blend skipped; markers fall ' +
-            "back to Cesium's default two-pass blend.",
+          'shape changed — single-pass translucent blend skipped; markers fall ' +
+          "back to Cesium's default two-pass blend.",
         );
       }
       return;
@@ -139,7 +141,13 @@ export function createRendering({ state }) {
     entity.show = true;
   }
 
-  function addReferenceStem({ reference, label, kind, color, feature }) {
+  function addReferenceStem({
+    reference,
+    label,
+    kind,
+    color,
+    feature
+  }) {
     if (!state._referenceDataSource || !reference) return;
 
     const base = Cesium.Cartesian3.fromDegrees(reference.lon, reference.lat, 0);
