@@ -4,7 +4,12 @@ import {
   EMPTY_ACCEPTED_CATALOG_SNAPSHOT,
 } from './policy.js';
 
-export function createTuning({ state: layerState, services, parts, source }) {
+export function createTuning({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** Bound one already ordered filtered directory without injecting outside selections. */
 
   function buildRadioTunerBand(
@@ -67,7 +72,9 @@ export function createTuning({ state: layerState, services, parts, source }) {
     layerState._tuningStartStationId = layerState._selectedId;
     layerState._tuningPreviewId = layerState._selectedId;
     parts.tuningNoise.installTuningNoise();
-    parts.playback.pauseRadioPlayback({ origin: 'user' });
+    parts.playback.pauseRadioPlayback({
+      origin: 'user'
+    });
     parts.tuningNoise.syncTuningNoiseGain();
     parts.presentation.emitState();
     return true;
@@ -91,7 +98,9 @@ export function createTuning({ state: layerState, services, parts, source }) {
 
   /** Preview a tuner station bracket and camera orientation without starting audio. */
 
-  function previewRadioTuningStation(id, { rotate = true } = {}) {
+  function previewRadioTuningStation(id, {
+    rotate = true
+  } = {}) {
     if (
       !parts.interaction.radioPresentationAllowed() ||
       !layerState._tuningActive
@@ -145,13 +154,17 @@ export function createTuning({ state: layerState, services, parts, source }) {
     const restoredStation = parts.model.tuningResolutionStation(
       layerState._tuningStartStationId,
     );
-    parts.tuningNoise.clearRadioTuningNoise({ restoredStation });
+    parts.tuningNoise.clearRadioTuningNoise({
+      restoredStation
+    });
     return true;
   }
 
   /** Commit the exact frozen drag resolution or report that it is unavailable. */
 
-  function commitRadioTuningStation(id, { origin = 'programmatic' } = {}) {
+  function commitRadioTuningStation(id, {
+    origin = 'programmatic'
+  } = {}) {
     const frozenStation = parts.model.tuningResolutionStation(id);
     const currentStation = layerState._stationById.get(String(id)) || null;
     const generation = layerState._tuningResolutionSnapshot.generation;
@@ -177,7 +190,9 @@ export function createTuning({ state: layerState, services, parts, source }) {
       // frozen preview and the unavailable state.
       layerState._selectedId = null;
       layerState._selectionGeneration += 1;
-      parts.tuningNoise.clearRadioTuningNoise({ emit: false });
+      parts.tuningNoise.clearRadioTuningNoise({
+        emit: false
+      });
       layerState._tuningUnavailableStationId = stationId;
       parts.presentation.emitState();
       return Object.freeze({
