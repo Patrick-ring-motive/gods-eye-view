@@ -69,8 +69,18 @@ function shortcuts() {
     actions,
   });
   const press = (key, target = new Element(), rest = {}) =>
-    documentRef.emit('keydown', { key, target, ...rest });
-  return { documentRef, searchInput, calls, controller, press };
+    documentRef.emit('keydown', {
+      key,
+      target,
+      ...rest
+    });
+  return {
+    documentRef,
+    searchInput,
+    calls,
+    controller,
+    press
+  };
 }
 
 test('number keys retain the seven style mappings', () => {
@@ -108,7 +118,9 @@ for (const tag of ['INPUT', 'SELECT', 'TEXTAREA']) {
       f.press(key, new Element(tag));
     assert.deepEqual(f.calls, []);
     f.press('Escape', new Element(tag));
-    assert.deepEqual(f.calls, [['dismissSearch']]);
+    assert.deepEqual(f.calls, [
+      ['dismissSearch']
+    ]);
   });
 }
 
@@ -116,13 +128,20 @@ test('the supplied search target retains editing even without form markup', () =
   const f = shortcuts();
   f.press('1', f.searchInput);
   f.press('Escape', f.searchInput);
-  assert.deepEqual(f.calls, [['dismissSearch']]);
+  assert.deepEqual(f.calls, [
+    ['dismissSearch']
+  ]);
 });
 
 test('shortcut extraction does not change repeat or modifier policy', () => {
   const f = shortcuts();
-  f.press('h', new Element(), { repeat: true, ctrlKey: true });
-  assert.deepEqual(f.calls, [['toggleHud']]);
+  f.press('h', new Element(), {
+    repeat: true,
+    ctrlKey: true
+  });
+  assert.deepEqual(f.calls, [
+    ['toggleHud']
+  ]);
 });
 
 test('destroy synchronously removes shortcuts and a replacement binds once', () => {
@@ -135,7 +154,9 @@ test('destroy synchronously removes shortcuts and a replacement binds once', () 
   const replacement = bindApplicationShortcuts({
     documentRef: f.documentRef,
     searchInput: f.searchInput,
-    actions: { toggleHud: () => f.calls.push('new') },
+    actions: {
+      toggleHud: () => f.calls.push('new')
+    },
   });
   f.press('h');
   assert.deepEqual(f.calls, ['new']);
@@ -147,11 +168,24 @@ function parameters() {
     createElement: (tag) => new Element(tag.toUpperCase(), documentRef),
   };
   const container = new Element('DIV', documentRef);
-  const controller = createStyleParameters({ container });
-  const values = { amount: 0.25, scale: 2 };
+  const controller = createStyleParameters({
+    container
+  });
+  const values = {
+    amount: 0.25,
+    scale: 2
+  };
   const uniforms = {
-    amount: { label: '<Amount>', min: 0, max: 1 },
-    scale: { label: 'Scale', min: 0, max: 10 },
+    amount: {
+      label: '<Amount>',
+      min: 0,
+      max: 1
+    },
+    scale: {
+      label: 'Scale',
+      min: 0,
+      max: 10
+    },
   };
   const order = [];
   const options = {
@@ -166,7 +200,13 @@ function parameters() {
     },
   };
   controller.render(options);
-  return { container, controller, values, options, order };
+  return {
+    container,
+    controller,
+    values,
+    options,
+    order
+  };
 }
 
 test('parameter rows preserve labels, bounds, precision and initial values', () => {
@@ -207,7 +247,9 @@ test('rebuilding the parameter panel revokes detached slider listeners', () => {
   const oldSlider = f.container.children[0].children[1];
   f.controller.render({
     ...f.options,
-    uniforms: { scale: f.options.uniforms.scale },
+    uniforms: {
+      scale: f.options.uniforms.scale
+    },
   });
   oldSlider.value = '0.8';
   oldSlider.emit('input');
