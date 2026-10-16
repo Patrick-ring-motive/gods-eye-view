@@ -1,4 +1,9 @@
-export function createQueries({ state: layerState, services, parts, source }) {
+export function createQueries({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Build a compact HUD detection ID string for a station.
    * Truncates long names to 24 chars for readability.
@@ -7,9 +12,9 @@ export function createQueries({ state: layerState, services, parts, source }) {
    */
 
   function buildDetectionId(record) {
-    const bikes = Number.isFinite(record.bikesAvailable)
-      ? record.bikesAvailable
-      : '?';
+    const bikes = Number.isFinite(record.bikesAvailable) ?
+      record.bikesAvailable :
+      '?';
     const capacity = Number.isFinite(record.capacity) ? record.capacity : '?';
     // Render record stores the station name under `stationName` (see the render-map
     // shape), so `record.name` was always undefined → every label read "Dock N".
@@ -49,9 +54,9 @@ export function createQueries({ state: layerState, services, parts, source }) {
     if (records.length === 0) return [];
 
     // Deterministic subsampling: pick every Nth station, offset by seed
-    const maxCount = Number.isFinite(options.maxCount)
-      ? Math.max(1, Math.floor(options.maxCount))
-      : records.length;
+    const maxCount = Number.isFinite(options.maxCount) ?
+      Math.max(1, Math.floor(options.maxCount)) :
+      records.length;
     const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
     const stride = Math.max(1, Math.ceil(records.length / maxCount));
     const start = ((seed % stride) + stride) % stride;
@@ -71,5 +76,8 @@ export function createQueries({ state: layerState, services, parts, source }) {
 
     return result;
   }
-  return { buildDetectionId, collectDetectableStations };
+  return {
+    buildDetectionId,
+    collectDetectableStations
+  };
 }
