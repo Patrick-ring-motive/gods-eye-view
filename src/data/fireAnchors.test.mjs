@@ -14,7 +14,9 @@
 // `fetch` is injected via `globalThis.fetch` (no real network), same pattern
 // as terrainHeights.test.mjs. The terrainHeights/groundFloor module caches
 // persist across tests in this file, so each test uses distinct coordinates.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   FIRE_ANCHOR_LIFT_M,
@@ -22,7 +24,10 @@ import {
   warmFireAnchorFloors,
   _resetFireAnchorsForTest,
 } from './fireAnchors.js';
-import { reportMeshFloorCell, setMeshFloorPreferred } from './groundFloor.js';
+import {
+  reportMeshFloorCell,
+  setMeshFloorPreferred
+} from './groundFloor.js';
 
 /** Installs a fake fetch for the duration of `fn`, restoring the original after. */
 async function withFakeFetch(fakeFetch, fn) {
@@ -40,7 +45,10 @@ function parsePoints(url) {
   const raw = decodeURIComponent(String(url).split('points=')[1] || '');
   return raw.split(';').filter(Boolean).map((pair) => {
     const [lon, lat] = pair.split(',').map(Number);
-    return { lon, lat };
+    return {
+      lon,
+      lat
+    };
   });
 }
 
@@ -53,7 +61,16 @@ function echoFetch(log) {
       ok: true,
       status: 200,
       json: async () => ({
-        results: points.map(({ lon, lat }) => ({ lon, lat, elevation: 0, geoid: 0, ellipsoid: lon + lat })),
+        results: points.map(({
+          lon,
+          lat
+        }) => ({
+          lon,
+          lat,
+          elevation: 0,
+          geoid: 0,
+          ellipsoid: lon + lat
+        })),
       }),
     };
   };
@@ -77,10 +94,18 @@ test('warmFireAnchorFloors: one batched request, deduped to coarse cells', async
   _resetFireAnchorsForTest();
   const log = [];
   await withFakeFetch(echoFetch(log), async () => {
-    const warmed = await warmFireAnchorFloors([
-      { lat: 20.0001, lon: 30.0001 }, // same ~111 m cell as the next point
-      { lat: 20.0004, lon: 30.0004 },
-      { lat: 20.101, lon: 30.101 },   // distinct cell
+    const warmed = await warmFireAnchorFloors([{
+        lat: 20.0001,
+        lon: 30.0001
+      }, // same ~111 m cell as the next point
+      {
+        lat: 20.0004,
+        lon: 30.0004
+      },
+      {
+        lat: 20.101,
+        lon: 30.101
+      }, // distinct cell
     ]);
     assert.equal(warmed, true);
     assert.equal(log.length, 1, 'one network request for the whole batch');
@@ -96,11 +121,19 @@ test('warmFireAnchorFloors: warm cells never refetch (one lookup per fire ever)'
   _resetFireAnchorsForTest();
   const log = [];
   await withFakeFetch(echoFetch(log), async () => {
-    await warmFireAnchorFloors([{ lat: 21.001, lon: 31.001 }]);
+    await warmFireAnchorFloors([{
+      lat: 21.001,
+      lon: 31.001
+    }]);
     assert.equal(log.length, 1);
-    const warmedAgain = await warmFireAnchorFloors([
-      { lat: 21.001, lon: 31.001 },
-      { lat: 21.0012, lon: 31.0011 }, // same cell, different detection
+    const warmedAgain = await warmFireAnchorFloors([{
+        lat: 21.001,
+        lon: 31.001
+      },
+      {
+        lat: 21.0012,
+        lon: 31.0011
+      }, // same cell, different detection
     ]);
     assert.equal(warmedAgain, false, 'nothing was cold, so nothing warmed');
     assert.equal(log.length, 1, 'no second network request');
@@ -110,7 +143,9 @@ test('warmFireAnchorFloors: warm cells never refetch (one lookup per fire ever)'
 test('warmFireAnchorFloors: overlapping calls run sequentially, never concurrently', async () => {
   _resetFireAnchorsForTest();
   let release;
-  const gate = new Promise((resolve) => { release = resolve; });
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
   let concurrent = 0;
   let maxConcurrent = 0;
   const log = [];
@@ -125,16 +160,33 @@ test('warmFireAnchorFloors: overlapping calls run sequentially, never concurrent
       ok: true,
       status: 200,
       json: async () => ({
-        results: points.map(({ lon, lat }) => ({ lon, lat, elevation: 0, geoid: 0, ellipsoid: lon + lat })),
+        results: points.map(({
+          lon,
+          lat
+        }) => ({
+          lon,
+          lat,
+          elevation: 0,
+          geoid: 0,
+          ellipsoid: lon + lat
+        })),
       }),
     };
   }, async () => {
-    const first = warmFireAnchorFloors([{ lat: 40.001, lon: 50.001 }]);
+    const first = warmFireAnchorFloors([{
+      lat: 40.001,
+      lon: 50.001
+    }]);
     // Second call arrives while the first is in flight: overlaps the first
     // cell and adds one new one.
-    const second = warmFireAnchorFloors([
-      { lat: 40.001, lon: 50.001 },
-      { lat: 41.201, lon: 51.201 },
+    const second = warmFireAnchorFloors([{
+        lat: 40.001,
+        lon: 50.001
+      },
+      {
+        lat: 41.201,
+        lon: 51.201
+      },
     ]);
     release();
     const [warmedFirst, warmedSecond] = await Promise.all([first, second]);
@@ -153,7 +205,10 @@ test('warmFireAnchorFloors: proxy failure reports false (re-render chain termina
     calls += 1;
     throw new Error('proxy down');
   }, async () => {
-    const warmed = await warmFireAnchorFloors([{ lat: 22.501, lon: 32.501 }]);
+    const warmed = await warmFireAnchorFloors([{
+      lat: 22.501,
+      lon: 32.501
+    }]);
     assert.equal(warmed, false, 'geoid fallback is NOT a warm floor for anchoring');
     assert.ok(calls >= 1);
   });
