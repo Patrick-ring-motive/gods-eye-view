@@ -1,4 +1,6 @@
-import { getKeyholeGeometry } from './celestialRing.js';
+import {
+  getKeyholeGeometry
+} from './celestialRing.js';
 
 /**
  * Scope mask — the app's signature circular viewport treatment, made real.
@@ -39,7 +41,11 @@ import { getKeyholeGeometry } from './celestialRing.js';
  */
 
 /** Matches the page background the emergent scope faded into. */
-const SCOPE_OUTSIDE_COLOR = { r: 5, g: 5, b: 8 };
+const SCOPE_OUTSIDE_COLOR = {
+  r: 5,
+  g: 5,
+  b: 8
+};
 /**
  * Default edge feather as a fraction of the keyhole radius.
  *
@@ -201,7 +207,10 @@ export function updateScopeTerminusForHeight(heightM) {
  * @returns {void}
  */
 function withCoalescedPaint(fn) {
-  if (_coalescingPaint) { fn(); return; } // already inside a scope
+  if (_coalescingPaint) {
+    fn();
+    return;
+  } // already inside a scope
   _coalescingPaint = true;
   _paintDirty = false;
   try {
@@ -292,7 +301,9 @@ function watchDevicePixelRatio() {
       draw();
     });
   };
-  if (typeof query.addEventListener === 'function') query.addEventListener('change', _dprListener, { once: true });
+  if (typeof query.addEventListener === 'function') query.addEventListener('change', _dprListener, {
+    once: true
+  });
   else if (typeof query.addListener === 'function') query.addListener(_dprListener);
 }
 
@@ -332,7 +343,10 @@ export function scopeMaskGeometry(width, height, featherRatio = _featherRatio) {
 }
 
 function draw() {
-  if (_coalescingPaint) { _paintDirty = true; return; } // one paint at scope exit
+  if (_coalescingPaint) {
+    _paintDirty = true;
+    return;
+  } // one paint at scope exit
   if (!_canvas || !_container) return;
   // SCOPE OFF is the cheapest state, not a painted one: bail out BEFORE the
   // backing-store resize + clear (a full-viewport allocation) that used to run
@@ -361,7 +375,11 @@ function draw() {
   _painted = false; // resize+clear wiped the surface; ink goes on below
   const geo = scopeMaskGeometry(width, height, _featherRatio);
   if (!geo) return;
-  const { r, g, b } = SCOPE_OUTSIDE_COLOR;
+  const {
+    r,
+    g,
+    b
+  } = SCOPE_OUTSIDE_COLOR;
   if (geo.outerR - geo.innerR < 1) {
     // Zero/near-zero feather: a radial gradient with equal radii is
     // DEGENERATE in Canvas2D (Chromium paints nothing — browser
@@ -449,8 +467,14 @@ function watchCameraHeight(viewer) {
 }
 
 function teardownCameraHeightWatch() {
-  if (_cameraSampleRemover) { _cameraSampleRemover(); _cameraSampleRemover = null; }
-  if (_cameraMoveEndRemover) { _cameraMoveEndRemover(); _cameraMoveEndRemover = null; }
+  if (_cameraSampleRemover) {
+    _cameraSampleRemover();
+    _cameraSampleRemover = null;
+  }
+  if (_cameraMoveEndRemover) {
+    _cameraMoveEndRemover();
+    _cameraMoveEndRemover = null;
+  }
   _lastTerminusSampleMs = -Infinity;
 }
 
