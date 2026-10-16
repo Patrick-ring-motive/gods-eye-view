@@ -731,7 +731,8 @@ async function main() {
         polling: 250
       });
     } catch {
-      /* timed out — fall through and report the settled ctor below */ }
+      /* timed out — fall through and report the settled ctor below */
+    }
     terrainCtor = await page.evaluate(() => {
       const provider = window.__godsEyeView.viewer.terrainProvider;
       return provider?.constructor?.name || null;
