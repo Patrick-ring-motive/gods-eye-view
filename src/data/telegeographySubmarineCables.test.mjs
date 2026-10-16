@@ -1461,8 +1461,7 @@ async function createRealCableLayerHarness({
   globalThis.fetch = async (url) => ({
     ok: true,
     json: async () =>
-      String(url).includes('landing-point') ?
-      {
+      String(url).includes('landing-point') ? {
         type: 'FeatureCollection',
         features: [{
           type: 'Feature',
@@ -1480,8 +1479,7 @@ async function createRealCableLayerHarness({
             ],
           },
         }, ],
-      } :
-      {
+      } : {
         type: 'FeatureCollection',
         features: [{
           type: 'Feature',
