@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * scripts/qa-floorhold-probe-cost.mjs — what does an unrationed adjacent-cell
  * probe actually cost?
@@ -18,22 +19,28 @@
  *   node scripts/qa-floorhold-probe-cost.mjs
  */
 import {
-  neighborFloorM, reportMeshFloorCell, setMeshFloorPreferred, _clearMeshFloorCellsForTest,
+  neighborFloorM,
+  reportMeshFloorCell,
+  setMeshFloorPreferred,
+  _clearMeshFloorCellsForTest,
 } from '../src/data/groundFloor.js';
 
-const CONTACTS = 200;   // a dense airport view, every contact probing at once
-const TICK_MS = 80;     // the fleet dead-reckoning cadence
+const CONTACTS = 200; // a dense airport view, every contact probing at once
+const TICK_MS = 80; // the fleet dead-reckoning cadence
 const THROTTLE_MS = 500; // NEIGHBOR_FLOOR_PROBE_MS
 
 setMeshFloorPreferred(true);
 for (const [label, warm] of [
-  ['all cold (every neighbour a miss — the outage case)', false],
-  ['all warm (all eight neighbours resolved)', true],
-]) {
+    ['all cold (every neighbour a miss — the outage case)', false],
+    ['all warm (all eight neighbours resolved)', true],
+  ]) {
   _clearMeshFloorCellsForTest();
   const cells = [];
   for (let i = 0; i < CONTACTS; i += 1) {
-    const cell = { lat: +(30 + i * 0.003).toFixed(3), lon: -97.66 };
+    const cell = {
+      lat: +(30 + i * 0.003).toFixed(3),
+      lon: -97.66
+    };
     cells.push(cell);
     if (warm) {
       for (let dLat = -1; dLat <= 1; dLat += 1) {
@@ -44,7 +51,8 @@ for (const [label, warm] of [
       }
     }
   }
-  for (let w = 0; w < 200; w += 1) for (const c of cells) neighborFloorM(c); // settle the JIT
+  for (let w = 0; w < 200; w += 1)
+    for (const c of cells) neighborFloorM(c); // settle the JIT
   const runs = [];
   for (let r = 0; r < 60; r += 1) {
     const t0 = process.hrtime.bigint();
