@@ -1,8 +1,13 @@
 /** Count rendered globe frames while the optional readout is visible. */
-export function createFrameRateMonitor({ viewer, documentRef = document }) {
+export function createFrameRateMonitor({
+  viewer,
+  documentRef = document
+}) {
   const host = documentRef.getElementById('title-bar');
   const frameEvent = viewer?.scene?.postRender;
-  if (!host || !frameEvent) return { destroy() {} };
+  if (!host || !frameEvent) return {
+    destroy() {}
+  };
 
   const readout = documentRef.createElement('div');
   readout.className = 'frame-rate-readout';
@@ -36,9 +41,9 @@ export function createFrameRateMonitor({ viewer, documentRef = document }) {
       const now = performance.now();
       const elapsed = now - startedAt;
       readout.textContent =
-        documentRef.hidden || elapsed <= 0
-          ? 'FPS —'
-          : `FPS ${Math.round((frames * 1000) / elapsed)}`;
+        documentRef.hidden || elapsed <= 0 ?
+        'FPS —' :
+        `FPS ${Math.round((frames * 1000) / elapsed)}`;
       frames = 0;
       startedAt = now;
     }, 1000);
