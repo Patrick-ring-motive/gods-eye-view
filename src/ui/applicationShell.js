@@ -1,16 +1,43 @@
-import { createFrameRateMonitor } from './frameRateMonitor.js';
-import { createStateChannel } from '../app/stateChannel.js';
-import { setSplitFlapText } from '../splitFlap.js';
-import { UiLifetime } from './uiLifetime.js';
-import { RecordingControls } from './recordingControls.js';
-import { readShellElements } from './shellElements.js';
-import { CockpitViewController, CockpitDisplayPortal } from './cockpit.js';
-import { ContextControls } from './context.js';
-import { CctvControls } from './cctv.js';
-import { RadioControls } from './radio.js';
-import { LocationControls } from './location.js';
-import { bindClearLayersControl } from './layers.js';
-import { createMapSourceControls } from './mapSource.js';
+import {
+  createFrameRateMonitor
+} from './frameRateMonitor.js';
+import {
+  createStateChannel
+} from '../app/stateChannel.js';
+import {
+  setSplitFlapText
+} from '../splitFlap.js';
+import {
+  UiLifetime
+} from './uiLifetime.js';
+import {
+  RecordingControls
+} from './recordingControls.js';
+import {
+  readShellElements
+} from './shellElements.js';
+import {
+  CockpitViewController,
+  CockpitDisplayPortal
+} from './cockpit.js';
+import {
+  ContextControls
+} from './context.js';
+import {
+  CctvControls
+} from './cctv.js';
+import {
+  RadioControls
+} from './radio.js';
+import {
+  LocationControls
+} from './location.js';
+import {
+  bindClearLayersControl
+} from './layers.js';
+import {
+  createMapSourceControls
+} from './mapSource.js';
 import {
   VisualEffects,
   STYLES,
@@ -18,12 +45,16 @@ import {
   STYLE_PRESET_DEFAULTS,
   MILITARY_DETECTION_PRESET,
 } from './effects.js';
-import { bindDisplayControls } from './displayControls.js';
+import {
+  bindDisplayControls
+} from './displayControls.js';
 import {
   bindApplicationShortcuts,
   createStyleParameters,
 } from './visualInput.js';
-import { PanelLayoutController } from './panelLayoutController.js';
+import {
+  PanelLayoutController
+} from './panelLayoutController.js';
 import {
   bindPanelDisclosure,
   collapsePanelOnEscape,
@@ -55,10 +86,18 @@ import {
   profileForDensity,
 } from '../data/detectionPolicy.js';
 
-import { canPresentDeferredStatusNotice } from '../loadingFeedback.js';
-import { ShellFeedback } from './shellFeedback.js';
-import { PanelPositionControls } from './panelPositionControls.js';
-import { cockpitEntryAllowed } from '../contextModePolicy.js';
+import {
+  canPresentDeferredStatusNotice
+} from '../loadingFeedback.js';
+import {
+  ShellFeedback
+} from './shellFeedback.js';
+import {
+  PanelPositionControls
+} from './panelPositionControls.js';
+import {
+  cockpitEntryAllowed
+} from '../contextModePolicy.js';
 
 import {
   applyCockpitVisionStageIntensities,
@@ -70,8 +109,12 @@ import {
   shareCacheNeedsHeal,
   shareableDetectionState,
 } from '../contactsDetectionPolicy.js';
-import { formatAwarenessLabel } from '../data/militaryAwarenessEngine.js';
-import { runCctvLayerEnableTransition } from '../cctvFocusPolicy.js';
+import {
+  formatAwarenessLabel
+} from '../data/militaryAwarenessEngine.js';
+import {
+  runCctvLayerEnableTransition
+} from '../cctvFocusPolicy.js';
 import {
   registerCctvFocusRequestListener,
   routeCctvFocusRequest,
@@ -89,16 +132,35 @@ import {
   stampInitialShareGesture,
 } from '../navigationPolicy.js';
 
-const SHARE_PANEL_STATE_SPECS = Object.freeze([
-  { id: 'control-panel', pinnable: true },
-  { id: 'location-bar', pinnable: true },
-  { id: 'data-panel' },
-  { id: 'cctv-panel' },
-  { id: 'radio-panel' },
-  { id: 'scene-panel' },
-  { id: 'global-context-panel' },
-  { id: 'pp-toggles' },
-  { id: 'param-slider-panel' },
+const SHARE_PANEL_STATE_SPECS = Object.freeze([{
+    id: 'control-panel',
+    pinnable: true
+  },
+  {
+    id: 'location-bar',
+    pinnable: true
+  },
+  {
+    id: 'data-panel'
+  },
+  {
+    id: 'cctv-panel'
+  },
+  {
+    id: 'radio-panel'
+  },
+  {
+    id: 'scene-panel'
+  },
+  {
+    id: 'global-context-panel'
+  },
+  {
+    id: 'pp-toggles'
+  },
+  {
+    id: 'param-slider-panel'
+  },
 ]);
 /** Standard map-view panels cleared out of the way on a fresh Cockpit entry. */
 const COCKPIT_ENTRY_COLLAPSE_PANEL_IDS = Object.freeze([
@@ -147,8 +209,11 @@ export class StyleManager {
    * @param {object} [options]
    */
   constructor(
-    viewer,
-    { mapStackController = null, placeSearch, services } = {},
+    viewer, {
+      mapStackController = null,
+      placeSearch,
+      services
+    } = {},
   ) {
     const {
       IntelHUD,
@@ -209,9 +274,9 @@ export class StyleManager {
       scheduleCockpitLayout: () => this.cockpitView?.scheduleContextLayout(),
       syncPanelCollapseButton: (panel) => this._syncPanelCollapseButton(panel),
       readDisplayScrollTop: () =>
-        this._displayPortalScrollRestoreOwner === 'standard'
-          ? this._standardDisplayScrollTop
-          : this._ppToggles?.scrollTop || 0,
+        this._displayPortalScrollRestoreOwner === 'standard' ?
+        this._standardDisplayScrollTop :
+        this._ppToggles?.scrollTop || 0,
     });
     this.viewer = viewer;
     this.mapStackController = mapStackController;
@@ -293,7 +358,9 @@ export class StyleManager {
     this._orbitIndicator = null;
 
     // Intel HUD
-    this.hud = new IntelHUD(viewer, { placeSearch });
+    this.hud = new IntelHUD(viewer, {
+      placeSearch
+    });
     this._recording.hud = this.hud;
     this._cockpitVisionMode = 'optical';
     this._cockpitVisionRestore = null;
@@ -327,7 +394,9 @@ export class StyleManager {
       onVisionChange: (mode, active, options) =>
         this._setCockpitVision(mode, active, options),
       onCameraTakeover: () =>
-        this._stampNavigation({ cancelPendingSelection: false }),
+        this._stampNavigation({
+          cancelPendingSelection: false
+        }),
       getInheritedVisionLabel: () =>
         STYLE_STATUS_LABELS[this.activeStyle] ||
         String(this.activeStyle || 'normal').toUpperCase(),
@@ -358,7 +427,9 @@ export class StyleManager {
           });
         }
         this.cockpitView?.setContextCollapsed(false);
-        this.cockpitView?.setSignalCollapsed(false, { user: true });
+        this.cockpitView?.setSignalCollapsed(false, {
+          user: true
+        });
       },
       onExited: () => {
         const restore = this._cockpitPanelRestore;
@@ -437,16 +508,20 @@ export class StyleManager {
           STYLES[style]?.uniforms
         ) {
           for (const [uniformName, uniformValue] of Object.entries(
-            styleParams,
-          )) {
+              styleParams,
+            )) {
             if (!Object.hasOwn(STYLES[style].uniforms, uniformName)) continue;
             this.stages[style].uniforms[uniformName] = uniformValue;
           }
-          this._updateSliderPanel(style, { reveal: false });
+          this._updateSliderPanel(style, {
+            reveal: false
+          });
         }
         if (typeof bloomIntensity === 'number' && this._bloomSlider) {
           const intensity = decodeBloomIntensity(bloomIntensity, bloomVersion);
-          this._setBloomIntensity(intensity, { syncShare: false });
+          this._setBloomIntensity(intensity, {
+            syncShare: false
+          });
         }
         if (typeof sharpenIntensity === 'number' && this._sharpenSlider) {
           const pct = Math.max(0, Math.min(100, Math.round(sharpenIntensity)));
@@ -514,9 +589,11 @@ export class StyleManager {
           const pinned = clampScopeTerminusPct(scopeTerminusPct);
           setScopeTerminusOverride(pinned == null ? null : pinned / 100);
         }
-        const mapStackRestore = mapStack
-          ? this._setMapStack(mapStack, { syncShare: false })
-          : Promise.resolve();
+        const mapStackRestore = mapStack ?
+          this._setMapStack(mapStack, {
+            syncShare: false
+          }) :
+          Promise.resolve();
         if (panelState) this._restorePanelState(panelState);
         await mapStackRestore;
         this._syncShareState();
@@ -541,23 +618,30 @@ export class StyleManager {
     });
     this._shareState = createStateChannel(() => this._readShareState());
     this._shareState.subscribe(
-      ({ state }) => {
+      ({
+        state
+      }) => {
         this.shareLinkManager.onToggleChange(
           state.bloomEnabled,
           state.sharpenEnabled,
           state.options,
         );
+      }, {
+        emitCurrent: false
       },
-      { emitCurrent: false },
     );
     this._locationState = createStateChannel(
       () => this._locationLookup?.getState() || null,
     );
     this._locationState.subscribe(
-      ({ state, change }) => {
+      ({
+        state,
+        change
+      }) => {
         this._handleLocationSearchState(state, change);
+      }, {
+        emitCurrent: false
       },
-      { emitCurrent: false },
     );
     // Parse before panel chrome initializes so every valid share URL starts
     // from deterministic markup defaults instead of recipient-local panel
@@ -628,18 +712,23 @@ export class StyleManager {
 
     // Restore from URL hash if present
     const savedState = this._initialShareState;
-    this._initialShareRestorePromise = savedState
-      ? new Promise((resolve) => {
-          this._resolveInitialShareRestore = resolve;
-        })
-      : Promise.resolve({ status: 'not-requested', share: null, layers: [] });
+    this._initialShareRestorePromise = savedState ?
+      new Promise((resolve) => {
+        this._resolveInitialShareRestore = resolve;
+      }) :
+      Promise.resolve({
+        status: 'not-requested',
+        share: null,
+        layers: []
+      });
     if (savedState) {
       this._hasShareState = true;
       // Reserve camera authority now; the delayed mesh-friendly flight may
       // run only if no newer user, voice, or tracking navigation has won.
       this._initialShareNavigationGeneration = this._beginDeferredNavigation(
-        'shared view',
-        { cancelPendingSelection: false },
+        'shared view', {
+          cancelPendingSelection: false
+        },
       );
       this._initialShareRestoreTimeout = setTimeout(() => {
         this._initialShareRestoreTimeout = null;
@@ -648,7 +737,7 @@ export class StyleManager {
         const applyCamera =
           Number.isInteger(generation) &&
           this._reassertNavigationHandoff(generation);
-        void (async () => {
+        void(async () => {
           try {
             const share = await this.shareLinkManager.applyState(savedState, {
               applyCamera,
@@ -657,16 +746,16 @@ export class StyleManager {
             const layers = await (this._layerStateRestorePromise ||
               Promise.resolve([]));
             const tracking =
-              share.camera === 'applied'
-                ? await this._layerStateCoordinator?.restoreShareTrackingSelection?.()
-                : {
-                    status: 'superseded',
-                    cleared:
-                      this._layerStateCoordinator?.cancelPendingShareTracking?.(
-                        'shared-camera-superseded',
-                        { clearSelection: true },
-                      ) === true,
-                  };
+              share.camera === 'applied' ?
+              await this._layerStateCoordinator?.restoreShareTrackingSelection?.() :
+              {
+                status: 'superseded',
+                cleared: this._layerStateCoordinator?.cancelPendingShareTracking?.(
+                  'shared-camera-superseded', {
+                    clearSelection: true
+                  },
+                ) === true,
+              };
             this.shareLinkManager.completeInitialRestore();
             this._settleInitialShareRestore({
               status: 'settled',
@@ -702,15 +791,13 @@ export class StyleManager {
     };
     this.viewer?.canvas?.addEventListener(
       'pointerdown',
-      this._initialShareGestureHandler,
-      {
+      this._initialShareGestureHandler, {
         passive: true,
       },
     );
     this.viewer?.canvas?.addEventListener(
       'wheel',
-      this._initialShareGestureHandler,
-      {
+      this._initialShareGestureHandler, {
         passive: true,
       },
     );
@@ -719,9 +806,13 @@ export class StyleManager {
     this._layoutRightPanels();
     this._syncCctvPanelViewport();
     this._windowResizeHandler = () => {
-      this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+      this._scheduleRightPanelLayout({
+        reconsiderAutoCollapse: true
+      });
       this._syncCctvPanelViewport();
-      this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
+      this._scheduleLeftPanelLayout({
+        reconsiderAutoCollapse: true
+      });
     };
     window.addEventListener('resize', this._windowResizeHandler);
     // The loading-chip ticker is stopped while the tab is hidden (it can do no
@@ -752,7 +843,9 @@ export class StyleManager {
     this._navigationOwnerChangedRemover =
       viewer.trackedEntityChanged.addEventListener((entity) => {
         if (entity && !this._disposed)
-          this._stampNavigation({ cancelPendingSelection: false });
+          this._stampNavigation({
+            cancelPendingSelection: false
+          });
       });
     // Vessel/installation focus flies without ever assigning a tracked entity,
     // so it cannot reach the listener above. It announces instead.
@@ -760,8 +853,7 @@ export class StyleManager {
       registerNavigationAuthorityListener(window, (event) => {
         if (this._disposed) return;
         this._stampNavigation({
-          cancelPendingSelection:
-            event?.detail?.cancelPendingSelection !== false,
+          cancelPendingSelection: event?.detail?.cancelPendingSelection !== false,
         });
       });
   }
@@ -791,8 +883,12 @@ export class StyleManager {
     cancelPendingSelection = true,
     clearSearchedLocation = true,
   } = {}) {
-    const { flightsLayer, militaryFlightsLayer, satellitesLayer } =
-      this.services;
+    const {
+      flightsLayer,
+      militaryFlightsLayer,
+      satellitesLayer
+    } =
+    this.services;
     this._navigationGeneration += 1;
     // A newer destination owns the camera, so the last free-text search is no
     // longer where we are. DEFERRED navigation opts out here and clears at the
@@ -809,8 +905,9 @@ export class StyleManager {
       }
       const passivelyClearedShareSelection =
         this._layerStateCoordinator?.cancelPendingShareTracking?.(
-          'superseded-by-explicit-navigation',
-          { clearSelection: true },
+          'superseded-by-explicit-navigation', {
+            clearSelection: true
+          },
         ) === true;
       try {
         flightsLayer.cancelPendingTrackingRestore?.();
@@ -831,11 +928,11 @@ export class StyleManager {
       // not arrived yet. Active owners publish their clear when released.
       if (!passivelyClearedShareSelection && !flightsLayer.getTrackedInfo?.()) {
         this._dataManager?.setLayerParams(
-          'flights',
-          {
+          'flights', {
             selectedFlightsTrackingId: null,
+          }, {
+            origin: 'tool'
           },
-          { origin: 'tool' },
         );
       }
       if (
@@ -843,11 +940,11 @@ export class StyleManager {
         !militaryFlightsLayer.getTrackedInfo?.()
       ) {
         this._dataManager?.setLayerParams(
-          'military',
-          {
+          'military', {
             selectedMilitaryTrackingId: null,
+          }, {
+            origin: 'tool'
           },
-          { origin: 'tool' },
         );
       }
       if (
@@ -855,11 +952,11 @@ export class StyleManager {
         !satellitesLayer.getTrackedInfo?.()
       ) {
         this._dataManager?.setLayerParams(
-          'satellites',
-          {
+          'satellites', {
             selectedSatTrackingId: null,
+          }, {
+            origin: 'tool'
           },
-          { origin: 'tool' },
         );
       }
     }
@@ -903,12 +1000,16 @@ export class StyleManager {
       );
     } catch {
       try {
-        flightsLayer.stopTracking?.({ origin: trackingOrigin });
+        flightsLayer.stopTracking?.({
+          origin: trackingOrigin
+        });
       } catch {
         /* best-effort release */
       }
       try {
-        militaryFlightsLayer.stopTracking?.({ origin: trackingOrigin });
+        militaryFlightsLayer.stopTracking?.({
+          origin: trackingOrigin
+        });
       } catch {
         /* best-effort release */
       }
@@ -921,7 +1022,9 @@ export class StyleManager {
       }
     }
     try {
-      satellitesLayer.stopTracking?.({ origin: trackingOrigin });
+      satellitesLayer.stopTracking?.({
+        origin: trackingOrigin
+      });
     } catch {
       /* best-effort release */
     }
@@ -957,8 +1060,9 @@ export class StyleManager {
 
   /** Accept a delayed lookup without releasing its current camera owner. */
   _beginDeferredNavigation(
-    noun = 'location',
-    { cancelPendingSelection = true } = {},
+    noun = 'location', {
+      cancelPendingSelection = true
+    } = {},
   ) {
     return beginDeferredNavigation({
       disposed: this._disposed,
@@ -1108,7 +1212,10 @@ export class StyleManager {
       // OFF @ 25% as OFF @ 75% and the next manual enable came back Dense.
       getState: () => {
         const state = this.getDetectionState();
-        return { mode: state.detectionMode, densityPct: state.densityPct };
+        return {
+          mode: state.detectionMode,
+          densityPct: state.densityPct
+        };
       },
       // Owner playtest: the force-on lands on the tactical look the military
       // styles apply — the SAME preset object — not on whatever profile the
@@ -1141,14 +1248,16 @@ export class StyleManager {
   }
 
   /** Apply a temporary cockpit-only CRT/NVG/FLIR/NOIR post-process override. */
-  _setCockpitVision(mode, active, { revealParameters = false } = {}) {
+  _setCockpitVision(mode, active, {
+    revealParameters = false
+  } = {}) {
     const next = active ? normalizeCockpitVisionMode(mode) : 'optical';
     if (!this.stages) return;
     if (!active) {
       if (this._cockpitVisionRestore) {
         for (const [name, intensity] of Object.entries(
-          this._cockpitVisionRestore,
-        )) {
+            this._cockpitVisionRestore,
+          )) {
           if (this.stages[name])
             this._setStageIntensity(this.stages[name], intensity);
         }
@@ -1156,8 +1265,12 @@ export class StyleManager {
       this._cockpitVisionRestore = null;
       this._cockpitVisionMode = 'optical';
       this._syncIrBoost(); // Cockpit exit: fall back to the map preset's IR state
-      this._updateSliderPanel(this.activeStyle, { reveal: false });
-      this._revealCockpitStyleParameters({ openDisplay: revealParameters });
+      this._updateSliderPanel(this.activeStyle, {
+        reveal: false
+      });
+      this._revealCockpitStyleParameters({
+        openDisplay: revealParameters
+      });
       return;
     }
     if (!this._cockpitVisionRestore) {
@@ -1175,8 +1288,12 @@ export class StyleManager {
       this._syncStagesEnabledFromIntensity();
       this._cockpitVisionMode = next;
       this._syncIrBoost();
-      this._updateSliderPanel(this.activeStyle, { reveal: false });
-      this._revealCockpitStyleParameters({ openDisplay: revealParameters });
+      this._updateSliderPanel(this.activeStyle, {
+        reveal: false
+      });
+      this._revealCockpitStyleParameters({
+        openDisplay: revealParameters
+      });
       return;
     }
     const target = applyCockpitVisionStageIntensities(
@@ -1187,8 +1304,12 @@ export class StyleManager {
     this._syncStagesEnabledFromIntensity();
     this._cockpitVisionMode = next;
     this._syncIrBoost(); // Cockpit vision override ('nvg'/'thermal' boost; CRT/NOIR clear)
-    this._updateSliderPanel(target || null, { reveal: false });
-    this._revealCockpitStyleParameters({ openDisplay: revealParameters });
+    this._updateSliderPanel(target || null, {
+      reveal: false
+    });
+    this._revealCockpitStyleParameters({
+      openDisplay: revealParameters
+    });
   }
 
   /** IR hot-target boost (owner playtest 2026-08-16): under the luminance-
@@ -1198,17 +1319,21 @@ export class StyleManager {
    *  ('nvg'/'thermal', which can differ from the map preset in BOTH
    *  directions), otherwise the map preset ('surveillance'/'thermal'). */
   _syncIrBoost() {
-    const cockpitMode = this.cockpitView?.active
-      ? this._cockpitVisionMode
-      : null;
+    const cockpitMode = this.cockpitView?.active ?
+      this._cockpitVisionMode :
+      null;
     const effective =
       cockpitMode && cockpitMode !== 'optical' ? cockpitMode : this.activeStyle;
     const irBoost =
       effective === 'surveillance' ||
       effective === 'thermal' ||
       effective === 'nvg';
-    this._dataManager?.setLayerParams('flights', { irBoost });
-    this._dataManager?.setLayerParams('military', { irBoost });
+    this._dataManager?.setLayerParams('flights', {
+      irBoost
+    });
+    this._dataManager?.setLayerParams('military', {
+      irBoost
+    });
     // Fog blends distant geometry toward an effectively-BLACK color in this
     // app (the Cesium globe is hidden), so beyond ~100 km every 3D aircraft
     // fogs to a black silhouette — lighting and shaders can't reach past it
@@ -1243,7 +1368,9 @@ export class StyleManager {
   }
 
   /** Reveal shared style parameters, optionally opening Cockpit Display first. */
-  _revealCockpitStyleParameters({ openDisplay = false } = {}) {
+  _revealCockpitStyleParameters({
+    openDisplay = false
+  } = {}) {
     if (
       !this.cockpitView?.active ||
       !this._sliderPanel?.classList.contains('active')
@@ -1262,7 +1389,9 @@ export class StyleManager {
     this._syncPanelCollapseButton(this._sliderPanel);
     this._lifetime.frame(() =>
       this._lifetime.frame(() => {
-        this._sliderPanel?.scrollIntoView?.({ block: 'nearest' });
+        this._sliderPanel?.scrollIntoView?.({
+          block: 'nearest'
+        });
       }),
     );
   }
@@ -1302,8 +1431,12 @@ export class StyleManager {
    * @param {boolean} [options.syncShare=true] - Whether to push state to the share link.
    * @returns {void}
    */
-  _setBloomIntensity(intensity, { syncShare = true } = {}) {
-    const { governorRequestRender } = this.services;
+  _setBloomIntensity(intensity, {
+    syncShare = true
+  } = {}) {
+    const {
+      governorRequestRender
+    } = this.services;
     governorRequestRender('bloom');
     const clamped = clampBloomIntensity(intensity);
     if (this._bloomSlider) this._bloomSlider.value = String(clamped);
@@ -1330,7 +1463,9 @@ export class StyleManager {
    * @returns {void}
    */
   _setBloomEnabled(enabled) {
-    const { governorRequestRender } = this.services;
+    const {
+      governorRequestRender
+    } = this.services;
     governorRequestRender('bloom');
     this._visualEffects.setBloomEnabled(enabled);
     this._syncBloomStageEnabled();
@@ -1359,7 +1494,9 @@ export class StyleManager {
    * @returns {void}
    */
   _setSharpenEnabled(enabled) {
-    const { governorRequestRender } = this.services;
+    const {
+      governorRequestRender
+    } = this.services;
     governorRequestRender('sharpen');
     this._visualEffects.setSharpenEnabled(enabled);
     this._sharpenBtn.classList.toggle('active', this.sharpenEnabled);
@@ -1515,7 +1652,9 @@ export class StyleManager {
         toggleCelestial: () => {
           const ringIsVisible = !!this.celestialRing?.visible;
           if (!this.celestialRingEnabled || !ringIsVisible) {
-            this.setCelestialRingEnabled(true, { focus: true });
+            this.setCelestialRingEnabled(true, {
+              focus: true
+            });
           } else {
             this.setCelestialRingEnabled(false);
           }
@@ -1572,9 +1711,13 @@ export class StyleManager {
    * @param {boolean} [options.syncShare=true] - Whether to update the share link.
    * @returns {Promise<void>}
    */
-  async _setMapStack(stackId, { syncShare = true } = {}) {
+  async _setMapStack(stackId, {
+    syncShare = true
+  } = {}) {
     if (!this.mapStackController) return;
-    return this._mapSourceControls.select(stackId, { syncShare });
+    return this._mapSourceControls.select(stackId, {
+      syncShare
+    });
   }
 
   /**
@@ -1594,19 +1737,26 @@ export class StyleManager {
    * @returns {void}
    */
   _applyDetectionDensityFromUi() {
-    const { getDetectionMode, setDetectionTuning } = this.services;
+    const {
+      getDetectionMode,
+      setDetectionTuning
+    } = this.services;
     if (!this._detectionDensitySlider) return;
     const pct = canonicalizeDensity(this._detectionDensitySlider.value);
     this._detectionDensitySlider.value = String(pct);
     if (this._detectionDensityValue)
       this._detectionDensityValue.textContent = `${pct}%`;
-    setDetectionTuning({ densityPct: pct });
+    setDetectionTuning({
+      densityPct: pct
+    });
     this._updateDetectionButton(getDetectionMode());
   }
 
   /** Apply responsive keyhole fade controls from normalized UI percentages. */
   _applyDetectionFadeFromUi() {
-    const { setKeyholeFadeTuning } = this.services;
+    const {
+      setKeyholeFadeTuning
+    } = this.services;
     const fadePct = Math.max(
       0,
       Math.min(40, Math.round(Number(this._detectionFadeSlider?.value) || 0)),
@@ -1636,15 +1786,22 @@ export class StyleManager {
     this.viewer.scene.requestRender?.();
   }
 
-  _setDetectionAllocation(strategy, { syncShare = true, persist = true } = {}) {
-    const { setDetectionTuning } = this.services;
+  _setDetectionAllocation(strategy, {
+    syncShare = true,
+    persist = true
+  } = {}) {
+    const {
+      setDetectionTuning
+    } = this.services;
     const raw = String(strategy || '')
       .trim()
       .toUpperCase();
     if (!ALLOCATION_STRATEGIES.includes(raw)) return false;
     const normalized = normalizeAllocationStrategy(raw);
     this._detectionAllocationPreference = normalized;
-    setDetectionTuning({ allocationStrategy: normalized });
+    setDetectionTuning({
+      allocationStrategy: normalized
+    });
     for (const button of this._detectionAllocationBtns) {
       const active = button.dataset.allocation === normalized;
       button.classList.toggle('active', active);
@@ -1662,8 +1819,12 @@ export class StyleManager {
   }
 
   _syncDetectionUiFromEngine() {
-    const { getKeyholeFadeTuning, getDetectionTuning, getDetectionMode } =
-      this.services;
+    const {
+      getKeyholeFadeTuning,
+      getDetectionTuning,
+      getDetectionMode
+    } =
+    this.services;
     const tuning = getDetectionTuning();
     if (this._detectionDensitySlider)
       this._detectionDensitySlider.value = String(tuning.densityPct);
@@ -1693,7 +1854,9 @@ export class StyleManager {
    * @returns {void}
    */
   _setDetectionMode(modeLabel) {
-    const { setDetectionModeByLabel } = this.services;
+    const {
+      setDetectionModeByLabel
+    } = this.services;
     if (!modeLabel) return;
     setDetectionModeByLabel(modeLabel);
     this._syncDetectionUiFromEngine();
@@ -1716,7 +1879,9 @@ export class StyleManager {
       this._hudLayoutSelect.value = this.hud.getVariant();
     }
     this._syncShareState();
-    this._scheduleAdaptivePanelLayout({ settle: true });
+    this._scheduleAdaptivePanelLayout({
+      settle: true
+    });
   }
 
   /**
@@ -1738,7 +1903,9 @@ export class StyleManager {
    * @returns {void}
    */
   _applyStylePresetDefaults(styleName) {
-    const { governorRequestRender } = this.services;
+    const {
+      governorRequestRender
+    } = this.services;
     const preset = STYLE_PRESET_DEFAULTS[styleName];
     if (!preset) return;
 
@@ -1872,9 +2039,11 @@ export class StyleManager {
     }
     this._setDetectionAllocation(
       this._detectionAllocationPreference ||
-        defaults.detectionAllocation ||
-        'ELASTIC',
-      { syncShare: false, persist: false },
+      defaults.detectionAllocation ||
+      'ELASTIC', {
+        syncShare: false,
+        persist: false
+      },
     );
     if (this._detectionFadeSlider) {
       this._detectionFadeSlider.value = String(defaults.detectionFadePct ?? 7);
@@ -1912,7 +2081,9 @@ export class StyleManager {
    * Contacts does not own detection, so the live values are used normally.
    */
   _shareableDetectionState() {
-    const { getDetectionMode } = this.services;
+    const {
+      getDetectionMode
+    } = this.services;
     return shareableDetectionState({
       owned: this._contactsDetectionRestore,
       liveMode: getDetectionMode(),
@@ -1927,7 +2098,9 @@ export class StyleManager {
 
   _syncShareState() {
     if (this._disposed) return;
-    this._shareState.publish({ type: 'settings-changed' });
+    this._shareState.publish({
+      type: 'settings-changed'
+    });
   }
 
   _readShareState() {
@@ -1959,10 +2132,9 @@ export class StyleManager {
         scopeEnabled: isScopeMaskEnabled(),
         scopeFeatherPct: Math.round(getScopeMaskFeather() * 100),
         // null when adaptive — the share layer omits `sce` entirely in that case.
-        scopeTerminusPct:
-          getScopeTerminusOverride() == null
-            ? null
-            : Math.round(getScopeTerminusOverride() * 100),
+        scopeTerminusPct: getScopeTerminusOverride() == null ?
+          null :
+          Math.round(getScopeTerminusOverride() * 100),
         mapStack: this.mapStackController?.getActiveId?.() || 'photoreal',
       },
     };
@@ -2078,8 +2250,11 @@ export class StyleManager {
 
   _setCommandDockPanelPinState(
     panelId,
-    pin,
-    { restore = false, persist = true, syncShare = true } = {},
+    pin, {
+      restore = false,
+      persist = true,
+      syncShare = true
+    } = {},
   ) {
     const panelEl = document.getElementById(panelId);
     const button = document.querySelector(
@@ -2087,9 +2262,9 @@ export class StyleManager {
     );
     if (!panelEl || !button) return undefined;
     const shouldPin =
-      typeof pin === 'boolean'
-        ? pin
-        : !panelEl.classList.contains('dock-pinned');
+      typeof pin === 'boolean' ?
+      pin :
+      !panelEl.classList.contains('dock-pinned');
     panelEl.classList.toggle('dock-pinned', shouldPin);
     button.setAttribute('aria-pressed', String(shouldPin));
     document
@@ -2165,8 +2340,10 @@ export class StyleManager {
    * @returns {void}
    */
   _initAutoHoverPanel(
-    panelId,
-    { openDelayMs = 850, closeDelayMs = 1000 } = {},
+    panelId, {
+      openDelayMs = 850,
+      closeDelayMs = 1000
+    } = {},
   ) {
     const panel = document.getElementById(panelId);
     if (!panel) return;
@@ -2182,12 +2359,11 @@ export class StyleManager {
       onChange: (collapsed, options) =>
         this.setPanelCollapsed(panelId, collapsed, options),
       onEscape: (event) => this._collapsePanelOnEscape(event, panelId),
-      focusTarget:
-        panelId === 'control-panel'
-          ? () =>
-              panel.querySelector('.map-stack-chip.active') ||
-              panel.querySelector('.map-stack-chip')
-          : null,
+      focusTarget: panelId === 'control-panel' ?
+        () =>
+        panel.querySelector('.map-stack-chip.active') ||
+        panel.querySelector('.map-stack-chip') :
+        null,
     });
     this._hoverPanelControls.set(panelId, controller);
     if (panelId === 'control-panel') {
@@ -2215,35 +2391,35 @@ export class StyleManager {
         key: 'selectedFlightsTrackingId',
         normalize: (value) =>
           String(value ?? '')
-            .trim()
-            .toLowerCase() || null,
+          .trim()
+          .toLowerCase() || null,
       },
       military: {
         key: 'selectedMilitaryTrackingId',
         normalize: (value) =>
           String(value ?? '')
-            .trim()
-            .toLowerCase() || null,
+          .trim()
+          .toLowerCase() || null,
       },
       satellites: {
         key: 'selectedSatTrackingId',
         normalize: (value) => {
           const candidate = Number(value);
-          return Number.isFinite(candidate) && candidate > 0
-            ? Math.trunc(candidate)
-            : null;
+          return Number.isFinite(candidate) && candidate > 0 ?
+            Math.trunc(candidate) :
+            null;
         },
       },
-    }[layerId];
+    } [layerId];
     if (!config) return;
     const selectedValue = cleared ? null : config.normalize(event?.detail?.id);
     if (cleared || selectedValue === null) {
       this._dataManager.adoptLayerParams?.(
-        layerId,
-        {
+        layerId, {
           [config.key]: selectedValue,
+        }, {
+          origin
         },
-        { origin },
       );
       return;
     }
@@ -2252,31 +2428,35 @@ export class StyleManager {
     // also keeps this adopted layer instead of tearing down the user's track.
     const visibilityAdopted = this._dataManager.adoptLayerVisibility?.(
       layerId,
-      true,
-      { origin, adoptedFromSelection: true },
+      true, {
+        origin,
+        adoptedFromSelection: true
+      },
     );
     if (visibilityAdopted === false) return;
     // Clear the prior family before publishing the replacement. Otherwise the
     // coordinator briefly sees two IDs and correctly treats them as an
     // ambiguous incoming state, which would discard the new durable target.
     for (const [otherLayerId, otherKey] of [
-      ['flights', 'selectedFlightsTrackingId'],
-      ['military', 'selectedMilitaryTrackingId'],
-      ['satellites', 'selectedSatTrackingId'],
-    ]) {
+        ['flights', 'selectedFlightsTrackingId'],
+        ['military', 'selectedMilitaryTrackingId'],
+        ['satellites', 'selectedSatTrackingId'],
+      ]) {
       if (otherLayerId === layerId) continue;
       this._dataManager.setLayerParams(
-        otherLayerId,
-        { [otherKey]: null },
-        { origin },
+        otherLayerId, {
+          [otherKey]: null
+        }, {
+          origin
+        },
       );
     }
     this._dataManager.adoptLayerParams?.(
-      layerId,
-      {
+      layerId, {
         [config.key]: selectedValue,
+      }, {
+        origin
       },
-      { origin },
     );
   }
 
@@ -2325,8 +2505,7 @@ export class StyleManager {
     if (this._dataManager) {
       this._layerStateCoordinator = new LayerStateCoordinator(
         this._dataManager,
-        this.shareLinkManager,
-        {
+        this.shareLinkManager, {
           onDurableStateChange: (state) =>
             this._syncModels3dFromLayerState(state),
           onTrackingRestoreStatus: (result) =>
@@ -2342,8 +2521,9 @@ export class StyleManager {
       });
       if (this._initialShareSelectionSuperseded) {
         this._layerStateCoordinator.cancelPendingShareTracking(
-          'superseded-before-layer-coordinator-start',
-          { clearSelection: true },
+          'superseded-before-layer-coordinator-start', {
+            clearSelection: true
+          },
         );
       }
       void this._layerStateRestorePromise.then(() => {
@@ -2383,16 +2563,16 @@ export class StyleManager {
       return;
     // A stale terminal result must never replace a newer target's acquisition.
     if (this._shareTrackingAcquiringKey) return;
-    const noticeGeneration = ownsAcquiringNotice
-      ? this._shareTrackingNoticeGeneration
-      : ++this._shareTrackingNoticeGeneration;
+    const noticeGeneration = ownsAcquiringNotice ?
+      this._shareTrackingNoticeGeneration :
+      ++this._shareTrackingNoticeGeneration;
     const subject = result.label || 'entity';
     const message =
-      result.classification === 'expired'
-        ? `Shared ${subject} follow expired`
-        : result.classification === 'source-unavailable'
-          ? `Shared ${subject} could not be restored — feed unavailable`
-          : `Shared ${subject} is unavailable`;
+      result.classification === 'expired' ?
+      `Shared ${subject} follow expired` :
+      result.classification === 'source-unavailable' ?
+      `Shared ${subject} could not be restored — feed unavailable` :
+      `Shared ${subject} is unavailable`;
     const showAfterStartupCover = () => {
       this._lifetime.frame(() => {
         if (
@@ -2428,8 +2608,9 @@ export class StyleManager {
         removeStartupListener = this._lifetime.listen(
           startupCover,
           'transitionend',
-          showOnce,
-          { once: true },
+          showOnce, {
+            once: true
+          },
         );
         fallbackTimer = this._lifetime.timeout(showOnce, 1000);
       });
@@ -2452,7 +2633,10 @@ export class StyleManager {
   }
 
   _initGlobalContextPanel() {
-    const { radioLayer, militaryInstallationsLayer } = this.services;
+    const {
+      radioLayer,
+      militaryInstallationsLayer
+    } = this.services;
     this._contextControls = new ContextControls({
       elements: {
         _globalContextPanel: document.getElementById('global-context-panel'),
@@ -2496,7 +2680,9 @@ export class StyleManager {
 
   /** Wire the independent Radio companion controls. */
   _initRadioPanel() {
-    const { radioLayer } = this.services;
+    const {
+      radioLayer
+    } = this.services;
     this._radioControls?.destroy();
     this._radioControls = new RadioControls({
       elements: {
@@ -2604,7 +2790,9 @@ export class StyleManager {
 
   /** Compose camera panel controls from the existing camera port and application actions. */
   _initCctvPanel() {
-    const { cctvLayer } = this.services;
+    const {
+      cctvLayer
+    } = this.services;
     this._cctvControls?.destroy();
     this._cctvControls = new CctvControls({
       elements: {
@@ -2654,7 +2842,9 @@ export class StyleManager {
    * @returns {Promise<boolean>} True if the layer is now in the requested state.
    */
   async _toggleCctvEnabled(forceState) {
-    const { cctvLayer } = this.services;
+    const {
+      cctvLayer
+    } = this.services;
     if (this._disposed) return false;
     if (!this._dataManager || !this._dataManager.layers?.has('cctv')) {
       this._showToast('CCTV layer unavailable');
@@ -2666,7 +2856,9 @@ export class StyleManager {
     await runCctvLayerEnableTransition({
       target,
       setEnabled: (next) =>
-        this._dataManager.setEnabled('cctv', next, { origin: 'user' }),
+        this._dataManager.setEnabled('cctv', next, {
+          origin: 'user'
+        }),
       readOwnership: () => ({
         trackedEntity: this.viewer?.trackedEntity,
         cockpitActive: !!this.cockpitView?.active,
@@ -2675,7 +2867,9 @@ export class StyleManager {
         !this._disposed &&
         this._dataManager.isEnabled('cctv') &&
         !this._cctvControls?.getState()?.activeCameraId,
-      activate: () => cctvLayer.focusNearest({ focus: false }),
+      activate: () => cctvLayer.focusNearest({
+        focus: false
+      }),
       fly: (cameraId) =>
         this._runExplicitCctvFocus(
           () => cameraId,
@@ -2804,8 +2998,8 @@ export class StyleManager {
         btn.setAttribute('aria-expanded', String(!collapsed));
         const panelName =
           panelEl
-            .querySelector('.panel-title, .pp-header-label')
-            ?.textContent?.trim() || 'panel';
+          .querySelector('.panel-title, .pp-header-label')
+          ?.textContent?.trim() || 'panel';
         const action = collapsed ? 'Expand' : 'Collapse';
         btn.title = `${action} ${panelName}`;
         btn.setAttribute('aria-label', `${action} ${panelName}`);
@@ -2821,8 +3015,8 @@ export class StyleManager {
     if (dockToggle) {
       const panelName =
         panelEl
-          .querySelector('.panel-title, .location-toolbar-label')
-          ?.textContent?.trim() || 'panel';
+        .querySelector('.panel-title, .location-toolbar-label')
+        ?.textContent?.trim() || 'panel';
       const action = collapsed ? 'Expand' : 'Collapse';
       dockToggle.setAttribute('aria-expanded', String(!collapsed));
       dockToggle.setAttribute('aria-label', `${action} ${panelName}`);
@@ -2916,15 +3110,20 @@ export class StyleManager {
       if (!panelEl) continue;
       // Responsive auto-collapse is presentation only; the recipient should
       // restore the user's explicit expanded preference at its own viewport.
-      const collapsed = panelEl.classList.contains('layout-auto-collapsed')
-        ? false
-        : panelEl.classList.contains('collapsed');
-      const entry = { id: spec.id, collapsed };
+      const collapsed = panelEl.classList.contains('layout-auto-collapsed') ?
+        false :
+        panelEl.classList.contains('collapsed');
+      const entry = {
+        id: spec.id,
+        collapsed
+      };
       if (spec.pinnable)
         entry.pinned = panelEl.classList.contains('dock-pinned');
       specs.push(entry);
     }
-    return specs.length ? { specs } : null;
+    return specs.length ? {
+      specs
+    } : null;
   }
 
   _restorePanelState(panelState) {
@@ -2962,8 +3161,7 @@ export class StyleManager {
    */
   setPanelCollapsed(
     panelId,
-    collapsed,
-    {
+    collapsed, {
       explicit = false,
       restore = false,
       persist = true,
@@ -2980,15 +3178,15 @@ export class StyleManager {
     const wasAutoCollapsed = panelEl.classList.contains(
       'layout-auto-collapsed',
     );
-    const leftOwnerPanel = this._leftPanelStack?.contains(panelEl)
-      ? panelEl
-      : null;
+    const leftOwnerPanel = this._leftPanelStack?.contains(panelEl) ?
+      panelEl :
+      null;
     const rightOwnerPanel =
-      panelId === 'radio-panel'
-        ? document.getElementById('global-context-panel')
-        : this._rightPanelStack?.contains(panelEl)
-          ? panelEl
-          : null;
+      panelId === 'radio-panel' ?
+      document.getElementById('global-context-panel') :
+      this._rightPanelStack?.contains(panelEl) ?
+      panelEl :
+      null;
     const priorLeftOwner = this._panelLayout._leftStackPreferredPanelId;
     const priorRightOwner = this._panelLayout._rightStackPreferredPanelId;
     if (explicit && !restore && !nextCollapsed && leftOwnerPanel) {
@@ -3017,10 +3215,14 @@ export class StyleManager {
     ) {
       this._syncPanelCollapseButton(panelEl);
       if (priorLeftOwner !== this._panelLayout._leftStackPreferredPanelId) {
-        this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
+        this._scheduleLeftPanelLayout({
+          reconsiderAutoCollapse: true
+        });
       }
       if (priorRightOwner !== this._panelLayout._rightStackPreferredPanelId) {
-        this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+        this._scheduleRightPanelLayout({
+          reconsiderAutoCollapse: true
+        });
       }
       return;
     }
@@ -3030,8 +3232,7 @@ export class StyleManager {
       this.cockpitView?.active &&
       panelId === 'data-panel'
     ) {
-      this._cockpitContextCollapsedForDataPanel =
-        !this.cockpitView.contextCollapsed;
+      this._cockpitContextCollapsedForDataPanel = !this.cockpitView.contextCollapsed;
       if (this._cockpitContextCollapsedForDataPanel) {
         this.cockpitView.setContextCollapsed(true);
       }
@@ -3047,8 +3248,8 @@ export class StyleManager {
       !nextCollapsed &&
       panelId === 'radio-panel' &&
       document
-        .getElementById('global-context-panel')
-        ?.classList.contains('collapsed')
+      .getElementById('global-context-panel')
+      ?.classList.contains('collapsed')
     ) {
       this.setPanelCollapsed('global-context-panel', false, {
         restore,
@@ -3092,7 +3293,9 @@ export class StyleManager {
       this._layoutRightPanels();
     }
     if (this._rightPanelStack?.contains(panelEl)) {
-      this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+      this._scheduleRightPanelLayout({
+        reconsiderAutoCollapse: true
+      });
     }
     if (panelId === 'cctv-panel') {
       this._syncCctvPanelViewport();
@@ -3111,9 +3314,9 @@ export class StyleManager {
    */
   toggleCleanView(forceEnabled) {
     const shouldEnable =
-      typeof forceEnabled === 'boolean'
-        ? forceEnabled
-        : !document.body.classList.contains('ui-clean-view');
+      typeof forceEnabled === 'boolean' ?
+      forceEnabled :
+      !document.body.classList.contains('ui-clean-view');
     document.body.classList.toggle('ui-clean-view', shouldEnable);
     if (this._cleanViewBtn) {
       this._cleanViewBtn.classList.toggle('active', shouldEnable);
@@ -3134,7 +3337,10 @@ export class StyleManager {
   setHudVisible(mode) {
     const normalized = String(mode ?? '').toLowerCase();
     if (!['on', 'off', 'auto'].includes(normalized)) {
-      return { ok: false, error: `Unknown HUD visibility mode: ${mode}` };
+      return {
+        ok: false,
+        error: `Unknown HUD visibility mode: ${mode}`
+      };
     }
     this.shareLinkManager?.claimRestoreLane?.('visual');
     this.hud.setMode(normalized);
@@ -3156,7 +3362,10 @@ export class StyleManager {
   setHudLayout(variantName) {
     const variant = String(variantName ?? '').toLowerCase();
     if (!['tactical', 'operator', 'minimal'].includes(variant)) {
-      return { ok: false, error: `Unknown HUD layout: ${variantName}` };
+      return {
+        ok: false,
+        error: `Unknown HUD layout: ${variantName}`
+      };
     }
     this.shareLinkManager?.claimRestoreLane?.('visual');
     this._setHudVariant(variant);
@@ -3172,10 +3381,13 @@ export class StyleManager {
    * @returns {{detectionMode: string, densityPct: number|null, allocationStrategy:string, fadePct:number, outsideOpacityPct:number}}
    */
   getDetectionState() {
-    const { getDetectionTuning, getDetectionMode } = this.services;
-    const pct = this._detectionDensitySlider
-      ? parseInt(this._detectionDensitySlider.value, 10)
-      : null;
+    const {
+      getDetectionTuning,
+      getDetectionMode
+    } = this.services;
+    const pct = this._detectionDensitySlider ?
+      parseInt(this._detectionDensitySlider.value, 10) :
+      null;
     return {
       detectionMode: getDetectionMode(),
       densityPct: pct,
@@ -3190,7 +3402,9 @@ export class StyleManager {
 
   /** Read-only overlay diagnostics used by browser QA and regression harnesses. */
   getDetectionDiagnostics() {
-    const { readDetectionDiagnostics } = this.services;
+    const {
+      readDetectionDiagnostics
+    } = this.services;
     return readDetectionDiagnostics();
   }
 
@@ -3215,7 +3429,10 @@ export class StyleManager {
     fadePct,
     outsideOpacityPct,
   } = {}) {
-    const { getDetectionMode, setDetectionModeByLabel } = this.services;
+    const {
+      getDetectionMode,
+      setDetectionModeByLabel
+    } = this.services;
     if (enabled !== undefined && typeof enabled !== 'boolean') {
       return {
         ok: false,
@@ -3301,7 +3518,9 @@ export class StyleManager {
       this._detectionUserOverridden = true;
     }
     if (requestedAllocation) {
-      this._setDetectionAllocation(requestedAllocation, { syncShare: false });
+      this._setDetectionAllocation(requestedAllocation, {
+        syncShare: false
+      });
     }
     if (fadePct != null && this._detectionFadeSlider) {
       this._detectionFadeSlider.value = String(
@@ -3341,7 +3560,10 @@ export class StyleManager {
     }
     this._syncDetectionUiFromEngine();
     this._syncShareState();
-    return { ok: true, ...this.getDetectionState() };
+    return {
+      ok: true,
+      ...this.getDetectionState()
+    };
   }
 
   /**
@@ -3351,7 +3573,10 @@ export class StyleManager {
    */
   async setMapStack(stackId) {
     if (!this.mapStackController) {
-      return { ok: false, error: 'Map stack controller unavailable' };
+      return {
+        ok: false,
+        error: 'Map stack controller unavailable'
+      };
     }
     const stacks = this.mapStackController.getStacks();
     const target = stacks.find((stack) => stack.id === stackId);
@@ -3386,12 +3611,15 @@ export class StyleManager {
    * @param {number} [options.intensityPct] - 0-200.
    * @returns {{ok: boolean, bloom: {enabled: boolean, intensityPct: number|null}}}
    */
-  setBloom({ enabled, intensityPct } = {}) {
+  setBloom({
+    enabled,
+    intensityPct
+  } = {}) {
     const current = () => ({
       enabled: !!this.bloomEnabled,
-      intensityPct: this._bloomSlider
-        ? parseInt(this._bloomSlider.value, 10)
-        : null,
+      intensityPct: this._bloomSlider ?
+        parseInt(this._bloomSlider.value, 10) :
+        null,
     });
     if (enabled !== undefined && typeof enabled !== 'boolean') {
       return {
@@ -3433,12 +3661,15 @@ export class StyleManager {
    * @param {number} [options.intensityPct] - 0-100.
    * @returns {{ok: boolean, sharpen: {enabled: boolean, intensityPct: number|null}}}
    */
-  setSharpen({ enabled, intensityPct } = {}) {
+  setSharpen({
+    enabled,
+    intensityPct
+  } = {}) {
     const current = () => ({
       enabled: !!this.sharpenEnabled,
-      intensityPct: this._sharpenSlider
-        ? parseInt(this._sharpenSlider.value, 10)
-        : null,
+      intensityPct: this._sharpenSlider ?
+        parseInt(this._sharpenSlider.value, 10) :
+        null,
     });
     if (enabled !== undefined && typeof enabled !== 'boolean') {
       return {
@@ -3491,8 +3722,13 @@ export class StyleManager {
    * @param {boolean} [options.focus=false]
    * @returns {{ok:boolean, celestialRing:{enabled:boolean,visible:boolean}, cameraFocused:boolean, error?:string}}
    */
-  setCelestialRingEnabled(enabled, { syncShare = true, focus = false } = {}) {
-    const { isCelestialRingStyleSupported } = this.services;
+  setCelestialRingEnabled(enabled, {
+    syncShare = true,
+    focus = false
+  } = {}) {
+    const {
+      isCelestialRingStyleSupported
+    } = this.services;
     const styleSupported = isCelestialRingStyleSupported(this.activeStyle);
     const current = () => ({
       enabled: this.celestialRingEnabled,
@@ -3530,9 +3766,9 @@ export class StyleManager {
     if (this._celestialBtn) {
       this._celestialBtn.disabled = !styleSupported;
       this._celestialBtn.setAttribute('aria-disabled', String(!styleSupported));
-      this._celestialBtn.title = styleSupported
-        ? 'Celestial ring — reveal the full globe'
-        : 'Celestial ring — available in Normal style';
+      this._celestialBtn.title = styleSupported ?
+        'Celestial ring — reveal the full globe' :
+        'Celestial ring — available in Normal style';
     }
     let cameraFocused = false;
     if (nextEnabled && focus) {
@@ -3554,11 +3790,17 @@ export class StyleManager {
   setOrbit(enabled) {
     const active = !!this.orbitController?.active;
     if (typeof enabled === 'boolean' && enabled === active) {
-      return { ok: true, orbiting: active };
+      return {
+        ok: true,
+        orbiting: active
+      };
     }
     if (enabled === false) {
       this._stopOrbit();
-      return { ok: true, orbiting: false };
+      return {
+        ok: true,
+        orbiting: false
+      };
     }
     if (!this._currentTarget) {
       return {
@@ -3568,7 +3810,10 @@ export class StyleManager {
       };
     }
     this._toggleOrbit();
-    return { ok: true, orbiting: !!this.orbitController?.active };
+    return {
+      ok: true,
+      orbiting: !!this.orbitController?.active
+    };
   }
 
   /**
@@ -3615,7 +3860,9 @@ export class StyleManager {
    * @returns {{active:boolean, entryAllowed:boolean, visionMode:string, subject:{id:string,layerId:string}|null, navigation:{canPrevious:boolean,canNext:boolean,canFocus:boolean}|null, awareness?: object}|null}
    */
   getCockpitState() {
-    const { militaryAwarenessLayer } = this.services;
+    const {
+      militaryAwarenessLayer
+    } = this.services;
     const snapshot = militaryAwarenessLayer.getContextSnapshot?.();
     const info = this.cockpitView?.readAircraftInfo?.();
     const active = Boolean(this.cockpitView?.active);
@@ -3625,70 +3872,68 @@ export class StyleManager {
     // `viewer.trackedEntity` on entry and NEXT puts one back, which made this
     // flip true/false between calls while `active` stayed true; readers
     // (including the voice model) read that as a broken half-entered state.
-    const entryAllowed =
-      !active &&
+    const entryAllowed = !active &&
       Boolean(gateOpen && info && this.viewer?.trackedEntity?.position);
     return {
       active,
       entryAllowed,
       // Why entry is unavailable, so a refusal can be explained rather than
       // guessed at.
-      entryBlockedReason:
-        entryAllowed || active
-          ? null
-          : !gateOpen
-            ? this._contextModeChanging
-              ? 'contacts-starting'
-              : 'contacts-inactive'
-            : 'no-tracked-aircraft',
+      entryBlockedReason: entryAllowed || active ?
+        null :
+        !gateOpen ?
+        this._contextModeChanging ?
+        'contacts-starting' :
+        'contacts-inactive' :
+        'no-tracked-aircraft',
       visionMode: this.cockpitView?.visionMode || null,
-      subject: info
-        ? {
-            id: info.icao24 || info.id || null,
-            layerId: info.layerId || null,
-            callsign: info.callsign || null,
-          }
-        : null,
-      navigation: snapshot
-        ? {
-            canPrevious: Boolean(snapshot.navigation?.canPrevious),
-            canNext: Boolean(snapshot.navigation?.canNext),
-            canFocus: Boolean(snapshot.navigation?.canFocus),
-          }
-        : null,
-      awareness: snapshot
-        ? {
-            radiusM: Number.isFinite(snapshot.radiusM)
-              ? snapshot.radiusM
-              : null,
-            subject: snapshot.subject
-              ? {
-                  id: snapshot.subject.id || null,
-                  layerId: snapshot.subject.layerId || null,
-                }
-              : null,
-            cohorts: Array.isArray(snapshot.cohorts)
-              ? snapshot.cohorts.map((cohort) => ({
-                  id: cohort?.id || null,
-                  source: cohort?.source || null,
-                  count: Number.isFinite(cohort?.count) ? cohort.count : null,
-                  relationship: cohort?.relationship || null,
-                  reason: cohort?.reason || null,
-                  coverage: cohort?.coverage || null,
-                }))
-              : [],
-            navigation: snapshot.navigation
-              ? {
-                  canPrevious: Boolean(snapshot.navigation.canPrevious),
-                  canNext: Boolean(snapshot.navigation.canNext),
-                  canFocus: Boolean(snapshot.navigation.canFocus),
-                }
-              : null,
-          }
-        : null,
-      activeTracked: this.cockpitView?.active
-        ? Boolean(this.cockpitView?.trackedEntity)
-        : false,
+      subject: info ?
+        {
+          id: info.icao24 || info.id || null,
+          layerId: info.layerId || null,
+          callsign: info.callsign || null,
+        } :
+        null,
+      navigation: snapshot ?
+        {
+          canPrevious: Boolean(snapshot.navigation?.canPrevious),
+          canNext: Boolean(snapshot.navigation?.canNext),
+          canFocus: Boolean(snapshot.navigation?.canFocus),
+        } :
+        null,
+      awareness: snapshot ?
+        {
+          radiusM: Number.isFinite(snapshot.radiusM) ?
+            snapshot.radiusM :
+            null,
+          subject: snapshot.subject ?
+            {
+              id: snapshot.subject.id || null,
+              layerId: snapshot.subject.layerId || null,
+            } :
+            null,
+          cohorts: Array.isArray(snapshot.cohorts) ?
+            snapshot.cohorts.map((cohort) => ({
+              id: cohort?.id || null,
+              source: cohort?.source || null,
+              count: Number.isFinite(cohort?.count) ? cohort.count : null,
+              relationship: cohort?.relationship || null,
+              reason: cohort?.reason || null,
+              coverage: cohort?.coverage || null,
+            })) :
+            [],
+          navigation: snapshot.navigation ?
+            {
+              canPrevious: Boolean(snapshot.navigation.canPrevious),
+              canNext: Boolean(snapshot.navigation.canNext),
+              canFocus: Boolean(snapshot.navigation.canFocus),
+            } :
+            null,
+        } :
+        null,
+      activeTracked: this.cockpitView?.active ?
+        Boolean(this.cockpitView?.trackedEntity) :
+        false,
       activeMapView: !this.cockpitView?.active && entryAllowed,
     };
   }
@@ -3713,7 +3958,9 @@ export class StyleManager {
     currentTarget,
     selectedTarget,
   }) {
-    const { militaryAwarenessLayer } = this.services;
+    const {
+      militaryAwarenessLayer
+    } = this.services;
     if (!['flights', 'military'].includes(targetLayer)) {
       return {
         ok: false,
@@ -3724,18 +3971,27 @@ export class StyleManager {
       selectedTarget?.layerId || currentTarget?.layerId || null;
     const alreadyOnLayer = activeLayer === targetLayer;
     if (alreadyOnLayer && !aircraftClass)
-      return { ok: true, retargeted: false };
-    const moved = militaryAwarenessLayer?.navigateNext
-      ? !!militaryAwarenessLayer.navigateNext({
-          targetLayer,
-          aircraftClass,
-          origin: 'voice',
-        })
-      : false;
-    if (moved) return { ok: true, retargeted: true };
+      return {
+        ok: true,
+        retargeted: false
+      };
+    const moved = militaryAwarenessLayer?.navigateNext ?
+      !!militaryAwarenessLayer.navigateNext({
+        targetLayer,
+        aircraftClass,
+        origin: 'voice',
+      }) :
+      false;
+    if (moved) return {
+      ok: true,
+      retargeted: true
+    };
     // A filter that matched nothing still enters, as long as the layer is
     // already right — the operator asked for that layer and is on it.
-    if (alreadyOnLayer) return { ok: true, retargeted: false };
+    if (alreadyOnLayer) return {
+      ok: true,
+      retargeted: false
+    };
     const label = targetLayer === 'military' ? 'military' : 'civilian';
     const filtered = aircraftClass ? `${aircraftClass} ` : '';
     return {
@@ -3756,8 +4012,7 @@ export class StyleManager {
    * @returns {{ok:boolean, action:string, error?:string, state?:object}}
    */
   controlCockpit(
-    action,
-    {
+    action, {
       notificationToken = null,
       targetLayer = null,
       aircraftClass = null,
@@ -3765,7 +4020,10 @@ export class StyleManager {
       rollbackTarget = undefined,
     } = {},
   ) {
-    const { flightsLayer, militaryFlightsLayer } = this.services;
+    const {
+      flightsLayer,
+      militaryFlightsLayer
+    } = this.services;
     const normalized = String(action || '').toLowerCase();
     if (!this.cockpitView) {
       return {
@@ -3792,19 +4050,19 @@ export class StyleManager {
         return {
           ok: false,
           action: 'control_cockpit',
-          error: this._contextModeChanging
-            ? 'Contacts is still starting up — try Cockpit again in a moment'
-            : 'Contacts must be active to enter Cockpit — say "open contacts" first',
+          error: this._contextModeChanging ?
+            'Contacts is still starting up — try Cockpit again in a moment' :
+            'Contacts must be active to enter Cockpit — say "open contacts" first',
           state: this.getCockpitState(),
         };
       }
       let currentTarget = this.getAircraftTrackingTarget();
       const layerForTarget = (target) =>
-        target?.layerId === 'military'
-          ? militaryFlightsLayer
-          : target?.layerId === 'flights'
-            ? flightsLayer
-            : null;
+        target?.layerId === 'military' ?
+        militaryFlightsLayer :
+        target?.layerId === 'flights' ?
+        flightsLayer :
+        null;
       // A requested layer retargets BEFORE entry, through the same filtered
       // navigation NEXT uses. Ignoring it entered on whatever was already
       // tracked and reported success, so "cockpit in that military helicopter"
@@ -3834,11 +4092,11 @@ export class StyleManager {
         }
       }
       const selectedLayer =
-        selectedTarget?.layerId === 'military'
-          ? militaryFlightsLayer
-          : selectedTarget?.layerId === 'flights'
-            ? flightsLayer
-            : null;
+        selectedTarget?.layerId === 'military' ?
+        militaryFlightsLayer :
+        selectedTarget?.layerId === 'flights' ?
+        flightsLayer :
+        null;
       const entry = enterCockpitWithTracking({
         cockpitView: this.cockpitView,
         selectedLayer,
@@ -3868,8 +4126,7 @@ export class StyleManager {
     }
     if (normalized === 'next' || normalized === 'previous') {
       const changed = this.cockpitView.navigateContext(
-        normalized === 'next' ? 1 : -1,
-        {
+        normalized === 'next' ? 1 : -1, {
           targetLayer,
           aircraftClass,
           origin: 'voice',
@@ -3906,15 +4163,15 @@ export class StyleManager {
       detection: this.getDetectionState(),
       bloom: {
         enabled: !!this.bloomEnabled,
-        intensityPct: this._bloomSlider
-          ? parseInt(this._bloomSlider.value, 10)
-          : null,
+        intensityPct: this._bloomSlider ?
+          parseInt(this._bloomSlider.value, 10) :
+          null,
       },
       sharpen: {
         enabled: !!this.sharpenEnabled,
-        intensityPct: this._sharpenSlider
-          ? parseInt(this._sharpenSlider.value, 10)
-          : null,
+        intensityPct: this._sharpenSlider ?
+          parseInt(this._sharpenSlider.value, 10) :
+          null,
       },
       celestialRing: {
         enabled: this.celestialRingEnabled,
@@ -4043,13 +4300,20 @@ export class StyleManager {
    *   Omit it and the method behaves as it always has.
    * @returns {Promise<boolean>} Whether the state was committed.
    */
-  async applyVisualState(state = {}, { isCurrent = null } = {}) {
-    const { setScopeMaskEnabled, setScopeMaskFeather } = this.services;
+  async applyVisualState(state = {}, {
+    isCurrent = null
+  } = {}) {
+    const {
+      setScopeMaskEnabled,
+      setScopeMaskFeather
+    } = this.services;
     const superseded = () => typeof isCurrent === 'function' && !isCurrent();
     if (superseded()) return false;
 
     if (state.style && state.style !== this.activeStyle) {
-      this.setStyle(state.style, { applyPreset: false });
+      this.setStyle(state.style, {
+        applyPreset: false
+      });
     }
 
     const bloomState = state.bloom || {};
@@ -4058,7 +4322,9 @@ export class StyleManager {
         bloomState.intensity,
         bloomState.version ?? state.bloomVersion ?? BLOOM_SCALE_VERSION,
       );
-      this._setBloomIntensity(intensity, { syncShare: false });
+      this._setBloomIntensity(intensity, {
+        syncShare: false
+      });
     }
     if (typeof bloomState.enabled === 'boolean') {
       this._setBloomEnabled(bloomState.enabled);
@@ -4144,7 +4410,9 @@ export class StyleManager {
       const genBefore =
         this.mapStackController?.getSwitchGeneration?.() ?? null;
 
-      await this._setMapStack(state.mapStack, { syncShare: false });
+      await this._setMapStack(state.mapStack, {
+        syncShare: false
+      });
 
       if (superseded()) {
         // Superseded DURING the switch, which the pre-check above cannot catch
@@ -4163,7 +4431,9 @@ export class StyleManager {
           genBefore !== null && genAfter !== null && genAfter <= genBefore + 1;
         const landed = this.mapStackController?.getActiveId?.() ?? null;
         if (globeIsStillOurs && stackBefore && landed !== stackBefore) {
-          await this._setMapStack(stackBefore, { syncShare: false });
+          await this._setMapStack(stackBefore, {
+            syncShare: false
+          });
         }
         return false;
       }
@@ -4200,16 +4470,20 @@ export class StyleManager {
    */
   applyCinematicPreset(preset = {}) {
     const bloomInput =
-      typeof preset.bloom === 'object'
-        ? preset.bloom
-        : { intensity: preset.bloom };
+      typeof preset.bloom === 'object' ?
+      preset.bloom :
+      {
+        intensity: preset.bloom
+      };
     let decodedBloomIntensity = null;
     if (typeof bloomInput.intensity === 'number') {
       decodedBloomIntensity = decodeBloomIntensity(
         bloomInput.intensity,
         bloomInput.version ?? preset.bloomVersion ?? BLOOM_SCALE_VERSION,
       );
-      this._setBloomIntensity(decodedBloomIntensity, { syncShare: false });
+      this._setBloomIntensity(decodedBloomIntensity, {
+        syncShare: false
+      });
     }
     if (typeof bloomInput.enabled === 'boolean') {
       this._setBloomEnabled(bloomInput.enabled);
@@ -4220,9 +4494,11 @@ export class StyleManager {
     }
 
     const sharpenInput =
-      typeof preset.sharpen === 'object'
-        ? preset.sharpen
-        : { enabled: preset.sharpen };
+      typeof preset.sharpen === 'object' ?
+      preset.sharpen :
+      {
+        enabled: preset.sharpen
+      };
     if (typeof sharpenInput.intensity === 'number' && this._sharpenSlider) {
       const sharpenPct = Math.max(
         0,
@@ -4302,8 +4578,12 @@ export class StyleManager {
    * @param {string} styleName - Style name whose uniforms to display.
    * @returns {void}
    */
-  _updateSliderPanel(styleName, { reveal = false } = {}) {
-    const { governorRequestRender } = this.services;
+  _updateSliderPanel(styleName, {
+    reveal = false
+  } = {}) {
+    const {
+      governorRequestRender
+    } = this.services;
     this._styleParameters ||= createStyleParameters({
       container: this._sliderContainer,
     });
@@ -4341,7 +4621,9 @@ export class StyleManager {
     if (this._cockpitDisplayPortalActive) return;
     this._sliderPanel.classList.remove('collapsed');
     this._syncPanelCollapseButton(this._sliderPanel);
-    this.setPanelCollapsed('pp-toggles', false, { explicit: true });
+    this.setPanelCollapsed('pp-toggles', false, {
+      explicit: true
+    });
     this._lifetime.frame(() =>
       this._lifetime.frame(() => {
         const scrollOwner = this._ppToggles;
@@ -4367,14 +4649,15 @@ export class StyleManager {
    * @returns {void}
    */
   setStyle(
-    styleName,
-    {
+    styleName, {
       applyPreset = true,
       revealParameters = applyPreset,
       restore = false,
     } = {},
   ) {
-    const { setDetectionStyle } = this.services;
+    const {
+      setDetectionStyle
+    } = this.services;
     if (!restore) this.shareLinkManager?.claimRestoreLane?.('visual');
     if (styleName === this.activeStyle) {
       if (revealParameters && styleName !== 'normal')
@@ -4388,7 +4671,10 @@ export class StyleManager {
 
     // The celestial optics treatment belongs to the unfiltered globe only.
     // Leaving Normal turns it off; returning merely re-enables the control.
-    this.setCelestialRingEnabled(false, { syncShare: false, focus: false });
+    this.setCelestialRingEnabled(false, {
+      syncShare: false,
+      focus: false
+    });
 
     // Transition out the previous shader style
     if (previousStyle !== 'normal' && this.stages[previousStyle]) {
@@ -4418,13 +4704,19 @@ export class StyleManager {
     });
 
     // Update style indicator
-    const displayNames = { surveillance: 'NVG', thermal: 'FLIR', retro: 'CRT' };
+    const displayNames = {
+      surveillance: 'NVG',
+      thermal: 'FLIR',
+      retro: 'CRT'
+    };
     this._styleIndicator.textContent =
       displayNames[styleName] || styleName.toUpperCase();
     this._updateStyleMiniStatus(styleName);
 
     // Update parameter sliders
-    this._updateSliderPanel(styleName, { reveal: revealParameters });
+    this._updateSliderPanel(styleName, {
+      reveal: revealParameters
+    });
 
     // Notify HUD (color adaptation + auto show/hide)
     this.hud.onStyleChange(styleName);
@@ -4435,7 +4727,9 @@ export class StyleManager {
     this._syncIrBoost();
     window.dispatchEvent(
       new CustomEvent('gev:style-change', {
-        detail: { style: styleName },
+        detail: {
+          style: styleName
+        },
       }),
     );
 
@@ -4558,7 +4852,11 @@ export class StyleManager {
    * @returns {void}
    */
   _initLocationBar() {
-    const { CITY_POIS, searchAndFlyTo, LocationSearch } = this.services;
+    const {
+      CITY_POIS,
+      searchAndFlyTo,
+      LocationSearch
+    } = this.services;
     this._locationControls?.destroy();
     this._locationLookupUnsubscribe?.();
     this._locationLookup?.destroy();
@@ -4576,8 +4874,13 @@ export class StyleManager {
       onError: (error) => console.error('[Search] Geocoding failed:', error),
     });
     this._locationLookupUnsubscribe = this._locationLookup.subscribe(
-      ({ initial, change }) => {
-        this._locationState.publish(initial ? { type: 'reset' } : change);
+      ({
+        initial,
+        change
+      }) => {
+        this._locationState.publish(initial ? {
+          type: 'reset'
+        } : change);
       },
     );
     this._locationControls = new LocationControls({
@@ -4607,7 +4910,10 @@ export class StyleManager {
    * @returns {void}
    */
   _beginWorldJumpTransition() {
-    const { suspendDetection, trafficLayer } = this.services;
+    const {
+      suspendDetection,
+      trafficLayer
+    } = this.services;
     clearTimeout(this._trafficTransitionTimer);
     trafficLayer.beginWorldJump?.();
     suspendDetection('intercity');
@@ -4619,7 +4925,10 @@ export class StyleManager {
    * @returns {void}
    */
   _endWorldJumpTransition() {
-    const { resumeDetection, trafficLayer } = this.services;
+    const {
+      resumeDetection,
+      trafficLayer
+    } = this.services;
     clearTimeout(this._trafficTransitionTimer);
     trafficLayer.endWorldJump?.();
     resumeDetection();
@@ -4661,8 +4970,12 @@ export class StyleManager {
    */
   beginLocationNavigation() {
     this._stampNavigation();
-    this.cockpitView?.exit({ restoreTracking: false });
-    return this._releaseFollowCamera({ preserveVesselSelection: false });
+    this.cockpitView?.exit({
+      restoreTracking: false
+    });
+    return this._releaseFollowCamera({
+      preserveVesselSelection: false
+    });
   }
 
   /**
@@ -4673,7 +4986,10 @@ export class StyleManager {
    * @returns {void}
    */
   _onCityPillClick(cityId) {
-    const { CITY_POIS, flyToPresetLocation } = this.services;
+    const {
+      CITY_POIS,
+      flyToPresetLocation
+    } = this.services;
     if (this._expandedCityId === cityId) {
       // Same city clicked again — toggle collapse
       this._collapsePOIRow();
@@ -4707,7 +5023,10 @@ export class StyleManager {
    * @returns {void}
    */
   _onPoiClick(cityId, poiIndex) {
-    const { CITY_POIS, flyToPOI } = this.services;
+    const {
+      CITY_POIS,
+      flyToPOI
+    } = this.services;
     const isCityChanged =
       this._activeLocationId && this._activeLocationId !== cityId;
     const result = this._flyWithTransition(!!isCityChanged, (hooks) =>
@@ -4733,7 +5052,9 @@ export class StyleManager {
    * @returns {void}
    */
   _expandPOIRow(cityId) {
-    const { CITY_POIS } = this.services;
+    const {
+      CITY_POIS
+    } = this.services;
     if (!CITY_POIS[cityId]) return;
     this._expandedCityId = cityId;
     this._locationControls.showPois(cityId);
@@ -4790,7 +5111,9 @@ export class StyleManager {
    * @returns {void}
    */
   _updateLocationMiniStatus() {
-    const { CITY_POIS } = this.services;
+    const {
+      CITY_POIS
+    } = this.services;
     this._locationControls?.renderStatus({
       city: this._activeLocationId ? CITY_POIS[this._activeLocationId] : null,
       currentPoi: this._currentPoi,
@@ -4891,18 +5214,26 @@ export class StyleManager {
     this._stampNavigation();
     interruptCameraMotion('reset-globe');
     this._stopOrbit();
-    this.cockpitView?.exit({ restoreTracking: false });
+    this.cockpitView?.exit({
+      restoreTracking: false
+    });
     try {
-      militaryAwarenessLayer.releaseCameraOwnership?.({ origin: 'tool' });
+      militaryAwarenessLayer.releaseCameraOwnership?.({
+        origin: 'tool'
+      });
     } catch {
       // Keep reset available if Context has not initialized completely.
       try {
-        flightsLayer.stopTracking?.({ origin: 'tool' });
+        flightsLayer.stopTracking?.({
+          origin: 'tool'
+        });
       } catch {
         /* best-effort release */
       }
       try {
-        militaryFlightsLayer.stopTracking?.({ origin: 'tool' });
+        militaryFlightsLayer.stopTracking?.({
+          origin: 'tool'
+        });
       } catch {
         /* best-effort release */
       }
@@ -4913,7 +5244,9 @@ export class StyleManager {
       }
     }
     try {
-      satellitesLayer.stopTracking?.({ origin: 'tool' });
+      satellitesLayer.stopTracking?.({
+        origin: 'tool'
+      });
     } catch {
       /* best-effort release */
     }
@@ -4965,7 +5298,7 @@ export class StyleManager {
       const height = this.viewer.camera.positionCartographic?.height;
       finish(
         !Number.isFinite(height) ||
-          Math.abs(height - GLOBE_VIEW.heightM) > 1000,
+        Math.abs(height - GLOBE_VIEW.heightM) > 1000,
       );
     }, 4200);
     this._resetGlobeBtn?.setAttribute(
@@ -5024,9 +5357,15 @@ export class StyleManager {
    * @returns {void}
    */
   /** One 3D toggle drives BOTH aircraft layers (commercial + military) so all planes flip together. */
-  _setModels3dParams(params, { origin = 'user' } = {}) {
-    this._dataManager?.setLayerParams('flights', params, { origin });
-    this._dataManager?.setLayerParams('military', params, { origin });
+  _setModels3dParams(params, {
+    origin = 'user'
+  } = {}) {
+    this._dataManager?.setLayerParams('flights', params, {
+      origin
+    });
+    this._dataManager?.setLayerParams('military', params, {
+      origin
+    });
   }
 
   _syncModels3dFromLayerState(state) {
@@ -5059,14 +5398,18 @@ export class StyleManager {
 
   _setModels3dEnabled(enabled) {
     this._models3dEnabled = !!enabled;
-    this._setModels3dParams({ models3d: this._models3dEnabled });
+    this._setModels3dParams({
+      models3d: this._models3dEnabled
+    });
     this._syncModels3dButtonState();
   }
 
   _setModels3dMode(mode) {
     const normalized = mode === 'all' ? 'all' : 'proximity';
     this._models3dMode = normalized;
-    this._setModels3dParams({ models3dMode: normalized });
+    this._setModels3dParams({
+      models3dMode: normalized
+    });
     for (const button of this._models3dModeBtns) {
       if (!button) continue;
       const active = button.dataset.mode === normalized;
@@ -5158,7 +5501,9 @@ export class StyleManager {
     if (this._hudLayoutRow) {
       this._hudLayoutRow.classList.toggle('visible', this.hud.visible);
     }
-    this._scheduleAdaptivePanelLayout({ settle: true });
+    this._scheduleAdaptivePanelLayout({
+      settle: true
+    });
   }
 
   /**
@@ -5174,9 +5519,9 @@ export class StyleManager {
     btn.setAttribute('aria-pressed', String(enabled));
     btn.setAttribute(
       'aria-label',
-      enabled
-        ? `Detection overlay: ${String(modeLabel).toLowerCase()}`
-        : 'Detection overlay: off',
+      enabled ?
+      `Detection overlay: ${String(modeLabel).toLowerCase()}` :
+      'Detection overlay: off',
     );
     btn.classList.remove('active', 'god', 'panoptic');
     if (modeLabel === 'SPARSE') {
@@ -5259,7 +5604,9 @@ export class StyleManager {
   get initialRestorePromise() {
     return (
       this._initialShareRestorePromise ||
-      Promise.resolve({ status: 'not-requested' })
+      Promise.resolve({
+        status: 'not-requested'
+      })
     );
   }
 
@@ -5269,7 +5616,9 @@ export class StyleManager {
     this._resolveInitialShareRestore = null;
     resolve(result);
     window.dispatchEvent(
-      new CustomEvent('gev:initial-share-restore-settled', { detail: result }),
+      new CustomEvent('gev:initial-share-restore-settled', {
+        detail: result
+      }),
     );
   }
 
@@ -5280,8 +5629,12 @@ export class StyleManager {
    * @returns {Promise<void>} Resolves after focused-session state restoration.
    */
   async dispose() {
-    const { destroyTrackedReadout, destroyWorldOverlay, destroyDetection } =
-      this.services;
+    const {
+      destroyTrackedReadout,
+      destroyWorldOverlay,
+      destroyDetection
+    } =
+    this.services;
     if (this._disposed) return;
     this._shareTrackingNoticeGeneration += 1;
     this._shareTrackingAcquiringKey = null;
@@ -5381,8 +5734,12 @@ export class StyleManager {
       if (this._irFogWasEnabled != null && this.viewer?.scene?.fog) {
         this.viewer.scene.fog.enabled = this._irFogWasEnabled;
       }
-      this._dataManager?.setLayerParams('flights', { irBoost: false });
-      this._dataManager?.setLayerParams('military', { irBoost: false });
+      this._dataManager?.setLayerParams('flights', {
+        irBoost: false
+      });
+      this._dataManager?.setLayerParams('military', {
+        irBoost: false
+      });
       this._irBoostActive = false;
       this._irFogWasEnabled = null;
     }
