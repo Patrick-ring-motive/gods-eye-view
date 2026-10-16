@@ -22,7 +22,10 @@ export function createApplicationRequestServices({
     summary: '/api/openai/hud-summary',
     ...endpoints,
   };
-  async function request(endpoint, { signal, ...init } = {}) {
+  async function request(endpoint, {
+    signal,
+    ...init
+  } = {}) {
     signal = AbortSignal.any([lifetime, signal].filter(Boolean));
     signal.throwIfAborted();
     const response = await fetchImpl(endpoint, {
@@ -45,6 +48,7 @@ export function createApplicationRequestServices({
       data,
     };
   }
+
   function pointUrl(endpoint, latitude, longitude) {
     if (
       !Number.isFinite(latitude) ||
@@ -57,6 +61,7 @@ export function createApplicationRequestServices({
       throw new TypeError('Valid coordinates are required');
     return `${endpoint}?${new URLSearchParams({ latitude: latitude.toFixed(5), longitude: longitude.toFixed(5) })}`;
   }
+
   function requireOk(response, label) {
     if (!response.ok)
       throw new Error(`${label} unavailable (${response.status})`);
@@ -64,11 +69,15 @@ export function createApplicationRequestServices({
   }
   return {
     boundaries: {
-      async query(query, { signal } = {}) {
+      async query(query, {
+        signal
+      } = {}) {
         const response = await request(urls.boundaries, {
           method: 'POST',
           signal,
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
           body: `data=${encodeURIComponent(query)}`,
         });
         const retry = response.headers?.get?.('Retry-After');
@@ -76,19 +85,27 @@ export function createApplicationRequestServices({
           response.status === 429 ||
           (response.status === 503 && retry != null)
         )
-          return { rateLimited: true, retryAfterMs: retryAfterMs(retry) };
+          return {
+            rateLimited: true,
+            retryAfterMs: retryAfterMs(retry)
+          };
         if (!response.ok) return null;
         const remark = String(response.data?.remark || '').toLowerCase();
         if (/runtime error|timed out|out of memory/.test(remark)) return null;
-        return Array.isArray(response.data?.elements)
-          ? response.data.elements
-          : null;
+        return Array.isArray(response.data?.elements) ?
+          response.data.elements :
+          null;
       },
     },
     terrain: {
-      async getHeights(points, { signal } = {}) {
+      async getHeights(points, {
+        signal
+      } = {}) {
         const query = points
-          .map(({ lat, lon }) => `${lon.toFixed(5)},${lat.toFixed(5)}`)
+          .map(({
+            lat,
+            lon
+          }) => `${lon.toFixed(5)},${lat.toFixed(5)}`)
           .join(';');
         return requireOk(
           await request(`${urls.terrain}?points=${encodeURIComponent(query)}`, {
@@ -115,11 +132,15 @@ export function createApplicationRequestServices({
       },
     },
     summary: {
-      async summarize(context, { signal } = {}) {
+      async summarize(context, {
+        signal
+      } = {}) {
         return request(urls.summary, {
           method: 'POST',
           signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(context),
         });
       },
