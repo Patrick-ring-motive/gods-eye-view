@@ -1,4 +1,6 @@
-import { VOICE_MODELS } from '../../../src/voice/voiceCost.js';
+import {
+  VOICE_MODELS
+} from '../../../src/voice/voiceCost.js';
 
 // Sourced from the shared voice-model registry so the client's cost estimate
 // can never be computed against a different model than the session runs on.
