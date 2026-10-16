@@ -5,7 +5,12 @@ import {
   GOOGLE_MILITARY_PLACE_TYPES,
 } from './policy.js';
 
-export function createModel({ state: layerState, services, parts, source }) {
+export function createModel({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Allocation-free spherical distance used only as a conservative rejection
    * pass before the exact ellipsoidal geodesic calculation.
@@ -29,9 +34,9 @@ export function createModel({ state: layerState, services, parts, source }) {
     const haversine =
       sinLatitude * sinLatitude +
       Math.cos(latitudeARad) *
-        Math.cos(latitudeBRad) *
-        sinLongitude *
-        sinLongitude;
+      Math.cos(latitudeBRad) *
+      sinLongitude *
+      sinLongitude;
     return (
       2 * EARTH_MEAN_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(haversine)))
     );
@@ -55,16 +60,16 @@ export function createModel({ state: layerState, services, parts, source }) {
   function classifyGoogleMilitaryPlace(place) {
     const types = new Set(
       [place?.primaryType, ...(Array.isArray(place?.types) ? place.types : [])]
-        .map((value) =>
-          String(value || '')
-            .trim()
-            .toLowerCase(),
-        )
-        .filter(Boolean),
+      .map((value) =>
+        String(value || '')
+        .trim()
+        .toLowerCase(),
+      )
+      .filter(Boolean),
     );
-    return [...types].some((type) => GOOGLE_MILITARY_PLACE_TYPES.has(type))
-      ? 'military_land'
-      : 'places_candidate';
+    return [...types].some((type) => GOOGLE_MILITARY_PLACE_TYPES.has(type)) ?
+      'military_land' :
+      'places_candidate';
   }
 
   /** @param {object} record @returns {string} Human-readable source attribution. */
@@ -73,8 +78,8 @@ export function createModel({ state: layerState, services, parts, source }) {
     const names = [
       ...new Set(
         (Array.isArray(record?.sources) ? record.sources : [])
-          .map((source) => String(source?.name || '').trim())
-          .filter(Boolean),
+        .map((source) => String(source?.name || '').trim())
+        .filter(Boolean),
       ),
     ];
     return names.join(' + ') || 'Unknown mapped source';
@@ -108,7 +113,11 @@ export function createModel({ state: layerState, services, parts, source }) {
 
   function installationWithinViewport(record, box) {
     if (!record || !box) return false;
-    const { latitude, longitude, footprint } = record;
+    const {
+      latitude,
+      longitude,
+      footprint
+    } = record;
     const centreInside =
       latitude >= box.south &&
       latitude <= box.north &&
