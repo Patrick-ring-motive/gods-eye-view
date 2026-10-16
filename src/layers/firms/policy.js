@@ -1,4 +1,6 @@
-import { FIRMS_AMBIENT_COHORT_LIMIT } from '../../data/firmsLabels.js';
+import {
+  FIRMS_AMBIENT_COHORT_LIMIT
+} from '../../data/firmsLabels.js';
 import * as Cesium from 'cesium';
 
 /** Client poll interval; the proxy's 30 min TTL is what guards upstream quota. */
@@ -13,8 +15,7 @@ export const REFRESH_INTERVAL_MS = 600_000;
  * (hard cap MAX_AMBIENT_LABELS) — there are no per-band label knobs.
  */
 
-export const LOD_LEVELS = [
-  {
+export const LOD_LEVELS = [{
     id: 'global',
     minHeight: 9000000,
     mode: 'cells',
@@ -90,8 +91,16 @@ export const CULL_LIFT_M = 12;
 
 /** Color stops shared by cell heat fills and detection glow sprites. */
 
-export const DETECTION_COLOR_STOPS = [
-  { name: 'red', color: Cesium.Color.RED },
-  { name: 'orange', color: Cesium.Color.ORANGE },
-  { name: 'yellow', color: Cesium.Color.YELLOW },
+export const DETECTION_COLOR_STOPS = [{
+    name: 'red',
+    color: Cesium.Color.RED
+  },
+  {
+    name: 'orange',
+    color: Cesium.Color.ORANGE
+  },
+  {
+    name: 'yellow',
+    color: Cesium.Color.YELLOW
+  },
 ];
