@@ -1,5 +1,9 @@
-import { createCivilFlightLayer } from '../layers/flights/index.js';
-import { createOpenSkySource } from '../sources/live/standalone.js';
+import {
+  createCivilFlightLayer
+} from '../layers/flights/index.js';
+import {
+  createOpenSkySource
+} from '../sources/live/standalone.js';
 import * as picking from './pickRegistry.js';
 import * as sprites from './spriteOrder.js';
 import * as trails from './trailRenderer.js';
@@ -40,7 +44,10 @@ const flightsLayer = createCivilFlightLayer({
     recession,
   },
 });
-export { TRACKED_MODEL_MAX_PX } from '../layers/flights/policy.js';
+export {
+  TRACKED_MODEL_MAX_PX
+}
+from '../layers/flights/policy.js';
 export const _floorGroundedDisplayPositionForTest =
   flightsLayer.testing._floorGroundedDisplayPositionForTest;
 export const _clearDisplayFloorStateForTest =
