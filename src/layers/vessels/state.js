@@ -1,7 +1,12 @@
 import * as Cesium from 'cesium';
-import { DEFAULT_AIS_RUNTIME } from './policy.js';
+import {
+  DEFAULT_AIS_RUNTIME
+} from './policy.js';
 
-export function createVesselState({ source, services }) {
+export function createVesselState({
+  source,
+  services
+}) {
   const {
     setOverlayEntries,
     setOverlaySourceVisible,
