@@ -248,14 +248,12 @@ export async function resolveEllipsoidalGround(coords) {
   // retries later): report it unresolved instead of throwing.
   return work.map((item) => {
     const entry = cache.get(item.key);
-    return entry ?
-      {
-        ellipsoid: entry.ellipsoid,
-        source: entry.source
-      } :
-      {
-        ellipsoid: null,
-        source: 'unresolved'
-      };
+    return entry ? {
+      ellipsoid: entry.ellipsoid,
+      source: entry.source
+    } : {
+      ellipsoid: null,
+      source: 'unresolved'
+    };
   });
 }
