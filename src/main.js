@@ -1,5 +1,9 @@
-import { createStandaloneApplication } from './standalone/application.js';
-import { describeError } from './standalone/errors.js';
+import {
+  createStandaloneApplication
+} from './standalone/application.js';
+import {
+  describeError
+} from './standalone/errors.js';
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
@@ -14,4 +18,6 @@ application.start().catch((error) => {
   loaderStatus.style.color = '#ff4444';
 });
 
-export { application };
+export {
+  application
+};
