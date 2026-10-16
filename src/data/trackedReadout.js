@@ -3,7 +3,9 @@ import {
   setOverlayEntries,
   setOverlaySourceVisible,
 } from '../overlays/worldOverlay.js';
-import { WORLD_OVERLAY_STYLE } from '../overlays/worldOverlayTokens.js';
+import {
+  WORLD_OVERLAY_STYLE
+} from '../overlays/worldOverlayTokens.js';
 
 /**
  * @module trackedReadout
@@ -51,17 +53,25 @@ let _overlayHost = DEFAULT_TRACKED_OVERLAY_HOST;
  */
 export function trackedLabelModelFromText(text, accent = WORLD_OVERLAY_STYLE.accent) {
   const raw = String(text || '').trim();
-  if (!raw) return { title: '', details: [], accent };
+  if (!raw) return {
+    title: '',
+    details: [],
+    accent
+  };
   let lines;
   if (raw.includes('\n')) {
     lines = raw.split('\n').map((line) => line.trim()).filter(Boolean);
   } else {
     const parts = raw.split(' · ');
-    lines = parts.length > 1
-      ? [parts[0].trim(), parts.slice(1).join(' · ').trim()]
-      : [raw];
+    lines = parts.length > 1 ?
+      [parts[0].trim(), parts.slice(1).join(' · ').trim()] :
+      [raw];
   }
-  return { title: lines[0] || '', details: lines.slice(1), accent };
+  return {
+    title: lines[0] || '',
+    details: lines.slice(1),
+    accent
+  };
 }
 
 /**
@@ -101,7 +111,8 @@ export function cachedTrackedVisualPosition(entity) {
     try {
       const visual = entity.gevVisualPosition();
       if (visual) return visual;
-    } catch { /* fall through to the display position */ }
+    } catch {
+      /* fall through to the display position */ }
   }
   return cachedTrackedDisplayPosition(entity);
 }
