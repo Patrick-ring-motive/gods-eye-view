@@ -1,5 +1,8 @@
 /** Own rail measurement, layout scheduling and dock tray observation. */
-import { layoutLeftPanelRail, layoutRightPanelRail } from './panelRails.js';
+import {
+  layoutLeftPanelRail,
+  layoutRightPanelRail
+} from './panelRails.js';
 const COCKPIT_LAYOUT_SETTLE_MS = 240;
 /**
  * Fixed UI regions that can occupy the left accordion's vertical lane.
@@ -97,18 +100,28 @@ export class PanelLayoutController {
     this._sliderPanel = document.getElementById('param-slider-panel');
     this._detectionBtn = document.getElementById('detection-toggle');
   }
-  _scheduleAdaptivePanelLayout({ settle = false } = {}) {
+  _scheduleAdaptivePanelLayout({
+    settle = false
+  } = {}) {
     if (this.destroyed) return;
-    this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
-    this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+    this._scheduleLeftPanelLayout({
+      reconsiderAutoCollapse: true
+    });
+    this._scheduleRightPanelLayout({
+      reconsiderAutoCollapse: true
+    });
     this.scheduleCockpitLayout();
     if (!settle) return;
     clearTimeout(this._adaptivePanelSettleTimer);
     this._adaptivePanelSettleTimer = setTimeout(() => {
       if (this.destroyed) return;
       this._adaptivePanelSettleTimer = null;
-      this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
-      this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+      this._scheduleLeftPanelLayout({
+        reconsiderAutoCollapse: true
+      });
+      this._scheduleRightPanelLayout({
+        reconsiderAutoCollapse: true
+      });
       this.scheduleCockpitLayout();
     }, COCKPIT_LAYOUT_SETTLE_MS);
   }
@@ -141,12 +154,12 @@ export class PanelLayoutController {
     );
     const locationHeight =
       locationPanel
-        ?.querySelector('.dock-popover-content')
-        ?.getBoundingClientRect().height || 0;
+      ?.querySelector('.dock-popover-content')
+      ?.getBoundingClientRect().height || 0;
     const presetsHeight =
       presetsPanel
-        ?.querySelector('.dock-popover-content')
-        ?.getBoundingClientRect().height || 0;
+      ?.querySelector('.dock-popover-content')
+      ?.getBoundingClientRect().height || 0;
     const pinnedCount = Number(locationHeight > 0) + Number(presetsHeight > 0);
     const locationHeightPx = Math.ceil(locationHeight);
     const presetsHeightPx = Math.ceil(presetsHeight);
@@ -157,12 +170,12 @@ export class PanelLayoutController {
       topPinnedPanel?.id === 'location-bar' ? presetsPanel : locationPanel;
     const lowerPinnedHeight =
       lowerPinnedPanel
-        ?.querySelector('.dock-popover-content')
-        ?.getBoundingClientRect().height || 0;
+      ?.querySelector('.dock-popover-content')
+      ?.getBoundingClientRect().height || 0;
     const stackHeight =
-      pinnedCount > 1
-        ? `calc(${locationHeightPx}px + ${presetsHeightPx}px + 1.2rem)`
-        : `${locationHeightPx + presetsHeightPx}px`;
+      pinnedCount > 1 ?
+      `calc(${locationHeightPx}px + ${presetsHeightPx}px + 1.2rem)` :
+      `${locationHeightPx + presetsHeightPx}px`;
     dock.style.setProperty(
       '--dock-location-pinned-height',
       `${locationHeightPx}px`,
@@ -220,10 +233,10 @@ export class PanelLayoutController {
       });
       this._rightStackResizeObserver.observe(stack);
       for (const panel of [
-        this._ppToggles,
-        this._cctvPanel,
-        globalContextPanel,
-      ]) {
+          this._ppToggles,
+          this._cctvPanel,
+          globalContextPanel,
+        ]) {
         if (panel) this._rightStackResizeObserver.observe(panel);
       }
       document
@@ -261,7 +274,9 @@ export class PanelLayoutController {
           event.propertyName === 'opacity' ||
           event.propertyName === 'visibility'
         ) {
-          this._scheduleRightPanelLayout({ reconsiderAutoCollapse: true });
+          this._scheduleRightPanelLayout({
+            reconsiderAutoCollapse: true
+          });
         }
       };
       transitionHud.addEventListener(
@@ -273,7 +288,9 @@ export class PanelLayoutController {
     this._scheduleRightPanelLayout();
   }
 
-  _scheduleRightPanelLayout({ reconsiderAutoCollapse = false } = {}) {
+  _scheduleRightPanelLayout({
+    reconsiderAutoCollapse = false
+  } = {}) {
     if (this.destroyed) return;
     if (reconsiderAutoCollapse) this._rightStackReconsiderAutoCollapse = true;
     if (!this._rightPanelStack || this._rightStackLayoutFrame !== null) return;
@@ -283,8 +300,8 @@ export class PanelLayoutController {
       if (this._rightStackReconsiderAutoCollapse) {
         this._rightStackReconsiderAutoCollapse = false;
         for (const panel of this._rightPanelStack.querySelectorAll(
-          '.layout-auto-collapsed',
-        )) {
+            '.layout-auto-collapsed',
+          )) {
           panel.classList.remove('collapsed', 'layout-auto-collapsed');
           this._syncPanelCollapseButton(panel);
         }
@@ -367,7 +384,9 @@ export class PanelLayoutController {
           event.propertyName === 'opacity' ||
           event.propertyName === 'visibility'
         ) {
-          this._scheduleLeftPanelLayout({ reconsiderAutoCollapse: true });
+          this._scheduleLeftPanelLayout({
+            reconsiderAutoCollapse: true
+          });
           // The Cockpit strip hangs off the HUD's REC readout, so it has to
           // remeasure on the same event: the readout keeps its rect through
           // the whole fade and only stops counting once the HUD has retired.
@@ -407,7 +426,9 @@ export class PanelLayoutController {
     this._scheduleLeftPanelLayout();
   }
 
-  _scheduleLeftPanelLayout({ reconsiderAutoCollapse = false } = {}) {
+  _scheduleLeftPanelLayout({
+    reconsiderAutoCollapse = false
+  } = {}) {
     if (this.destroyed) return;
     if (reconsiderAutoCollapse) this._leftStackReconsiderAutoCollapse = true;
     if (!this._leftPanelStack || this._leftStackLayoutFrame !== null) return;
@@ -417,8 +438,8 @@ export class PanelLayoutController {
       if (this._leftStackReconsiderAutoCollapse) {
         this._leftStackReconsiderAutoCollapse = false;
         for (const panel of this._leftPanelStack.querySelectorAll(
-          '.layout-auto-collapsed',
-        )) {
+            '.layout-auto-collapsed',
+          )) {
           panel.classList.remove('collapsed', 'layout-auto-collapsed');
           this._syncPanelCollapseButton(panel);
         }
@@ -445,10 +466,10 @@ export class PanelLayoutController {
     if (this.destroyed) return;
     this.destroyed = true;
     for (const field of [
-      '_leftStackLayoutFrame',
-      '_rightStackLayoutFrame',
-      '_cockpitLayoutFrame',
-    ]) {
+        '_leftStackLayoutFrame',
+        '_rightStackLayoutFrame',
+        '_cockpitLayoutFrame',
+      ]) {
       if (this[field] !== null) cancelAnimationFrame(this[field]);
       this[field] = null;
     }
@@ -456,23 +477,23 @@ export class PanelLayoutController {
     clearTimeout(this._cockpitLayoutTimer);
     this._adaptivePanelSettleTimer = this._cockpitLayoutTimer = null;
     for (const field of [
-      '_commandDockTrayObserver',
-      '_leftStackResizeObserver',
-      '_leftStackMutationObserver',
-      '_rightStackResizeObserver',
-      '_rightStackMutationObserver',
-    ]) {
+        '_commandDockTrayObserver',
+        '_leftStackResizeObserver',
+        '_leftStackMutationObserver',
+        '_rightStackResizeObserver',
+        '_rightStackMutationObserver',
+      ]) {
       this[field]?.disconnect();
       this[field] = null;
     }
     for (const field of [
-      '_leftStackHudTransitionHandler',
-      '_rightStackHudTransitionHandler',
-    ]) {
+        '_leftStackHudTransitionHandler',
+        '_rightStackHudTransitionHandler',
+      ]) {
       if (this[field])
         document
-          .getElementById('intel-hud')
-          ?.removeEventListener('transitionend', this[field]);
+        .getElementById('intel-hud')
+        ?.removeEventListener('transitionend', this[field]);
       this[field] = null;
     }
     if (this._leftStackCockpitModeHandler)
