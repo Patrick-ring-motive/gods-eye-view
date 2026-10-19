@@ -10,7 +10,12 @@ import {
 } from './scenePresentation.js';
 
 export class SceneControls {
-  constructor({ read, actions, subscribe, elements = sceneElements() }) {
+  constructor({
+    read,
+    actions,
+    subscribe,
+    elements = sceneElements()
+  }) {
     this.read = read;
     this.actions = actions;
     this.elements = elements;
@@ -32,12 +37,12 @@ export class SceneControls {
       this.run('selectScene', elements.select.value),
     );
     for (const [element, action] of Object.entries({
-      capture: 'capture',
-      update: 'update',
-      next: 'next',
-      export: 'export',
-      download: 'download',
-    })) {
+        capture: 'capture',
+        update: 'update',
+        next: 'next',
+        export: 'export',
+        download: 'download',
+      })) {
       this.listen(elements[element], 'click', () => this.run(action));
     }
     this.listen(elements.new, 'click', () => this.createScene());
@@ -61,12 +66,15 @@ export class SceneControls {
   }
 
   /** Apply only the presentation affected by an action; selection keeps row identity. */
-  present({ state, change, initial }) {
+  present({
+    state,
+    change,
+    initial
+  }) {
     if (this.destroyed) return;
     const type = change?.type;
     if (
-      initial ||
-      [
+      initial || [
         'scene-options-changed',
         'scene-created',
         'scene-deleted',
@@ -75,8 +83,7 @@ export class SceneControls {
     )
       this.renderSceneSelect();
     if (
-      initial ||
-      [
+      initial || [
         'shots-changed',
         'scene-created',
         'scene-deleted',
@@ -228,9 +235,9 @@ export class SceneControls {
     this.unsubscribe = null;
     this.setPlaybackKeyboardEnabled(false);
     for (const remove of [
-      ...this.removers.splice(0),
-      ...this.rowRemovers.splice(0),
-    ])
+        ...this.removers.splice(0),
+        ...this.rowRemovers.splice(0),
+      ])
       remove();
     if (this.elements.shots) this.elements.shots.textContent = '';
     presentSceneRuntime(this.elements.runtime, '');
