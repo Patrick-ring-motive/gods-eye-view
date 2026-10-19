@@ -16,7 +16,10 @@ export function createBundledCableSource({
 } = {}) {
   async function read(url, signal) {
     signal?.throwIfAborted();
-    const response = await fetchImpl(url, { signal, cache: 'force-cache' });
+    const response = await fetchImpl(url, {
+      signal,
+      cache: 'force-cache'
+    });
     if (!response.ok) {
       try {
         await response.body?.cancel();
@@ -36,7 +39,10 @@ export function createBundledCableSource({
         read(cableUrl, signal),
         read(landingPointUrl, signal),
       ]);
-      return { cables, landingPoints };
+      return {
+        cables,
+        landingPoints
+      };
     },
   };
 }
