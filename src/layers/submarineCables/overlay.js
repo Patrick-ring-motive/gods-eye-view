@@ -33,15 +33,15 @@ export function selectCableReferenceLabelWinners(
   return records
     .filter(
       (record) =>
-        record?.visible === true &&
-        record.label &&
-        Number.isFinite(record.distanceM) &&
-        record.distanceM <= CABLE_REFERENCE_LABEL_MAX_DISTANCE_M,
+      record?.visible === true &&
+      record.label &&
+      Number.isFinite(record.distanceM) &&
+      record.distanceM <= CABLE_REFERENCE_LABEL_MAX_DISTANCE_M,
     )
     .sort(
       (a, b) =>
-        a.distanceM - b.distanceM ||
-        String(a.entity?.id || '').localeCompare(String(b.entity?.id || '')),
+      a.distanceM - b.distanceM ||
+      String(a.entity?.id || '').localeCompare(String(b.entity?.id || '')),
     )
     .slice(0, cap);
 }
@@ -55,9 +55,9 @@ export function selectCableReferenceLabelWinners(
  */
 
 export function cableReferencePriority(distanceM) {
-  const distance = Number.isFinite(distanceM)
-    ? Math.max(0, distanceM)
-    : CABLE_REFERENCE_LABEL_MAX_DISTANCE_M;
+  const distance = Number.isFinite(distanceM) ?
+    Math.max(0, distanceM) :
+    CABLE_REFERENCE_LABEL_MAX_DISTANCE_M;
   return 1000 - Math.round(distance / 50000);
 }
 
@@ -233,7 +233,7 @@ export function createCableReferenceSweepGate({
       if (
         hasSweptPosition &&
         Cesium.Cartesian3.distanceSquared(position, lastSweptPosition) <=
-          motionEpsilonSq
+        motionEpsilonSq
       ) {
         return false;
       }
