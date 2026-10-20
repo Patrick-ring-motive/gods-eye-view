@@ -80,10 +80,10 @@ export function _renderCctvState(state) {
   }
 
   for (const btn of [
-    this._cctvNearestBtn,
-    this._cctvPrevBtn,
-    this._cctvNextBtn,
-  ]) {
+      this._cctvNearestBtn,
+      this._cctvPrevBtn,
+      this._cctvNextBtn,
+    ]) {
     if (!btn) continue;
     btn.disabled = !enabled || cameras.length === 0;
   }
@@ -97,11 +97,11 @@ export function _renderCctvState(state) {
     const mode = state?.coverageMode || (state?.showCoverage ? 'on' : 'off');
     this._cctvCoverageBtn.classList.toggle('active', mode !== 'off');
     this._cctvCoverageBtn.textContent =
-      mode === 'viewshed'
-        ? 'VIEWSHED ON'
-        : mode === 'on'
-          ? 'COVERAGE ON'
-          : 'COVERAGE OFF';
+      mode === 'viewshed' ?
+      'VIEWSHED ON' :
+      mode === 'on' ?
+      'COVERAGE ON' :
+      'COVERAGE OFF';
     this._cctvCoverageBtn.disabled = !enabled;
   }
 
@@ -115,9 +115,9 @@ export function _renderCctvState(state) {
   if (this._cctvProjectionBtn) {
     const showProjection = state?.showProjection !== false;
     this._cctvProjectionBtn.classList.toggle('active', showProjection);
-    this._cctvProjectionBtn.textContent = showProjection
-      ? 'PROJECTION ON'
-      : 'PROJECTION OFF';
+    this._cctvProjectionBtn.textContent = showProjection ?
+      'PROJECTION ON' :
+      'PROJECTION OFF';
     this._cctvProjectionBtn.disabled = !enabled;
   }
 
@@ -131,9 +131,9 @@ export function _renderCctvState(state) {
     // promotes to CALIBRATED, RESET CAL clears.
     const badge = activeCamera?.calBadge || null;
     const dirty = !!activeCamera?.calDirty;
-    this._cctvQualityChip.textContent = dirty
-      ? 'CAL · EDITED (UNSAVED)'
-      : `CAL · ${this._calBadgeLabel(badge)}`;
+    this._cctvQualityChip.textContent = dirty ?
+      'CAL · EDITED (UNSAVED)' :
+      `CAL · ${this._calBadgeLabel(badge)}`;
     this._cctvQualityChip.dataset.calBadge = dirty ? 'edited' : badge || '';
   }
 
@@ -145,20 +145,20 @@ export function _renderCctvState(state) {
         activeCamera.sourceLabel ||
         activeCamera.provider ||
         'Configured Source';
-      const statusMsg = activeCamera.sourceMessage
-        ? ` · ${activeCamera.sourceMessage}`
-        : '';
+      const statusMsg = activeCamera.sourceMessage ?
+        ` · ${activeCamera.sourceMessage}` :
+        '';
       // A partner-supplied feed inside a pack names its owner here.
       const credit = activeCamera.credit ? ` · ${activeCamera.credit}` : '';
-      const calBadge = activeCamera.calBadge
-        ? this._calBadgeLabel(activeCamera.calBadge)
-        : '';
+      const calBadge = activeCamera.calBadge ?
+        this._calBadgeLabel(activeCamera.calBadge) :
+        '';
       const projLabel = state?.showProjection !== false ? 'MONITOR' : 'OFF';
       this._cctvMeta.textContent = `${activeCamera.city} · HDG ${Math.round(activeCamera.headingDeg)}° · FOV ${Math.round(activeCamera.fovDeg)}° · RANGE ${Math.round(activeCamera.rangeM)}m · ${projLabel}${calBadge ? ` · ${calBadge}` : ''} · ${provider}${credit}${statusMsg}`;
     } else if (cameras.length > 0) {
-      this._cctvMeta.textContent = enabled
-        ? `${cameras.length} cameras loaded · click a camera to activate`
-        : `${cameras.length} cameras loaded · enable CCTV to activate`;
+      this._cctvMeta.textContent = enabled ?
+        `${cameras.length} cameras loaded · click a camera to activate` :
+        `${cameras.length} cameras loaded · enable CCTV to activate`;
     } else {
       this._cctvMeta.textContent = 'Enable CCTV to load camera intersections';
     }
@@ -188,7 +188,7 @@ export function _renderCctvState(state) {
   this._syncCctvSourceBadge(activeCamera, enabled);
   this._typeCctvSummary(
     state?.summary ||
-      'Enable CCTV to start camera-linked intelligence summaries.',
+    'Enable CCTV to start camera-linked intelligence summaries.',
   );
 }
 
