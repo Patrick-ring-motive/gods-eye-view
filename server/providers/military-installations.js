@@ -1,11 +1,16 @@
-import { makeRateLimiter, clientKey } from './common/rate-limit.js';
+import {
+  makeRateLimiter,
+  clientKey
+} from './common/rate-limit.js';
 import {
   MILITARY_INSTALLATION_ELEMENT_CAP,
   MILITARY_INSTALLATION_MAX_RESPONSE_BYTES,
   MILITARY_INSTALLATION_DISK_TTL_MS,
   MILITARY_INSTALLATION_STALE_MS,
 } from './military-installations/constants.js';
-import { fetchOverpassPayload } from './overpass/transport.js';
+import {
+  fetchOverpassPayload
+} from './overpass/transport.js';
 import {
   _militaryInstallationCache,
   trimMilitaryInstallationCache,
@@ -19,7 +24,9 @@ import {
   militaryInstallationCacheKey,
   militaryInstallationFailureReason,
 } from './military-installations/query.js';
-import { coalesceProxyRequest } from './common/http.js';
+import {
+  coalesceProxyRequest
+} from './common/http.js';
 
 const _militaryInstallationsRateLimiter = makeRateLimiter({
   windowMs: 60_000,
@@ -43,22 +50,21 @@ function militaryInstallationsProxy() {
       upstream.runtimeError
     ) {
       throw Object.assign(
-        new Error('Mapped installation upstream unavailable'),
-        {
-          installationReason: upstream.rateLimited
-            ? 'rate_limited'
-            : upstream.status === 504
-              ? 'timeout'
-              : upstream.runtimeError
-                ? 'query_failed'
-                : 'unavailable',
+        new Error('Mapped installation upstream unavailable'), {
+          installationReason: upstream.rateLimited ?
+            'rate_limited' :
+            upstream.status === 504 ?
+            'timeout' :
+            upstream.runtimeError ?
+            'query_failed' :
+            'unavailable',
         },
       );
     }
     const parsed = JSON.parse(upstream.body);
-    const elements = Array.isArray(parsed?.elements)
-      ? parsed.elements.slice(0, MILITARY_INSTALLATION_ELEMENT_CAP)
-      : [];
+    const elements = Array.isArray(parsed?.elements) ?
+      parsed.elements.slice(0, MILITARY_INSTALLATION_ELEMENT_CAP) :
+      [];
     const payload = {
       elements,
       // Honest truncation flag — the client re-asks for its exact viewport so
@@ -69,7 +75,10 @@ function militaryInstallationsProxy() {
       retrievedAt: new Date().toISOString(),
       status: 'ready',
     };
-    const entry = { payload, cachedAt: Date.now() };
+    const entry = {
+      payload,
+      cachedAt: Date.now()
+    };
     _militaryInstallationCache.set(key, entry);
     trimMilitaryInstallationCache();
     writeMilitaryInstallationDisk(key, entry);
@@ -79,8 +88,12 @@ function militaryInstallationsProxy() {
   function install(middlewares) {
     middlewares.use('/api/military-installations', async (req, res) => {
       if (req.method !== 'GET') {
-        res.writeHead(405, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+        res.writeHead(405, {
+          'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify({
+          error: 'Method Not Allowed'
+        }));
         return;
       }
       if (!_militaryInstallationsRateLimiter(clientKey(req))) {
@@ -88,13 +101,17 @@ function militaryInstallationsProxy() {
           'Content-Type': 'application/json',
           'Retry-After': '5',
         });
-        res.end(JSON.stringify({ error: 'Rate limit exceeded' }));
+        res.end(JSON.stringify({
+          error: 'Rate limit exceeded'
+        }));
         return;
       }
       const url = new URL(req.url, 'http://localhost');
       const requested = validMilitaryInstallationBox(url.searchParams);
       if (!requested) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.writeHead(400, {
+          'Content-Type': 'application/json'
+        });
         res.end(
           JSON.stringify({
             error: 'A non-dateline bbox no larger than 10 degrees is required',
@@ -108,13 +125,13 @@ function militaryInstallationsProxy() {
       // response, so a truncated tile can never starve the actual viewport. It
       // is keyed separately so exact and snapped answers never collide.
       const exact = url.searchParams.get('exact') === '1';
-      const box = exact
-        ? requested
-        : quantizeMilitaryInstallationBox(requested);
+      const box = exact ?
+        requested :
+        quantizeMilitaryInstallationBox(requested);
       // Key at the precision the query actually uses (see militaryInstallationCacheKey).
-      const key = exact
-        ? `exact:${militaryInstallationCacheKey(box, 5)}`
-        : militaryInstallationCacheKey(box);
+      const key = exact ?
+        `exact:${militaryInstallationCacheKey(box, 5)}` :
+        militaryInstallationCacheKey(box);
       const now = Date.now();
       const cached = _militaryInstallationCache.get(key);
       const preflight = await resolveMilitaryInstallationTier({
@@ -136,7 +153,10 @@ function militaryInstallationsProxy() {
           'X-Military-Installations': preflight.source,
         });
         res.end(
-          JSON.stringify({ ...preflight.entry.payload, status: 'cached' }),
+          JSON.stringify({
+            ...preflight.entry.payload,
+            status: 'cached'
+          }),
         );
         return;
       }
@@ -160,7 +180,10 @@ function militaryInstallationsProxy() {
             'Cache-Control': 'no-store',
             'X-Military-Installations': 'STALE',
           });
-          res.end(JSON.stringify({ ...cached.payload, status: 'stale' }));
+          res.end(JSON.stringify({
+            ...cached.payload,
+            status: 'stale'
+          }));
           return;
         }
         // Overpass is down: last-good mapped context at ANY age beats an empty
@@ -172,7 +195,10 @@ function militaryInstallationsProxy() {
             'Cache-Control': 'no-store',
             'X-Military-Installations': 'STALE-DISK',
           });
-          res.end(JSON.stringify({ ...stale.payload, status: 'stale' }));
+          res.end(JSON.stringify({
+            ...stale.payload,
+            status: 'stale'
+          }));
           return;
         }
         res.writeHead(503, {
@@ -200,16 +226,51 @@ function militaryInstallationsProxy() {
   };
 }
 
-export { militaryInstallationsProxy };
+export {
+  militaryInstallationsProxy
+};
 
-export { MILITARY_INSTALLATION_ELEMENT_CAP } from './military-installations/constants.js';
-export { quantizeMilitaryInstallationBox } from './military-installations/query.js';
-export { militaryInstallationCacheKey } from './military-installations/query.js';
-export { resolveMilitaryInstallationTier } from './military-installations/cache.js';
-export { migrateMilitaryInstallationEntry } from './military-installations/cache.js';
-export { militaryInstallationDiskFresh } from './military-installations/cache.js';
-export { militaryInstallationDiskPath } from './military-installations/cache.js';
-export { readMilitaryInstallationDisk } from './military-installations/cache.js';
-export { writeMilitaryInstallationDisk } from './military-installations/cache.js';
-export { validMilitaryInstallationBox } from './military-installations/query.js';
-export { militaryInstallationFailureReason } from './military-installations/query.js';
+export {
+  MILITARY_INSTALLATION_ELEMENT_CAP
+}
+from './military-installations/constants.js';
+export {
+  quantizeMilitaryInstallationBox
+}
+from './military-installations/query.js';
+export {
+  militaryInstallationCacheKey
+}
+from './military-installations/query.js';
+export {
+  resolveMilitaryInstallationTier
+}
+from './military-installations/cache.js';
+export {
+  migrateMilitaryInstallationEntry
+}
+from './military-installations/cache.js';
+export {
+  militaryInstallationDiskFresh
+}
+from './military-installations/cache.js';
+export {
+  militaryInstallationDiskPath
+}
+from './military-installations/cache.js';
+export {
+  readMilitaryInstallationDisk
+}
+from './military-installations/cache.js';
+export {
+  writeMilitaryInstallationDisk
+}
+from './military-installations/cache.js';
+export {
+  validMilitaryInstallationBox
+}
+from './military-installations/query.js';
+export {
+  militaryInstallationFailureReason
+}
+from './military-installations/query.js';
