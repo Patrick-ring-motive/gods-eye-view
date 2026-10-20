@@ -1,23 +1,51 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { createLocalGeoJsonLayer } from './localGeojson.js';
-import { getContextStore } from './contextStore.js';
+import {
+  createLocalGeoJsonLayer
+} from './localGeojson.js';
+import {
+  getContextStore
+} from './contextStore.js';
 
 const dataset = JSON.stringify({
-  type: 'Feature', id: 'dam', properties: { name: 'Test dam' },
-  geometry: { type: 'Polygon', coordinates: [[[0, 0], [0.01, 0], [0, 0.01], [0, 0]]] },
+  type: 'Feature',
+  id: 'dam',
+  properties: {
+    name: 'Test dam'
+  },
+  geometry: {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [0.01, 0],
+        [0, 0.01],
+        [0, 0]
+      ]
+    ]
+  },
 });
-const response = () => ({ ok: true, text: async () => dataset });
+const response = () => ({
+  ok: true,
+  text: async () => dataset
+});
 const deferred = () => {
   let resolve;
-  const promise = new Promise(done => { resolve = done; });
-  return { promise, resolve };
+  const promise = new Promise(done => {
+    resolve = done;
+  });
+  return {
+    promise,
+    resolve
+  };
 };
 
 function harness(t) {
   const previousWindow = globalThis.window;
-  globalThis.window = { dispatchEvent() {} };
+  globalThis.window = {
+    dispatchEvent() {}
+  };
   t.after(() => {
     layer.destroy(viewer);
     if (previousWindow === undefined) delete globalThis.window;
@@ -25,26 +53,61 @@ function harness(t) {
   });
   const sources = new Set();
   const listeners = new Set();
-  const event = { addEventListener(fn) { listeners.add(fn); return () => listeners.delete(fn); } };
+  const event = {
+    addEventListener(fn) {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    }
+  };
   let handlers = 0;
   const viewer = {
     dataSources: {
-      async add(source) { sources.add(source); return source; },
-      remove(source) { return sources.delete(source); },
+      async add(source) {
+        sources.add(source);
+        return source;
+      },
+      remove(source) {
+        return sources.delete(source);
+      },
     },
-    scene: { canvas: {}, preRender: event, requestRender() {} },
-    camera: { moveEnd: event },
+    scene: {
+      canvas: {},
+      preRender: event,
+      requestRender() {}
+    },
+    camera: {
+      moveEnd: event
+    },
   };
   const create = () => createLocalGeoJsonLayer({
-    id: 'local-dams', name: 'Dams', color: '#0088ff', url: '/dams.geojsonl',
-    overlayHost: { setVisible() {}, setEntries() {}, clearSource() {} },
+    id: 'local-dams',
+    name: 'Dams',
+    color: '#0088ff',
+    url: '/dams.geojsonl',
+    overlayHost: {
+      setVisible() {},
+      setEntries() {},
+      clearSource() {}
+    },
     screenSpaceEventHandlerFactory() {
       handlers++;
-      return { setInputAction() {}, destroy() { handlers--; } };
+      return {
+        setInputAction() {},
+        destroy() {
+          handlers--;
+        }
+      };
     },
   });
   const layer = create();
-  return { layer, create, viewer, sources, listeners, handlers: () => handlers };
+  return {
+    layer,
+    create,
+    viewer,
+    sources,
+    listeners,
+    handlers: () => handlers
+  };
 }
 
 test('destroy removes context records and permits a fresh replacement', async t => {
@@ -75,12 +138,19 @@ for (const phase of ['fetch', 'text', 'parse', 'add']) {
     const env = harness(t);
     const entered = deferred();
     const release = deferred();
-    const pause = async value => { entered.resolve(); await release.promise; return value; };
+    const pause = async value => {
+      entered.resolve();
+      await release.promise;
+      return value;
+    };
     let signal;
     t.mock.method(globalThis, 'fetch', async (_url, options) => {
       signal = options.signal;
       if (phase === 'fetch') return pause(response());
-      if (phase === 'text') return { ok: true, text: () => pause(dataset) };
+      if (phase === 'text') return {
+        ok: true,
+        text: () => pause(dataset)
+      };
       return response();
     });
     if (phase === 'parse') {
@@ -104,7 +174,11 @@ for (const phase of ['fetch', 'text', 'parse', 'add']) {
     assert.equal(env.listeners.size, 0);
     assert.equal(env.handlers(), 0);
     assert.equal(getContextStore().entities.size, 0);
-    assert.deepEqual(env.layer.getStats(), { count: 0, lastUpdate: null, error: null });
+    assert.deepEqual(env.layer.getStats(), {
+      count: 0,
+      lastUpdate: null,
+      error: null
+    });
   });
 }
 
@@ -130,7 +204,10 @@ test('concurrent enable and disable/re-enable share one pending dataset load', a
 test('disable during loading releases the completed source; re-enable rebuilds without refetching', async t => {
   const env = harness(t);
   const release = deferred();
-  const fetchMock = t.mock.method(globalThis, 'fetch', async () => { await release.promise; return response(); });
+  const fetchMock = t.mock.method(globalThis, 'fetch', async () => {
+    await release.promise;
+    return response();
+  });
   const loading = env.layer.enable(env.viewer);
   env.layer.disable(env.viewer);
   release.resolve();
