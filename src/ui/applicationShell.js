@@ -275,8 +275,7 @@ export class StyleManager {
       syncPanelCollapseButton: (panel) => this._syncPanelCollapseButton(panel),
       readDisplayScrollTop: () =>
         this._displayPortalScrollRestoreOwner === 'standard' ?
-        this._standardDisplayScrollTop :
-        this._ppToggles?.scrollTop || 0,
+        this._standardDisplayScrollTop : this._ppToggles?.scrollTop || 0,
     });
     this.viewer = viewer;
     this.mapStackController = mapStackController;
@@ -747,8 +746,7 @@ export class StyleManager {
               Promise.resolve([]));
             const tracking =
               share.camera === 'applied' ?
-              await this._layerStateCoordinator?.restoreShareTrackingSelection?.() :
-              {
+              await this._layerStateCoordinator?.restoreShareTrackingSelection?.() : {
                 status: 'superseded',
                 cleared: this._layerStateCoordinator?.cancelPendingShareTracking?.(
                   'shared-camera-superseded', {
@@ -2133,8 +2131,7 @@ export class StyleManager {
         scopeFeatherPct: Math.round(getScopeMaskFeather() * 100),
         // null when adaptive — the share layer omits `sce` entirely in that case.
         scopeTerminusPct: getScopeTerminusOverride() == null ?
-          null :
-          Math.round(getScopeTerminusOverride() * 100),
+          null : Math.round(getScopeTerminusOverride() * 100),
         mapStack: this.mapStackController?.getActiveId?.() || 'photoreal',
       },
     };
@@ -2362,8 +2359,7 @@ export class StyleManager {
       focusTarget: panelId === 'control-panel' ?
         () =>
         panel.querySelector('.map-stack-chip.active') ||
-        panel.querySelector('.map-stack-chip') :
-        null,
+        panel.querySelector('.map-stack-chip') : null,
     });
     this._hoverPanelControls.set(panelId, controller);
     if (panelId === 'control-panel') {
@@ -3618,8 +3614,7 @@ export class StyleManager {
     const current = () => ({
       enabled: !!this.bloomEnabled,
       intensityPct: this._bloomSlider ?
-        parseInt(this._bloomSlider.value, 10) :
-        null,
+        parseInt(this._bloomSlider.value, 10) : null,
     });
     if (enabled !== undefined && typeof enabled !== 'boolean') {
       return {
@@ -3668,8 +3663,7 @@ export class StyleManager {
     const current = () => ({
       enabled: !!this.sharpenEnabled,
       intensityPct: this._sharpenSlider ?
-        parseInt(this._sharpenSlider.value, 10) :
-        null,
+        parseInt(this._sharpenSlider.value, 10) : null,
     });
     if (enabled !== undefined && typeof enabled !== 'boolean') {
       return {
@@ -3884,56 +3878,42 @@ export class StyleManager {
         !gateOpen ?
         this._contextModeChanging ?
         'contacts-starting' :
-        'contacts-inactive' :
-        'no-tracked-aircraft',
+        'contacts-inactive' : 'no-tracked-aircraft',
       visionMode: this.cockpitView?.visionMode || null,
-      subject: info ?
-        {
-          id: info.icao24 || info.id || null,
-          layerId: info.layerId || null,
-          callsign: info.callsign || null,
-        } :
-        null,
-      navigation: snapshot ?
-        {
-          canPrevious: Boolean(snapshot.navigation?.canPrevious),
-          canNext: Boolean(snapshot.navigation?.canNext),
-          canFocus: Boolean(snapshot.navigation?.canFocus),
-        } :
-        null,
-      awareness: snapshot ?
-        {
-          radiusM: Number.isFinite(snapshot.radiusM) ?
-            snapshot.radiusM :
-            null,
-          subject: snapshot.subject ?
-            {
-              id: snapshot.subject.id || null,
-              layerId: snapshot.subject.layerId || null,
-            } :
-            null,
-          cohorts: Array.isArray(snapshot.cohorts) ?
-            snapshot.cohorts.map((cohort) => ({
-              id: cohort?.id || null,
-              source: cohort?.source || null,
-              count: Number.isFinite(cohort?.count) ? cohort.count : null,
-              relationship: cohort?.relationship || null,
-              reason: cohort?.reason || null,
-              coverage: cohort?.coverage || null,
-            })) :
-            [],
-          navigation: snapshot.navigation ?
-            {
-              canPrevious: Boolean(snapshot.navigation.canPrevious),
-              canNext: Boolean(snapshot.navigation.canNext),
-              canFocus: Boolean(snapshot.navigation.canFocus),
-            } :
-            null,
-        } :
-        null,
+      subject: info ? {
+        id: info.icao24 || info.id || null,
+        layerId: info.layerId || null,
+        callsign: info.callsign || null,
+      } : null,
+      navigation: snapshot ? {
+        canPrevious: Boolean(snapshot.navigation?.canPrevious),
+        canNext: Boolean(snapshot.navigation?.canNext),
+        canFocus: Boolean(snapshot.navigation?.canFocus),
+      } : null,
+      awareness: snapshot ? {
+        radiusM: Number.isFinite(snapshot.radiusM) ?
+          snapshot.radiusM : null,
+        subject: snapshot.subject ? {
+          id: snapshot.subject.id || null,
+          layerId: snapshot.subject.layerId || null,
+        } : null,
+        cohorts: Array.isArray(snapshot.cohorts) ?
+          snapshot.cohorts.map((cohort) => ({
+            id: cohort?.id || null,
+            source: cohort?.source || null,
+            count: Number.isFinite(cohort?.count) ? cohort.count : null,
+            relationship: cohort?.relationship || null,
+            reason: cohort?.reason || null,
+            coverage: cohort?.coverage || null,
+          })) : [],
+        navigation: snapshot.navigation ? {
+          canPrevious: Boolean(snapshot.navigation.canPrevious),
+          canNext: Boolean(snapshot.navigation.canNext),
+          canFocus: Boolean(snapshot.navigation.canFocus),
+        } : null,
+      } : null,
       activeTracked: this.cockpitView?.active ?
-        Boolean(this.cockpitView?.trackedEntity) :
-        false,
+        Boolean(this.cockpitView?.trackedEntity) : false,
       activeMapView: !this.cockpitView?.active && entryAllowed,
     };
   }
@@ -4051,8 +4031,7 @@ export class StyleManager {
           ok: false,
           action: 'control_cockpit',
           error: this._contextModeChanging ?
-            'Contacts is still starting up — try Cockpit again in a moment' :
-            'Contacts must be active to enter Cockpit — say "open contacts" first',
+            'Contacts is still starting up — try Cockpit again in a moment' : 'Contacts must be active to enter Cockpit — say "open contacts" first',
           state: this.getCockpitState(),
         };
       }
@@ -4164,14 +4143,12 @@ export class StyleManager {
       bloom: {
         enabled: !!this.bloomEnabled,
         intensityPct: this._bloomSlider ?
-          parseInt(this._bloomSlider.value, 10) :
-          null,
+          parseInt(this._bloomSlider.value, 10) : null,
       },
       sharpen: {
         enabled: !!this.sharpenEnabled,
         intensityPct: this._sharpenSlider ?
-          parseInt(this._sharpenSlider.value, 10) :
-          null,
+          parseInt(this._sharpenSlider.value, 10) : null,
       },
       celestialRing: {
         enabled: this.celestialRingEnabled,
@@ -4471,8 +4448,7 @@ export class StyleManager {
   applyCinematicPreset(preset = {}) {
     const bloomInput =
       typeof preset.bloom === 'object' ?
-      preset.bloom :
-      {
+      preset.bloom : {
         intensity: preset.bloom
       };
     let decodedBloomIntensity = null;
@@ -4495,8 +4471,7 @@ export class StyleManager {
 
     const sharpenInput =
       typeof preset.sharpen === 'object' ?
-      preset.sharpen :
-      {
+      preset.sharpen : {
         enabled: preset.sharpen
       };
     if (typeof sharpenInput.intensity === 'number' && this._sharpenSlider) {
