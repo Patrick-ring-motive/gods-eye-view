@@ -140,8 +140,7 @@ export function createTesting({
   function _armFlightTrackingRestoreForTest(id, origin = 'share-restore') {
     flightState._pendingTrackingRestore =
       id === null ?
-      null :
-      {
+      null : {
         id,
         generation: flightState._trackingIntentGeneration,
         origin
