@@ -133,8 +133,7 @@ export function shouldPauseRadioForVoice({
 export function shouldStopVoiceAfterRadioTool(result) {
   return Boolean(
     result?.ok &&
-    result.action === 'control_radio' &&
-    ['play', 'resume', 'select', 'next', 'previous'].includes(result.radioAction),
+    result.action === 'control_radio' && ['play', 'resume', 'select', 'next', 'previous'].includes(result.radioAction),
   );
 }
 
@@ -276,8 +275,7 @@ export class GevRealtimeController {
     });
     this.costCapStopped = false;
     this.radioControlUnsubscribe = this.radioLayer?.subscribePlaybackControls?.((control) => {
-      const event = typeof control === 'string' ?
-        {
+      const event = typeof control === 'string' ? {
           action: control,
           origin: 'user'
         } :
@@ -817,7 +815,8 @@ export class GevRealtimeController {
       try {
         this.visualizerOutputSource?.disconnect();
       } catch {
-        /* no-op */ }
+        /* no-op */
+      }
       const analyser = context.createAnalyser();
       analyser.fftSize = 64;
       analyser.smoothingTimeConstant = 0.72;
@@ -844,11 +843,13 @@ export class GevRealtimeController {
     try {
       this.visualizerSource?.disconnect();
     } catch {
-      /* no-op */ }
+      /* no-op */
+    }
     try {
       this.visualizerOutputSource?.disconnect();
     } catch {
-      /* no-op */ }
+      /* no-op */
+    }
     this.visualizerSource = null;
     this.visualizerAnalyser = null;
     this.visualizerData = null;
@@ -927,14 +928,16 @@ export class GevRealtimeController {
       try {
         this.dc.close();
       } catch {
-        /* no-op */ }
+        /* no-op */
+      }
       this.dc = null;
     }
     if (this.pc) {
       try {
         this.pc.close();
       } catch {
-        /* no-op */ }
+        /* no-op */
+      }
       this.pc = null;
     }
     this._tearingDown = false;
@@ -1309,8 +1312,7 @@ export class GevRealtimeController {
         const radioControlAction = isRadioControlCall ?
           String(parsedArguments.action || '').toLowerCase() :
           null;
-        const radioAuthorityDomain = isRadioVisibilityCall ||
-          ['enable', 'disable'].includes(radioControlAction) ?
+        const radioAuthorityDomain = isRadioVisibilityCall || ['enable', 'disable'].includes(radioControlAction) ?
           'visibility' :
           radioControlAction === 'status' ?
           'query' :
@@ -1318,8 +1320,7 @@ export class GevRealtimeController {
           'playback' :
           null;
         radioOwnershipClaimed = (
-          isRadioControlCall &&
-          ['disable', 'pause', 'stop'].includes(radioControlAction)
+          isRadioControlCall && ['disable', 'pause', 'stop'].includes(radioControlAction)
         ) || (isRadioVisibilityCall && parsedArguments.enabled === false);
         if (radioOwnershipClaimed) {
           // Reserve authority by cancelling unsafe underlying work now, but do
@@ -1329,8 +1330,7 @@ export class GevRealtimeController {
           radioReservationToken = this.reserveRadioToolHandoff({
             abortScope: radioControlAction === 'disable' ||
               (isRadioVisibilityCall && parsedArguments.enabled === false) ?
-              'all' :
-              'playback',
+              'all' : 'playback',
           });
         }
         radioHandoffEpochAtStart = this.radioHandoffEpoch;
@@ -1404,8 +1404,7 @@ export class GevRealtimeController {
           }
         } else if (
           result?.ok &&
-          result.action === 'control_radio' &&
-          ['disable', 'pause', 'stop'].includes(result.radioAction)
+          result.action === 'control_radio' && ['disable', 'pause', 'stop'].includes(result.radioAction)
         ) {
           if (!radioOwnershipClaimed) {
             this.cancelRadioHandoff({
@@ -2208,7 +2207,8 @@ export class GevRealtimeController {
         payload: sanitizeDebugValue(payload),
       });
     } catch {
-      /* Diagnostics cannot interrupt voice. */ }
+      /* Diagnostics cannot interrupt voice. */
+    }
   }
 }
 
@@ -2319,13 +2319,15 @@ function releaseStartResources({
     try {
       localStream.getTracks().forEach((track) => track.stop());
     } catch {
-      /* no-op */ }
+      /* no-op */
+    }
   }
   if (localPc) {
     try {
       localPc.close();
     } catch {
-      /* no-op */ }
+      /* no-op */
+    }
   }
 }
 
