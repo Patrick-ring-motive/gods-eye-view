@@ -116,7 +116,8 @@ function setView(page, v) {
     try {
       gev.viewer.camera.cancelFlight();
     } catch {
-      /* no flight */ }
+      /* no flight */
+    }
     const ell = gev.viewer.scene.globe.ellipsoid;
     const d2r = Math.PI / 180;
     gev.viewer.camera.setView({
