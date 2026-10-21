@@ -214,8 +214,7 @@ export function createCatalog({
         code: String(source.code || ''),
         // Shipped precompute (see server/providers/cctv/groundHeights.js).
         groundHeights: source.groundHeights && typeof source.groundHeights === 'object' ?
-          source.groundHeights :
-          null,
+          source.groundHeights : null,
         poseSource,
       };
       parts.model.ensureCameraPose(camera);
