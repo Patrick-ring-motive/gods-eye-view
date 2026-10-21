@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMilitaryRegistry } from './classification.js';
+import {
+  createMilitaryRegistry
+} from './classification.js';
 
 test('classification instances have independent identities, listeners and active states', () => {
   let requests = 0;
@@ -9,8 +11,12 @@ test('classification instances have independent identities, listeners and active
       requests++;
     },
   };
-  const first = createMilitaryRegistry({ source });
-  const second = createMilitaryRegistry({ source });
+  const first = createMilitaryRegistry({
+    source
+  });
+  const second = createMilitaryRegistry({
+    source
+  });
   let firstEvents = 0;
   let secondEvents = 0;
   first.onMilitaryLayerActiveChange(() => firstEvents++);
@@ -35,7 +41,11 @@ test('classification uses normalized identities and respects its polling interva
     source: {
       async getSnapshot() {
         calls++;
-        return { records: [{ id: 'abc123' }] };
+        return {
+          records: [{
+            id: 'abc123'
+          }]
+        };
       },
     },
   });
@@ -60,7 +70,9 @@ test('source replacement rejects an old response and disposal cancels the curren
   let newSignal;
   const registry = createMilitaryRegistry({
     source: {
-      getSnapshot(query, { signal }) {
+      getSnapshot(query, {
+        signal
+      }) {
         oldSignal = signal;
         return new Promise((resolve) => {
           resolveOld = resolve;
@@ -70,22 +82,31 @@ test('source replacement rejects an old response and disposal cancels the curren
   });
   const old = registry.refreshMilitaryRegistryIfStale();
   const application = new AbortController();
-  registry.configureSource(
-    {
-      getSnapshot(query, { signal }) {
-        newSignal = signal;
-        return new Promise((resolve) => {
-          resolveNew = resolve;
-        });
-      },
+  registry.configureSource({
+    getSnapshot(query, {
+      signal
+    }) {
+      newSignal = signal;
+      return new Promise((resolve) => {
+        resolveNew = resolve;
+      });
     },
-    { signal: application.signal },
-  );
+  }, {
+    signal: application.signal
+  }, );
   const current = registry.refreshMilitaryRegistryIfStale();
-  resolveOld({ records: [{ id: 'abc123' }] });
+  resolveOld({
+    records: [{
+      id: 'abc123'
+    }]
+  });
   await old;
   application.abort();
-  resolveNew({ records: [{ id: 'def456' }] });
+  resolveNew({
+    records: [{
+      id: 'def456'
+    }]
+  });
   await current;
   assert.equal(oldSignal.aborted, true);
   assert.equal(newSignal.aborted, true);
