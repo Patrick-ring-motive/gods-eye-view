@@ -3,9 +3,15 @@ import {
   createCableReferenceSweepGate,
   createCableOverlayPublisher,
 } from './overlay.js';
-import { BASE_CABLE_COLOR, BASE_LANDING_COLOR } from './policy.js';
+import {
+  BASE_CABLE_COLOR,
+  BASE_LANDING_COLOR
+} from './policy.js';
 
-export function createState({ sweepClock, overlayHost }) {
+export function createState({
+  sweepClock,
+  overlayHost
+}) {
   const state = {};
 
   state._viewer = null;
@@ -77,7 +83,9 @@ export function createState({ sweepClock, overlayHost }) {
     now: sweepClock,
   });
 
-  state._overlayPublisher = createCableOverlayPublisher({ host: overlayHost });
+  state._overlayPublisher = createCableOverlayPublisher({
+    host: overlayHost
+  });
 
   /** Reused winner→entry scratch so a 2 Hz sweep allocates no arrays. */
 
