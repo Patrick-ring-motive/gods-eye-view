@@ -3,7 +3,9 @@ import {
   createSubmarineCableLayer,
   createCableOverlayPublisher as createPublisher,
 } from '../layers/submarineCables/index.js';
-import { createBundledCableSource } from '../layers/submarineCables/bundledSource.js';
+import {
+  createBundledCableSource
+} from '../layers/submarineCables/bundledSource.js';
 import {
   clearOverlaySource,
   setOverlayEntries,
@@ -25,7 +27,10 @@ export function createTeleGeographySubmarineCableLayer(options = {}) {
   });
 }
 export function createCableOverlayPublisher(options = {}) {
-  return createPublisher({ host: overlayHost, ...options });
+  return createPublisher({
+    host: overlayHost,
+    ...options
+  });
 }
 export {
   CABLE_REFERENCE_LABEL_WINNER_CAP,
@@ -43,5 +48,6 @@ export {
   applyTranslucentMarkerBlend,
   createCableReferenceSweepGate,
   updateCableReferenceStem,
-} from '../layers/submarineCables/index.js';
+}
+from '../layers/submarineCables/index.js';
 export default createTeleGeographySubmarineCableLayer();
