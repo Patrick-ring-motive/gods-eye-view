@@ -1,4 +1,6 @@
-import { requiredFiniteQueryNumber } from '../common/query.js';
+import {
+  requiredFiniteQueryNumber
+} from '../common/query.js';
 
 function validRegionalPoint(params) {
   const latitude = requiredFiniteQueryNumber(params, 'latitude');
@@ -6,7 +8,12 @@ function validRegionalPoint(params) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
   if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
     return null;
-  return { latitude, longitude };
+  return {
+    latitude,
+    longitude
+  };
 }
 
-export { validRegionalPoint };
+export {
+  validRegionalPoint
+};
