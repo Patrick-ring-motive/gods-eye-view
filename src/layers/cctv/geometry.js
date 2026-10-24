@@ -489,11 +489,9 @@ export function createGeometry({
       sampleMeshFloorCells(layerState._viewer?.scene, [point], {
         excludeObjects: excludeObjects.filter(Boolean),
         viewerLat: viewerCarto ?
-          Cesium.Math.toDegrees(viewerCarto.latitude) :
-          undefined,
+          Cesium.Math.toDegrees(viewerCarto.latitude) : undefined,
         viewerLon: viewerCarto ?
-          Cesium.Math.toDegrees(viewerCarto.longitude) :
-          undefined,
+          Cesium.Math.toDegrees(viewerCarto.longitude) : undefined,
       });
     }
 
@@ -779,8 +777,7 @@ export function createGeometry({
         continue;
       const entities = buildEntities(record);
       record.coverageEntities = Array.isArray(entities) ?
-        entities.filter(Boolean) :
-        [];
+        entities.filter(Boolean) : [];
       created.push(...record.coverageEntities);
     }
     return created;
