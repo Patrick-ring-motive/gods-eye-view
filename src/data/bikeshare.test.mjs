@@ -53,8 +53,15 @@ test('real station select/clear path publishes one card and creates no native la
   };
   const key = 'austin-capmetro:3790';
   const record = makeRecord();
-  const viewer = { entities: new Cesium.EntityCollection() };
-  _setBikeshareSelectionStateForTest({ viewer, key, record, overlayHost });
+  const viewer = {
+    entities: new Cesium.EntityCollection()
+  };
+  _setBikeshareSelectionStateForTest({
+    viewer,
+    key,
+    record,
+    overlayHost
+  });
   try {
     _selectBikeshareStationForTest(key);
     assert.equal(record.point.show, false);
