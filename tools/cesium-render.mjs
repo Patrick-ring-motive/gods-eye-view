@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * cesium-render.mjs
  *
@@ -45,10 +46,20 @@
  * Dependencies: puppeteer, cesium (for serving assets)
  */
 
-import { readFileSync, mkdirSync } from 'node:fs';
-import { resolve, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createServer } from 'node:http';
+import {
+  readFileSync,
+  mkdirSync
+} from 'node:fs';
+import {
+  resolve,
+  join
+} from 'node:path';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  createServer
+} from 'node:http';
 import puppeteer from 'puppeteer';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -61,26 +72,61 @@ const PROJECT_ROOT = resolve(__dirname, '..');
 function parseArgs() {
   const args = process.argv.slice(2);
   const opts = {
-    heading: 0, pitch: -10, height: 8, fov: 60,
-    width: 1280, heightPx: 720, sse: 2, timeout: 30, outdir: 'output',
+    heading: 0,
+    pitch: -10,
+    height: 8,
+    fov: 60,
+    width: 1280,
+    heightPx: 720,
+    sse: 2,
+    timeout: 30,
+    outdir: 'output',
   };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--lat':        opts.lat = parseFloat(args[++i]); break;
-      case '--lon':        opts.lon = parseFloat(args[++i]); break;
-      case '--lookat-lat': opts.lookatLat = parseFloat(args[++i]); break;
-      case '--lookat-lon': opts.lookatLon = parseFloat(args[++i]); break;
-      case '--heading':    opts.heading = parseFloat(args[++i]); break;
-      case '--pitch':      opts.pitch = parseFloat(args[++i]); break;
-      case '--height':     opts.height = parseFloat(args[++i]); break;
-      case '--fov':        opts.fov = parseFloat(args[++i]); break;
-      case '--width':      opts.width = parseInt(args[++i], 10); break;
-      case '--height-px':  opts.heightPx = parseInt(args[++i], 10); break;
-      case '--sse':        opts.sse = parseFloat(args[++i]); break;
-      case '--timeout':    opts.timeout = parseInt(args[++i], 10); break;
-      case '--outdir':     opts.outdir = args[++i]; break;
-      case '--key':        opts.key = args[++i]; break;
+      case '--lat':
+        opts.lat = parseFloat(args[++i]);
+        break;
+      case '--lon':
+        opts.lon = parseFloat(args[++i]);
+        break;
+      case '--lookat-lat':
+        opts.lookatLat = parseFloat(args[++i]);
+        break;
+      case '--lookat-lon':
+        opts.lookatLon = parseFloat(args[++i]);
+        break;
+      case '--heading':
+        opts.heading = parseFloat(args[++i]);
+        break;
+      case '--pitch':
+        opts.pitch = parseFloat(args[++i]);
+        break;
+      case '--height':
+        opts.height = parseFloat(args[++i]);
+        break;
+      case '--fov':
+        opts.fov = parseFloat(args[++i]);
+        break;
+      case '--width':
+        opts.width = parseInt(args[++i], 10);
+        break;
+      case '--height-px':
+        opts.heightPx = parseInt(args[++i], 10);
+        break;
+      case '--sse':
+        opts.sse = parseFloat(args[++i]);
+        break;
+      case '--timeout':
+        opts.timeout = parseInt(args[++i], 10);
+        break;
+      case '--outdir':
+        opts.outdir = args[++i];
+        break;
+      case '--key':
+        opts.key = args[++i];
+        break;
       case '--help':
         console.log([
           'Usage:',
@@ -166,7 +212,8 @@ function loadApiKey(overrideKey) {
       const val = trimmed.slice(eqIdx + 1).trim();
       if (key === 'GOOGLE_MAPS_API_KEY' && val) return val;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */ }
 
   console.error('Error: No API key found. Set GOOGLE_MAPS_API_KEY in .env or pass --key.');
   process.exit(1);
@@ -215,7 +262,9 @@ function startServer() {
       const data = readFileSync(filePath);
       const ext = filePath.slice(filePath.lastIndexOf('.'));
       const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, {
+        'Content-Type': contentType
+      });
       res.end(data);
     } catch {
       res.writeHead(404);
@@ -226,7 +275,10 @@ function startServer() {
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => {
       const port = server.address().port;
-      resolve({ server, port });
+      resolve({
+        server,
+        port
+      });
     });
   });
 }
@@ -253,7 +305,10 @@ async function main() {
 
   // Step 1: Start temp HTTP server
   console.log('Starting asset server...');
-  const { server, port } = await startServer();
+  const {
+    server,
+    port
+  } = await startServer();
   console.log(`  http://127.0.0.1:${port}\n`);
 
   let browser;
@@ -279,8 +334,12 @@ async function main() {
     // Load tiles directly at target resolution.
     // The HTML page does progressive SSE refinement (16→12→8→6→4→target)
     // to avoid overwhelming SwiftShader with tile requests all at once.
-    const LOAD_W = opts.width, LOAD_H = opts.heightPx;
-    await page.setViewport({ width: LOAD_W, height: LOAD_H });
+    const LOAD_W = opts.width,
+      LOAD_H = opts.heightPx;
+    await page.setViewport({
+      width: LOAD_W,
+      height: LOAD_H
+    });
 
     // Log browser console
     page.on('console', msg => {
@@ -311,15 +370,20 @@ async function main() {
     }
     const url = `http://127.0.0.1:${port}/?${urlParams}`;
     console.log(`Loading Cesium scene (${LOAD_W}x${LOAD_H})...`);
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000
+    });
 
     // Step 4: Wait for tiles to load
     console.log('Waiting for tiles...');
     const timeoutMs = opts.timeout * 1000;
     try {
       await page.waitForFunction(
-        'window.__tilesReady === true || window.__error !== null',
-        { timeout: timeoutMs, polling: 500 }
+        'window.__tilesReady === true || window.__error !== null', {
+          timeout: timeoutMs,
+          polling: 500
+        }
       );
     } catch {
       console.log(`  Timed out after ${opts.timeout}s — capturing what we have.`);
@@ -334,7 +398,9 @@ async function main() {
 
     // Step 5: Screenshot
     const outdir = resolve(PROJECT_ROOT, opts.outdir);
-    mkdirSync(outdir, { recursive: true });
+    mkdirSync(outdir, {
+      recursive: true
+    });
 
     const fileLat = opts.mode === 'lookat' ? opts.lookatLat : opts.lat;
     const fileLon = opts.mode === 'lookat' ? opts.lookatLon : opts.lon;
