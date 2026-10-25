@@ -4,7 +4,10 @@
  * @param {{ elements: object, actions: object }} options
  * @returns {{ destroy(): void }}
  */
-export function bindDisplayControls({ elements, actions }) {
+export function bindDisplayControls({
+  elements,
+  actions
+}) {
   const removers = [];
   const listen = (element, type, action, read) => {
     if (!element) return;
@@ -14,22 +17,22 @@ export function bindDisplayControls({ elements, actions }) {
   };
   const integer = (element) => parseInt(element.value, 10);
   for (const [name, action] of [
-    ['bloomButton', 'toggleBloom'],
-    ['sharpenButton', 'toggleSharpen'],
-    ['scopeButton', 'toggleScope'],
-    ['cleanViewButton', 'toggleCleanView'],
-    ['cleanViewExitButton', 'exitCleanView'],
-    ['celestialButton', 'toggleCelestial'],
-    ['hudButton', 'toggleHud'],
-    ['detectionButton', 'cycleDetection'],
-    ['modelsButton', 'toggleModels'],
-  ])
+      ['bloomButton', 'toggleBloom'],
+      ['sharpenButton', 'toggleSharpen'],
+      ['scopeButton', 'toggleScope'],
+      ['cleanViewButton', 'toggleCleanView'],
+      ['cleanViewExitButton', 'exitCleanView'],
+      ['celestialButton', 'toggleCelestial'],
+      ['hudButton', 'toggleHud'],
+      ['detectionButton', 'cycleDetection'],
+      ['modelsButton', 'toggleModels'],
+    ])
     listen(elements[name], 'click', action);
   for (const [name, action] of [
-    ['bloomSlider', 'setBloomIntensity'],
-    ['sharpenSlider', 'setSharpenIntensity'],
-    ['scopeFeatherSlider', 'setScopeFeather'],
-  ])
+      ['bloomSlider', 'setBloomIntensity'],
+      ['sharpenSlider', 'setSharpenIntensity'],
+      ['scopeFeatherSlider', 'setScopeFeather'],
+    ])
     listen(elements[name], 'input', action, integer);
   listen(elements.densitySlider, 'input', 'setDensity', (el) => el.value);
   listen(elements.hudLayout, 'change', 'setHudLayout', (el) => el.value);
