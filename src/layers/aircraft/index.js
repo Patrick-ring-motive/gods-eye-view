@@ -1,5 +1,8 @@
 /** Common aircraft calculations and explicitly constructed classification. */
-export { createMilitaryRegistry } from './classification.js';
+export {
+  createMilitaryRegistry
+}
+from './classification.js';
 export * from '../../data/aircraftClass.js';
 export * from '../../data/aircraftIcons.js';
 export * from '../../data/aircraftMeta.js';
