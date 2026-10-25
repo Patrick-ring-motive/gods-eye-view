@@ -123,15 +123,13 @@ async function resolveOverpassPreflight({
     payload: disk
   };
 
-  return allowUpstream() ?
-    {
-      source: 'UPSTREAM',
-      payload: null
-    } :
-    {
-      source: 'RATE_LIMITED',
-      payload: null
-    };
+  return allowUpstream() ? {
+    source: 'UPSTREAM',
+    payload: null
+  } : {
+    source: 'RATE_LIMITED',
+    payload: null
+  };
 }
 
 /** Return only last-good Overpass data, regardless of its age. */
