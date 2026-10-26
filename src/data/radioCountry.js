@@ -11,9 +11,11 @@ TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW
 `.trim().split(/\s+/));
 
 const ISO_ALPHA_2_SET = new Set(ISO_ALPHA_2_CODES);
-const ENGLISH_REGION_NAMES = typeof Intl?.DisplayNames === 'function'
-  ? new Intl.DisplayNames(['en'], { type: 'region' })
-  : null;
+const ENGLISH_REGION_NAMES = typeof Intl?.DisplayNames === 'function' ?
+  new Intl.DisplayNames(['en'], {
+    type: 'region'
+  }) :
+  null;
 
 function countryKey(value) {
   return String(value || '')
@@ -33,45 +35,45 @@ for (const code of ISO_ALPHA_2_CODES) {
 }
 
 for (const [name, code] of Object.entries({
-  america: 'US',
-  'united states of america': 'US',
-  usa: 'US',
-  'u s': 'US',
-  'u s a': 'US',
-  britain: 'GB',
-  'great britain': 'GB',
-  uk: 'GB',
-  'u k': 'GB',
-  'south korea': 'KR',
-  'north korea': 'KP',
-  russia: 'RU',
-  vietnam: 'VN',
-  'czech republic': 'CZ',
-  'ivory coast': 'CI',
-  laos: 'LA',
-  bolivia: 'BO',
-  tanzania: 'TZ',
-  moldova: 'MD',
-  brunei: 'BN',
-  'cape verde': 'CV',
-  'the netherlands': 'NL',
-  // Common English names and exonyms whose code is not reachable through the
-  // Intl.DisplayNames primary label, so they would otherwise fail closed
-  // (verified against ICU 77): TR resolves only as 'Türkiye', MM only as
-  // 'Myanmar (Burma)', AE only as 'United Arab Emirates', SZ as 'Eswatini',
-  // TL as 'Timor-Leste'. Each maps to exactly one country; ambiguous names
-  // (e.g. bare "Congo") are deliberately left to fail closed.
-  turkey: 'TR',
-  turkiye: 'TR',
-  myanmar: 'MM',
-  burma: 'MM',
-  uae: 'AE',
-  holland: 'NL',
-  swaziland: 'SZ',
-  'east timor': 'TL',
-  'cabo verde': 'CV',
-  vatican: 'VA',
-})) COUNTRY_NAME_TO_CODE.set(countryKey(name), code);
+    america: 'US',
+    'united states of america': 'US',
+    usa: 'US',
+    'u s': 'US',
+    'u s a': 'US',
+    britain: 'GB',
+    'great britain': 'GB',
+    uk: 'GB',
+    'u k': 'GB',
+    'south korea': 'KR',
+    'north korea': 'KP',
+    russia: 'RU',
+    vietnam: 'VN',
+    'czech republic': 'CZ',
+    'ivory coast': 'CI',
+    laos: 'LA',
+    bolivia: 'BO',
+    tanzania: 'TZ',
+    moldova: 'MD',
+    brunei: 'BN',
+    'cape verde': 'CV',
+    'the netherlands': 'NL',
+    // Common English names and exonyms whose code is not reachable through the
+    // Intl.DisplayNames primary label, so they would otherwise fail closed
+    // (verified against ICU 77): TR resolves only as 'Türkiye', MM only as
+    // 'Myanmar (Burma)', AE only as 'United Arab Emirates', SZ as 'Eswatini',
+    // TL as 'Timor-Leste'. Each maps to exactly one country; ambiguous names
+    // (e.g. bare "Congo") are deliberately left to fail closed.
+    turkey: 'TR',
+    turkiye: 'TR',
+    myanmar: 'MM',
+    burma: 'MM',
+    uae: 'AE',
+    holland: 'NL',
+    swaziland: 'SZ',
+    'east timor': 'TL',
+    'cabo verde': 'CV',
+    vatican: 'VA',
+  })) COUNTRY_NAME_TO_CODE.set(countryKey(name), code);
 
 function canonicalCountryName(code) {
   return ENGLISH_REGION_NAMES?.of(code) || code;
@@ -83,24 +85,44 @@ function canonicalCountryName(code) {
  */
 export function normalizeRadioCountryInput(value) {
   if (value === undefined || value === null || value === '') {
-    return Object.freeze({ valid: true, empty: true, code: '', name: '' });
+    return Object.freeze({
+      valid: true,
+      empty: true,
+      code: '',
+      name: ''
+    });
   }
   if (typeof value !== 'string' || value.length > RADIO_COUNTRY_MAX_LENGTH) {
-    return Object.freeze({ valid: false, empty: false, code: '', name: '' });
+    return Object.freeze({
+      valid: false,
+      empty: false,
+      code: '',
+      name: ''
+    });
   }
   const trimmed = value.normalize('NFKC').trim().replace(/\s+/g, ' ');
   if (
-    !trimmed
-    || trimmed.length > RADIO_COUNTRY_MAX_LENGTH
-    || /[\u0000-\u001f\u007f]/.test(trimmed)
-    || !/^[\p{L}\p{M}.&'’()\-\s]+$/u.test(trimmed)
-  ) return Object.freeze({ valid: false, empty: false, code: '', name: '' });
+    !trimmed ||
+    trimmed.length > RADIO_COUNTRY_MAX_LENGTH ||
+    /[\u0000-\u001f\u007f]/.test(trimmed) ||
+    !/^[\p{L}\p{M}.&'’()\-\s]+$/u.test(trimmed)
+  ) return Object.freeze({
+    valid: false,
+    empty: false,
+    code: '',
+    name: ''
+  });
 
   const possibleCode = trimmed.toUpperCase();
-  const code = ISO_ALPHA_2_SET.has(possibleCode)
-    ? possibleCode
-    : COUNTRY_NAME_TO_CODE.get(countryKey(trimmed)) || '';
-  if (!code) return Object.freeze({ valid: false, empty: false, code: '', name: '' });
+  const code = ISO_ALPHA_2_SET.has(possibleCode) ?
+    possibleCode :
+    COUNTRY_NAME_TO_CODE.get(countryKey(trimmed)) || '';
+  if (!code) return Object.freeze({
+    valid: false,
+    empty: false,
+    code: '',
+    name: ''
+  });
   return Object.freeze({
     valid: true,
     empty: false,
