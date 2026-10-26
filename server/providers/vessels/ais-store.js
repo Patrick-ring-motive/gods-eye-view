@@ -1,4 +1,6 @@
-import { isRecognizedAisEnvelope } from '../../../src/data/aisStreamAdapter.js';
+import {
+  isRecognizedAisEnvelope
+} from '../../../src/data/aisStreamAdapter.js';
 export const AISSTREAM_CACHE_MAX = 50000;
 export const AISSTREAM_STALE_MS = 30 * 60 * 1000;
 // Per-MMSI recent-path ring buffers (PRD WS-F F3). Float32 lat/lon (~1m
@@ -100,9 +102,9 @@ export function ingestAisStreamEnvelope(envelope) {
  */
 function aisEpochSeconds(value) {
   const ms = Date.parse(normalizeAisTimestamp(value));
-  return Number.isFinite(ms)
-    ? Math.floor(ms / 1000)
-    : Math.floor(Date.now() / 1000);
+  return Number.isFinite(ms) ?
+    Math.floor(ms / 1000) :
+    Math.floor(Date.now() / 1000);
 }
 
 /**
@@ -117,7 +119,11 @@ function appendAisTrackSample(mmsi, lat, lon, epochSec) {
   if (!track) {
     const pending = _aisStreamTrackPending.get(mmsi);
     if (!pending) {
-      _aisStreamTrackPending.set(mmsi, { lat, lon, epochSec });
+      _aisStreamTrackPending.set(mmsi, {
+        lat,
+        lon,
+        epochSec
+      });
       return;
     }
     if (epochSec - pending.epochSec < AIS_TRACK_MIN_GAP_SEC) return;
@@ -202,19 +208,19 @@ function mergeAisStaticIntoLiveVessel(mmsi, staticData) {
 function vesselNameFromAis(metadata, message, staticData = {}) {
   return stringValue(
     metadata.ShipName ??
-      message.Name ??
-      message.ShipName ??
-      message.ReportA?.Name ??
-      staticData.name,
+    message.Name ??
+    message.ShipName ??
+    message.ReportA?.Name ??
+    staticData.name,
   );
 }
 
 function vesselTypeFromAis(message, staticData = {}) {
   return stringValue(
     message.Type ??
-      message.ShipType ??
-      message.ReportB?.ShipType ??
-      staticData.type,
+    message.ShipType ??
+    message.ReportB?.ShipType ??
+    staticData.type,
   );
 }
 
@@ -225,7 +231,10 @@ export function aisStreamRows(maxRows) {
     if (row._updatedAt >= cutoff) rows.push(row);
   }
   rows.sort((a, b) => b._updatedAt - a._updatedAt);
-  return rows.slice(0, maxRows).map(({ _updatedAt, ...row }) => row);
+  return rows.slice(0, maxRows).map(({
+    _updatedAt,
+    ...row
+  }) => row);
 }
 
 function pruneAisStreamCache() {
@@ -248,9 +257,9 @@ function pruneAisStreamCache() {
     (a, b) => a[1]._updatedAt - b[1]._updatedAt,
   );
   for (const [mmsi] of ordered.slice(
-    0,
-    _aisStreamVessels.size - AISSTREAM_CACHE_MAX,
-  )) {
+      0,
+      _aisStreamVessels.size - AISSTREAM_CACHE_MAX,
+    )) {
     _aisStreamVessels.delete(mmsi);
     _aisStreamTracks.delete(mmsi);
     _aisStreamTrackPending.delete(mmsi);
@@ -282,7 +291,7 @@ function normalizeAisTimestamp(value) {
   if (!text) return new Date().toISOString();
   const normalized = text.replace(' +0000 UTC', 'Z').replace(' UTC', 'Z');
   const date = new Date(normalized);
-  return Number.isNaN(date.getTime())
-    ? new Date().toISOString()
-    : date.toISOString();
+  return Number.isNaN(date.getTime()) ?
+    new Date().toISOString() :
+    date.toISOString();
 }
