@@ -130,7 +130,8 @@ export function createTrail(viewer, {
         try {
           viewer.entities.remove(entity);
         } catch {
-          /* torn down */ }
+          /* torn down */
+        }
       }
       entity = null;
     },
