@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMapSourceControls } from './mapSourceControls.js';
+import {
+  createMapSourceControls
+} from './mapSourceControls.js';
 
 function makeElement(tagName = 'div') {
   const element = {
@@ -63,11 +65,18 @@ function makeElement(tagName = 'div') {
 
 function fixture() {
   const container = makeElement();
-  container.ownerDocument = { createElement: (tag) => makeElement(tag) };
+  container.ownerDocument = {
+    createElement: (tag) => makeElement(tag)
+  };
   const statusElement = makeElement();
-  const sources = [
-    { id: 'osm', label: 'OSM' },
-    { id: 'esri-imagery', label: 'Esri' },
+  const sources = [{
+      id: 'osm',
+      label: 'OSM'
+    },
+    {
+      id: 'esri-imagery',
+      label: 'Esri'
+    },
     {
       id: 'bing-aerial',
       label: 'Bing',
@@ -75,18 +84,29 @@ function fixture() {
       unavailableReason: 'Unavailable for this test',
     },
   ];
-  let state = { activeId: 'osm', activeStack: sources[0], status: 'ready' };
+  let state = {
+    activeId: 'osm',
+    activeStack: sources[0],
+    status: 'ready'
+  };
   const listeners = new Set();
   const requests = [];
   const calls = [];
   const controller = {
     getStacks: () => sources,
     getActiveId: () => state.activeId,
-    getState: (status) => ({ ...state, status: status || state.status }),
+    getState: (status) => ({
+      ...state,
+      status: status || state.status
+    }),
     setStack: (id) => {
       calls.push(['select', id]);
       return new Promise((resolve, reject) =>
-        requests.push({ id, resolve, reject }),
+        requests.push({
+          id,
+          resolve,
+          reject
+        }),
       );
     },
   };
@@ -104,6 +124,7 @@ function fixture() {
   });
   const chip = (id) =>
     container.children.find((el) => el.dataset.stackId === id);
+
   function change(id, lastError = null) {
     state = {
       activeId: id,
@@ -149,7 +170,10 @@ test('initial presentation uses actual state and retains unavailable chip semant
 test('selection claims authority before requesting and never lights a pending source optimistically', async () => {
   const f = fixture();
   const pending = f.controls.select('esri-imagery');
-  assert.deepEqual(f.calls, [['claim'], ['select', 'esri-imagery']]);
+  assert.deepEqual(f.calls, [
+    ['claim'],
+    ['select', 'esri-imagery']
+  ]);
   assert.equal(f.statusElement.textContent, '...');
   assert.equal(f.chip('osm').getAttribute('aria-pressed'), 'true');
   f.requests[0].resolve(f.change('esri-imagery'));
@@ -168,7 +192,10 @@ test('provider-driven fallback updates the active chip and durable state notific
   assert.equal(f.chip('osm').getAttribute('aria-pressed'), 'true');
   assert.equal(f.statusElement.textContent, 'OSM');
   assert.equal(f.statusElement.classList.contains('warn'), true);
-  assert.deepEqual(f.calls, [['state'], ['state']]);
+  assert.deepEqual(f.calls, [
+    ['state'],
+    ['state']
+  ]);
   f.controls.destroy();
 });
 
@@ -181,7 +208,9 @@ test('a late superseded response cannot overwrite the latest displayed selection
   const count = f.calls.length;
   f.requests[0].resolve({
     activeId: 'esri-imagery',
-    activeStack: { label: 'old' },
+    activeStack: {
+      label: 'old'
+    },
     lastError: 'obsolete failure',
   });
   await first;
@@ -217,10 +246,14 @@ test('rejected selection leaves switching presentation and propagates a useful e
 
 test('restoration may select without claiming or publishing a user gesture', async () => {
   const f = fixture();
-  const pending = f.controls.select('esri-imagery', { syncShare: false });
+  const pending = f.controls.select('esri-imagery', {
+    syncShare: false
+  });
   f.requests[0].resolve(f.change('esri-imagery'));
   await pending;
-  assert.deepEqual(f.calls, [['select', 'esri-imagery']]);
+  assert.deepEqual(f.calls, [
+    ['select', 'esri-imagery']
+  ]);
   f.controls.destroy();
 });
 
