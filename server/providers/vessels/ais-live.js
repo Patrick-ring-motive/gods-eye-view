@@ -239,8 +239,7 @@ function aisWatchdogPolicy() {
     override.kind === 'timeout' ? override.value : AISSTREAM_SILENCE_REPORT_MS;
   _aisWatchdogPolicy = {
     silenceWatch: override.kind === 'off' ?
-      false :
-      override.kind === 'timeout' || !customSubscription,
+      false : override.kind === 'timeout' || !customSubscription,
     reportMs,
     recycleMs: Math.round(reportMs * AISSTREAM_RECYCLE_RATIO),
     // Overridable so the watchdog can be exercised end-to-end against a local
@@ -323,8 +322,7 @@ function aisStreamStatusSnapshot() {
   return {
     status: process.env.AISSTREAM_API_KEY ? 'idle' : 'missing-key',
     error: process.env.AISSTREAM_API_KEY ?
-      null :
-      'AISSTREAM_API_KEY is not set',
+      null : 'AISSTREAM_API_KEY is not set',
     lastMessageAt: null,
     silentForMs: null,
     reconnectAttempt: 0,
