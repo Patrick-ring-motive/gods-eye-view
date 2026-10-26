@@ -1,7 +1,14 @@
-import { readdirSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import {
+  readdirSync
+} from 'node:fs';
+import {
+  spawnSync
+} from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  fileURLToPath,
+  pathToFileURL
+} from 'node:url';
 
 export const ALLOCATION_TEST_FILES = Object.freeze([
   'src/data/focusAllocations.test.mjs',
@@ -26,7 +33,9 @@ export function discoverUnitTestFiles(root = process.cwd()) {
   const sourceRoot = path.join(root, 'src');
   const files = [];
   const visit = (directory) => {
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    for (const entry of readdirSync(directory, {
+        withFileTypes: true
+      })) {
       const absolute = path.join(directory, entry.name);
       if (entry.isDirectory()) visit(absolute);
       else if (entry.isFile() && entry.name.endsWith('.test.mjs')) {
@@ -85,9 +94,9 @@ export function runUnitTests() {
       assertNode24AllocationRuntime();
     }
     console.warn(
-      `[unit] SKIPPED ${ALLOCATION_TEST_FILES.length} allocation microbenchmarks: `
-      + `budgets are calibrated for Node 24, running ${process.versions.node}. `
-      + 'Run under Node 24 (or set GEV_REQUIRE_ALLOCATION_GATE=1 to fail instead).',
+      `[unit] SKIPPED ${ALLOCATION_TEST_FILES.length} allocation microbenchmarks: ` +
+      `budgets are calibrated for Node 24, running ${process.versions.node}. ` +
+      'Run under Node 24 (or set GEV_REQUIRE_ALLOCATION_GATE=1 to fail instead).',
     );
     return 0;
   }
