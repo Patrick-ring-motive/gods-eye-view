@@ -144,7 +144,8 @@ try {
             origin: 'user'
           });
         } catch {
-          /* gate reports via counts */ }
+          /* gate reports via counts */
+        }
       }
     }
   });
