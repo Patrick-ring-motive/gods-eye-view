@@ -1,7 +1,14 @@
 import * as Cesium from 'cesium';
-import { viewshedColors, cameraHue } from '../../data/cctvViewshed.js';
-import { CCTV_OVERLAY_SOURCE_ID } from '../../data/cctvCards.js';
-import { GIZMO_ID_PREFIX } from '../../data/cctvGizmo.js';
+import {
+  viewshedColors,
+  cameraHue
+} from '../../data/cctvViewshed.js';
+import {
+  CCTV_OVERLAY_SOURCE_ID
+} from '../../data/cctvCards.js';
+import {
+  GIZMO_ID_PREFIX
+} from '../../data/cctvGizmo.js';
 import {
   GROUND_PRIOR_INIT_WAIT_MS,
   CAMERA_ICON,
@@ -15,12 +22,25 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { registerSpriteCollection, restoreSpriteOrder } = services.sprites;
-  const { activateCctvCameraFromWorldClick } = services.activation;
-  const { resolvePickId, registerPickOwner, unregisterPickOwner } =
-    services.picking;
-  const { onFocusTargetAppear } = services.focus;
-  const { releaseContinuousRender } = services.render;
+  const {
+    registerSpriteCollection,
+    restoreSpriteOrder
+  } = services.sprites;
+  const {
+    activateCctvCameraFromWorldClick
+  } = services.activation;
+  const {
+    resolvePickId,
+    registerPickOwner,
+    unregisterPickOwner
+  } =
+  services.picking;
+  const {
+    onFocusTargetAppear
+  } = services.focus;
+  const {
+    releaseContinuousRender
+  } = services.render;
 
   /** Resets all module-scoped runtime state to initial values. */
 
@@ -76,18 +96,18 @@ export function createLifecycle({
 
       const sources = await parts.catalog.loadCameraSources();
       const catalogFromSources = parts.catalog.buildCatalogFromSources(sources);
-      const catalog = catalogFromSources.length
-        ? catalogFromSources
-        : parts.catalog.seedCatalog();
+      const catalog = catalogFromSources.length ?
+        catalogFromSources :
+        parts.catalog.seedCatalog();
 
       // Viewshed color identity (design §3a): golden-angle hue over the
       // id-SORTED catalog index — deterministic across sessions for a stable
       // catalog, maximally separated for neighboring cameras.
       const hueIndexById = new Map(
         catalog
-          .map((camera) => camera.id)
-          .sort()
-          .map((id, index) => [id, index]),
+        .map((camera) => camera.id)
+        .sort()
+        .map((id, index) => [id, index]),
       );
 
       for (const camera of catalog) {
@@ -96,12 +116,12 @@ export function createLifecycle({
           // Entries saved before the range floor dropped (no rangeFloorM)
           // keep their effective range by re-basing rangeScale once.
           const values =
-            savedEntry.rangeFloorM === CALIBRATION_RANGE_FLOOR_M
-              ? savedEntry.values
-              : parts.calibration.migrateRangeScaleForFloor(
-                  savedEntry.values,
-                  camera.rangeM,
-                );
+            savedEntry.rangeFloorM === CALIBRATION_RANGE_FLOOR_M ?
+            savedEntry.values :
+            parts.calibration.migrateRangeScaleForFloor(
+              savedEntry.values,
+              camera.rangeM,
+            );
           savedEntry.values = values;
           savedEntry.rangeFloorM = CALIBRATION_RANGE_FLOOR_M;
           camera.calibration = parts.calibration.normalizeCalibration(values);
@@ -136,9 +156,9 @@ export function createLifecycle({
         // only as the pre-prior fallback) — the staggered geometry queue
         // refines with sampled tile heights after enable so the init path
         // never raycasts the scene once per camera.
-        const priorGround = Number.isFinite(groundPrior?.ellipsoid)
-          ? groundPrior.ellipsoid
-          : Number(camera.groundElevationM) || 0;
+        const priorGround = Number.isFinite(groundPrior?.ellipsoid) ?
+          groundPrior.ellipsoid :
+          Number(camera.groundElevationM) || 0;
         camera.absoluteHeightM = priorGround + camera.mountHeightM;
         const position = Cesium.Cartesian3.fromDegrees(
           camera.lon,
@@ -296,8 +316,9 @@ export function createLifecycle({
           // and the recorded rects are both CSS px — direct comparison.
           const cardId = layerState._cctvOverlayHost.hitTest(
             click.position.x,
-            click.position.y,
-            { sourceId: CCTV_OVERLAY_SOURCE_ID },
+            click.position.y, {
+              sourceId: CCTV_OVERLAY_SOURCE_ID
+            },
           )?.entryId;
           if (cardId && layerState._recordById.has(cardId)) {
             activateCctvCameraFromWorldClick(
@@ -314,8 +335,7 @@ export function createLifecycle({
           ) {
             parts.selection.deactivateActiveCamera();
           }
-        },
-        {
+        }, {
           // Item B: hover summons a card on a cardless camera icon. The gesture
           // classifier owns MOUSE_MOVE too, so chain hover work through its seam
           // instead of replacing the travel accumulator's handler.
@@ -467,5 +487,8 @@ export function createLifecycle({
     },
   };
 
-  return { clearRuntimeState, methods };
+  return {
+    clearRuntimeState,
+    methods
+  };
 }
