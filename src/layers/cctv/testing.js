@@ -1,6 +1,11 @@
 import * as Cesium from 'cesium';
 
-export function createTesting({ state: layerState, services, parts, source }) {
+export function createTesting({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** Test seam: republishes host entries through the real push path, so tests
    * can observe the pristine module default without touching the setter. */
 
@@ -11,9 +16,12 @@ export function createTesting({ state: layerState, services, parts, source }) {
   /** Test seam for exercising real layer lifecycle paths without a DOM host. */
 
   function _setCctvOverlayHostForTest(host = null) {
-    layerState._cctvOverlayHost = host
-      ? { ...layerState.DEFAULT_CCTV_OVERLAY_HOST, ...host }
-      : layerState.DEFAULT_CCTV_OVERLAY_HOST;
+    layerState._cctvOverlayHost = host ?
+      {
+        ...layerState.DEFAULT_CCTV_OVERLAY_HOST,
+        ...host
+      } :
+      layerState.DEFAULT_CCTV_OVERLAY_HOST;
     layerState._projectionOverlayOwnerId = null;
   }
 
@@ -94,8 +102,8 @@ export function createTesting({ state: layerState, services, parts, source }) {
     layerState._records = Array.isArray(records) ? records : [];
     layerState._recordById = new Map(
       layerState._records
-        .filter((record) => record?.camera?.id)
-        .map((record) => [record.camera.id, record]),
+      .filter((record) => record?.camera?.id)
+      .map((record) => [record.camera.id, record]),
     );
     layerState._coverageEntities = [];
     layerState._projectionEntities = [];
