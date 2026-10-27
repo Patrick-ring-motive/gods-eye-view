@@ -11,7 +11,10 @@ import trafficLayer, {
   deriveTrafficFlowError,
   trafficFeedPresentation,
 } from './traffic.js';
-import { DataLayerManager, layerFeedState } from './manager.js';
+import {
+  DataLayerManager,
+  layerFeedState
+} from './manager.js';
 
 /**
  * The app's live markers. Case-SENSITIVE on purpose: uppercase LIVE/GPS is
@@ -22,7 +25,10 @@ import { DataLayerManager, layerFeedState } from './manager.js';
 const LIVE_CLAIM = /\bLIVE\b|\bGPS\b|\breal[- ]?time\b/;
 
 test('a superseded flow fetch is not an outage', () => {
-  assert.equal(deriveTrafficFlowError({ name: 'AbortError', message: 'aborted' }), null);
+  assert.equal(deriveTrafficFlowError({
+    name: 'AbortError',
+    message: 'aborted'
+  }), null);
   assert.equal(deriveTrafficFlowError(null), null);
   assert.equal(deriveTrafficFlowError(undefined), null);
 });
@@ -38,8 +44,14 @@ test('flow failures map onto short, specific reasons', () => {
 });
 
 test('keyless traffic names the mode and the remedy, loading or idle', () => {
-  const idle = trafficFeedPresentation({ liveMode: false, fetching: false });
-  const loading = trafficFeedPresentation({ liveMode: false, fetching: true });
+  const idle = trafficFeedPresentation({
+    liveMode: false,
+    fetching: false
+  });
+  const loading = trafficFeedPresentation({
+    liveMode: false,
+    fetching: true
+  });
   assert.equal(idle.mode, 'sim');
   assert.equal(loading.mode, 'sim');
   // Keyless is a designed fallback, not a fault — no error, or every keyless
@@ -53,11 +65,26 @@ test('keyless traffic names the mode and the remedy, loading or idle', () => {
 
 test('no keyless label ever implies a live feed', () => {
   const labels = [
-    trafficFeedPresentation({ liveMode: false, fetching: false }),
-    trafficFeedPresentation({ liveMode: false, fetching: true }),
-    trafficFeedPresentation({ statusUnavailable: true }),
-    trafficFeedPresentation({ liveMode: true, flowError: 'TomTom flow unavailable' }),
-    trafficFeedPresentation({ liveMode: true, fetching: true, flowError: 'TomTom flow unavailable' }),
+    trafficFeedPresentation({
+      liveMode: false,
+      fetching: false
+    }),
+    trafficFeedPresentation({
+      liveMode: false,
+      fetching: true
+    }),
+    trafficFeedPresentation({
+      statusUnavailable: true
+    }),
+    trafficFeedPresentation({
+      liveMode: true,
+      flowError: 'TomTom flow unavailable'
+    }),
+    trafficFeedPresentation({
+      liveMode: true,
+      fetching: true,
+      flowError: 'TomTom flow unavailable'
+    }),
   ].map((feed) => feed.loadingLabel);
   for (const label of labels) {
     assert.ok(!LIVE_CLAIM.test(label), `label implies live data: ${label}`);
@@ -66,20 +93,28 @@ test('no keyless label ever implies a live feed', () => {
 });
 
 test('simulating because the status probe failed reads differently from keyless by design', () => {
-  const probeDown = trafficFeedPresentation({ statusUnavailable: true });
+  const probeDown = trafficFeedPresentation({
+    statusUnavailable: true
+  });
   assert.equal(probeDown.mode, 'sim');
   assert.equal(probeDown.loadingLabel, 'SIMULATED — traffic service unreachable');
 });
 
 test('a healthy keyed layer reports live flow with its real coverage', () => {
-  const idle = trafficFeedPresentation({ liveMode: true, coveragePct: 87 });
+  const idle = trafficFeedPresentation({
+    liveMode: true,
+    coveragePct: 87
+  });
   assert.deepEqual(idle, {
     mode: 'live',
     error: null,
     loadingLabel: 'LIVE · TomTom flow · 87% cov',
   });
   assert.equal(
-    trafficFeedPresentation({ liveMode: true, fetching: true }).loadingLabel,
+    trafficFeedPresentation({
+      liveMode: true,
+      fetching: true
+    }).loadingLabel,
     'syncing LIVE traffic flow',
   );
 });
@@ -105,11 +140,17 @@ test('a mid-session flow outage degrades instead of reporting stale live coverag
 
 test('the rendered steady-state meta line carries the SIMULATED copy', () => {
   const mgr = new DataLayerManager({});
-  const stats = (feed) => ({ count: 544, lastUpdate: Date.now(), ...feed });
+  const stats = (feed) => ({
+    count: 544,
+    lastUpdate: Date.now(),
+    ...feed
+  });
   assert.equal(
     mgr._buildMetaText({
       source: 'OpenStreetMap',
-      stats: stats(trafficFeedPresentation({ liveMode: false })),
+      stats: stats(trafficFeedPresentation({
+        liveMode: false
+      })),
     }),
     'FALLBACK · OpenStreetMap · SIMULATED — add TomTom key for live',
   );
@@ -126,19 +167,35 @@ test('the rendered steady-state meta line carries the SIMULATED copy', () => {
 });
 
 test('the manager reads keyless as FALLBACK and an outage as DEGRADED', () => {
-  const settled = { count: 4200, lastUpdate: Date.now() };
+  const settled = {
+    count: 4200,
+    lastUpdate: Date.now()
+  };
   assert.equal(
-    layerFeedState({ ...settled, ...trafficFeedPresentation({ liveMode: false }) }),
+    layerFeedState({
+      ...settled,
+      ...trafficFeedPresentation({
+        liveMode: false
+      })
+    }),
     'fallback',
   );
   assert.equal(
-    layerFeedState({ ...settled, ...trafficFeedPresentation({ liveMode: true }) }),
+    layerFeedState({
+      ...settled,
+      ...trafficFeedPresentation({
+        liveMode: true
+      })
+    }),
     'nominal',
   );
   assert.equal(
     layerFeedState({
       ...settled,
-      ...trafficFeedPresentation({ liveMode: true, flowError: 'TomTom flow unavailable' }),
+      ...trafficFeedPresentation({
+        liveMode: true,
+        flowError: 'TomTom flow unavailable'
+      }),
     }),
     'degraded',
   );
@@ -153,8 +210,16 @@ test('the shipped layer boots keyless-honest before any status check', () => {
 });
 
 test('traffic can be destroyed before its first enable and destroyed repeatedly', async () => {
-  const { default: traffic } = await import('./traffic.js');
-  const viewer = { camera: { changed: { removeEventListener() {} } } };
+  const {
+    default: traffic
+  } = await import('./traffic.js');
+  const viewer = {
+    camera: {
+      changed: {
+        removeEventListener() {}
+      }
+    }
+  };
   assert.doesNotThrow(() => traffic.destroy(viewer));
   assert.doesNotThrow(() => traffic.destroy(viewer));
   assert.equal(traffic.getStats().count, 0);
