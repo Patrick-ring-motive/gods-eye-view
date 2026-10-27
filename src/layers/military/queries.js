@@ -139,11 +139,9 @@ export function createQueries({
       // Keep the cockpit readout on the reported aviation altitude. Render
       // terrain height is a separate visual datum and may be below zero.
       altitudeM: Number.isFinite(info?.altitudeM) ?
-        info.altitudeM :
-        carto.height,
+        info.altitudeM : carto.height,
       renderAltitudeM: Number.isFinite(info?.renderAltitudeM) ?
-        info.renderAltitudeM :
-        carto.height,
+        info.renderAltitudeM : carto.height,
       onGround: info?.onGround === true,
       velocityMps: displayed.speedMps,
       track: displayed.trackDeg,
@@ -192,8 +190,7 @@ export function createQueries({
       // altitudeFt is the sticky barometric/MSL aviation field — converted to
       // meters here for shape parity with the flights layer.
       altitudeM: Number.isFinite(info?.altitudeFt) ?
-        info.altitudeFt * 0.3048 :
-        null,
+        info.altitudeFt * 0.3048 : null,
       speedMps: num(info?.speedMps),
       heading: num(info?.track),
       verticalRateMps: num(info?.verticalRateMps),
@@ -731,17 +728,15 @@ export function createQueries({
       const followed = this.trackById(id, {
         origin
       });
-      return followed ?
-        {
-          status: 'found',
-          refreshEpoch: outcome.epoch,
-          source: outcome.source,
-        } :
-        {
-          status: 'source-unavailable',
-          reason: 'target-not-renderable',
-          refreshEpoch: outcome.epoch,
-        };
+      return followed ? {
+        status: 'found',
+        refreshEpoch: outcome.epoch,
+        source: outcome.source,
+      } : {
+        status: 'source-unavailable',
+        reason: 'target-not-renderable',
+        refreshEpoch: outcome.epoch,
+      };
     },
 
     /** Reapply the canonical follow frame without recreating the selected flight. */
