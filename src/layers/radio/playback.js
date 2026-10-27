@@ -1,6 +1,13 @@
-import { RADIO_VOICE_PLAYBACK_TIMEOUT_MS } from './policy.js';
+import {
+  RADIO_VOICE_PLAYBACK_TIMEOUT_MS
+} from './policy.js';
 
-export function createPlayback({ state: layerState, services, parts, source }) {
+export function createPlayback({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function audioEventBelongsToActiveAttempt(audio) {
     const attempt = layerState._activePlaybackAttempt;
     return (
@@ -11,7 +18,9 @@ export function createPlayback({ state: layerState, services, parts, source }) {
     );
   }
 
-  function installAudio({ replace = false } = {}) {
+  function installAudio({
+    replace = false
+  } = {}) {
     if (layerState._audio && !replace) return;
     if (typeof Audio === 'undefined') return;
     const previousAudio = layerState._audio;
@@ -45,7 +54,9 @@ export function createPlayback({ state: layerState, services, parts, source }) {
       layerState._audioState = 'playing';
       layerState._audioError = null;
       if (layerState._tuningAwaitingStationId === layerState._audioStationId)
-        parts.tuningNoise.clearRadioTuningNoise({ emit: false });
+        parts.tuningNoise.clearRadioTuningNoise({
+          emit: false
+        });
       parts.presentation.emitState();
     });
     audio.addEventListener('pause', () => {
@@ -87,9 +98,9 @@ export function createPlayback({ state: layerState, services, parts, source }) {
     attemptId = layerState._playFallbackAttemptId,
   ) {
     const fallbackId = layerState._playFallbackId;
-    const fallbackStation = fallbackId
-      ? layerState._stationById.get(fallbackId)
-      : null;
+    const fallbackStation = fallbackId ?
+      layerState._stationById.get(fallbackId) :
+      null;
     const fallbackFocusPolicy = layerState._playFallbackFocus;
     layerState._playFallbackId = null;
     layerState._playFallbackFocus = null;
@@ -103,16 +114,16 @@ export function createPlayback({ state: layerState, services, parts, source }) {
       return false;
     }
     const fallbackFocusResult =
-      typeof fallbackFocusPolicy === 'function'
-        ? fallbackFocusPolicy(fallbackStation)
-        : fallbackFocusPolicy;
+      typeof fallbackFocusPolicy === 'function' ?
+      fallbackFocusPolicy(fallbackStation) :
+      fallbackFocusPolicy;
     const fallbackCameraNavigation =
-      fallbackFocusResult && typeof fallbackFocusResult === 'object'
-        ? fallbackFocusResult
-        : null;
-    const fallbackFocus = fallbackCameraNavigation
-      ? false
-      : Boolean(fallbackFocusResult);
+      fallbackFocusResult && typeof fallbackFocusResult === 'object' ?
+      fallbackFocusResult :
+      null;
+    const fallbackFocus = fallbackCameraNavigation ?
+      false :
+      Boolean(fallbackFocusResult);
     parts.selection.selectRadioStation(fallbackId, {
       autoplay: true,
       focus: fallbackFocus,
@@ -142,7 +153,9 @@ export function createPlayback({ state: layerState, services, parts, source }) {
     // A media event carries no reliable attempt identity. Give every explicit
     // play/resume/replacement its own element so queued events from the retired
     // attempt remain bound to the discarded element and cannot mutate this one.
-    installAudio({ replace: true });
+    installAudio({
+      replace: true
+    });
     if (!layerState._audio) return false;
 
     const generation = ++layerState._playGeneration;
@@ -182,7 +195,9 @@ export function createPlayback({ state: layerState, services, parts, source }) {
         return false;
       layerState._audioState = 'playing';
       if (layerState._tuningAwaitingStationId === station.id)
-        parts.tuningNoise.clearRadioTuningNoise({ emit: false });
+        parts.tuningNoise.clearRadioTuningNoise({
+          emit: false
+        });
       layerState._playFallbackId = null;
       layerState._playFallbackFocus = null;
       layerState._playFallbackOrigin = 'programmatic';
@@ -201,9 +216,9 @@ export function createPlayback({ state: layerState, services, parts, source }) {
       if (tryRadioFallback(station.id, origin, ownedAttemptId)) return false;
       layerState._audioState = 'error';
       layerState._audioError =
-        error?.name === 'NotAllowedError'
-          ? 'Playback requires a direct click or tap.'
-          : 'Broadcaster stream could not be started.';
+        error?.name === 'NotAllowedError' ?
+        'Playback requires a direct click or tap.' :
+        'Broadcaster stream could not be started.';
       parts.presentation.emitState();
       return false;
     }
@@ -243,8 +258,7 @@ export function createPlayback({ state: layerState, services, parts, source }) {
       const inspect = (state) => {
         if (!started || !state) return;
         if (
-          !state.voiceDucked &&
-          ['loading', 'buffering', 'playing'].includes(state.audioState)
+          !state.voiceDucked && ['loading', 'buffering', 'playing'].includes(state.audioState)
         ) {
           finish(false);
           return;
@@ -286,7 +300,10 @@ export function createPlayback({ state: layerState, services, parts, source }) {
     if (!layerState._voiceDucked) return Promise.resolve(false);
     return confirmRadioPlayback({
       startPlayback: () =>
-        playSelectedRadio({ origin: 'voice', attemptId: options.attemptId }),
+        playSelectedRadio({
+          origin: 'voice',
+          attemptId: options.attemptId
+        }),
       subscribe: parts.presentation.subscribeToRadio,
       getState: parts.presentation.getRadioUIState,
       timeoutMs: options.timeoutMs,
@@ -326,9 +343,13 @@ export function createPlayback({ state: layerState, services, parts, source }) {
 
   /** Pause or resume the selected stream. Resuming is still click initiated. */
 
-  function toggleRadioPlayback({ origin = 'programmatic' } = {}) {
+  function toggleRadioPlayback({
+    origin = 'programmatic'
+  } = {}) {
     if (['loading', 'playing', 'buffering'].includes(layerState._audioState)) {
-      return Promise.resolve(pauseRadioPlayback({ origin }));
+      return Promise.resolve(pauseRadioPlayback({
+        origin
+      }));
     }
     if (!parts.interaction.radioPresentationAllowed())
       return Promise.resolve(false);
@@ -342,12 +363,16 @@ export function createPlayback({ state: layerState, services, parts, source }) {
         focus: false,
       });
     }
-    return playSelectedRadio({ origin });
+    return playSelectedRadio({
+      origin
+    });
   }
 
   /** Pause Radio without toggling a stopped or already-paused stream back on. */
 
-  function pauseRadioPlayback({ origin = 'programmatic' } = {}) {
+  function pauseRadioPlayback({
+    origin = 'programmatic'
+  } = {}) {
     if (!['loading', 'playing', 'buffering'].includes(layerState._audioState))
       return false;
     const pausedAttemptId = layerState._activePlaybackAttempt?.id || null;
