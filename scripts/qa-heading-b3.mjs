@@ -135,7 +135,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* skip */ }
+      /* skip */
+    }
   }
   return null;
 }
@@ -1016,7 +1017,8 @@ async function main() {
     await sleep(800);
     const shots = [
       ['flights-far-orbitA.png', async () => {
-        /* default follow framing */ }],
+        /* default follow framing */
+      }],
       ['flights-far-orbitB.png', () => page.evaluate(() => {
         window.__godsEyeView.viewer.camera.rotateRight(1.9);
       })],
@@ -1190,7 +1192,8 @@ async function main() {
       });
       for (const [name, move] of [
           ['slowturn-far.png', async () => {
-            /* default follow framing */ }],
+            /* default follow framing */
+          }],
           ['slowturn-near.png', () => page.evaluate(() => {
             window.__godsEyeView.viewer.camera.zoomIn(2500);
           })],
