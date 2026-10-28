@@ -1,11 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync
+} from 'node:fs';
+import {
+  tmpdir
+} from 'node:os';
 import path from 'node:path';
-import { cctvProxy } from '../../server/providers/cctv.js';
-import { radioBrowserProxy } from '../../server/providers/radio.js';
-import { localProviderPlugins } from '../../server/providers/local.js';
+import {
+  cctvProxy
+} from '../../server/providers/cctv.js';
+import {
+  radioBrowserProxy
+} from '../../server/providers/radio.js';
+import {
+  localProviderPlugins
+} from '../../server/providers/local.js';
 
 function install(plugin, hook = 'configureServer') {
   let handler;
@@ -19,44 +32,51 @@ function install(plugin, hook = 'configureServer') {
   return async (url) => {
     const res = {
       writeHead(status, headers) {
-        Object.assign(this, { status, headers });
+        Object.assign(this, {
+          status,
+          headers
+        });
       },
       end(body) {
         this.body = body;
       },
     };
-    await handler({ url, method: 'GET' }, res);
+    await handler({
+      url,
+      method: 'GET'
+    }, res);
     return res;
   };
 }
 
 function fixture(t, id) {
   const root = mkdtempSync(path.join(tmpdir(), 'gev-cctv-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.after(() => rmSync(root, {
+    recursive: true,
+    force: true
+  }));
   mkdirSync(path.join(root, 'config'));
   writeFileSync(
     path.join(root, 'config/cctv_sources.austin.json'),
-    JSON.stringify([
-      {
-        id,
-        name: '<Camera & test>',
-        lat: 30.27,
-        lon: -97.74,
-        feedType: 'video',
-      },
-    ]),
+    JSON.stringify([{
+      id,
+      name: '<Camera & test>',
+      lat: 30.27,
+      lon: -97.74,
+      feedType: 'video',
+    }, ]),
   );
   return root;
 }
 
 function isolate(t) {
   for (const name of [
-    'CCTV_SOURCES_FILE',
-    'CCTV_SOURCES_JSON',
-    'CCTV_FORCE_AUSTIN',
-    'GOOGLE_MAPS_SERVER_API_KEY',
-    'GOOGLE_MAPS_API_KEY',
-  ]) {
+      'CCTV_SOURCES_FILE',
+      'CCTV_SOURCES_JSON',
+      'CCTV_FORCE_AUSTIN',
+      'GOOGLE_MAPS_SERVER_API_KEY',
+      'GOOGLE_MAPS_API_KEY',
+    ]) {
     const previous = process.env[name];
     delete process.env[name];
     t.after(() => {
@@ -71,8 +91,12 @@ function isolate(t) {
 
 test('CCTV instances resolve their own application source root and isolate catalogs and health', async (t) => {
   isolate(t);
-  const first = install(cctvProxy({ sourceRoot: fixture(t, 'first') }));
-  const second = install(cctvProxy({ sourceRoot: fixture(t, 'second') }));
+  const first = install(cctvProxy({
+    sourceRoot: fixture(t, 'first')
+  }));
+  const second = install(cctvProxy({
+    sourceRoot: fixture(t, 'second')
+  }));
   const [a, b] = await Promise.all([first('/sources'), second('/sources')]);
   assert.equal(a.status, 200);
   assert.equal(b.status, 200);
@@ -106,18 +130,18 @@ test('composition creates exactly one CCTV and radio provider without acquisitio
 for (const hook of ['configureServer', 'configurePreviewServer']) {
   test(`CCTV ${hook} maps header timeouts and cancels upstream error bodies`, async (t) => {
     isolate(t);
-    process.env.CCTV_SOURCES_JSON = JSON.stringify([
-      {
-        id: 'bounded',
-        name: 'Test',
-        lat: 30,
-        lon: -97,
-        feedType: 'video',
-        url: 'https://camera.example.org/live.mp4',
-      },
-    ]);
+    process.env.CCTV_SOURCES_JSON = JSON.stringify([{
+      id: 'bounded',
+      name: 'Test',
+      lat: 30,
+      lon: -97,
+      feedType: 'video',
+      url: 'https://camera.example.org/live.mp4',
+    }, ]);
     const request = install(
-      cctvProxy({ sourceRoot: fixture(t, 'unused') }),
+      cctvProxy({
+        sourceRoot: fixture(t, 'unused')
+      }),
       hook,
     );
     // Resolve the catalog before substituting transport behavior.
@@ -140,8 +164,9 @@ for (const hook of ['configureServer', 'configurePreviewServer']) {
             cancel() {
               cancelled = true;
             },
-          }),
-          { status: 503 },
+          }), {
+            status: 503
+          },
         ),
     );
     const error = await request('/media/bounded');
