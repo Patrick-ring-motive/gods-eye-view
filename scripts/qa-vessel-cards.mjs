@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-vessel-cards.mjs — operator-side visual proof harness for AIS cards in
  * the shared world-overlay host.
@@ -28,7 +29,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import {
+  pathToFileURL
+} from 'node:url';
 import puppeteer from 'puppeteer';
 
 const argv = process.argv.slice(2);
@@ -64,7 +67,11 @@ export function parseDataMode(args = []) {
 }
 
 /** Build a screenshot name whose data provenance cannot collide with another mode. */
-export function vesselCardScreenshotFilename({ dataMode, tag, portKey }) {
+export function vesselCardScreenshotFilename({
+  dataMode,
+  tag,
+  portKey
+}) {
   const provenanceSlug = DATA_PROVENANCE_SLUGS[dataMode];
   if (!provenanceSlug) throw new Error(`Unsupported vessel-card data mode '${dataMode}'`);
   return `vessel-cards-${provenanceSlug}-${tag}-${portKey}.png`;
@@ -81,8 +88,8 @@ export function vesselCardManifestFilename(screenshotFilename) {
 /** True when renderer evidence is available and does not identify a software rasterizer. */
 export function isHardwareRenderer(renderer = {}) {
   const description = `${renderer.vendor || ''} ${renderer.renderer || ''}`.trim();
-  return Boolean(description)
-    && !/(swiftshader|software|llvmpipe|unavailable|unknown)/i.test(description);
+  return Boolean(description) &&
+    !/(swiftshader|software|llvmpipe|unavailable|unknown)/i.test(description);
 }
 
 /** Human-readable provenance emitted before any screenshot is captured. */
@@ -146,8 +153,20 @@ try {
 
 /** Busy-port camera framings (lon/lat deg, height m, heading/pitch rad). */
 const PORTS = {
-  rotterdam: { lon: 4.05, lat: 51.93, height: 18000, heading: 0.3, pitch: -1.25 },
-  houston: { lon: -95.08, lat: 29.72, height: 16000, heading: 5.9, pitch: -1.3 },
+  rotterdam: {
+    lon: 4.05,
+    lat: 51.93,
+    height: 18000,
+    heading: 0.3,
+    pitch: -1.25
+  },
+  houston: {
+    lon: -95.08,
+    lat: 29.72,
+    height: 16000,
+    heading: 5.9,
+    pitch: -1.3
+  },
 };
 
 const SYNTHETIC_OFFSETS = [
@@ -194,7 +213,8 @@ function findChromeExecutable() {
   for (const candidate of CHROME_EXECUTABLE_CANDIDATES) {
     try {
       if (fs.existsSync(candidate)) return candidate;
-    } catch { /* fall through to Puppeteer's cache */ }
+    } catch {
+      /* fall through to Puppeteer's cache */ }
   }
   return null;
 }
@@ -210,7 +230,9 @@ async function main() {
   console.log('');
 
   try {
-    const res = await fetch(APP_URL, { method: 'GET' });
+    const res = await fetch(APP_URL, {
+      method: 'GET'
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch (e) {
     console.error(`\x1b[31mDev server not reachable at ${APP_URL} (${e.message}).\x1b[0m`);
@@ -218,12 +240,16 @@ async function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.mkdirSync(OUT_DIR, {
+    recursive: true
+  });
 
   const chromeExecutable = findChromeExecutable();
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(chromeExecutable ? { executablePath: chromeExecutable } : {}),
+    ...(chromeExecutable ? {
+      executablePath: chromeExecutable
+    } : {}),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -252,19 +278,31 @@ async function main() {
       console.log(`  ▸ ${key} → ${outPath}`);
 
       const page = await browser.newPage();
-      await page.setViewport({ width: 1600, height: 900 });
+      await page.setViewport({
+        width: 1600,
+        height: 900
+      });
       await page.evaluateOnNewDocument(() => {
         // This harness inspects cards, so keep first-run chrome out of the view.
         localStorage.setItem('gev:first-run-mission:v1', 'suppressed');
       });
       page.on('pageerror', (err) => console.error(`    [page-error] ${err.message}`));
 
-      await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await page.waitForFunction(() => !!window.__godsEyeView?.viewer, { timeout: 60000 });
+      await page.goto(APP_URL, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000
+      });
+      await page.waitForFunction(() => !!window.__godsEyeView?.viewer, {
+        timeout: 60000
+      });
 
       // Frame the port (kill the intro flight first) and enable the layer.
       const syntheticRows = DATA_MODE === 'synthetic' ? syntheticVesselRows(key, port) : [];
-      const dataEvidence = await page.evaluate(async ({ p, dataMode, fixtureRows }) => {
+      const dataEvidence = await page.evaluate(async ({
+        p,
+        dataMode,
+        fixtureRows
+      }) => {
         const gev = window.__godsEyeView;
         const v = gev.viewer;
         v.camera.cancelFlight?.();
@@ -276,10 +314,17 @@ async function main() {
         };
         v.camera.setView({
           destination: v.scene.globe.ellipsoid.cartographicToCartesian(carto),
-          orientation: { heading: p.heading, pitch: p.pitch, roll: 0 },
+          orientation: {
+            heading: p.heading,
+            pitch: p.pitch,
+            roll: 0
+          },
         });
         await gev.dataManager.setEnabled('ais-live-vessels', true);
-        if (dataMode !== 'synthetic') return { mode: 'live', injected: 0 };
+        if (dataMode !== 'synthetic') return {
+          mode: 'live',
+          injected: 0
+        };
         const seam = gev.dataManager.layers.get('ais-live-vessels')?.module?.__focusEvidence;
         if (!seam?.setVessels) throw new Error('Synthetic AIS evidence seam is unavailable');
         const result = seam.setVessels(fixtureRows);
@@ -287,11 +332,18 @@ async function main() {
           throw new Error(`Synthetic AIS injection failed (${result?.count || 0}/${fixtureRows.length})`);
         }
         v.scene.requestRender?.();
-        return { mode: 'synthetic', injected: result.count };
-      }, { p: port, dataMode: DATA_MODE, fixtureRows: syntheticRows });
+        return {
+          mode: 'synthetic',
+          injected: result.count
+        };
+      }, {
+        p: port,
+        dataMode: DATA_MODE,
+        fixtureRows: syntheticRows
+      });
       console.log(
-        `    [DATA] ${dataEvidence.mode}${dataEvidence.injected ? ` (${dataEvidence.injected} injected)` : ''}; `
-        + `artifact provenance=${DATA_PROVENANCE_SLUGS[DATA_MODE]}`,
+        `    [DATA] ${dataEvidence.mode}${dataEvidence.injected ? ` (${dataEvidence.injected} injected)` : ''}; ` +
+        `artifact provenance=${DATA_PROVENANCE_SLUGS[DATA_MODE]}`,
       );
 
       // Wait for the photoreal tileset and at least one vessel refresh.
@@ -302,7 +354,10 @@ async function main() {
           const ais = gev.dataManager.getAll().find((l) => l.id === 'ais-live-vessels');
           const count = ais?.stats?.count ?? 0;
           return t?.tilesLoaded && count > 0;
-        }, { timeout: 90000, polling: 500 })
+        }, {
+          timeout: 90000,
+          polling: 500
+        })
         .then(() => true)
         .catch(() => false);
 
@@ -320,7 +375,11 @@ async function main() {
         };
         v.camera.setView({
           destination: v.scene.globe.ellipsoid.cartographicToCartesian(carto),
-          orientation: { heading: p.heading, pitch: p.pitch, roll: 0 },
+          orientation: {
+            heading: p.heading,
+            pitch: p.pitch,
+            roll: 0
+          },
         });
       }, port);
       // A changed camera invalidates the previous settled result. Let the new
@@ -331,7 +390,10 @@ async function main() {
           const gev = window.__godsEyeView;
           const ais = gev.dataManager.getAll().find((l) => l.id === 'ais-live-vessels');
           return gev.tileset?.tilesLoaded && (ais?.stats?.count ?? 0) > 0;
-        }, { timeout: 60000, polling: 500 })
+        }, {
+          timeout: 60000,
+          polling: 500
+        })
         .then(() => true)
         .catch(() => false);
 
@@ -350,25 +412,30 @@ async function main() {
           legacyCanvas: Boolean(document.getElementById('vessel-labels')),
           entries: diagnostics?.entriesBySource?.['ais-live-vessels'] || 0,
           painted: diagnostics?.paintedBySource?.['ais-live-vessels'] || 0,
-          fixtureRowsRetained: fixtureIds.length
-            ? fixtureIds.every((id) => snapshotIds.has(String(id)))
-            : null,
+          fixtureRowsRetained: fixtureIds.length ?
+            fixtureIds.every((id) => snapshotIds.has(String(id))) :
+            null,
           renderer: gl ? {
             vendor: String(gl.getParameter(debugInfo?.UNMASKED_VENDOR_WEBGL || gl.VENDOR) || 'unknown'),
             renderer: String(gl.getParameter(debugInfo?.UNMASKED_RENDERER_WEBGL || gl.RENDERER) || 'unknown'),
-          } : { vendor: 'unavailable', renderer: 'unavailable' },
+          } : {
+            vendor: 'unavailable',
+            renderer: 'unavailable'
+          },
         };
       }, expectedFixtureIds);
-      await page.screenshot({ path: outPath });
+      await page.screenshot({
+        path: outPath
+      });
       const st = fs.statSync(outPath);
       const hardwareRenderer = isHardwareRenderer(overlayEvidence.renderer);
-      const capturePassed = resettled
-        && overlayEvidence.hostCanvas
-        && !overlayEvidence.legacyCanvas
-        && overlayEvidence.entries > 0
-        && overlayEvidence.painted > 0
-        && (DATA_MODE !== 'synthetic' || overlayEvidence.fixtureRowsRetained)
-        && (!HEADFUL || hardwareRenderer);
+      const capturePassed = resettled &&
+        overlayEvidence.hostCanvas &&
+        !overlayEvidence.legacyCanvas &&
+        overlayEvidence.entries > 0 &&
+        overlayEvidence.painted > 0 &&
+        (DATA_MODE !== 'synthetic' || overlayEvidence.fixtureRowsRetained) &&
+        (!HEADFUL || hardwareRenderer);
       const manifestPath = path.join(OUT_DIR, vesselCardManifestFilename(path.basename(outPath)));
       const manifest = buildVesselCardManifest({
         dataMode: DATA_MODE,
