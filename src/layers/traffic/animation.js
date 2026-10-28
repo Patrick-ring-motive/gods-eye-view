@@ -170,12 +170,10 @@ export function createAnimation({
         disableDepthTestDistance: jamProminent ? JAM_DOT_DEPTH_PUNCH : 2000,
         // Preset dark halo (spread only when present — the keyless/normal
         // path passes the exact shipped option set).
-        ...(outlineSpec ?
-          {
-            outlineColor,
-            outlineWidth: outlineSpec.width
-          } :
-          {}),
+        ...(outlineSpec ? {
+          outlineColor,
+          outlineWidth: outlineSpec.width
+        } : {}),
       });
       layerState._bucketCounts[bucket || 'sim'] += 1;
 
@@ -194,12 +192,10 @@ export function createAnimation({
         stoppedUntil: 0,
         // Stop-and-go creep state (jam-viz density prototype): jam dots
         // alternate move-bursts and stops. Null in sim mode and for non-jam.
-        creep: bucket === 'jam' && parts.style.jamDensityOn() ?
-          {
-            moving: Math.random() < 0.4,
-            until: now + Math.random() * 2000
-          } :
-          null,
+        creep: bucket === 'jam' && parts.style.jamDensityOn() ? {
+          moving: Math.random() < 0.4,
+          until: now + Math.random() * 2000
+        } : null,
       });
     }
   }
