@@ -1,7 +1,16 @@
-import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import { fetchRegionalWeather } from './weather.js';
-import { validRegionalPoint } from './query.js';
-import { coalesceProxyRequest } from '../common/http.js';
+import {
+  makeRateLimiter,
+  clientKey
+} from '../common/rate-limit.js';
+import {
+  fetchRegionalWeather
+} from './weather.js';
+import {
+  validRegionalPoint
+} from './query.js';
+import {
+  coalesceProxyRequest
+} from '../common/http.js';
 
 const WEATHER_EFFECTS_CACHE_MS = 5 * 60_000;
 
@@ -37,7 +46,10 @@ function weatherEffectsProxy() {
       coordinates: point,
       weather,
     };
-    _weatherEffectsCache.set(key, { payload, cachedAt: Date.now() });
+    _weatherEffectsCache.set(key, {
+      payload,
+      cachedAt: Date.now()
+    });
     trimWeatherEffectsCache();
     return payload;
   }
@@ -45,8 +57,12 @@ function weatherEffectsProxy() {
   function install(middlewares) {
     middlewares.use('/api/weather-effects', async (req, res) => {
       if (req.method !== 'GET') {
-        res.writeHead(405, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+        res.writeHead(405, {
+          'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify({
+          error: 'Method Not Allowed'
+        }));
         return;
       }
       if (!_weatherEffectsRateLimiter(clientKey(req))) {
@@ -54,13 +70,17 @@ function weatherEffectsProxy() {
           'Content-Type': 'application/json',
           'Retry-After': '10',
         });
-        res.end(JSON.stringify({ error: 'Rate limit exceeded' }));
+        res.end(JSON.stringify({
+          error: 'Rate limit exceeded'
+        }));
         return;
       }
       const url = new URL(req.url || '', 'http://localhost');
       const point = validRegionalPoint(url.searchParams);
       if (!point) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.writeHead(400, {
+          'Content-Type': 'application/json'
+        });
         res.end(
           JSON.stringify({
             error: 'Valid latitude and longitude are required',
@@ -77,7 +97,10 @@ function weatherEffectsProxy() {
           'Cache-Control': 'public, max-age=60',
           'X-Weather-Effects': 'HIT',
         });
-        res.end(JSON.stringify({ ...cached.payload, status: 'cached' }));
+        res.end(JSON.stringify({
+          ...cached.payload,
+          status: 'cached'
+        }));
         return;
       }
       const request = coalesceProxyRequest(_weatherEffectsInFlight, key, () =>
@@ -98,7 +121,10 @@ function weatherEffectsProxy() {
             'Cache-Control': 'no-store',
             'X-Weather-Effects': 'STALE',
           });
-          res.end(JSON.stringify({ ...cached.payload, status: 'stale' }));
+          res.end(JSON.stringify({
+            ...cached.payload,
+            status: 'stale'
+          }));
           return;
         }
         res.writeHead(503, {
@@ -125,4 +151,6 @@ function weatherEffectsProxy() {
   };
 }
 
-export { weatherEffectsProxy };
+export {
+  weatherEffectsProxy
+};
