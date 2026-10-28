@@ -1,4 +1,9 @@
-import { coordinates, epoch, finite, LiveSourceError } from './contract.js';
+import {
+  coordinates,
+  epoch,
+  finite,
+  LiveSourceError
+} from './contract.js';
 
 /** AIS positions are sea-surface observations; heading and course are distinct. */
 export function normalizeVesselObservation(row, reference = null) {
@@ -19,16 +24,14 @@ export function normalizeVesselObservation(row, reference = null) {
     speedMps: speedKts == null ? null : speedKts * 0.514444,
     courseDeg: finite(row.course),
     headingDeg: finite(row.heading),
-    observedAtMs:
-      epoch(row.last_position_epoch, 1000) ??
+    observedAtMs: epoch(row.last_position_epoch, 1000) ??
       epoch(Date.parse(row.last_position_UTC)),
     altitudeDatum: 'sea-surface',
   };
 }
 
 export function vesselSnapshot(
-  payload,
-  {
+  payload, {
     source = 'AISStream',
     coverage = 'received AIS positions',
     referenceFor = (row) => String(row.mmsi || row.input_identifier || ''),
@@ -61,15 +64,14 @@ export function vesselSnapshot(
     complete: records.length === rows.length && !payload?.refreshing,
     rejectedCount: rows.length - records.length,
     observedAtMs,
-    freshness: payload?.refreshing
-      ? 'stale'
-      : observedAtMs == null
-        ? 'unknown'
-        : 'current',
+    freshness: payload?.refreshing ?
+      'stale' :
+      observedAtMs == null ?
+      'unknown' :
+      'current',
     stale: Boolean(payload?.refreshing),
     // Connection state is distinct from receipt of a usable position.
-    transportStatus:
-      typeof payload?.status === 'string' ? payload.status : null,
+    transportStatus: typeof payload?.status === 'string' ? payload.status : null,
     lastMessageAt: payload?.lastMessageAt ?? null,
     nextAttemptAt: finite(payload?.nextAttemptAt),
     silentForMs: finite(payload?.silentForMs),
@@ -84,13 +86,11 @@ export function normalizeVesselTrack(samples) {
     const latitude = finite(sample?.lat),
       longitude = finite(sample?.lon);
     if (!coordinates(latitude, longitude)) return [];
-    return [
-      {
-        latitude,
-        longitude,
-        observedAtMs: epoch(sample?.t, 1000),
-        altitudeDatum: 'sea-surface',
-      },
-    ];
+    return [{
+      latitude,
+      longitude,
+      observedAtMs: epoch(sample?.t, 1000),
+      altitudeDatum: 'sea-surface',
+    }, ];
   });
 }
