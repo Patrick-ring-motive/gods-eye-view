@@ -117,8 +117,14 @@ export function photonExtentToBounds(extent) {
   if (Math.abs(north) > 90 || Math.abs(south) > 90) return null;
   if (Math.abs(west) > 180 || Math.abs(east) > 180) return null;
   return {
-    southwest: { lat: Math.min(north, south), lng: Math.min(west, east) },
-    northeast: { lat: Math.max(north, south), lng: Math.max(west, east) },
+    southwest: {
+      lat: Math.min(north, south),
+      lng: Math.min(west, east)
+    },
+    northeast: {
+      lat: Math.max(north, south),
+      lng: Math.max(west, east)
+    },
   };
 }
 
@@ -198,8 +204,11 @@ export function normalizePhotonFeature(feature) {
  * @returns {string}
  */
 export function photonSearchUrl(
-  query,
-  { bias = null, limit = PHOTON_RESULT_LIMIT, endpoint = PHOTON_ENDPOINT } = {},
+  query, {
+    bias = null,
+    limit = PHOTON_RESULT_LIMIT,
+    endpoint = PHOTON_ENDPOINT
+  } = {},
 ) {
   const url = new URL(endpoint);
   url.searchParams.set('q', String(query ?? ''));
@@ -247,8 +256,9 @@ export function normalizeToponym(text) {
  */
 export function selectPhotonFeature(
   features,
-  target,
-  { allowContains = false } = {},
+  target, {
+    allowContains = false
+  } = {},
 ) {
   if (!target) return null;
   const names = (Array.isArray(features) ? features : []).map((feature) => [
@@ -295,8 +305,7 @@ function trimPhotonCache(cache) {
  *   types:string[], viewport:?object}, answered:boolean}>}
  */
 export async function geocodeKeylessWithOutcome(
-  query,
-  {
+  query, {
     bias = null,
     fetchImpl = fetch,
     signal,
@@ -306,13 +315,19 @@ export async function geocodeKeylessWithOutcome(
 ) {
   signal?.throwIfAborted();
   const trimmed = String(query ?? '').trim();
-  if (!trimmed) return { place: null, answered: true };
+  if (!trimmed) return {
+    place: null,
+    answered: true
+  };
 
   const memoKey = `${endpoint}\n${bias ?? ''}\n${trimmed}`;
   // Only answered outcomes are memoised, so a hit is always an answer.
   const cached = cache.get(memoKey);
   if (cached && cached.expires > Date.now())
-    return { place: cached.place, answered: true };
+    return {
+      place: cached.place,
+      answered: true
+    };
   cache.delete(memoKey);
 
   /** One request: the feature array Photon returned, or null if it did not answer. */
@@ -320,10 +335,12 @@ export async function geocodeKeylessWithOutcome(
     try {
       signal?.throwIfAborted();
       const deadline = AbortSignal.timeout(PHOTON_TIMEOUT_MS);
-      const requestSignal = signal
-        ? AbortSignal.any([signal, deadline])
-        : deadline;
-      const response = await fetchImpl(url, { signal: requestSignal });
+      const requestSignal = signal ?
+        AbortSignal.any([signal, deadline]) :
+        deadline;
+      const response = await fetchImpl(url, {
+        signal: requestSignal
+      });
       if (!response.ok) return null;
       const data = await response.json();
       requestSignal.throwIfAborted();
@@ -347,7 +364,10 @@ export async function geocodeKeylessWithOutcome(
   let feature = null;
   let everyAskAnswered = true;
   if (bias) {
-    const biased = await ask(photonSearchUrl(trimmed, { bias, endpoint }));
+    const biased = await ask(photonSearchUrl(trimmed, {
+      bias,
+      endpoint
+    }));
     if (biased === null) everyAskAnswered = false;
     else feature = selectPhotonFeature(biased, normalizeToponym(trimmed));
   }
@@ -355,7 +375,10 @@ export async function geocodeKeylessWithOutcome(
   signal?.throwIfAborted();
   if (!feature) {
     const anywhere = await ask(
-      photonSearchUrl(trimmed, { bias: null, endpoint }),
+      photonSearchUrl(trimmed, {
+        bias: null,
+        endpoint
+      }),
     );
     if (anywhere === null) everyAskAnswered = false;
     else {
@@ -364,7 +387,9 @@ export async function geocodeKeylessWithOutcome(
       // the thing being searched for; the tail only says where to look.
       const head = normalizeToponym(trimmed.split(',')[0]);
       feature =
-        selectPhotonFeature(anywhere, head, { allowContains: true }) ||
+        selectPhotonFeature(anywhere, head, {
+          allowContains: true
+        }) ||
         anywhere[0];
     }
   }
@@ -385,7 +410,10 @@ export async function geocodeKeylessWithOutcome(
     });
     trimPhotonCache(cache);
   }
-  return { place, answered };
+  return {
+    place,
+    answered
+  };
 }
 
 /**
