@@ -21,9 +21,9 @@ export function _syncContextModeButtons() {
   // Missions from the keyboard. Semantic busy state keeps them perceivable
   // while synchronous click guards prevent a second transition.
   for (const button of [
-    this._globalContextFlightsBtn,
-    this._globalContextMissionsBtn,
-  ]) {
+      this._globalContextFlightsBtn,
+      this._globalContextMissionsBtn,
+    ]) {
     if (!button) continue;
     button.disabled = false;
     button.tabIndex = 0;
