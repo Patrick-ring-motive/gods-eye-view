@@ -114,7 +114,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* skip */ }
+      /* skip */
+    }
   }
   return null;
 }
@@ -306,16 +307,14 @@ async function main() {
           L.inflight += 1;
           L.maxInflight = Math.max(L.maxInflight, L.inflight);
           const tc = S.types[hex];
-          const body = tc ?
-            {
-              found: true,
-              typeCode: tc,
-              typeName: `Synthetic ${tc}`,
-              registration: `N${hex.slice(-3).toUpperCase()}`
-            } :
-            {
-              found: false
-            };
+          const body = tc ? {
+            found: true,
+            typeCode: tc,
+            typeName: `Synthetic ${tc}`,
+            registration: `N${hex.slice(-3).toUpperCase()}`
+          } : {
+            found: false
+          };
           return new Promise((resolve) => {
             const finish = () => setTimeout(() => {
               L.inflight -= 1;
@@ -510,7 +509,8 @@ async function main() {
       timeout: 10000,
       polling: 200
     }).catch(() => {
-      /* asserted below */ });
+      /* asserted below */
+    });
 
     // ========================================================================
     // E3–E6 — requests + ambient glyph/scale swaps (nothing tracked, 3D off)
@@ -662,7 +662,8 @@ async function main() {
         polling: 100
       }, startsBeforeBatch + (BUDGET_QA.ceil - startsBeforeBatch)
     ).catch(() => {
-      /* asserted below */ });
+      /* asserted below */
+    });
     await sleep(1500); // any illegal post-exhaustion enqueue would dispatch within ~200 ms
     // One more poll while exhausted — still nothing new.
     await page.evaluate(async () => {
