@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { JET_MODEL_URL } from './policy.js';
+import {
+  JET_MODEL_URL
+} from './policy.js';
 
 export function createLifecycle({
   flightState,
@@ -8,12 +10,27 @@ export function createLifecycle({
   layer,
   resolveAsset,
 }) {
-  const { clearFocusTarget } = services.focus;
-  const { registerSpriteCollection, restoreSpriteOrder } = services.sprites;
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
-  const { ensureGeoidReady } = services.geoid;
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
-  const { setMilitaryLayerActive } = services.militaryRegistry;
+  const {
+    clearFocusTarget
+  } = services.focus;
+  const {
+    registerSpriteCollection,
+    restoreSpriteOrder
+  } = services.sprites;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
+  const {
+    ensureGeoidReady
+  } = services.geoid;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
+  const {
+    setMilitaryLayerActive
+  } = services.militaryRegistry;
 
   const methods = {
     /** Configure the source before initialization; an active layer keeps its owner. */
@@ -52,9 +69,9 @@ export function createLifecycle({
       if (!flightState._preloadModel) {
         const epoch = flightState._modelEpoch;
         Cesium.Model.fromGltfAsync({
-          url: resolveAsset(JET_MODEL_URL),
-          asynchronous: false,
-        })
+            url: resolveAsset(JET_MODEL_URL),
+            asynchronous: false,
+          })
           .then((m) => {
             if (epoch === flightState._modelEpoch) {
               flightState._preloadModel = m;
@@ -297,5 +314,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
