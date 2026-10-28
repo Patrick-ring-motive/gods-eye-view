@@ -1,7 +1,15 @@
 import * as Cesium from 'cesium';
-import { ISS_NORAD, ISS_OVERLAY_SOURCE_ID } from './policy.js';
+import {
+  ISS_NORAD,
+  ISS_OVERLAY_SOURCE_ID
+} from './policy.js';
 
-export function createTesting({ state: layerState, services, parts, source }) {
+export function createTesting({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Seed a single tracked satellite so tests can invoke the exact production
    * pre-render callback without constructing a WebGL viewer.
@@ -29,9 +37,15 @@ export function createTesting({ state: layerState, services, parts, source }) {
   }) {
     layerState._viewer = viewer;
     layerState._catalog = new Map([
-      [noradId, { name, satrec, group: 'stations' }],
+      [noradId, {
+        name,
+        satrec,
+        group: 'stations'
+      }],
     ]);
-    layerState._points = new Map([[noradId, point]]);
+    layerState._points = new Map([
+      [noradId, point]
+    ]);
     for (const neighbour of neighbours) {
       layerState._catalog.set(neighbour.noradId, {
         name: neighbour.name,
@@ -71,7 +85,9 @@ export function createTesting({ state: layerState, services, parts, source }) {
     };
     layerState._params.catalog = catalog;
     layerState._denseLoadPromise =
-      densePromise || Promise.resolve({ status: 'not-requested' });
+      densePromise || Promise.resolve({
+        status: 'not-requested'
+      });
   }
 
   /** The tracked satellite's current ECEF sample — the value the docked-cluster
@@ -99,7 +115,12 @@ export function createTesting({ state: layerState, services, parts, source }) {
     showPoints = true,
   } = {}) {
     layerState._viewer = {
-      scene: { primitives: { add: (p) => p, remove() {} } },
+      scene: {
+        primitives: {
+          add: (p) => p,
+          remove() {}
+        }
+      },
     };
     // Neutralize the shared world-overlay host: these tests exercise catalog and
     // row-control logic, not the ISS callout.
@@ -110,7 +131,9 @@ export function createTesting({ state: layerState, services, parts, source }) {
     };
     layerState._pointCollection = {
       show: true,
-      add: (opts) => ({ ...opts }),
+      add: (opts) => ({
+        ...opts
+      }),
       remove() {},
       removeAll() {},
     };
@@ -126,7 +149,11 @@ export function createTesting({ state: layerState, services, parts, source }) {
     layerState._catalogRevision++;
     layerState._trackedNorad = null;
     parts.tracking._cancelPendingTrackingRestore();
-    layerState._params = { catalog, showPoints, showOrbits: false };
+    layerState._params = {
+      catalog,
+      showPoints,
+      showOrbits: false
+    };
     layerState._enabled = true;
   }
 
@@ -170,14 +197,23 @@ export function createTesting({ state: layerState, services, parts, source }) {
   }) {
     layerState._viewer = viewer;
     layerState._catalog = new Map([
-      [ISS_NORAD, { name: 'ISS (ZARYA)', satrec, group: 'stations' }],
+      [ISS_NORAD, {
+        name: 'ISS (ZARYA)',
+        satrec,
+        group: 'stations'
+      }],
     ]);
-    layerState._points = new Map([[ISS_NORAD, point]]);
+    layerState._points = new Map([
+      [ISS_NORAD, point]
+    ]);
     layerState._orbitPaths = new Map([
       [
         ISS_NORAD,
         {
-          primitive: { show: true, modelMatrix: new Cesium.Matrix4() },
+          primitive: {
+            show: true,
+            modelMatrix: new Cesium.Matrix4()
+          },
           gmstAtBake: 0,
         },
       ],
