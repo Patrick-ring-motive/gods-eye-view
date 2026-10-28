@@ -112,7 +112,8 @@ function loadApiKey(overrideKey) {
       if (key === 'GOOGLE_MAPS_API_KEY' && val) return val;
     }
   } catch {
-    /* ignore */ }
+    /* ignore */
+  }
 
   console.error('Error: No API key found. Set GOOGLE_MAPS_API_KEY in .env or pass --key.');
   process.exit(1);
