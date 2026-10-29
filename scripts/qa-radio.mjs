@@ -62,10 +62,8 @@ const stations = Array.from({
   return {
     id: `00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`,
     name: index === 360 ?
-      '100.3 The River - WQRV - Meridianville/Huntsville, AL' :
-      index === 390 ?
-      'La Zeta (Hermosillo) - 93.9 FM - XHHY - Uniradio - Hermosillo, Sonora' :
-      `QA Radio ${String(index + 1).padStart(3, '0')}`,
+      '100.3 The River - WQRV - Meridianville/Huntsville, AL' : index === 390 ?
+      'La Zeta (Hermosillo) - 93.9 FM - XHHY - Uniradio - Hermosillo, Sonora' : `QA Radio ${String(index + 1).padStart(3, '0')}`,
     lat: -72 + row * 6,
     lon: -174 + column * 12,
     streamUrl: `https://audio.example.test/${index}.mp3`,
@@ -131,9 +129,7 @@ async function main() {
     } : {}),
     args: [
       '--no-sandbox', '--disable-setuid-sandbox',
-      ...(process.platform === 'darwin' ?
-        ['--use-angle=metal', '--enable-gpu'] :
-        ['--use-gl=angle', '--use-angle=swiftshader']),
+      ...(process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu'] : ['--use-gl=angle', '--use-angle=swiftshader']),
       '--disable-dev-shm-usage', '--disable-background-timer-throttling',
       '--disable-renderer-backgrounding', '--window-size=1440,900',
     ],
@@ -196,8 +192,7 @@ async function main() {
       // These scenarios exercise Context lifecycle and keyboard ownership, not
       // live orbit accuracy. Reuse the tracking suite's fixed element sets so
       // CelesTrak outages cannot invalidate an otherwise clean UI run.
-      if (url.origin === APP_ORIGIN &&
-        ['/api/celestrak/active', '/api/celestrak/starlink'].includes(url.pathname)) {
+      if (url.origin === APP_ORIGIN && ['/api/celestrak/active', '/api/celestrak/starlink'].includes(url.pathname)) {
         const dense = url.pathname.endsWith('/starlink');
         request.respond({
           status: 200,
@@ -3424,8 +3419,7 @@ async function main() {
       };
     });
     catalogStations = stations.map((station) => (
-      station.id === tunerRefreshTarget.id ?
-      {
+      station.id === tunerRefreshTarget.id ? {
         ...station,
         name: `${station.name} B`,
         streamUrl: `${station.streamUrl}?generation=b`
@@ -4618,8 +4612,7 @@ async function main() {
             viewer.camera.positionWC.x - entityPosition.x,
             viewer.camera.positionWC.y - entityPosition.y,
             viewer.camera.positionWC.z - entityPosition.z,
-          ) :
-          null,
+          ) : null,
         overlay: radio.getOverlayDiagnostics(),
         host: getWorldOverlayDiagnostics(),
         cameraHeight: viewer.camera.positionCartographic.height,
