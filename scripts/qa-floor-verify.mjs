@@ -147,7 +147,8 @@ const report = await page.evaluate(() => {
       const h = v.scene.sampleHeight(C.fromDegrees(lonDeg, latDeg), excludes);
       if (Number.isFinite(h)) meshH = h;
     } catch {
-      /* ignore */ }
+      /* ignore */
+    }
     out.push({
       id: p.id,
       renderAltM: +c.height.toFixed(1),
