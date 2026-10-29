@@ -195,8 +195,7 @@ export function createRendering({
       .map((record) => ({
         ...record,
         distanceM: cameraPosition ?
-          Cesium.Cartesian3.distance(cameraPosition, record.position) :
-          Number.POSITIVE_INFINITY,
+          Cesium.Cartesian3.distance(cameraPosition, record.position) : Number.POSITIVE_INFINITY,
       })),
       singletonAllowance,
     );
@@ -265,8 +264,7 @@ export function createRendering({
       )
     )
       return;
-    layerState._lastHorizonCameraPosition = cameraPosition ?
-      {
+    layerState._lastHorizonCameraPosition = cameraPosition ? {
         x: cameraPosition.x,
         y: cameraPosition.y,
         z: cameraPosition.z
