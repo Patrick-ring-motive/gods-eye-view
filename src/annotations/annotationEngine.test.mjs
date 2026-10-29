@@ -1,4 +1,6 @@
-import { createStandalonePlaceSearch } from '../standalone/placeSearch.js';
+import {
+  createStandalonePlaceSearch
+} from '../standalone/placeSearch.js';
 // Voice-annotation resilience contract tests — pure logic, no network, no browser.
 //
 // Locks the 2026-07-21 field-test fixes:
@@ -11,14 +13,18 @@ import { createStandalonePlaceSearch } from '../standalone/placeSearch.js';
 //      (identity is GEOMETRY once resolved; targetKey is only the pending stand-in).
 //
 // Run with: npm test   (node --test)
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createAnnotationEngine,
   resolveOutlineWithRetry,
   normalizeTargetKey,
 } from './annotationEngine.js';
-import { resolveAnnotationTarget } from './annotationResolver.js';
+import {
+  resolveAnnotationTarget
+} from './annotationResolver.js';
 import {
   getRenderGovernorDiagnostics,
   _resetRenderGovernorForTest,
@@ -27,7 +33,9 @@ import {
 // A resolver that replays a scripted sequence of outcomes (undefined = transient,
 // null = definitive miss, object = footprint) and counts its invocations.
 function scriptedResolver(outcomes) {
-  const calls = { count: 0 };
+  const calls = {
+    count: 0
+  };
   const resolve = async () => {
     const i = Math.min(calls.count, outcomes.length - 1);
     calls.count += 1;
@@ -35,17 +43,33 @@ function scriptedResolver(outcomes) {
     if (out instanceof Error) throw out;
     return out;
   };
-  return { resolve, calls };
+  return {
+    resolve,
+    calls
+  };
 }
 
 // Instant fake wait that records the requested backoff delays.
 function fakeWait() {
   const delays = [];
-  const waitFn = async (ms) => { delays.push(ms); };
-  return { waitFn, delays };
+  const waitFn = async (ms) => {
+    delays.push(ms);
+  };
+  return {
+    waitFn,
+    delays
+  };
 }
 
-const FP = { ring: [[0, 0], [0, 1], [1, 1], [0, 0]], footprintKind: 'area' };
+const FP = {
+  ring: [
+    [0, 0],
+    [0, 1],
+    [1, 1],
+    [0, 0]
+  ],
+  footprintKind: 'area'
+};
 
 function installAnimationFrameStubs(t) {
   const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
@@ -61,13 +85,23 @@ function installAnimationFrameStubs(t) {
 }
 
 function fakeRenderer() {
-  const calls = { add: 0, update: 0, remove: 0 };
+  const calls = {
+    add: 0,
+    update: 0,
+    remove: 0
+  };
   return {
     calls,
     renderer: {
-      add() { calls.add += 1; },
-      update() { calls.update += 1; },
-      remove() { calls.remove += 1; },
+      add() {
+        calls.add += 1;
+      },
+      update() {
+        calls.update += 1;
+      },
+      remove() {
+        calls.remove += 1;
+      },
       sync() {},
     },
   };
@@ -81,62 +115,118 @@ function httpFailure(status, retryAfter = null) {
   return {
     ok: false,
     status,
-    headers: { get: (name) => (name.toLowerCase() === 'retry-after' ? retryAfter : null) },
+    headers: {
+      get: (name) => (name.toLowerCase() === 'retry-after' ? retryAfter : null)
+    },
   };
 }
 
 test('retry: first-try footprint returns immediately, no retry, no waiting', async () => {
-  const { resolve, calls } = scriptedResolver([FP]);
-  const { waitFn, delays } = fakeWait();
-  const fp = await resolveOutlineWithRetry(resolve, { delaysMs: [8000, 25000], waitFn });
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([FP]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
+  const fp = await resolveOutlineWithRetry(resolve, {
+    delaysMs: [8000, 25000],
+    waitFn
+  });
   assert.equal(fp, FP);
   assert.equal(calls.count, 1);
   assert.deepEqual(delays, []);
 });
 
 test('retry: a DEFINITIVE miss (null) is never retried — the honest point stands', async () => {
-  const { resolve, calls } = scriptedResolver([null, FP]);
-  const { waitFn, delays } = fakeWait();
-  const fp = await resolveOutlineWithRetry(resolve, { delaysMs: [8000, 25000], waitFn });
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([null, FP]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
+  const fp = await resolveOutlineWithRetry(resolve, {
+    delaysMs: [8000, 25000],
+    waitFn
+  });
   assert.equal(fp, null);
   assert.equal(calls.count, 1);
   assert.deepEqual(delays, []);
 });
 
 test('retry: a TRANSIENT miss (undefined) re-runs after the first backoff and can succeed', async () => {
-  const { resolve, calls } = scriptedResolver([undefined, FP]);
-  const { waitFn, delays } = fakeWait();
-  const fp = await resolveOutlineWithRetry(resolve, { delaysMs: [8000, 25000], waitFn });
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([undefined, FP]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
+  const fp = await resolveOutlineWithRetry(resolve, {
+    delaysMs: [8000, 25000],
+    waitFn
+  });
   assert.equal(fp, FP);
   assert.equal(calls.count, 2);
   assert.deepEqual(delays, [8000]); // waited once, succeeded on attempt 2
 });
 
 test('retry: a transient retry can still conclude with a definitive miss (no third run)', async () => {
-  const { resolve, calls } = scriptedResolver([undefined, null]);
-  const { waitFn, delays } = fakeWait();
-  const fp = await resolveOutlineWithRetry(resolve, { delaysMs: [8000, 25000], waitFn });
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([undefined, null]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
+  const fp = await resolveOutlineWithRetry(resolve, {
+    delaysMs: [8000, 25000],
+    waitFn
+  });
   assert.equal(fp, null);
   assert.equal(calls.count, 2);
   assert.deepEqual(delays, [8000]);
 });
 
 test('retry: persistent transients exhaust the backoff schedule and give up as transient', async () => {
-  const { resolve, calls } = scriptedResolver([undefined, undefined, undefined, FP]);
-  const { waitFn, delays } = fakeWait();
-  const fp = await resolveOutlineWithRetry(resolve, { delaysMs: [8000, 25000], waitFn });
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([undefined, undefined, undefined, FP]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
+  const fp = await resolveOutlineWithRetry(resolve, {
+    delaysMs: [8000, 25000],
+    waitFn
+  });
   assert.equal(fp, undefined); // never found within budget — mark honestly stays a point
   assert.equal(calls.count, 3); // initial + one per backoff entry
   assert.deepEqual(delays, [8000, 25000]);
 });
 
 test('retry: a stale board (clear/supersede during backoff) stops retrying immediately', async () => {
-  const { resolve, calls } = scriptedResolver([undefined, FP]);
-  const { waitFn, delays } = fakeWait();
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([undefined, FP]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
   let stale = false;
   const fp = await resolveOutlineWithRetry(resolve, {
     delaysMs: [8000, 25000],
-    waitFn: async (ms) => { await waitFn(ms); stale = true; }, // goes stale mid-wait
+    waitFn: async (ms) => {
+      await waitFn(ms);
+      stale = true;
+    }, // goes stale mid-wait
     isStale: () => stale,
   });
   assert.equal(fp, undefined);
@@ -145,9 +235,18 @@ test('retry: a stale board (clear/supersede during backoff) stops retrying immed
 });
 
 test('retry: a thrown resolver is a definitive miss (no retry), matching the old catch→point path', async () => {
-  const { resolve, calls } = scriptedResolver([new Error('boom'), FP]);
-  const { waitFn, delays } = fakeWait();
-  const fp = await resolveOutlineWithRetry(resolve, { delaysMs: [8000, 25000], waitFn });
+  const {
+    resolve,
+    calls
+  } = scriptedResolver([new Error('boom'), FP]);
+  const {
+    waitFn,
+    delays
+  } = fakeWait();
+  const fp = await resolveOutlineWithRetry(resolve, {
+    delaysMs: [8000, 25000],
+    waitFn
+  });
   assert.equal(fp, null);
   assert.equal(calls.count, 1);
   assert.deepEqual(delays, []);
@@ -155,12 +254,17 @@ test('retry: a thrown resolver is a definitive miss (no retry), matching the old
 
 test('outline queue: an 8-spec batch keeps at most two FIFO upgrades in flight', async (t) => {
   installAnimationFrameStubs(t);
-  const { renderer, calls } = fakeRenderer();
+  const {
+    renderer,
+    calls
+  } = fakeRenderer();
   const started = [];
   const releases = new Map();
   let inFlight = 0;
   let maxInFlight = 0;
-  const resolveTarget = async ({ target }) => {
+  const resolveTarget = async ({
+    target
+  }) => {
     const index = Number(target.slice('queue-'.length));
     return {
       lon: index,
@@ -176,7 +280,12 @@ test('outline queue: an 8-spec batch keeps at most two FIFO upgrades in flight',
         releases.set(target, () => {
           inFlight -= 1;
           resolve({
-            ring: [[index, index], [index + 0.1, index], [index, index + 0.1], [index, index]],
+            ring: [
+              [index, index],
+              [index + 0.1, index],
+              [index, index + 0.1],
+              [index, index]
+            ],
             footprintKind: 'area',
             lat: index,
             lon: index,
@@ -186,14 +295,20 @@ test('outline queue: an 8-spec batch keeps at most two FIFO upgrades in flight',
       }),
     };
   };
-  const engine = createAnnotationEngine({ viewer: {}, renderer, resolveTarget });
+  const engine = createAnnotationEngine({
+    viewer: {},
+    renderer,
+    resolveTarget
+  });
   let completed = 0;
   const allCompleted = new Promise((resolve) => engine.onOutlineEvent(() => {
     completed += 1;
     if (completed === 8) resolve();
   }));
 
-  const result = await engine.annotate(Array.from({ length: 8 }, (_, i) => ({
+  const result = await engine.annotate(Array.from({
+    length: 8
+  }, (_, i) => ({
     type: 'area',
     target: `queue-${i}`,
     footprint: true,
@@ -217,9 +332,14 @@ test('outline queue: an 8-spec batch keeps at most two FIFO upgrades in flight',
 
 test('outline queue: clear drops queued-but-unstarted upgrades without a later fetch', async (t) => {
   installAnimationFrameStubs(t);
-  const { renderer } = fakeRenderer();
+  const {
+    renderer
+  } = fakeRenderer();
   let fetchesStarted = 0;
-  const resolveTarget = async ({ target, signal }) => ({
+  const resolveTarget = async ({
+    target,
+    signal
+  }) => ({
     lon: Number(target.slice('clear-'.length)),
     lat: 10,
     height: 0,
@@ -230,12 +350,20 @@ test('outline queue: clear drops queued-but-unstarted upgrades without a later f
       fetchesStarted += 1;
       const finish = () => resolve(undefined);
       if (signal.aborted) finish();
-      else signal.addEventListener('abort', finish, { once: true });
+      else signal.addEventListener('abort', finish, {
+        once: true
+      });
     }),
   });
-  const engine = createAnnotationEngine({ viewer: {}, renderer, resolveTarget });
+  const engine = createAnnotationEngine({
+    viewer: {},
+    renderer,
+    resolveTarget
+  });
 
-  await engine.annotate(Array.from({ length: 8 }, (_, i) => ({
+  await engine.annotate(Array.from({
+    length: 8
+  }, (_, i) => ({
     type: 'area',
     target: `clear-${i}`,
     footprint: true,
@@ -251,8 +379,14 @@ test('outline queue: clear drops queued-but-unstarted upgrades without a later f
 test('retry: HTTP 429 Retry-After 5s gets one ladder-spaced retry; a second 429 stops', async (t) => {
   const originalWindow = globalThis.window;
   const originalFetch = globalThis.fetch;
-  t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 10_000 });
-  globalThis.window = { setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout };
+  t.mock.timers.enable({
+    apis: ['setTimeout', 'Date'],
+    now: 10_000
+  });
+  globalThis.window = {
+    setTimeout: globalThis.setTimeout,
+    clearTimeout: globalThis.clearTimeout
+  };
   const requestTimes = [];
   globalThis.fetch = async () => {
     requestTimes.push(Date.now());
@@ -277,12 +411,14 @@ test('retry: HTTP 429 Retry-After 5s gets one ladder-spaced retry; a second 429 
   let settled = false;
   const waits = [];
   const pending = resolveOutlineWithRetry(resolved.resolveOutline, {
-    waitFn: (ms) => {
-      waits.push(ms);
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-  })
-    .finally(() => { settled = true; });
+      waitFn: (ms) => {
+        waits.push(ms);
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      },
+    })
+    .finally(() => {
+      settled = true;
+    });
   while (waits.length === 0) await flushMicrotasks();
   assert.equal(requestTimes.length, 1);
   assert.deepEqual(waits, [8000], 'the 8s ladder floor is longer than Retry-After: 5');
@@ -308,8 +444,14 @@ test('retry: HTTP 429 Retry-After 5s gets one ladder-spaced retry; a second 429 
 test('retry: a plain HTTP 500 still exhausts the existing 8s/25s transient ladder', async (t) => {
   const originalWindow = globalThis.window;
   const originalFetch = globalThis.fetch;
-  t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 100_000 });
-  globalThis.window = { setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout };
+  t.mock.timers.enable({
+    apis: ['setTimeout', 'Date'],
+    now: 100_000
+  });
+  globalThis.window = {
+    setTimeout: globalThis.setTimeout,
+    clearTimeout: globalThis.clearTimeout
+  };
   const requestTimes = [];
   globalThis.fetch = async () => {
     requestTimes.push(Date.now());
@@ -334,12 +476,14 @@ test('retry: a plain HTTP 500 still exhausts the existing 8s/25s transient ladde
   let settled = false;
   const waits = [];
   const pending = resolveOutlineWithRetry(resolved.resolveOutline, {
-    waitFn: (ms) => {
-      waits.push(ms);
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    },
-  })
-    .finally(() => { settled = true; });
+      waitFn: (ms) => {
+        waits.push(ms);
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      },
+    })
+    .finally(() => {
+      settled = true;
+    });
   while (waits.length === 0) await flushMicrotasks();
   assert.equal(requestTimes.length, 1);
   assert.deepEqual(waits, [8000]);
@@ -386,7 +530,9 @@ test('targetKey: empty / absent targets stay null (coord and pixel specs never p
   assert.equal(normalizeTargetKey(undefined), null);
 });
 
-test('outline upgrade updates the rendered element in place without remove/add', { timeout: 5000 }, async (t) => {
+test('outline upgrade updates the rendered element in place without remove/add', {
+  timeout: 5000
+}, async (t) => {
   const originalRequestAnimationFrame = globalThis.requestAnimationFrame;
   const originalCancelAnimationFrame = globalThis.cancelAnimationFrame;
   const originalWindow = globalThis.window;
@@ -401,43 +547,71 @@ test('outline upgrade updates the rendered element in place without remove/add',
   let overpassCall = 0;
   globalThis.fetch = async (url) => {
     if (String(url).startsWith('https://maps.googleapis.com/')) {
-      return { json: async () => ({
-        status: 'OK',
-        results: [{
-          formatted_address: 'FB-3 Engine Texas Fixture',
-          types: ['administrative_area_level_1', 'political'],
-          address_components: [{
-            long_name: 'FB-3 Engine Texas Fixture',
+      return {
+        json: async () => ({
+          status: 'OK',
+          results: [{
+            formatted_address: 'FB-3 Engine Texas Fixture',
             types: ['administrative_area_level_1', 'political'],
+            address_components: [{
+              long_name: 'FB-3 Engine Texas Fixture',
+              types: ['administrative_area_level_1', 'political'],
+            }],
+            geometry: {
+              location: {
+                lat: 31,
+                lng: -99
+              }
+            },
           }],
-          geometry: { location: { lat: 31, lng: -99 } },
-        }],
-      }) };
+        })
+      };
     }
     assert.equal(String(url), '/api/overpass');
     overpassCall += 1;
     if (overpassCall === 1) {
       return {
         ok: true,
-        json: async () => ({ elements: [{
-          type: 'area',
-          id: 54321,
-          tags: { name: 'FB-3 Engine Texas Fixture', admin_level: '4' },
-        }] }),
+        json: async () => ({
+          elements: [{
+            type: 'area',
+            id: 54321,
+            tags: {
+              name: 'FB-3 Engine Texas Fixture',
+              admin_level: '4'
+            },
+          }]
+        }),
       };
     }
     return {
       ok: true,
-      json: async () => ({ elements: [{
-        type: 'relation',
-        geometry: [
-          { lon: -106, lat: 25 },
-          { lon: -93, lat: 25 },
-          { lon: -93, lat: 36 },
-          { lon: -106, lat: 36 },
-          { lon: -106, lat: 25 },
-        ],
-      }] }),
+      json: async () => ({
+        elements: [{
+          type: 'relation',
+          geometry: [{
+              lon: -106,
+              lat: 25
+            },
+            {
+              lon: -93,
+              lat: 25
+            },
+            {
+              lon: -93,
+              lat: 36
+            },
+            {
+              lon: -106,
+              lat: 36
+            },
+            {
+              lon: -106,
+              lat: 25
+            },
+          ],
+        }]
+      }),
     };
   };
   t.after(() => {
@@ -450,24 +624,38 @@ test('outline upgrade updates the rendered element in place without remove/add',
     globalThis.fetch = originalFetch;
   });
 
-  const calls = { add: 0, update: 0, remove: 0 };
+  const calls = {
+    add: 0,
+    update: 0,
+    remove: 0
+  };
   const elements = new Map();
   let originalElement = null;
   const renderer = {
     add(anno) {
       calls.add += 1;
-      originalElement = { id: anno.id };
+      originalElement = {
+        id: anno.id
+      };
       elements.set(anno.id, originalElement);
     },
     update(anno) {
       calls.update += 1;
       assert.equal(elements.get(anno.id), originalElement);
     },
-    remove() { calls.remove += 1; },
+    remove() {
+      calls.remove += 1;
+    },
     sync() {},
   };
   const viewer = {};
-  const engine = createAnnotationEngine({ viewer, renderer, placeSearch: createStandalonePlaceSearch({ resolveApiKey: () => 'unit-test-key' }) });
+  const engine = createAnnotationEngine({
+    viewer,
+    renderer,
+    placeSearch: createStandalonePlaceSearch({
+      resolveApiKey: () => 'unit-test-key'
+    })
+  });
   const upgraded = new Promise((resolve) => engine.onOutlineEvent(resolve));
 
   const result = await engine.annotate([{
@@ -479,9 +667,17 @@ test('outline upgrade updates the rendered element in place without remove/add',
   await upgraded;
 
   assert.equal(result.drawn, 1);
-  assert.deepEqual(calls, { add: 1, update: 1, remove: 0 });
+  assert.deepEqual(calls, {
+    add: 1,
+    update: 1,
+    remove: 0
+  });
   assert.equal(elements.get(result.ids[0]), originalElement, 'rendered element identity survives');
-  assert.deepEqual(engine.list()[0].anchor, { lon: -100.8, lat: 29.4, height: 0 });
+  assert.deepEqual(engine.list()[0].anchor, {
+    lon: -100.8,
+    lat: 29.4,
+    height: 0
+  });
   assert.equal(engine.list()[0].ring.length, 5, 'the existing data-level centroid/ring snap remains');
 });
 
@@ -495,38 +691,61 @@ test('outline upgrade updates the rendered element in place without remove/add',
 // outside the guard. (perf rebase 2026-08-17)
 
 function throwingRendererHarness() {
-  const calls = { add: 0, remove: 0 };
+  const calls = {
+    add: 0,
+    remove: 0
+  };
   let failNextAdd = false;
   return {
     calls,
-    failAddOnce() { failNextAdd = true; },
+    failAddOnce() {
+      failNextAdd = true;
+    },
     renderer: {
       add() {
         calls.add += 1;
-        if (failNextAdd) { failNextAdd = false; throw new Error('WebGL context lost'); }
+        if (failNextAdd) {
+          failNextAdd = false;
+          throw new Error('WebGL context lost');
+        }
       },
       update() {},
-      remove() { calls.remove += 1; },
+      remove() {
+        calls.remove += 1;
+      },
       sync() {},
     },
   };
 }
 
-const FIXED_POINT = { lon: -97.7431, lat: 30.2672, height: 0 };
+const FIXED_POINT = {
+  lon: -97.7431,
+  lat: 30.2672,
+  height: 0
+};
 
 test('duplicate-replacement: a renderer throw leaves no phantom mark and no leaked hold', async (t) => {
   installAnimationFrameStubs(t);
   _resetRenderGovernorForTest();
   t.after(() => _resetRenderGovernorForTest());
 
-  const { renderer, failAddOnce } = throwingRendererHarness();
+  const {
+    renderer,
+    failAddOnce
+  } = throwingRendererHarness();
   const engine = createAnnotationEngine({
     viewer: {},
     renderer,
-    resolveTarget: async () => ({ ...FIXED_POINT }),
+    resolveTarget: async () => ({
+      ...FIXED_POINT
+    }),
   });
 
-  const first = await engine.annotate([{ type: 'point', target: 'Texas Capitol', label: 'Capitol' }]);
+  const first = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol'
+  }]);
   assert.equal(first.drawn, 1);
   assert.equal(engine.list().length, 1);
   assert.ok(
@@ -540,9 +759,12 @@ test('duplicate-replacement: a renderer throw leaves no phantom mark and no leak
   // spot are deliberately two marks — so a recolour is the way into this
   // branch for a point; see findDuplicate.)
   failAddOnce();
-  const second = await engine.annotate([
-    { type: 'point', target: 'Texas Capitol', label: 'Capitol', color: 'amber' },
-  ]);
+  const second = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol',
+    color: 'amber'
+  }, ]);
 
   assert.equal(second.drawn, 0, 'the failed swap is reported as a failure, not a draw');
   assert.equal(second.failed, 1);
@@ -558,15 +780,24 @@ test('fresh path: a renderer throw is rolled back the same way', async (t) => {
   _resetRenderGovernorForTest();
   t.after(() => _resetRenderGovernorForTest());
 
-  const { renderer, failAddOnce } = throwingRendererHarness();
+  const {
+    renderer,
+    failAddOnce
+  } = throwingRendererHarness();
   const engine = createAnnotationEngine({
     viewer: {},
     renderer,
-    resolveTarget: async () => ({ ...FIXED_POINT }),
+    resolveTarget: async () => ({
+      ...FIXED_POINT
+    }),
   });
 
   failAddOnce();
-  const result = await engine.annotate([{ type: 'point', target: 'Texas Capitol', label: 'Capitol' }]);
+  const result = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol'
+  }]);
 
   assert.equal(result.drawn, 0);
   assert.equal(engine.list().length, 0, 'no phantom annotation from a failed first add');
@@ -591,14 +822,21 @@ function partialStateRendererHarness() {
   let failNextAdd = false;
   return {
     live,
-    failAddOnce() { failNextAdd = true; },
+    failAddOnce() {
+      failNextAdd = true;
+    },
     renderer: {
       add(anno) {
         live.set(anno.id, anno); // partial renderer state exists NOW
-        if (failNextAdd) { failNextAdd = false; throw new Error('WebGL context lost'); }
+        if (failNextAdd) {
+          failNextAdd = false;
+          throw new Error('WebGL context lost');
+        }
       },
       update() {},
-      remove(anno) { live.delete(anno.id); },
+      remove(anno) {
+        live.delete(anno.id);
+      },
       sync() {},
     },
   };
@@ -609,15 +847,25 @@ test('fresh path: a throw AFTER partial renderer state leaves nothing on the boa
   _resetRenderGovernorForTest();
   t.after(() => _resetRenderGovernorForTest());
 
-  const { renderer, failAddOnce, live } = partialStateRendererHarness();
+  const {
+    renderer,
+    failAddOnce,
+    live
+  } = partialStateRendererHarness();
   const engine = createAnnotationEngine({
     viewer: {},
     renderer,
-    resolveTarget: async () => ({ ...FIXED_POINT }),
+    resolveTarget: async () => ({
+      ...FIXED_POINT
+    }),
   });
 
   failAddOnce();
-  const failed = await engine.annotate([{ type: 'point', target: 'Texas Capitol', label: 'Capitol' }]);
+  const failed = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol'
+  }]);
   assert.equal(failed.drawn, 0);
   assert.equal(engine.list().length, 0, 'no phantom annotation');
   assert.equal(live.size, 0, 'the rollback must release what the renderer had already created');
@@ -628,7 +876,11 @@ test('fresh path: a throw AFTER partial renderer state leaves nothing on the boa
 
   // The real cost of an orphan: re-annotating the same place stacks a second
   // mark on top of the one nothing owns.
-  const retry = await engine.annotate([{ type: 'point', target: 'Texas Capitol', label: 'Capitol' }]);
+  const retry = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol'
+  }]);
   assert.equal(retry.drawn, 1);
   assert.equal(live.size, 1, 'a re-annotate must draw ONE mark, not stack over an orphan');
 });
@@ -638,23 +890,36 @@ test('duplicate-replacement: a throw AFTER partial renderer state leaves nothing
   _resetRenderGovernorForTest();
   t.after(() => _resetRenderGovernorForTest());
 
-  const { renderer, failAddOnce, live } = partialStateRendererHarness();
+  const {
+    renderer,
+    failAddOnce,
+    live
+  } = partialStateRendererHarness();
   const engine = createAnnotationEngine({
     viewer: {},
     renderer,
-    resolveTarget: async () => ({ ...FIXED_POINT }),
+    resolveTarget: async () => ({
+      ...FIXED_POINT
+    }),
   });
 
-  const first = await engine.annotate([{ type: 'point', target: 'Texas Capitol', label: 'Capitol' }]);
+  const first = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol'
+  }]);
   assert.equal(first.drawn, 1);
   assert.equal(live.size, 1);
 
   // Recolour → the duplicate-REPLACEMENT swap: remove(dup) lands, add(anno)
   // creates its state and then throws.
   failAddOnce();
-  const swap = await engine.annotate([
-    { type: 'point', target: 'Texas Capitol', label: 'Capitol', color: 'amber' },
-  ]);
+  const swap = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol',
+    color: 'amber'
+  }, ]);
   assert.equal(swap.drawn, 0);
   assert.equal(engine.list().length, 0, 'no phantom annotation survives the failed swap');
   assert.equal(live.size, 0, 'and no half-swapped mark survives on the board');
@@ -663,24 +928,42 @@ test('duplicate-replacement: a throw AFTER partial renderer state leaves nothing
     'the annotations hold must be released',
   );
 
-  const retry = await engine.annotate([
-    { type: 'point', target: 'Texas Capitol', label: 'Capitol', color: 'amber' },
-  ]);
+  const retry = await engine.annotate([{
+    type: 'point',
+    target: 'Texas Capitol',
+    label: 'Capitol',
+    color: 'amber'
+  }, ]);
   assert.equal(retry.drawn, 1);
   assert.equal(live.size, 1, 'the recoloured mark redraws once, with no orphan underneath');
 });
 
 test('destroy releases the renderer and prevents subsequent annotation work', async (t) => {
   installAnimationFrameStubs(t);
-  const { renderer, calls } = fakeRenderer();
+  const {
+    renderer,
+    calls
+  } = fakeRenderer();
   let destroyed = 0;
-  renderer.destroy = () => { destroyed++; };
-  const engine = createAnnotationEngine({ viewer: {}, renderer });
-  const drawn = await engine.annotate([{ type: 'pin', longitude: -97.74, latitude: 30.27 }]);
+  renderer.destroy = () => {
+    destroyed++;
+  };
+  const engine = createAnnotationEngine({
+    viewer: {},
+    renderer
+  });
+  const drawn = await engine.annotate([{
+    type: 'pin',
+    longitude: -97.74,
+    latitude: 30.27
+  }]);
   assert.equal(drawn.drawn, 1);
   engine.destroy();
   const additions = calls.add;
-  const result = await engine.annotate([{ type: 'pin', target: 'Must not resolve' }]);
+  const result = await engine.annotate([{
+    type: 'pin',
+    target: 'Must not resolve'
+  }]);
   assert.equal(result.error, 'destroyed');
   assert.equal(calls.add, additions);
   assert.equal(engine.count(), 0);
@@ -691,21 +974,33 @@ test('destroy releases the renderer and prevents subsequent annotation work', as
 
 test('a late annotation resolver cannot redraw after destruction', async (t) => {
   installAnimationFrameStubs(t);
-  const { renderer, calls } = fakeRenderer();
+  const {
+    renderer,
+    calls
+  } = fakeRenderer();
   renderer.destroy = () => {};
   let release;
   let signal;
   const engine = createAnnotationEngine({
-    viewer: {}, renderer,
+    viewer: {},
+    renderer,
     resolveTarget: (options) => {
       signal = options.signal;
-      return new Promise((resolve) => { release = resolve; });
+      return new Promise((resolve) => {
+        release = resolve;
+      });
     },
   });
-  const pending = engine.annotate([{ type: 'pin', target: 'Pending place' }]);
+  const pending = engine.annotate([{
+    type: 'pin',
+    target: 'Pending place'
+  }]);
   engine.destroy();
   assert.equal(signal.aborted, true);
-  release({ lon: -97.74, lat: 30.27 });
+  release({
+    lon: -97.74,
+    lat: 30.27
+  });
   await pending;
   assert.equal(calls.add, 0);
   assert.equal(engine.count(), 0);
@@ -715,14 +1010,29 @@ test('only an explicit navigation request permits resolving distant annotation t
   installAnimationFrameStubs(t);
   _resetRenderGovernorForTest();
   t.after(() => _resetRenderGovernorForTest());
-  const { renderer } = throwingRendererHarness();
+  const {
+    renderer
+  } = throwingRendererHarness();
   renderer.destroy = () => {};
   const received = [];
-  const engine = createAnnotationEngine({ viewer: {}, renderer,
-    resolveTarget: async (options) => { received.push(options); return null; },
+  const engine = createAnnotationEngine({
+    viewer: {},
+    renderer,
+    resolveTarget: async (options) => {
+      received.push(options);
+      return null;
+    },
   });
-  await engine.annotate([{ type: 'point', target: 'Remote landmark' }]);
-  await engine.annotate([{ type: 'point', target: 'Remote landmark' }], { flyTo: true });
+  await engine.annotate([{
+    type: 'point',
+    target: 'Remote landmark'
+  }]);
+  await engine.annotate([{
+    type: 'point',
+    target: 'Remote landmark'
+  }], {
+    flyTo: true
+  });
   assert.deepEqual(received.map(options => options.allowDistant), [false, true]);
   engine.destroy();
 });
