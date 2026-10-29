@@ -1,7 +1,15 @@
 import * as Cesium from 'cesium';
-import { MAX_VIEWPORT_DEGREES, REQUEST_DEBOUNCE_MS } from './policy.js';
+import {
+  MAX_VIEWPORT_DEGREES,
+  REQUEST_DEBOUNCE_MS
+} from './policy.js';
 
-export function createViewport({ state: layerState, services, parts, source }) {
+export function createViewport({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   function viewportBox(viewer) {
     const rectangle = viewer?.camera?.computeViewRectangle(
       viewer.scene.globe.ellipsoid,
@@ -19,7 +27,12 @@ export function createViewport({ state: layerState, services, parts, source }) {
       east - west > MAX_VIEWPORT_DEGREES
     )
       return null;
-    return { south, west, north, east };
+    return {
+      south,
+      west,
+      north,
+      east
+    };
   }
 
   /**
@@ -57,7 +70,9 @@ export function createViewport({ state: layerState, services, parts, source }) {
     }, layerState.retryDelayMs);
   }
 
-  function clearUnavailableRetry({ resetBackoff = true } = {}) {
+  function clearUnavailableRetry({
+    resetBackoff = true
+  } = {}) {
     clearTimeout(layerState.retryTimer);
     layerState.retryTimer = null;
     layerState.retryAt = 0;
@@ -68,7 +83,9 @@ export function createViewport({ state: layerState, services, parts, source }) {
     if (!layerState.enabled) return;
     // A user-driven load supersedes any pending retry; the load reschedules on
     // failure, so the backoff step is kept rather than reset.
-    clearUnavailableRetry({ resetBackoff: false });
+    clearUnavailableRetry({
+      resetBackoff: false
+    });
     clearTimeout(layerState.timer);
     layerState.timer = setTimeout(() => {
       parts.ingestion.loadInstallations();
