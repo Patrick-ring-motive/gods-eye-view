@@ -1,8 +1,9 @@
 /** Read layer lifecycle through the supplied manager. */
 export function readLayerLifecycleSummary(
   dataManager,
-  layerId,
-  { fallbackEnabled = false } = {},
+  layerId, {
+    fallbackEnabled = false
+  } = {},
 ) {
   let lifecycle = null;
   try {
@@ -14,8 +15,7 @@ export function readLayerLifecycleSummary(
     const enabled = Boolean(lifecycle.enabled);
     return {
       enabled,
-      lifecycleState:
-        lifecycle.lifecycleState || (enabled ? 'enabled' : 'disabled'),
+      lifecycleState: lifecycle.lifecycleState || (enabled ? 'enabled' : 'disabled'),
       lifecycleUncertain: Boolean(
         lifecycle.uncertain ?? lifecycle.lifecycleUncertain,
       ),
