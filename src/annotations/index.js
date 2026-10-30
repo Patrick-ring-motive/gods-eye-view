@@ -24,7 +24,8 @@ export function initAnnotations({
     try {
       tileset.enableCollision = true;
     } catch {
-      /* older tileset */ }
+      /* older tileset */
+    }
   }
   const renderer = createHybridAnnotationRenderer(viewer);
   const engine = createAnnotationEngine({
