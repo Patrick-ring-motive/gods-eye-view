@@ -414,8 +414,7 @@ test('a cold partial catalog is explicit degraded data while zero usable rows ar
     fetchImpl: async (url) => String(url).includes('/json/servers') ?
       responseJson([{
         name: 'de1.api.radio-browser.info'
-      }]) :
-      responseJson([]),
+      }]) : responseJson([]),
   });
   const emptyResult = await invoke(empty, '/stations');
   assert.equal(emptyResult.status, 503);
@@ -480,8 +479,7 @@ test('catalog response is hard-capped at 750 normalized stations', async () => {
     fetchImpl: async (url) => String(url).includes('/json/servers') ?
       responseJson([{
         name: 'de1.api.radio-browser.info'
-      }]) :
-      responseJson(rows),
+      }]) : responseJson(rows),
   });
   const result = await invoke(middleware, '/stations');
   assert.equal(result.status, 200);
