@@ -1,4 +1,6 @@
-import { expandApplicationHtml } from '../../build/application-html.js';
+import {
+  expandApplicationHtml
+} from '../../build/application-html.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,7 +19,9 @@ import {
   profileForDensity,
   viewScaleForAltitude,
 } from './detectionPolicy.js';
-import { KEYHOLE_OUTSIDE_OPACITY_DEFAULT } from '../celestialRing.js';
+import {
+  KEYHOLE_OUTSIDE_OPACITY_DEFAULT
+} from '../celestialRing.js';
 
 const indexHtml = expandApplicationHtml(fs.readFileSync(new URL('../../index.html', import.meta.url), 'utf8'));
 
@@ -111,7 +115,9 @@ test('the range around the default is REACHABLE from the handle', () => {
 });
 
 test('the bracket floor is strictly increasing and stops overriding at full opacity', () => {
-  const steps = Array.from({ length: 101 }, (_, i) => i / 100);
+  const steps = Array.from({
+    length: 101
+  }, (_, i) => i / 100);
   let previous = -1;
   for (const outside of steps) {
     const floor = aircraftBracketAlphaFloor(outside);
@@ -153,7 +159,7 @@ test('aircraft coverage diagnostics use stable left/front/right thirds', () => {
 test('density canonicalization respects profile thresholds and five stops', () => {
   assert.deepEqual(
     [-10, 0, 12.49, 12.5, 25, 26, 49, 74, 75, 87.49, 87.5, 100, 120]
-      .map(canonicalizeDensity),
+    .map(canonicalizeDensity),
     [0, 0, 0, 25, 25, 50, 50, 50, 75, 75, 100, 100, 100],
   );
 });
@@ -190,16 +196,24 @@ test('collective budgets follow view scale and canonical stop', () => {
 
 test('legacy state migration removes contradictory mode/density pairs', () => {
   assert.deepEqual(migrateDetectionState('PANOPTIC', 0), {
-    enabled: true, profile: 'DENSE', densityPct: 75,
+    enabled: true,
+    profile: 'DENSE',
+    densityPct: 75,
   });
   assert.deepEqual(migrateDetectionState('SPARSE', 100), {
-    enabled: true, profile: 'SPARSE', densityPct: 25,
+    enabled: true,
+    profile: 'SPARSE',
+    densityPct: 25,
   });
   assert.deepEqual(migrateDetectionState('BALANCED', 100), {
-    enabled: true, profile: 'BALANCED', densityPct: 50,
+    enabled: true,
+    profile: 'BALANCED',
+    densityPct: 50,
   });
   assert.equal(migrateDetectionState('OFF', 25).enabled, false);
   assert.deepEqual(migrateDetectionState('OFF', 25, 50), {
-    enabled: false, profile: 'SPARSE', densityPct: 25,
+    enabled: false,
+    profile: 'SPARSE',
+    densityPct: 25,
   });
 });
