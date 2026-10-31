@@ -48,7 +48,9 @@ export function setContextCollapsed(collapsed) {
   this.scheduleContextLayout();
 }
 
-export function setSignalCollapsed(collapsed, { user = false } = {}) {
+export function setSignalCollapsed(collapsed, {
+  user = false
+} = {}) {
   const wasCollapsed = this.signalCollapsed;
   this.signalCollapsed = Boolean(collapsed);
   if (user) this.signalUserCollapsed = this.signalCollapsed;
@@ -67,7 +69,9 @@ export function setSignalCollapsed(collapsed, { user = false } = {}) {
       icon.textContent = expanded ? 'right_panel_close' : 'right_panel_open';
   }
   if (this.signalCollapsed) this.stopBriefRotation();
-  else this.startBriefRotation({ reset: true });
+  else this.startBriefRotation({
+    reset: true
+  });
   if (this.active && wasCollapsed && !this.signalCollapsed) {
     window.dispatchEvent(new CustomEvent('gev:cockpit-signal-expanded'));
   }
@@ -139,18 +143,18 @@ export function syncSignalLayout() {
     const collapsedLauncher = collapsedControl?.querySelector(
       '.cockpit-utility-launcher',
     );
-    const expandedHeight = expandedControl
-      ? Math.max(
-          expandedControl.scrollHeight,
-          expandedControl.getBoundingClientRect().height,
-        )
-      : 0;
-    const collapsedHeight = collapsedLauncher
-      ? Math.max(
-          COCKPIT_UTILITY_LAUNCHER_MIN_HEIGHT_PX,
-          collapsedLauncher.scrollHeight,
-        )
-      : 0;
+    const expandedHeight = expandedControl ?
+      Math.max(
+        expandedControl.scrollHeight,
+        expandedControl.getBoundingClientRect().height,
+      ) :
+      0;
+    const collapsedHeight = collapsedLauncher ?
+      Math.max(
+        COCKPIT_UTILITY_LAUNCHER_MIN_HEIGHT_PX,
+        collapsedLauncher.scrollHeight,
+      ) :
+      0;
     // Cockpit owns this anchor outright. The strip used to inherit the left
     // accordion's committed top, which is solved against left-lane obstacles
     // and dropped the strip straight through the briefing card below it.
@@ -158,9 +162,9 @@ export function syncSignalLayout() {
     // the Minimal variant drops it with `display:none`, but HUD Off hides the
     // whole Intel HUD with `visibility`/`opacity`, which keeps its rect.
     const recReadout = document.querySelector('#intel-hud .hud-top-right');
-    const recBounds = isRenderedOnScreen(recReadout)
-      ? recReadout.getBoundingClientRect()
-      : null;
+    const recBounds = isRenderedOnScreen(recReadout) ?
+      recReadout.getBoundingClientRect() :
+      null;
     const utilityAnchor = resolveCockpitUtilityAnchor({
       recBottom: recBounds ? recBounds.bottom : 0,
       signalTop: signalBounds.top,
@@ -182,13 +186,16 @@ export function syncSignalLayout() {
       `${availableHeight.toFixed(2)}px`,
     );
     const utilityLayout =
-      expandedControl && collapsedControl
-        ? resolveCockpitUtilityLayout({
-            availableHeight,
-            expandedHeight,
-            collapsedHeight,
-          })
-        : { primaryOnly: false, expandedMaxHeight: availableHeight };
+      expandedControl && collapsedControl ?
+      resolveCockpitUtilityLayout({
+        availableHeight,
+        expandedHeight,
+        collapsedHeight,
+      }) :
+      {
+        primaryOnly: false,
+        expandedMaxHeight: availableHeight
+      };
     utilityControls?.classList.toggle(
       'layout-primary-only',
       utilityLayout.primaryOnly,
@@ -206,7 +213,9 @@ export function syncSignalLayout() {
         if (hiddenSibling && control.contains(document.activeElement)) {
           expandedControl
             ?.querySelector('.cockpit-utility-glyph')
-            ?.focus({ preventScroll: true });
+            ?.focus({
+              preventScroll: true
+            });
         }
       });
   }
