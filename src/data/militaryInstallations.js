@@ -1,4 +1,6 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
 import {
   createInstallationsLayer,
   createInstallationSource,
@@ -17,7 +19,13 @@ const sourceSlot = createSourceSlot(
 export const configureInstallationSource = sourceSlot.configure;
 const layer = createInstallationsLayer({
   source: sourceSlot.source,
-  services: { render, context, ground, anchors, picking },
+  services: {
+    render,
+    context,
+    ground,
+    anchors,
+    picking
+  },
 });
 export const approximateSurfaceDistanceM = layer.approximateSurfaceDistanceM;
 export const classifyGoogleMilitaryPlace = layer.classifyGoogleMilitaryPlace;
