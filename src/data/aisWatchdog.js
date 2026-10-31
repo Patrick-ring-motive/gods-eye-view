@@ -151,8 +151,7 @@ export function createAisWatchdog(options = {}) {
   );
   const backoffMs =
     Array.isArray(options.backoffMs) && options.backoffMs.length ?
-    options.backoffMs.map((ms) => positiveOr(ms, 5_000)) :
-    [...AIS_WATCHDOG_DEFAULTS.backoffMs];
+    options.backoffMs.map((ms) => positiveOr(ms, 5_000)) : [...AIS_WATCHDOG_DEFAULTS.backoffMs];
   const downRetryMs = positiveOr(
     options.downRetryMs,
     AIS_WATCHDOG_DEFAULTS.downRetryMs,
@@ -491,8 +490,7 @@ export function createAisWatchdog(options = {}) {
       nextAttemptAt: status === 'reconnecting' ||
         status === 'down' ||
         status === 'auth-failed' ?
-        wallNow + waitingMs :
-        null,
+        wallNow + waitingMs : null,
       watchdog: silenceWatchArmed ? 'armed' : 'custom-subscription-off',
       staleAfterMs: staleMs,
     };
