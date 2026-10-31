@@ -12,8 +12,11 @@ export function createRendering({
   parts,
   source,
 }) {
-  const { getSatelliteOrbitTrack, findSatelliteOrbitTrackInTle } =
-    services.satellites;
+  const {
+    getSatelliteOrbitTrack,
+    findSatelliteOrbitTrackInTle
+  } =
+  services.satellites;
 
   function setGraphicVisibility(graphic, visible, time) {
     if (!graphic) return;
@@ -84,23 +87,23 @@ export function createRendering({
       launch.status,
     );
     const coreTrack =
-      orbitAllowed && launch.satelliteQuery
-        ? getSatelliteOrbitTrack(launch.satelliteQuery, {
-            launchTime: launch.launchTime,
-          })
-        : null;
+      orbitAllowed && launch.satelliteQuery ?
+      getSatelliteOrbitTrack(launch.satelliteQuery, {
+        launchTime: launch.launchTime,
+      }) :
+      null;
     const satelliteTrack =
       coreTrack ||
-      (orbitAllowed && activeTleText && launch.satelliteQuery
-        ? findSatelliteOrbitTrackInTle(activeTleText, launch.satelliteQuery, {
-            launchTime: launch.launchTime,
-          })
-        : null);
-    const orbitPath = !orbitAllowed
-      ? null
-      : satelliteTrack?.orbitPath?.length > 1
-        ? satelliteTrack.orbitPath
-        : parts.paths.approximateOrbitPath(launch);
+      (orbitAllowed && activeTleText && launch.satelliteQuery ?
+        findSatelliteOrbitTrackInTle(activeTleText, launch.satelliteQuery, {
+          launchTime: launch.launchTime,
+        }) :
+        null);
+    const orbitPath = !orbitAllowed ?
+      null :
+      satelliteTrack?.orbitPath?.length > 1 ?
+      satelliteTrack.orbitPath :
+      parts.paths.approximateOrbitPath(launch);
     launch.recoveryStages.forEach((stage) => {
       stage.endpoint = parts.paths.landingEndpoint(
         stage,
@@ -145,16 +148,16 @@ export function createRendering({
     const points = launch.trajectory
       .filter(
         (point) =>
-          Number.isFinite(Number(point.latitude)) &&
-          Number.isFinite(Number(point.longitude)),
+        Number.isFinite(Number(point.latitude)) &&
+        Number.isFinite(Number(point.longitude)),
       )
       .map((point) => ({
         stage: String(
           point.stage ||
-            point.stage_name ||
-            point.phase ||
-            point.stageName ||
-            'trajectory',
+          point.stage_name ||
+          point.phase ||
+          point.stageName ||
+          'trajectory',
         ),
         position: Cesium.Cartesian3.fromDegrees(
           Number(point.longitude),
@@ -167,7 +170,10 @@ export function createRendering({
       points.forEach((point) => {
         const previous = segments.at(-1);
         if (!previous || previous.stage !== point.stage)
-          segments.push({ stage: point.stage, positions: [] });
+          segments.push({
+            stage: point.stage,
+            positions: []
+          });
         segments.at(-1).positions.push(point.position);
       });
       segments.forEach((segment, index) => {
@@ -203,12 +209,12 @@ export function createRendering({
       const launchEpochMs = Date.parse(launch.launchTime);
       const disclosedInsertionOffsetSec =
         parts.paths.orbitInsertionOffsetSeconds(launch);
-      const insertionDurationSec = Number.isFinite(disclosedInsertionOffsetSec)
-        ? Math.max(0, disclosedInsertionOffsetSec)
-        : 600;
-      const insertionEpochMs = Number.isFinite(launchEpochMs)
-        ? launchEpochMs + insertionDurationSec * 1000
-        : Number.NaN;
+      const insertionDurationSec = Number.isFinite(disclosedInsertionOffsetSec) ?
+        Math.max(0, disclosedInsertionOffsetSec) :
+        600;
+      const insertionEpochMs = Number.isFinite(launchEpochMs) ?
+        launchEpochMs + insertionDurationSec * 1000 :
+        Number.NaN;
       let insertionReference = points.at(-1)?.position || null;
       if (
         !insertionReference &&
@@ -242,7 +248,10 @@ export function createRendering({
           insertionProgress,
         );
       }
-      const { ascentPath, animatedOrbitPath } = parts.paths.buildMissionPaths(
+      const {
+        ascentPath,
+        animatedOrbitPath
+      } = parts.paths.buildMissionPaths(
         position,
         points.map((point) => point.position),
         orbitPath,
@@ -331,8 +340,7 @@ export function createRendering({
               positions: reentryPath,
               width: 2.5,
               material: new Cesium.PolylineDashMaterialProperty({
-                color:
-                  Cesium.Color.fromCssColorString('#ffd166').withAlpha(0.9),
+                color: Cesium.Color.fromCssColorString('#ffd166').withAlpha(0.9),
                 dashLength: 8,
                 dashPattern: 0xf0f0,
               }),
@@ -378,8 +386,7 @@ export function createRendering({
       layerState._replayTracks.set(launch.id, {
         ascentPath,
         animatedOrbitPath,
-        orbitFrameSphere:
-          parts.camera.replayOrbitFrameSphere(animatedOrbitPath),
+        orbitFrameSphere: parts.camera.replayOrbitFrameSphere(animatedOrbitPath),
         ascentDurationSec,
         beginReplayFrame,
         getReplayState,
@@ -395,7 +402,9 @@ export function createRendering({
         orbitCurrent.altitude,
       );
       const liveTime = new Date();
-      const liveTelemetry = { speedMps: null };
+      const liveTelemetry = {
+        speedMps: null
+      };
       layerState._satelliteTelemetry.set(launch.id, liveTelemetry);
       let liveFrameNumber = -1;
       const fallbackPeriodSec =
@@ -418,9 +427,9 @@ export function createRendering({
               undefined,
               livePosition,
             );
-            liveTelemetry.speedMps = Number.isFinite(propagated.speedMps)
-              ? propagated.speedMps
-              : null;
+            liveTelemetry.speedMps = Number.isFinite(propagated.speedMps) ?
+              propagated.speedMps :
+              null;
           }
         } else {
           // In-place write keeps one Cartesian3 for the mission's lifetime —
@@ -450,21 +459,21 @@ export function createRendering({
         properties: {
           launchId: launch.id,
           noradId: satelliteTrack?.noradId || '',
-          phase: satelliteTrack
-            ? 'CURRENT_SATELLITE_POSITION'
-            : 'ESTIMATED_ORBIT_POSITION',
-          source: satelliteTrack
-            ? 'Satellites layer'
-            : 'Approximate mission orbit',
+          phase: satelliteTrack ?
+            'CURRENT_SATELLITE_POSITION' :
+            'ESTIMATED_ORBIT_POSITION',
+          source: satelliteTrack ?
+            'Satellites layer' :
+            'Approximate mission orbit',
         },
       });
       overlayRecord.liveEventTime = () => liveTime;
       overlayRecord.elementEntryFactories.push(() => {
-        const name = satelliteTrack
-          ? parts.overlays
-              .shortMissionLabel(satelliteTrack.name, 22)
-              .toUpperCase()
-          : 'EST. ORBIT POSITION';
+        const name = satelliteTrack ?
+          parts.overlays
+          .shortMissionLabel(satelliteTrack.name, 22)
+          .toUpperCase() :
+          'EST. ORBIT POSITION';
         return parts.overlays.createRocketMissionElementOverlayEntry({
           id: `payload-position:${launch.id}`,
           position: () => livePosition,
@@ -490,10 +499,9 @@ export function createRendering({
             // The 3 px canvas gives the periodic dot room to read as round; the
             // shader masks the ten intervening dashes down to a thin center stroke.
             width: 3,
-            material:
-              new parts.orbitRendering.MissionOrbitPatternMaterialProperty(
-                Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.95),
-              ),
+            material: new parts.orbitRendering.MissionOrbitPatternMaterialProperty(
+              Cesium.Color.fromCssColorString('#c084fc').withAlpha(0.95),
+            ),
             arcType: Cesium.ArcType.NONE,
           },
           properties: {
@@ -528,9 +536,9 @@ export function createRendering({
       );
       const replayPosition = new Cesium.CallbackProperty(() => {
         const state = getReplayState();
-        return state.ascending
-          ? parts.paths.samplePath(ascentPath, state.phaseProgress)
-          : parts.paths.samplePath(animatedOrbitPath, state.phaseProgress);
+        return state.ascending ?
+          parts.paths.samplePath(ascentPath, state.phaseProgress) :
+          parts.paths.samplePath(animatedOrbitPath, state.phaseProgress);
       }, false);
       layerState._dataSource.entities.add({
         id: `rocket-vehicle:${launch.id}`,
@@ -539,9 +547,9 @@ export function createRendering({
           launchId: launch.id,
           noradId: satelliteTrack?.noradId || '',
           phase: 'ASCENT_THEN_ORBIT',
-          source: satelliteTrack
-            ? 'Satellite trajectory animation'
-            : 'Approximate trajectory animation',
+          source: satelliteTrack ?
+            'Satellite trajectory animation' :
+            'Approximate trajectory animation',
         },
       });
       layerState._dataSource.entities.add({
@@ -562,12 +570,16 @@ export function createRendering({
         properties: {
           launchId: launch.id,
           phase: 'APPROXIMATE_TRANSFER',
-          source: satelliteTrack
-            ? 'Launch site to propagated insertion'
-            : 'Launch site to forward projected insertion',
+          source: satelliteTrack ?
+            'Launch site to propagated insertion' :
+            'Launch site to forward projected insertion',
         },
       });
     }
   }
-  return { setGraphicVisibility, updateMissionFrame, addLaunchEntity };
+  return {
+    setGraphicVisibility,
+    updateMissionFrame,
+    addLaunchEntity
+  };
 }
