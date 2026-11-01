@@ -1,4 +1,6 @@
-import { createSourceSlot } from '../app/sourceSlot.js';
+import {
+  createSourceSlot
+} from '../app/sourceSlot.js';
 import {
   createSatellitesLayer,
   createSatelliteSource,
@@ -19,7 +21,15 @@ const sourceSlot = createSourceSlot(
 export const configureSatelliteSource = sourceSlot.configure;
 const layer = createSatellitesLayer({
   source: sourceSlot.source,
-  services: { picking, focus, readout, overlays, context, render, layerState },
+  services: {
+    picking,
+    focus,
+    readout,
+    overlays,
+    context,
+    render,
+    layerState
+  },
 });
 export const satelliteVisualsVisible = layer.satelliteVisualsVisible;
 export const satelliteCatalogModeChanged = layer.satelliteCatalogModeChanged;
@@ -57,5 +67,6 @@ export const getSatelliteOrbitTrack = layer.getSatelliteOrbitTrack;
 export {
   ISS_OVERLAY_SOURCE_ID,
   ISS_OVERLAY_SOURCE_OPTIONS,
-} from '../layers/satellites/index.js';
+}
+from '../layers/satellites/index.js';
 export default layer;
