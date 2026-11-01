@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { promises as fsp } from 'node:fs';
+import {
+  promises as fsp
+} from 'node:fs';
 import {
   celestrakProxy,
   rocketLaunchesProxy,
@@ -26,16 +28,24 @@ function install(plugin, preview = false) {
     const res = {
       headersSent: false,
       writeHead(status, headers) {
-        Object.assign(this, { status, headers, headersSent: true });
+        Object.assign(this, {
+          status,
+          headers,
+          headersSent: true
+        });
       },
       end(body) {
         this.body = body;
       },
     };
-    await routes.get(route)({ url, method }, res);
+    await routes.get(route)({
+      url,
+      method
+    }, res);
     return res;
   };
 }
+
 function isolateDisk(t) {
   t.mock.method(fsp, 'readFile', async () => {
     throw Error('no cache');
@@ -110,8 +120,10 @@ test('exported CelesTrak plugin coalesces refreshes, retains stale TLEs, and rea
   assert.equal(stale.body, tle);
   assert.equal(stale.headers['x-tle-cache'], 'STALE-ERROR');
   t.mock.method(fsp, 'readFile', async () =>
-    JSON.stringify({ at: now, body: tle }),
-  );
+    JSON.stringify({
+      at: now,
+      body: tle
+    }), );
   t.mock.method(globalThis, 'fetch', async () => {
     throw Error('fresh disk must prevent fetch');
   });
@@ -134,7 +146,11 @@ for (const preview of [false, true])
       calls++;
       assert.equal(url.searchParams.get('limit'), '100');
       assert.equal(options.headers.Authorization, 'Token fixture-token');
-      return Response.json({ results: [{ id: 'launch-fixture' }] });
+      return Response.json({
+        results: [{
+          id: 'launch-fixture'
+        }]
+      });
     });
     const request = install(rocketLaunchesProxy(), preview);
     assert.equal((await request('/api/launches', '/', 'POST')).status, 405);
