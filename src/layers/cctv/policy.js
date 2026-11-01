@@ -1,6 +1,10 @@
 import * as Cesium from 'cesium';
-import { CCTV_CARD_FETCH_BURST_SPACING_MS } from '../../data/cctvCards.js';
-import { CCTV_AMBIENT_CARD_MAX } from '../../data/cctvLod.js';
+import {
+  CCTV_CARD_FETCH_BURST_SPACING_MS
+} from '../../data/cctvCards.js';
+import {
+  CCTV_AMBIENT_CARD_MAX
+} from '../../data/cctvLod.js';
 
 // ---------------------------------------------------------------------------
 // API endpoints
@@ -177,8 +181,7 @@ export const CAMERA_ICON = (() => {
  * plus offsets to place the camera near the POI.
  */
 
-export const CAMERA_SEEDS = [
-  {
+export const CAMERA_SEEDS = [{
     id: 'nyc-midtown-w',
     cityId: 'nyc',
     poiIndex: 1,
