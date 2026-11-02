@@ -26,8 +26,12 @@ export function createRendering({
   layer,
   options,
 }) {
-  const { state } = vesselState;
-  const { registerSpriteCollection } = services.sprites;
+  const {
+    state
+  } = vesselState;
+  const {
+    registerSpriteCollection
+  } = services.sprites;
   const {
     forgetSpriteFocus,
     focusNowMs,
@@ -250,7 +254,12 @@ export function createRendering({
     params,
   }) {
     if (!focusPassIsNeeded(target, previousActiveCount)) {
-      return { writes: 0, transitioning: false, activeCount: 0, ran: false };
+      return {
+        writes: 0,
+        transitioning: false,
+        activeCount: 0,
+        ran: false
+      };
     }
     let writes = 0;
     let transitioning = false;
@@ -284,7 +293,12 @@ export function createRendering({
         writes += 1;
       }
     }
-    return { writes, transitioning, activeCount, ran: true };
+    return {
+      writes,
+      transitioning,
+      activeCount,
+      ran: true
+    };
   }
 
   function makeOccluder() {
@@ -316,9 +330,9 @@ export function createRendering({
     const viewer = state.viewer;
     const scene = viewer?.scene;
     const selected = state.selectedRecord;
-    const entries = selected
-      ? [components.cards.buildSelectedVesselCard(selected)]
-      : [];
+    const entries = selected ?
+      [components.cards.buildSelectedVesselCard(selected)] :
+      [];
     const maxLabels = labelRowLimit();
 
     if (!scene || !records.length || maxLabels <= 0) {
@@ -356,7 +370,10 @@ export function createRendering({
         scene,
         selected.billboard?.position || selected.position,
       );
-      if (screen) accepted.push({ x: screen.x, y: screen.y });
+      if (screen) accepted.push({
+        x: screen.x,
+        y: screen.y
+      });
     }
     const ranked = [...cells.values()].sort((a, b) => b.score - a.score);
     for (const candidate of ranked) {
@@ -369,7 +386,10 @@ export function createRendering({
         )
       )
         continue;
-      accepted.push({ x: candidate.x, y: candidate.y });
+      accepted.push({
+        x: candidate.x,
+        y: candidate.y
+      });
       entries.push(components.cards.buildVesselCard(candidate.record));
     }
     state.activeLabelCount = entries.length;
@@ -400,9 +420,9 @@ export function createRendering({
           VESSEL_CARD_FADE_DISTANCE_M,
         );
         if (!card.interactive) return card;
-        const mmsi = String(card.id || '').startsWith('vessel:')
-          ? card.id.slice('vessel:'.length)
-          : '';
+        const mmsi = String(card.id || '').startsWith('vessel:') ?
+          card.id.slice('vessel:'.length) :
+          '';
         return {
           ...card,
           accessibilityLabel: `Focus vessel ${card.title}, MMSI ${mmsi}`,
@@ -413,8 +433,7 @@ export function createRendering({
             return true;
           },
         };
-      }),
-      {
+      }), {
         cohortLimit: Math.max(1, ambientLimit),
         collisionCapacity: ambientLimit,
         moving: false,
