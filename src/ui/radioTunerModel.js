@@ -36,8 +36,16 @@ export function radioTunerPointerPosition(
   insetPx = 7,
 ) {
   const count = Math.max(0, Math.floor(Number(stationCount) || 0));
-  if (!count) return { ratio: 0, coordinate: 0, stationIndex: -1 };
-  if (count === 1) return { ratio: 0.5, coordinate: 0, stationIndex: 0 };
+  if (!count) return {
+    ratio: 0,
+    coordinate: 0,
+    stationIndex: -1
+  };
+  if (count === 1) return {
+    ratio: 0.5,
+    coordinate: 0,
+    stationIndex: 0
+  };
   const inset = Math.max(0, Number(insetPx) || 0);
   const usableWidth = Math.max(1, (Number(width) || 0) - inset * 2);
   const ratio = Math.min(
@@ -62,8 +70,7 @@ export function radioTunerPointerPosition(
 export function buildRadioTunerTicks(
   coordinate,
   stationCount,
-  width,
-  {
+  width, {
     insetPx = 7,
     minPitchPx = 14,
     speedFactor = 5,
@@ -75,19 +82,22 @@ export function buildRadioTunerTicks(
   const dialWidth = Math.max(0, Number(width) || 0);
   const inset = Math.max(0, Number(insetPx) || 0);
   const usableWidth = Math.max(0, dialWidth - inset * 2);
-  if (!count) return { ticks: [], needleX: inset, pitchPx: 0, ratio: 0 };
+  if (!count) return {
+    ticks: [],
+    needleX: inset,
+    pitchPx: 0,
+    ratio: 0
+  };
   const value = Math.min(count - 1, Math.max(0, Number(coordinate) || 0));
   if (count === 1) {
     return {
-      ticks: [
-        {
-          stationIndex: 0,
-          channel: 1,
-          xPx: inset + usableWidth / 2,
-          current: true,
-          label: '01',
-        },
-      ],
+      ticks: [{
+        stationIndex: 0,
+        channel: 1,
+        xPx: inset + usableWidth / 2,
+        current: true,
+        label: '01',
+      }, ],
       needleX: inset + usableWidth / 2,
       pitchPx: Math.max(1, Number(minPitchPx) || 14),
       ratio: 0.5,
@@ -131,5 +141,10 @@ export function buildRadioTunerTicks(
       label: labelled ? String(channel).padStart(labelWidth, '0') : '',
     });
   }
-  return { ticks, needleX, pitchPx, ratio: value / (count - 1) };
+  return {
+    ticks,
+    needleX,
+    pitchPx,
+    ratio: value / (count - 1)
+  };
 }
