@@ -89,7 +89,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* skip */ }
+      /* skip */
+    }
   }
   return null;
 }
@@ -593,7 +594,8 @@ async function main() {
               try {
                 radius = p.ready && p.boundingSphere ? p.boundingSphere.radius : null;
               } catch {
-                /* not ready */ }
+                /* not ready */
+              }
               out.push({
                 id: p.id,
                 scale: p.scale,
