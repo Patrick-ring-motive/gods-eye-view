@@ -61,8 +61,7 @@ export function createRendering({
         Cesium.Cartesian3.distance(camera.positionWC, position),
       baseColorFor: (record) =>
         record.camera.id === layerState._activeCameraId ?
-        ACTIVE_CAMERA_COLOR :
-        IDLE_CAMERA_COLOR,
+        ACTIVE_CAMERA_COLOR : IDLE_CAMERA_COLOR,
     });
     layerState._activeFocusStyleCount = result.activeCount;
   }
