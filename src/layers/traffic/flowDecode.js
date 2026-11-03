@@ -60,11 +60,9 @@ export function decodeFlowTile(data, z, x, y) {
     const roadType = typeof props.road_type === 'string' ? props.road_type : '';
 
     const lines =
-      geometry.type === 'LineString' ?
-      [geometry.coordinates] :
+      geometry.type === 'LineString' ? [geometry.coordinates] :
       geometry.type === 'MultiLineString' ?
-      geometry.coordinates :
-      [];
+      geometry.coordinates : [];
     for (const coords of lines) {
       if (!Array.isArray(coords) || coords.length < 2) continue;
       segments.push({
