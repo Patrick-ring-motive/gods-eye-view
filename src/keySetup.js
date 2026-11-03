@@ -1,4 +1,6 @@
-import { createSurfaceKeyboard } from './ui/surfaceKeyboard.js';
+import {
+  createSurfaceKeyboard
+} from './ui/surfaceKeyboard.js';
 
 /**
  * The POWER UP surface — paste a key, get a power.
@@ -57,7 +59,10 @@ export function stripKeylessBasemapFromHash(hash) {
   }
 }
 
-const TIER_DOTS = Object.freeze({ metered: '🔴', free: '🟡' });
+const TIER_DOTS = Object.freeze({
+  metered: '🔴',
+  free: '🟡'
+});
 
 /** Build one key row. All content is our own registry text, set via textContent. */
 function buildRow(documentRef, key) {
@@ -121,9 +126,9 @@ function buildRow(documentRef, key) {
       input.spellcheck = false;
       input.dataset.envVar = envVar;
       input.setAttribute('aria-label', envVar);
-      input.placeholder = key.set
-        ? `${envVar} saved — paste to replace`
-        : `paste ${envVar}`;
+      input.placeholder = key.set ?
+        `${envVar} saved — paste to replace` :
+        `paste ${envVar}`;
       fields.append(input);
     }
     if (key.managed === 'file') {
@@ -144,7 +149,11 @@ function buildRow(documentRef, key) {
  * Wire the chip + dialog. Fire-and-forget from main.js; resolves to null when
  * the surface has no business existing (prod build, LAN visitor, no markup).
  */
-export async function initKeySetup({ documentRef = globalThis.document, fetchImpl, signal } = {}) {
+export async function initKeySetup({
+  documentRef = globalThis.document,
+  fetchImpl,
+  signal
+} = {}) {
   const chip = documentRef?.getElementById?.('key-setup-chip');
   const root = documentRef?.getElementById?.('key-setup');
   if (!chip || !root || root.dataset.initialized === 'true') return null;
@@ -161,13 +170,21 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     chip.remove();
     root.remove();
   };
-  if (signal?.aborted) { destroy(); return null; }
-  signal?.addEventListener('abort', destroy, { once: true });
+  if (signal?.aborted) {
+    destroy();
+    return null;
+  }
+  signal?.addEventListener('abort', destroy, {
+    once: true
+  });
   const doFetch = fetchImpl || globalThis.fetch?.bind(globalThis);
 
   let status = null;
   try {
-    const response = await doFetch('/api/setup/status', { cache: 'no-store', signal: lifetime.signal });
+    const response = await doFetch('/api/setup/status', {
+      cache: 'no-store',
+      signal: lifetime.signal
+    });
     if (!response.ok) throw new Error(String(response.status));
     status = await response.json();
     if (disposed) return null;
@@ -199,9 +216,9 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     for (const key of status.keys || []) rowsHost.append(buildRow(documentRef, key));
   };
 
-  const visible = () => root.isConnected
-    && root.classList.contains('visible')
-    && root.getClientRects().length > 0;
+  const visible = () => root.isConnected &&
+    root.classList.contains('visible') &&
+    root.getClientRects().length > 0;
 
   const keyboard = createSurfaceKeyboard({
     root,
@@ -218,7 +235,9 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     globalThis.requestAnimationFrame?.(() => {
       if (!open) return;
       root.classList.add('visible');
-      root.querySelector('input')?.focus?.({ preventScroll: true });
+      root.querySelector('input')?.focus?.({
+        preventScroll: true
+      });
     });
   };
 
@@ -226,18 +245,26 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     if (!open) return;
     open = false;
     root.classList.remove('visible');
-    const hide = () => { if (!open) root.hidden = true; };
-    root.addEventListener('transitionend', hide, { once: true });
+    const hide = () => {
+      if (!open) root.hidden = true;
+    };
+    root.addEventListener('transitionend', hide, {
+      once: true
+    });
     globalThis.setTimeout?.(hide, 400);
     if (statusLine) statusLine.textContent = defaultStatusText;
-    keyboard.deactivate({ restoreFocus: true });
+    keyboard.deactivate({
+      restoreFocus: true
+    });
   };
 
-  const say = (text) => { if (statusLine) statusLine.textContent = text; };
+  const say = (text) => {
+    if (statusLine) statusLine.textContent = text;
+  };
 
-  const storeLabel = () => (status?.store === 'pinokio-environment'
-    ? 'your app configuration'
-    : 'your local .env');
+  const storeLabel = () => (status?.store === 'pinokio-environment' ?
+    'your app configuration' :
+    'your local .env');
 
   const submitUpdates = async (updates, doneVerb) => {
     if (disposed || busy) return;
@@ -249,7 +276,9 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
       const response = await doFetch('/api/setup/keys', {
         method: 'POST',
         signal: lifetime.signal,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(updates),
       });
       const payload = await response.json().catch(() => ({}));
@@ -272,7 +301,10 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
         strip();
         // The live share writer may re-serialize the still-OSM stack before
         // the restart's reload lands, so strip again at the door.
-        globalThis.addEventListener?.('pagehide', strip, { once: true, signal: lifetime.signal });
+        globalThis.addEventListener?.('pagehide', strip, {
+          once: true,
+          signal: lifetime.signal
+        });
       }
       say(`${doneVerb} ${storeLabel()}. Restarting — this page reloads itself.`);
     } catch (error) {
@@ -287,7 +319,10 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     if (disposed || busy) return;
     const inputs = [...root.querySelectorAll('input[data-env-var]')];
     const updates = collectKeyUpdates(
-      inputs.map((input) => ({ envVar: input.dataset.envVar, value: input.value })),
+      inputs.map((input) => ({
+        envVar: input.dataset.envVar,
+        value: input.value
+      })),
     );
     if (!Object.keys(updates).length) {
       say('Paste at least one key first.');
@@ -313,8 +348,8 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     // Removal is destructive and — behind a framing defense that should already
     // stop it — a clickjack target. A confirm turns a single aligned click into
     // a deliberate two-step the lure cannot pre-satisfy.
-    const ok = typeof globalThis.confirm !== 'function'
-      || globalThis.confirm('Remove this key from your saved configuration?');
+    const ok = typeof globalThis.confirm !== 'function' ||
+      globalThis.confirm('Remove this key from your saved configuration?');
     if (!ok) return;
     void submitUpdates(
       Object.fromEntries(envVars.map((name) => [name, null])),
@@ -339,5 +374,10 @@ export async function initKeySetup({ documentRef = globalThis.document, fetchImp
     closeButton?.removeEventListener('click', close);
     applyButton?.removeEventListener('click', onApply);
   };
-  return { open: openDialog, close, render, destroy };
+  return {
+    open: openDialog,
+    close,
+    render,
+    destroy
+  };
 }
