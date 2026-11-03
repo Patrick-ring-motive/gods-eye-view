@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {
+  readFile
+} from 'node:fs/promises';
 import test from 'node:test';
 
 import {
@@ -29,4 +31,3 @@ test('detection owns and releases the Cockpit lifecycle listener', async () => {
     'Cockpit bracket de-emphasis must not dim callouts',
   );
 });
-
