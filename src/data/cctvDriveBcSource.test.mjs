@@ -1,9 +1,13 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { createCctvCatalog } from '../../server/providers/cctv/catalog.js';
+import {
+  createCctvCatalog
+} from '../../server/providers/cctv/catalog.js';
 import {
   DEFAULT_AUSTIN_MAX_SOURCES,
   DEFAULT_CALTRANS_MAX_SOURCES,
@@ -53,15 +57,22 @@ function driveBcRow(id, lat, lon, overrides = {}) {
     region_name: 'Lower Mainland',
     orientation: 'N',
     elevation: 12,
-    location: { type: 'Point', coordinates: [lon, lat] },
-    links: { imageDisplay: `/images/${id}.jpg?t=1` },
+    location: {
+      type: 'Point',
+      coordinates: [lon, lat]
+    },
+    links: {
+      imageDisplay: `/images/${id}.jpg?t=1`
+    },
     ...overrides,
   };
 }
 
 test('DriveBC loader keeps published cameras and builds frame URLs from the camera id', async (t) => {
   quiet(t);
-  withEnv(t, { CCTV_DRIVEBC_MAX_SOURCES: undefined });
+  withEnv(t, {
+    CCTV_DRIVEBC_MAX_SOURCES: undefined
+  });
   const requested = [];
   t.mock.method(globalThis, 'fetch', async (url) => {
     requested.push(String(url));
@@ -71,19 +82,26 @@ test('DriveBC loader keeps published cameras and builds frame URLs from the came
         region_name: 'Border Cams',
         elevation: 10,
         // The payload's own link is ignored; frames come from the pinned host.
-        links: { imageDisplay: 'https://example.com/13.jpg' },
+        links: {
+          imageDisplay: 'https://example.com/13.jpg'
+        },
       }),
       driveBcRow(682, 49.0579, -123.0569, {
         orientation: 'se',
         elevation: null,
-        credit:
-          'Images courtesy of <a href="https://www.translink.ca/" target="_blank">TransLink</a>',
+        credit: 'Images courtesy of <a href="https://www.translink.ca/" target="_blank">TransLink</a>',
       }),
-      driveBcRow(1, 49.2, -123.1, { is_on: false }),
-      driveBcRow(2, 49.2, -123.1, { should_appear: false }),
+      driveBcRow(1, 49.2, -123.1, {
+        is_on: false
+      }),
+      driveBcRow(2, 49.2, -123.1, {
+        should_appear: false
+      }),
       driveBcRow('3', 49.2, -123.1),
       driveBcRow(4, null, -123.1),
-      driveBcRow(5, 49.2, -123.1, { location: null }),
+      driveBcRow(5, 49.2, -123.1, {
+        location: null
+      }),
       driveBcRow(6, 1000, -123.1),
       driveBcRow(7, 34.05, -118.24),
     ]);
@@ -135,7 +153,9 @@ test('DriveBC loader keeps published cameras and builds frame URLs from the came
 
 test('DriveBC loader keeps the cameras nearest Vancouver and Victoria under its cap', async (t) => {
   quiet(t);
-  withEnv(t, { CCTV_DRIVEBC_MAX_SOURCES: '8' });
+  withEnv(t, {
+    CCTV_DRIVEBC_MAX_SOURCES: '8'
+  });
   const rows = [
     // Fort Nelson rows come first in payload order, so only distance can drop them.
     ...[58.8, 58.81, 58.82, 58.83].map((lat, i) =>
@@ -155,8 +175,8 @@ test('DriveBC loader keeps the cameras nearest Vancouver and Victoria under its 
   assert.equal(cameras.length, 8);
   assert.deepEqual(
     cameras
-      .map((camera) => camera.id)
-      .filter((id) => /^drivebc-10\d$/.test(id)),
+    .map((camera) => camera.id)
+    .filter((id) => /^drivebc-10\d$/.test(id)),
     [],
     'the northern cameras are the ones dropped',
   );
@@ -167,12 +187,16 @@ test('DriveBC loader fails soft on HTTP errors, unexpected payloads and network 
   let respond;
   t.mock.method(globalThis, 'fetch', (...args) => respond(...args));
   for (respond of [
-    async () => new Response('unavailable', { status: 503 }),
-    async () => Response.json({ webcams: [] }),
-    async () => {
-      throw new TypeError('fetch failed');
-    },
-  ]) {
+      async () => new Response('unavailable', {
+          status: 503
+        }),
+        async () => Response.json({
+            webcams: []
+          }),
+          async () => {
+            throw new TypeError('fetch failed');
+          },
+    ]) {
     assert.deepEqual(await loadDriveBcSourcesFromOpenData(), []);
   }
 });
@@ -182,7 +206,10 @@ test('CCTV catalog merges DriveBC cameras and CCTV_DRIVEBC_ENABLED=0 skips the r
   const sourceRoot = fs.mkdtempSync(
     path.join(os.tmpdir(), 'gev-cctv-catalog-'),
   );
-  t.after(() => fs.rmSync(sourceRoot, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(sourceRoot, {
+    recursive: true,
+    force: true
+  }));
   withEnv(t, {
     CCTV_SOURCES_FILE: undefined,
     CCTV_SOURCES_JSON: undefined,
@@ -198,12 +225,16 @@ test('CCTV catalog merges DriveBC cameras and CCTV_DRIVEBC_ENABLED=0 skips the r
   t.mock.method(globalThis, 'fetch', async (url) => {
     requested.push(String(url));
     // Every other live pack is down; only DriveBC answers.
-    return String(url) === DRIVEBC_WEBCAMS_URL
-      ? Response.json([driveBcRow(13, 49.001268, -122.756658)])
-      : new Response('unavailable', { status: 503 });
+    return String(url) === DRIVEBC_WEBCAMS_URL ?
+      Response.json([driveBcRow(13, 49.001268, -122.756658)]) :
+      new Response('unavailable', {
+        status: 503
+      });
   });
 
-  const sources = await createCctvCatalog({ sourceRoot })();
+  const sources = await createCctvCatalog({
+    sourceRoot
+  })();
   assert.deepEqual(
     sources.map((source) => source.id),
     ['drivebc-13'],
@@ -212,7 +243,9 @@ test('CCTV catalog merges DriveBC cameras and CCTV_DRIVEBC_ENABLED=0 skips the r
 
   process.env.CCTV_DRIVEBC_ENABLED = '0';
   requested.length = 0;
-  assert.deepEqual(await createCctvCatalog({ sourceRoot })(), []);
+  assert.deepEqual(await createCctvCatalog({
+    sourceRoot
+  })(), []);
   assert.ok(requested.length > 0, 'the other live packs still load');
   assert.equal(
     requested.includes(DRIVEBC_WEBCAMS_URL),
