@@ -1,7 +1,6 @@
 module.exports = {
   daemon: true,
-  run: [
-    {
+  run: [{
       method: 'shell.run',
       params: {
         path: '..',
