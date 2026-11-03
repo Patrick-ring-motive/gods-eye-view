@@ -1,15 +1,24 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import {
+  readFileSync,
+  readdirSync
+} from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const SRC_ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 /** Every browser-built module under src/ — the test files are Node-only. */
 function browserModules(directory = SRC_ROOT) {
   const files = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+  for (const entry of readdirSync(directory, {
+      withFileTypes: true
+    })) {
     const absolute = path.join(directory, entry.name);
     if (entry.isDirectory()) files.push(...browserModules(absolute));
     else if (entry.isFile() && entry.name.endsWith('.js')) files.push(absolute);
