@@ -12,7 +12,12 @@ import {
   FETCH_DEBOUNCE,
 } from './policy.js';
 
-export function createViewport({ state: layerState, services, parts, source }) {
+export function createViewport({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   // ─── Camera Monitoring ─────────────────────────────────────
 
   /**
@@ -209,9 +214,9 @@ export function createViewport({ state: layerState, services, parts, source }) {
     // nadir fallback + 12 km horizon-gaze pull-back), NOT the view rectangle's
     // midpoint — at oblique pitch that midpoint drifts toward the horizon.
     const fetchCenter = getFetchCenter();
-    const clamped = fetchCenter
-      ? clampBoundsAroundCenter(bounds, fetchCenter)
-      : clampBounds(bounds);
+    const clamped = fetchCenter ?
+      clampBoundsAroundCenter(bounds, fetchCenter) :
+      clampBounds(bounds);
     const center = getBoundsCenter(clamped);
 
     // Skip re-fetch when viewport overlap is high and center shift is negligible
@@ -227,9 +232,9 @@ export function createViewport({ state: layerState, services, parts, source }) {
     // Debounce: wait for camera to settle before triggering a fetch. In debug
     // captures the final changed event that arms this exact timeout is its
     // causal anchor; Cesium's later moveEnd notification is diagnostic only.
-    const interactionAnchor = TRAFFIC_TIMING_ENABLED
-      ? parts.timing.markTrafficTimingCameraChange()
-      : null;
+    const interactionAnchor = TRAFFIC_TIMING_ENABLED ?
+      parts.timing.markTrafficTimingCameraChange() :
+      null;
     clearTimeout(layerState._fetchTimeout);
     layerState._fetchTimeout = setTimeout(
       () => layerState._loadRoadsForBounds(clamped, alt, interactionAnchor),
