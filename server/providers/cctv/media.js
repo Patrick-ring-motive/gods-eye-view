@@ -1,5 +1,10 @@
-import { Readable } from 'node:stream';
-import { hashSeed, escapeXml } from './normalize.js';
+import {
+  Readable
+} from 'node:stream';
+import {
+  hashSeed,
+  escapeXml
+} from './normalize.js';
 import {
   CCTV_FRAME_FETCH_TIMEOUT_MS,
   CCTV_FRAME_MAX_BODY_BYTES,
@@ -23,7 +28,12 @@ import {
  * @param {string} [opts.status]
  * @returns {string} SVG markup string.
  */
-export function buildSyntheticCctvSvg({ cameraId, label, city, status }) {
+export function buildSyntheticCctvSvg({
+  cameraId,
+  label,
+  city,
+  status
+}) {
   const seed = hashSeed(`${cameraId}:${label}:${city}`);
   const hue = seed % 360;
   const hue2 = (hue + 46) % 360;
@@ -106,8 +116,9 @@ export function toReadable(body) {
  */
 export async function proxyMediaResponse(
   res,
-  upstream,
-  { sourceHeader = 'upstream' } = {},
+  upstream, {
+    sourceHeader = 'upstream'
+  } = {},
 ) {
   const contentType =
     upstream.headers.get('content-type') || 'application/octet-stream';
@@ -135,7 +146,9 @@ export async function proxyMediaResponse(
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
     });
-    res.end(JSON.stringify({ error: 'Upstream media exceeds size cap' }));
+    res.end(JSON.stringify({
+      error: 'Upstream media exceeds size cap'
+    }));
     try {
       await upstream.body?.cancel();
     } catch {
@@ -199,13 +212,16 @@ async function readCappedResponseBytes(upstream, maxBytes) {
   // reading. A body that cannot be streamed at all is refused rather than
   // buffered uncapped — the helper's whole contract is the cap.
   const reader =
-    typeof upstream.body.getReader === 'function'
-      ? upstream.body.getReader()
-      : null;
+    typeof upstream.body.getReader === 'function' ?
+    upstream.body.getReader() :
+    null;
   if (!reader) return null;
   try {
     for (;;) {
-      const { done, value } = await reader.read();
+      const {
+        done,
+        value
+      } = await reader.read();
       if (done) break;
       if (!keep(value)) {
         try {
@@ -224,8 +240,7 @@ async function readCappedResponseBytes(upstream, maxBytes) {
 
 /** Open registered media within a header deadline; leave timely live bodies running. */
 export async function fetchCctvMediaUpstream(
-  url,
-  {
+  url, {
     headers = {},
     fetchImpl = fetch,
     timeoutMs = CCTV_MEDIA_FETCH_TIMEOUT_MS,
@@ -234,7 +249,10 @@ export async function fetchCctvMediaUpstream(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetchImpl(url, { headers, signal: controller.signal });
+    return await fetchImpl(url, {
+      headers,
+      signal: controller.signal
+    });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -247,8 +265,7 @@ export async function fetchCctvMediaUpstream(
  * returning image/jpeg directly.
  */
 export async function fetchTxdotSnapshot(
-  url,
-  {
+  url, {
     fetchImpl = fetch,
     timeoutMs = CCTV_FRAME_FETCH_TIMEOUT_MS,
     maxBytes = CCTV_FRAME_MAX_BODY_BYTES,
@@ -309,7 +326,11 @@ export async function fetchTxdotSnapshot(
     const body = Buffer.from(snippet, 'base64');
     if (body.length < 4 || body.length > maxBytes) return null;
     if (body[0] !== 0xff || body[1] !== 0xd8 || body[2] !== 0xff) return null;
-    return { ok: true, body, contentType: 'image/jpeg' };
+    return {
+      ok: true,
+      body,
+      contentType: 'image/jpeg'
+    };
   } catch {
     return null;
   } finally {
@@ -412,8 +433,7 @@ export function cctvUpstreamUserAgent(url) {
  * @returns {Promise<{ok:true,body:Buffer,contentType:string}|null>}
  */
 export async function fetchCctvImageFromUpstream(
-  url,
-  {
+  url, {
     fetchImpl = fetch,
     timeoutMs = CCTV_FRAME_FETCH_TIMEOUT_MS,
     maxBytes = CCTV_FRAME_MAX_BODY_BYTES,
@@ -428,9 +448,10 @@ export async function fetchCctvImageFromUpstream(
   }, timeoutMs);
   try {
     const upstream = await fetchWithinHost(
-      url,
-      {
-        headers: { 'User-Agent': cctvUpstreamUserAgent(url) },
+      url, {
+        headers: {
+          'User-Agent': cctvUpstreamUserAgent(url)
+        },
         signal: controller.signal,
       },
       fetchImpl,
@@ -443,7 +464,11 @@ export async function fetchCctvImageFromUpstream(
     }
     const body = await readCappedResponseBytes(upstream, maxBytes);
     if (!body) return null;
-    return { ok: true, body, contentType };
+    return {
+      ok: true,
+      body,
+      contentType
+    };
   } catch {
     return null;
   } finally {
