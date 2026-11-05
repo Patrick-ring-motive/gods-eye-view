@@ -1,4 +1,9 @@
-export function createTesting({ state: layerState, services, parts, source }) {
+export function createTesting({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /** @returns {{historyKeys: string[], navigationVisitedKeys: string[], historyLength: number, navigationIndex: number, suppressedHistoryKey: string|null, pendingSelectionKey: string|null}} */
 
   function _getAwarenessNavigationStateForTest() {
@@ -11,5 +16,7 @@ export function createTesting({ state: layerState, services, parts, source }) {
       pendingSelectionKey: layerState.pendingSelectionKey,
     };
   }
-  return { _getAwarenessNavigationStateForTest };
+  return {
+    _getAwarenessNavigationStateForTest
+  };
 }
