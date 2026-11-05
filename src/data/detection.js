@@ -701,14 +701,13 @@ function _paintDetectionLane(frame) {
     _labelSolveDirty = true;
   }
   const start = performance.now();
-  const result = _drawOverlay(frame) ||
-    {
-      didSolve: false,
-      solveMs: 0,
-      fadingCount: 0,
-      animatingCount: 0,
-      solvePending: false
-    };
+  const result = _drawOverlay(frame) || {
+    didSolve: false,
+    solveMs: 0,
+    fadingCount: 0,
+    animatingCount: 0,
+    solvePending: false
+  };
   _lastRenderMs = performance.now() - start;
   _lastSolveMs = result.solveMs || 0;
   _lastPaintMs = Math.max(0, _lastRenderMs - _lastSolveMs);
