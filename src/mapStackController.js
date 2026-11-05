@@ -28,8 +28,7 @@ export class MapStackController extends MapSourceController {
     super(viewer, {
       registry,
       initialStack: options.googleTileset ?
-        options.initialStack || 'photoreal' :
-        registry.defaultId,
+        options.initialStack || 'photoreal' : registry.defaultId,
       ...options,
       requestRender: governorRequestRender,
     });
