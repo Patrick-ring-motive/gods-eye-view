@@ -330,9 +330,7 @@ export function createRendering({
     const viewer = state.viewer;
     const scene = viewer?.scene;
     const selected = state.selectedRecord;
-    const entries = selected ?
-      [components.cards.buildSelectedVesselCard(selected)] :
-      [];
+    const entries = selected ? [components.cards.buildSelectedVesselCard(selected)] : [];
     const maxLabels = labelRowLimit();
 
     if (!scene || !records.length || maxLabels <= 0) {
