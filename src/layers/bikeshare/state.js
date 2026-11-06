@@ -1,6 +1,12 @@
-export function createState({ services }) {
-  const { setOverlayEntries, setOverlaySourceVisible, clearOverlaySource } =
-    services.overlays;
+export function createState({
+  services
+}) {
+  const {
+    setOverlayEntries,
+    setOverlaySourceVisible,
+    clearOverlaySource
+  } =
+  services.overlays;
   const layerState = {};
 
   layerState.DEFAULT_OVERLAY_HOST = Object.freeze({
