@@ -1,10 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createLaunchSource } from './source.js';
-import { createRocketLaunchesLayer } from './index.js';
+import {
+  createLaunchSource
+} from './source.js';
+import {
+  createRocketLaunchesLayer
+} from './index.js';
 
 test('launch sources preserve last-good eligibility by rejecting malformed snapshots', async () => {
-  for (const payload of [{}, { results: null }]) {
+  for (const payload of [{}, {
+      results: null
+    }]) {
     const source = createLaunchSource({
       fetchImpl: async () => new Response(JSON.stringify(payload)),
     });
@@ -20,7 +26,9 @@ test('launch and active-orbit responses reject cancellation during parsing', asy
         ok: true,
         async json() {
           controller.abort();
-          return { results: [] };
+          return {
+            results: []
+          };
         },
         async text() {
           controller.abort();
@@ -28,7 +36,9 @@ test('launch and active-orbit responses reject cancellation during parsing', asy
         },
       }),
     });
-    await assert.rejects(source[method]({ signal: controller.signal }), {
+    await assert.rejects(source[method]({
+      signal: controller.signal
+    }), {
       name: 'AbortError',
     });
   }
@@ -43,9 +53,20 @@ test('launch factories construct independently without starting a scene or sourc
       assert.fail('construction fetched orbits');
     },
   };
-  const services = { satellites: {}, geometry: {}, overlays: {}, render: {} };
-  const first = createRocketLaunchesLayer({ source, services });
-  const second = createRocketLaunchesLayer({ source, services });
+  const services = {
+    satellites: {},
+    geometry: {},
+    overlays: {},
+    render: {}
+  };
+  const first = createRocketLaunchesLayer({
+    source,
+    services
+  });
+  const second = createRocketLaunchesLayer({
+    source,
+    services
+  });
   first._setSelectedRocketMissionForTest('first');
   assert.notEqual(first, second);
   assert.equal(first.getStats().count, 0);
