@@ -1,7 +1,10 @@
 import * as Cesium from 'cesium';
 
 /** Create the standard globe viewer in caller-owned, visible containers. */
-export function createApplicationViewer({ container, creditContainer }) {
+export function createApplicationViewer({
+  container,
+  creditContainer
+}) {
   if (!container || !creditContainer)
     throw new TypeError('Viewer and credit containers are required');
   const viewer = new Cesium.Viewer(container, {
@@ -19,7 +22,11 @@ export function createApplicationViewer({ container, creditContainer }) {
     baseLayer: false,
     creditContainer,
     msaaSamples: 4,
-    contextOptions: { webgl: { preserveDrawingBuffer: true } },
+    contextOptions: {
+      webgl: {
+        preserveDrawingBuffer: true
+      }
+    },
   });
   try {
     viewer.targetFrameRate = 60;
