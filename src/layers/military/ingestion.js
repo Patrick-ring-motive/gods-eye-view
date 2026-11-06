@@ -1,13 +1,23 @@
-import { pickRenderAltitudeM } from '../../data/renderAltitude.js';
+import {
+  pickRenderAltitudeM
+} from '../../data/renderAltitude.js';
 import * as Cesium from 'cesium';
-import { stickyText, stickyNumber } from '../../data/aircraftMeta.js';
-import { classifyAircraft, CLASS_SCALE_2D } from '../../data/aircraftClass.js';
+import {
+  stickyText,
+  stickyNumber
+} from '../../data/aircraftMeta.js';
+import {
+  classifyAircraft,
+  CLASS_SCALE_2D
+} from '../../data/aircraftClass.js';
 import {
   turnRateFromFixHistory,
   liftRepeatedGroundFix,
   synthesizeForwardKinematicsFix,
 } from '../../data/motionModel.js';
-import { aircraftIcon } from '../../data/aircraftIcons.js';
+import {
+  aircraftIcon
+} from '../../data/aircraftIcons.js';
 import {
   GROUND_FLOOR_WARM_MAX_ALT_M,
   POSITION_HISTORY_LIMIT,
@@ -27,15 +37,21 @@ export function createIngestion({
   layer,
   resolveAsset,
 }) {
-  const { geoidHeight } = services.geoid;
+  const {
+    geoidHeight
+  } = services.geoid;
   const {
     floorAltitudeM,
     cachedGroundFloor,
     warmGroundFloor,
     GROUND_FLOOR_LIFT_M,
   } = services.groundFloor;
-  const { sampleMeshFloorCells } = services.meshFloor;
-  const { registerMilitaryIcaos } = services.militaryRegistry;
+  const {
+    sampleMeshFloorCells
+  } = services.meshFloor;
+  const {
+    registerMilitaryIcaos
+  } = services.militaryRegistry;
   const militaryFlightsLayer = layer;
 
   const methods = {
@@ -46,7 +62,9 @@ export function createIngestion({
      * @param {Cesium.Viewer} viewer - The Cesium viewer instance
      * @returns {Promise<void>}
      */
-    async update(viewer, { signal = null } = {}) {
+    async update(viewer, {
+      signal = null
+    } = {}) {
       const nowMs = Date.now();
       const trackingRefreshEpoch = ++flightState._trackingRefreshEpoch;
       flightState._lastTrackingRefreshOutcome = {
@@ -62,15 +80,14 @@ export function createIngestion({
 
       const resourceController = new AbortController();
       flightState._activeUpdateControllers.add(resourceController);
-      const updateSignal = signal
-        ? AbortSignal.any([signal, resourceController.signal])
-        : resourceController.signal;
+      const updateSignal = signal ?
+        AbortSignal.any([signal, resourceController.signal]) :
+        resourceController.signal;
       try {
         updateSignal.throwIfAborted();
-        const snapshot = await flightState._source.getSnapshot(
-          {},
-          { signal: updateSignal },
-        );
+        const snapshot = await flightState._source.getSnapshot({}, {
+          signal: updateSignal
+        }, );
         updateSignal.throwIfAborted();
         flightState._lastStatus = snapshot.status ?? 200;
         flightState._lastSource = snapshot.source;
@@ -81,9 +98,9 @@ export function createIngestion({
         flightState._retryAt = 0;
         flightState._lastError =
           snapshot.reason ||
-          (snapshot.freshness === 'unknown'
-            ? 'Source snapshot time unavailable'
-            : null);
+          (snapshot.freshness === 'unknown' ?
+            'Source snapshot time unavailable' :
+            null);
         const currentIcaos = new Set();
         const receiptNowMs = snapshot.observedAtMs;
         // Field-test fix (RS46): coarse floor cells to warm for the below-ground
@@ -92,7 +109,11 @@ export function createIngestion({
         const _floorWarmPoints = [];
 
         for (const aircraft of usableAircraft) {
-          const { id: icao24, longitude: lon, latitude: lat } = aircraft;
+          const {
+            id: icao24,
+            longitude: lon,
+            latitude: lat
+          } = aircraft;
 
           currentIcaos.add(icao24);
           flightState._missingPolls.delete(icao24);
@@ -104,16 +125,16 @@ export function createIngestion({
           // 3 km airborne default (a parked plane must not float).
           const onGround = aircraft.onGround;
           const altitudeFt =
-            aircraft.baroAltitudeM == null
-              ? null
-              : aircraft.baroAltitudeM / 0.3048;
+            aircraft.baroAltitudeM == null ?
+            null :
+            aircraft.baroAltitudeM / 0.3048;
           const altitudeM =
             aircraft.baroAltitudeM ??
-            (onGround
-              ? Number.isFinite(prevMeta?.altitudeFt)
-                ? prevMeta.altitudeFt * 0.3048
-                : 0
-              : 3048);
+            (onGround ?
+              Number.isFinite(prevMeta?.altitudeFt) ?
+              prevMeta.altitudeFt * 0.3048 :
+              0 :
+              3048);
           const track = aircraft.courseDeg || 0;
           const speedMps = aircraft.speedMps ?? 0;
           const verticalRateMps = aircraft.verticalRateMps;
@@ -179,7 +200,10 @@ export function createIngestion({
               renderAltitudeM,
               cachedGroundFloor(lat, lon),
             );
-            _floorWarmPoints.push({ lat, lon });
+            _floorWarmPoints.push({
+              lat,
+              lon
+            });
           } else if (onGround) {
             // Grounded contacts: warm the floor cell, and — round 4 — when NO
             // 3D model owns this contact's visual, lift the billboard itself
@@ -189,7 +213,10 @@ export function createIngestion({
             // the tileset-snapped model, and moving it would drag groundSnap's
             // input past its move-invalidation threshold — the T7 one-shot
             // invariant the track regression locks).
-            _floorWarmPoints.push({ lat, lon });
+            _floorWarmPoints.push({
+              lat,
+              lon
+            });
             const modelOwnsVisual = parts.rendering._modelOwnsVisual(icao24);
             if (!modelOwnsVisual) {
               const floor = cachedGroundFloor(lat, lon);
@@ -205,8 +232,7 @@ export function createIngestion({
             renderAltitudeM,
           );
           // Landing/takeoff transition: the ground flip restyles IN PLACE.
-          const groundFlipped =
-            !!prevMeta && (prevMeta.onGround === true) !== onGround;
+          const groundFlipped = !!prevMeta && (prevMeta.onGround === true) !== onGround;
           // Either flip direction retires the model's ground snap: a departing plane
           // flies free of it, a landing plane earns a fresh sample where it rolls out.
           if (groundFlipped) flightState._groundSnap.forget(icao24);
@@ -252,10 +278,9 @@ export function createIngestion({
             wasAirborne: prevMeta?.wasAirborne === true || !onGround,
             // Round 6: lifted occlusion-test point for at/below-ellipsoid
             // renders (mirror of flights.js).
-            cullPosition:
-              renderAltitudeM < 10
-                ? Cesium.Cartesian3.fromDegrees(lon, lat, 12)
-                : null,
+            cullPosition: renderAltitudeM < 10 ?
+              Cesium.Cartesian3.fromDegrees(lon, lat, 12) :
+              null,
             // Raw poll-fix coords (pre-dead-reckon) — the stale-grounded
             // re-floor sweep keys floors off these (mirror of flights.js).
             rawLat: lat,
@@ -353,8 +378,7 @@ export function createIngestion({
               ),
               width: isTracked ? 24 : 20,
               height: isTracked ? 24 : 20,
-              scale:
-                BILLBOARD_SCALE *
+              scale: BILLBOARD_SCALE *
                 (CLASS_SCALE_2D[meta.klass] || 1) *
                 (meta.onGround ? GROUND_SCALE : 1),
               // Screen-projected rotation lands on the next fleet tick.
@@ -362,8 +386,7 @@ export function createIngestion({
               alignedAxis: Cesium.Cartesian3.ZERO,
               color: isTracked ? TRACKED_ICON_COLOR : MIL_ICON_COLOR,
               sizeInMeters: false,
-              scaleByDistance:
-                parts.rendering._normalBillboardScaleByDistance(),
+              scaleByDistance: parts.rendering._normalBillboardScaleByDistance(),
               // Grounded/near-surface planes sit at/below the photoreal tile
               // surface — render them depth-test-free so they never vanish up
               // close (_groundDepthDistance).
@@ -441,12 +464,12 @@ export function createIngestion({
               ...flightState._models.values(),
               flightState._trackedModel,
             ].filter(Boolean),
-            viewerLat: viewerCarto
-              ? Cesium.Math.toDegrees(viewerCarto.latitude)
-              : undefined,
-            viewerLon: viewerCarto
-              ? Cesium.Math.toDegrees(viewerCarto.longitude)
-              : undefined,
+            viewerLat: viewerCarto ?
+              Cesium.Math.toDegrees(viewerCarto.latitude) :
+              undefined,
+            viewerLon: viewerCarto ?
+              Cesium.Math.toDegrees(viewerCarto.longitude) :
+              undefined,
           });
         }
 
@@ -462,14 +485,14 @@ export function createIngestion({
           if (
             !snapshot.complete &&
             Date.now() -
-              (flightState._flightData.get(icao24)?.observedReceiptMs ?? 0) <
-              300000
+            (flightState._flightData.get(icao24)?.observedReceiptMs ?? 0) <
+            300000
           )
             continue;
           const misses = (flightState._missingPolls.get(icao24) || 0) + 1;
-          const limit = parts.queries._likelyLanded(icao24)
-            ? LANDED_MISSING_POLL_LIMIT
-            : MISSING_POLL_LIMIT;
+          const limit = parts.queries._likelyLanded(icao24) ?
+            LANDED_MISSING_POLL_LIMIT :
+            MISSING_POLL_LIMIT;
           if (misses < limit) {
             flightState._missingPolls.set(icao24, misses);
             if (
@@ -493,7 +516,9 @@ export function createIngestion({
           // camera is then RELEASED IN PLACE — it stays where the follow left
           // it, fully free (owner decision 2026-07-02: no overview flyTo).
           if (icao24 === flightState._trackedIcao) {
-            parts.tracking._clearTracking(false, { evicted: true });
+            parts.tracking._clearTracking(false, {
+              evicted: true
+            });
           }
 
           flightState._billboardCollection.remove(bb);
@@ -543,5 +568,7 @@ export function createIngestion({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
