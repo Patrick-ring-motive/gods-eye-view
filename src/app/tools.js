@@ -1,7 +1,16 @@
-import { SceneDirector } from '../scenes/director.js';
-import { initAnnotations } from '../annotations/index.js';
-import { initGevVoiceCommands } from '../voice/gevRealtime.js';
-import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
+import {
+  SceneDirector
+} from '../scenes/director.js';
+import {
+  initAnnotations
+} from '../annotations/index.js';
+import {
+  initGevVoiceCommands
+} from '../voice/gevRealtime.js';
+import {
+  installScopeMask,
+  destroyScopeMask
+} from '../scopeMask.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -23,19 +32,38 @@ export function createApplicationTools({
   signal,
   defer,
 }) {
-  const { viewer, tileset, mapStackController } = scene;
-  const { styleManager, weatherEffects, cockpitCloudEffects } = controls;
-  const { dataManager } = data;
+  const {
+    viewer,
+    tileset,
+    mapStackController
+  } = scene;
+  const {
+    styleManager,
+    weatherEffects,
+    cockpitCloudEffects
+  } = controls;
+  const {
+    dataManager
+  } = data;
   const sceneDirector = new SceneDirector(viewer, styleManager, dataManager);
   defer(() => sceneDirector.destroy());
   onSceneDirector?.(sceneDirector);
-  const annotations = initAnnotations({ viewer, tileset, placeSearch });
+  const annotations = initAnnotations({
+    viewer,
+    tileset,
+    placeSearch
+  });
   defer(() => {
     if (window.__gevAnnotations === annotations) delete window.__gevAnnotations;
     annotations.destroy();
   });
   if (startChrome)
-    defer(startChrome({ loadingScreen, styleManager, dataManager, signal }));
+    defer(startChrome({
+      loadingScreen,
+      styleManager,
+      dataManager,
+      signal
+    }));
   // Idle render governor: flips the scene into requestRenderMode whenever
   // nothing animates per frame. Installed AFTER every module above has had
   // its chance to register pre-install holds. (perf wave 2)
@@ -112,10 +140,16 @@ export function createApplicationTools({
     annotations,
   });
   defer(() => {
-    voiceCommands.stop({ removeUi: true });
+    voiceCommands.stop({
+      removeUi: true
+    });
     if (window.__gevVoiceCommands === voiceCommands)
       delete window.__gevVoiceCommands;
   });
   debug.voiceCommands = voiceCommands;
-  return { sceneDirector, annotations, voiceCommands };
+  return {
+    sceneDirector,
+    annotations,
+    voiceCommands
+  };
 }
