@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { CctvControls } from './cctvControls.js';
+import {
+  test
+} from 'node:test';
+import {
+  CctvControls
+} from './cctvControls.js';
 
 function element() {
   const classes = new Set();
@@ -27,6 +31,7 @@ function element() {
     },
   };
 }
+
 function fixture(t) {
   const prior = globalThis.Image;
   const requests = [];
@@ -39,16 +44,27 @@ function fixture(t) {
     globalThis.Image = prior;
   });
   const controls = new CctvControls({
-    elements: { _cctvFrame: element(), _cctvFrameWrap: element() },
+    elements: {
+      _cctvFrame: element(),
+      _cctvFrameWrap: element()
+    },
     cctv: {},
-    actions: { isEnabled: () => true },
+    actions: {
+      isEnabled: () => true
+    },
   });
   t.after(() => controls.destroy());
-  return { controls, requests };
+  return {
+    controls,
+    requests
+  };
 }
 
 test('a late image completion cannot replace a newer camera preview', (t) => {
-  const { controls, requests } = fixture(t);
+  const {
+    controls,
+    requests
+  } = fixture(t);
   controls._queueCctvFrame('first.jpg', 'a', true);
   const stale = requests[0].onload;
   controls._queueCctvFrame('second.jpg', 'b', true);
@@ -60,7 +76,10 @@ test('a late image completion cannot replace a newer camera preview', (t) => {
 });
 
 test('failed refresh preserves settled pixels, but changing cameras clears them', (t) => {
-  const { controls, requests } = fixture(t);
+  const {
+    controls,
+    requests
+  } = fixture(t);
   controls._queueCctvFrame('first.jpg', 'a', true);
   requests[0].onload();
   controls._queueCctvFrame('refresh.jpg', 'a', false);
@@ -73,7 +92,10 @@ test('failed refresh preserves settled pixels, but changing cameras clears them'
 });
 
 test('destroy invalidates image callbacks and releases each subscription once', (t) => {
-  const { controls, requests } = fixture(t);
+  const {
+    controls,
+    requests
+  } = fixture(t);
   let unsubscribed = 0;
   controls.cctv.subscribe = () => () => {
     unsubscribed++;
@@ -96,7 +118,9 @@ test('destroy invalidates image callbacks and releases each subscription once', 
 });
 
 function calibrationFixture(t) {
-  const { controls } = fixture(t);
+  const {
+    controls
+  } = fixture(t);
   const prior = globalThis.document;
   const inputs = [];
   globalThis.document = {
@@ -117,7 +141,9 @@ function calibrationFixture(t) {
     globalThis.document = prior;
   });
   const chip = {
-    dataset: { calField: 'heading' },
+    dataset: {
+      calField: 'heading'
+    },
     textContent: '',
     input: null,
     appendChild(input) {
@@ -131,41 +157,79 @@ function calibrationFixture(t) {
   const patches = [];
   controls.actions.setParams = (params) => patches.push(params);
   controls.actions.setPanelCollapsed = () => {};
-  controls._cctvCalReadout = { querySelectorAll: () => [chip] };
+  controls._cctvCalReadout = {
+    querySelectorAll: () => [chip]
+  };
   controls._cctvState = {
     enabled: true,
     activeCameraId: 'a',
-    activeCamera: { id: 'a', headingDeg: 30, basePose: { headingDeg: 20 } },
+    activeCamera: {
+      id: 'a',
+      headingDeg: 30,
+      basePose: {
+        headingDeg: 20
+      }
+    },
   };
   const key = (name) =>
-    Object.assign(new Event('keydown', { cancelable: true }), { key: name });
-  return { controls, chip, inputs, patches, key };
+    Object.assign(new Event('keydown', {
+      cancelable: true
+    }), {
+      key: name
+    });
+  return {
+    controls,
+    chip,
+    inputs,
+    patches,
+    key
+  };
 }
 
 test('calibration commits against the captured camera base and releases its editor', (t) => {
-  const { controls, chip, inputs, patches, key } = calibrationFixture(t);
+  const {
+    controls,
+    chip,
+    inputs,
+    patches,
+    key
+  } = calibrationFixture(t);
   controls._beginCctvCalValueEdit(chip);
   inputs[0].value = '100';
   controls._cctvState.activeCamera.basePose.headingDeg = 60;
   inputs[0].dispatchEvent(key('Enter'));
   inputs[0].dispatchEvent(new Event('blur'));
-  assert.deepEqual(patches, [
-    {
-      selectedCameraId: 'a',
-      calibration: { cameraId: 'a', patch: { headingDeg: 80 } },
+  assert.deepEqual(patches, [{
+    selectedCameraId: 'a',
+    calibration: {
+      cameraId: 'a',
+      patch: {
+        headingDeg: 80
+      }
     },
-  ]);
+  }, ]);
   assert.equal(controls._calibrationEdit, null);
 });
 
 test('a camera switch cancels calibration before old blur can change the new camera', (t) => {
-  const { controls, chip, inputs, patches } = calibrationFixture(t);
+  const {
+    controls,
+    chip,
+    inputs,
+    patches
+  } = calibrationFixture(t);
   controls._beginCctvCalValueEdit(chip);
   inputs[0].value = '100';
   controls._renderCctvState({
     enabled: true,
     activeCameraId: 'b',
-    activeCamera: { id: 'b', headingDeg: 200, basePose: { headingDeg: 190 } },
+    activeCamera: {
+      id: 'b',
+      headingDeg: 200,
+      basePose: {
+        headingDeg: 190
+      }
+    },
   });
   inputs[0].dispatchEvent(new Event('blur'));
   assert.deepEqual(patches, []);
@@ -174,7 +238,13 @@ test('a camera switch cancels calibration before old blur can change the new cam
 });
 
 test('Escape claims calibration cancellation and disposal prevents late commits', (t) => {
-  const { controls, chip, inputs, patches, key } = calibrationFixture(t);
+  const {
+    controls,
+    chip,
+    inputs,
+    patches,
+    key
+  } = calibrationFixture(t);
   controls._beginCctvCalValueEdit(chip);
   inputs[0].value = '100';
   const escape = key('Escape');
@@ -194,7 +264,10 @@ test('disposing during camera enable prevents the delayed focus and future click
   let enables = 0;
   let focuses = 0;
   const controls = new CctvControls({
-    elements: { _cctvPanel: {}, _cctvNextBtn: button },
+    elements: {
+      _cctvPanel: {},
+      _cctvNextBtn: button
+    },
     cctv: {},
     actions: {
       isEnabled: () => true,
