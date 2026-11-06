@@ -709,21 +709,19 @@ test('late media errors after replacement or Pause cannot mutate the active stat
       bitrate: 128,
     },
   ];
-  globalThis.fetch = async (url) => String(url).startsWith('/api/radio/click/') ?
-    {
-      ok: true
-    } :
-    {
-      ok: true,
-      json: async () => ({
-        stations: stationRows,
-        updatedAt: new Date().toISOString(),
-        stale: false,
-        degraded: false,
-        acceptedGeneration: 1,
-        catalogInstance: 'qa-instance-a',
-      }),
-    };
+  globalThis.fetch = async (url) => String(url).startsWith('/api/radio/click/') ? {
+    ok: true
+  } : {
+    ok: true,
+    json: async () => ({
+      stations: stationRows,
+      updatedAt: new Date().toISOString(),
+      stale: false,
+      degraded: false,
+      acceptedGeneration: 1,
+      catalogInstance: 'qa-instance-a',
+    }),
+  };
   const viewer = {
     camera: {
       positionWC: {
@@ -1258,8 +1256,7 @@ test('failed exact tuner release cannot consume a stale playback fallback', asyn
     }
     load() {}
   };
-  globalThis.fetch = async (url) => String(url).startsWith('/api/radio/click/') ?
-    {
+  globalThis.fetch = async (url) => String(url).startsWith('/api/radio/click/') ? {
       ok: true
     } :
     new Response(JSON.stringify({
