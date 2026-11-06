@@ -681,7 +681,8 @@ export class LayerStateCoordinator {
       try {
         stored = parseStoredLayerState(this.storage?.getItem?.(LAYER_STATE_STORAGE_KEY));
       } catch {
-        /* best effort */ }
+        /* best effort */
+      }
       if (stored) {
         selected = stored;
         this._source = 'local';
@@ -715,7 +716,8 @@ export class LayerStateCoordinator {
     try {
       this.onDurableStateChange?.(this.getDurableState());
     } catch {
-      /* UI sync is best effort */ }
+      /* UI sync is best effort */
+    }
   }
 
   _handleVisibilityRequest(change) {
@@ -830,7 +832,8 @@ export class LayerStateCoordinator {
         this.storage?.setItem?.(LAYER_STATE_STORAGE_KEY, serialized);
       }
     } catch {
-      /* storage can be unavailable or quota-limited */ }
+      /* storage can be unavailable or quota-limited */
+    }
     this.shareLinkManager?.onLayerStateChange?.();
     this._notifyDurableState();
   }
@@ -994,7 +997,8 @@ export class LayerStateCoordinator {
     try {
       this.onTrackingRestoreStatus?.(status);
     } catch {
-      /* status UI is best effort */ }
+      /* status UI is best effort */
+    }
   }
 
   /**
@@ -1196,15 +1200,13 @@ export class LayerStateCoordinator {
         },
       );
     } catch (error) {
-      result = combinedSignal.aborted ?
-        {
-          status: 'cancelled',
-          reason: String(combinedSignal.reason || 'aborted')
-        } :
-        {
-          status: 'source-unavailable',
-          reason: String(error?.message || error)
-        };
+      result = combinedSignal.aborted ? {
+        status: 'cancelled',
+        reason: String(combinedSignal.reason || 'aborted')
+      } : {
+        status: 'source-unavailable',
+        reason: String(error?.message || error)
+      };
     }
     if (generation !== this._trackingRestoreGeneration || this._destroyed || combinedSignal.aborted) {
       if (this._trackingRestoreController === controller) this._trackingRestoreController = null;
