@@ -26,8 +26,7 @@ export function projectNearbyPlaces(data, latitude, longitude) {
       const placeLatitude = place.location?.latitude ?? null;
       const placeLongitude = place.location?.longitude ?? null;
       const types = Array.isArray(place.types) ?
-        place.types.slice(0, 8) :
-        [];
+        place.types.slice(0, 8) : [];
       return {
         id: place.id || null,
         name: place.displayName?.text || null,
@@ -59,8 +58,7 @@ export function projectNearbyPlaces(data, latitude, longitude) {
       contextPriority,
       ...place
     }) => place)
-    .slice(0, 20) :
-    [];
+    .slice(0, 20) : [];
   return places;
 }
 
@@ -71,8 +69,7 @@ export function projectTextSearchPlaces(data, latitude, longitude) {
       const placeLatitude = place.location?.latitude ?? null;
       const placeLongitude = place.location?.longitude ?? null;
       const types = Array.isArray(place.types) ?
-        place.types.slice(0, 8) :
-        [];
+        place.types.slice(0, 8) : [];
       // Places returns a lat/lng bounding box (low/high corners) framing the
       // place — no polygon, but enough to SIZE a fallback grounds disc to the
       // real feature instead of a blind constant. Normalize to plain numbers.
@@ -81,8 +78,7 @@ export function projectTextSearchPlaces(data, latitude, longitude) {
         Number.isFinite(vp?.low?.latitude) &&
         Number.isFinite(vp?.low?.longitude) &&
         Number.isFinite(vp?.high?.latitude) &&
-        Number.isFinite(vp?.high?.longitude) ?
-        {
+        Number.isFinite(vp?.high?.longitude) ? {
           low: {
             latitude: vp.low.latitude,
             longitude: vp.low.longitude,
@@ -110,8 +106,7 @@ export function projectTextSearchPlaces(data, latitude, longitude) {
         viewport,
       };
     })
-    .filter((place) => place.name) :
-    [];
+    .filter((place) => place.name) : [];
   return places;
 }
 
