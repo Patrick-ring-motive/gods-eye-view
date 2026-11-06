@@ -1,29 +1,75 @@
-import { expandApplicationHtml } from '../build/application-html.js';
-import { readLayerSource } from './testSupport/readLayerSource.mjs';
-import { PanelLayoutController } from './ui/panelLayoutController.js';
-import { readShellElements } from './ui/shellElements.js';
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
-import { SceneControls } from './ui/sceneControls.js';
-import { isRenderedOnScreen } from './ui/cockpitPresentation.js';
-import { onKeyDown as cockpitKeyDown } from './ui/cockpitInput.js';
-import { enter as cockpitEnter, exit as cockpitExit, readAircraftInfo, _adoptTrackedEntity } from './ui/cockpitTrackingController.js';
-import { setVisionMode, cycleVisionMode } from './ui/cockpitInstruments.js';
-import { updateContext as cockpitContext } from './ui/cockpitContext.js';
-import { syncSignalLayout, setContextCollapsed, setSignalCollapsed } from './ui/cockpitLayout.js';
-import { setBriefAutoRotate } from './ui/cockpitBriefing.js';
-import { CockpitDisplayPortal } from './ui/cockpitDisplayPortal.js';
-import { _handleContextLayerChange } from './ui/contextLayerChanges.js';
-import { clearSelectedLayers } from './ui/contextActions.js';
-import { _selectContextMode } from './ui/contextTransactions.js';
-import { _restoreContextSession } from './ui/contextSession.js';
-import { readFileSync as readRadioSource } from 'node:fs';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
+import {
+  readLayerSource
+} from './testSupport/readLayerSource.mjs';
+import {
+  PanelLayoutController
+} from './ui/panelLayoutController.js';
+import {
+  readShellElements
+} from './ui/shellElements.js';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
+import {
+  SceneControls
+} from './ui/sceneControls.js';
+import {
+  isRenderedOnScreen
+} from './ui/cockpitPresentation.js';
+import {
+  onKeyDown as cockpitKeyDown
+} from './ui/cockpitInput.js';
+import {
+  enter as cockpitEnter,
+  exit as cockpitExit,
+  readAircraftInfo,
+  _adoptTrackedEntity
+} from './ui/cockpitTrackingController.js';
+import {
+  setVisionMode,
+  cycleVisionMode
+} from './ui/cockpitInstruments.js';
+import {
+  updateContext as cockpitContext
+} from './ui/cockpitContext.js';
+import {
+  syncSignalLayout,
+  setContextCollapsed,
+  setSignalCollapsed
+} from './ui/cockpitLayout.js';
+import {
+  setBriefAutoRotate
+} from './ui/cockpitBriefing.js';
+import {
+  CockpitDisplayPortal
+} from './ui/cockpitDisplayPortal.js';
+import {
+  _handleContextLayerChange
+} from './ui/contextLayerChanges.js';
+import {
+  clearSelectedLayers
+} from './ui/contextActions.js';
+import {
+  _selectContextMode
+} from './ui/contextTransactions.js';
+import {
+  _restoreContextSession
+} from './ui/contextSession.js';
+import {
+  readFileSync as readRadioSource
+} from 'node:fs';
 const radioBindings = readRadioSource(new URL('./ui/radioBindings.js', import.meta.url), 'utf8');
 const radioPresentation = readRadioSource(new URL('./ui/radioPresentation.js', import.meta.url), 'utf8');
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -387,13 +433,13 @@ test('fresh Cockpit entry temporarily collapses map panels and exit restores the
   );
   assert.ok(entryPanels, 'Cockpit entry panel list is missing');
   for (const panelId of [
-    'data-panel',
-    'cctv-panel',
-    'scene-panel',
-    'pp-toggles',
-    'global-context-panel',
-    'radio-panel',
-  ]) {
+      'data-panel',
+      'cctv-panel',
+      'scene-panel',
+      'pp-toggles',
+      'global-context-panel',
+      'radio-panel',
+    ]) {
     assert.match(entryPanels[1], new RegExp(`'${panelId}'`), `${panelId} must collapse on entry`);
   }
 
@@ -548,8 +594,8 @@ test('Cockpit panel corridors reserve the owned topline readouts', () => {
   assert.doesNotMatch(
     leftLayout,
     /setProperty\('--cockpit-utility-top'/,
-    'the right margin must not borrow the left accordion corridor: it is solved '
-      + 'against left-lane obstacles and put the strip through the briefing card',
+    'the right margin must not borrow the left accordion corridor: it is solved ' +
+    'against left-lane obstacles and put the strip through the briefing card',
   );
   const signalLayout = syncSignalLayout.toString();
   assert.ok(signalLayout, 'Cockpit signal layout method is missing');
@@ -567,8 +613,8 @@ test('Cockpit panel corridors reserve the owned topline readouts', () => {
   assert.match(
     signalLayout,
     /const recBounds = isRenderedOnScreen\(recReadout\)\s*\? recReadout\.getBoundingClientRect\(\)\s*: null;/,
-    'HUD Off retires the Intel HUD with visibility/opacity, which leaves the REC '
-      + 'readout a rect — a rect test alone would anchor the strip to an invisible readout',
+    'HUD Off retires the Intel HUD with visibility/opacity, which leaves the REC ' +
+    'readout a rect — a rect test alone would anchor the strip to an invisible readout',
   );
   assert.match(
     isRenderedOnScreen.toString(),
@@ -577,8 +623,8 @@ test('Cockpit panel corridors reserve the owned topline readouts', () => {
   assert.match(
     layout,
     /_leftStackHudTransitionHandler = \(event\) => \{[\s\S]*?_scheduleLeftPanelLayout\(\{ reconsiderAutoCollapse: true \}\);[\s\S]*?this\.scheduleCockpitLayout\(\);/,
-    'the strip must remeasure on the same HUD fade the accordion does — the REC '
-      + 'readout keeps its rect until the transition ends',
+    'the strip must remeasure on the same HUD fade the accordion does — the REC ' +
+    'readout keeps its rect until the transition ends',
   );
   assert.doesNotMatch(
     signalLayout,
