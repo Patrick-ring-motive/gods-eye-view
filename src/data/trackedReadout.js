@@ -63,9 +63,7 @@ export function trackedLabelModelFromText(text, accent = WORLD_OVERLAY_STYLE.acc
     lines = raw.split('\n').map((line) => line.trim()).filter(Boolean);
   } else {
     const parts = raw.split(' · ');
-    lines = parts.length > 1 ?
-      [parts[0].trim(), parts.slice(1).join(' · ').trim()] :
-      [raw];
+    lines = parts.length > 1 ? [parts[0].trim(), parts.slice(1).join(' · ').trim()] : [raw];
   }
   return {
     title: lines[0] || '',
@@ -112,7 +110,8 @@ export function cachedTrackedVisualPosition(entity) {
       const visual = entity.gevVisualPosition();
       if (visual) return visual;
     } catch {
-      /* fall through to the display position */ }
+      /* fall through to the display position */
+    }
   }
   return cachedTrackedDisplayPosition(entity);
 }
