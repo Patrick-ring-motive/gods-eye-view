@@ -154,5 +154,8 @@ export function resolvePanelStackCorridor({
     bottom = Math.min(boundaryBottom, Math.max(bottom, top + minimum));
   }
 
-  return { safeTop: top, safeBottom: bottom };
+  return {
+    safeTop: top,
+    safeBottom: bottom
+  };
 }
