@@ -63,7 +63,7 @@ export function destinationPointDeg(latDeg, lonDeg, bearingDeg, distanceM) {
   const lon1 = Cesium.Math.toRadians(lonDeg);
   const lat2 = Math.asin(
     Math.sin(lat1) * Math.cos(angularDistance) +
-      Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing),
+    Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing),
   );
   const lon2 =
     lon1 +
@@ -138,9 +138,9 @@ export function normalizeAlprNode(el) {
 
 export function normalizeDirection(value) {
   const degrees = numTag(value);
-  return degrees != null && degrees >= 0 && degrees <= 360
-    ? degrees % 360
-    : null;
+  return degrees != null && degrees >= 0 && degrees <= 360 ?
+    degrees % 360 :
+    null;
 }
 
 /**
@@ -199,13 +199,13 @@ export function alprCreditMarkup(attribution) {
     String(value).replace(
       /[&<>"']/g,
       (char) =>
-        ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;',
-        })[char],
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      })[char],
     );
   return `<span class="gev-alpr-credit">ALPR: <a href="${escape(href.href)}" target="_blank" rel="noopener">${escape(attribution.text)}</a></span>`;
 }
