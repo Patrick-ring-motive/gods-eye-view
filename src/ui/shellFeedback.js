@@ -8,9 +8,14 @@ import {
   reduceLoadingFeedback,
   reduceTrafficSyncFeedback,
 } from '../loadingFeedback.js';
-import { setSplitFlapText, disposeSplitFlap } from '../splitFlap.js';
+import {
+  setSplitFlapText,
+  disposeSplitFlap
+} from '../splitFlap.js';
 export class ShellFeedback {
-  constructor({ readLayers }) {
+  constructor({
+    readLayers
+  }) {
     this.readLayers = readLayers;
     this.destroyed = false;
     this._loadingFeedbackState = createLoadingFeedbackState();
@@ -20,7 +25,7 @@ export class ShellFeedback {
     this._loadingFeedbackTicker =
       this._trafficChipTicker =
       this._toastTimer =
-        null;
+      null;
     this._loadingVisibilityHandler = null;
     this._lastLoadingFeedbackUpdateAt = 0;
     this._globalLoadingStatus = document.getElementById(
@@ -57,12 +62,11 @@ export class ShellFeedback {
     )
       return;
     const layers = this.readLayers();
-    const traffic = Array.isArray(layers)
-      ? layers.find((layer) => layer.id === 'traffic')
-      : null;
+    const traffic = Array.isArray(layers) ?
+      layers.find((layer) => layer.id === 'traffic') :
+      null;
     this._trafficSyncFeedbackState = reduceTrafficSyncFeedback(
-      this._trafficSyncFeedbackState,
-      {
+      this._trafficSyncFeedbackState, {
         enabled: traffic?.enabled === true,
         stats: traffic?.stats || {},
         forceShow,
