@@ -1,17 +1,19 @@
-import { validCoordinate } from './geospatial.js';
+import {
+  validCoordinate
+} from './geospatial.js';
 
 function labels(values) {
   return [
     ...new Set(
       values
-        .map((value) =>
-          String(value || '')
-            .replace(/[\x00-\x1f\x7f]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 120),
-        )
-        .filter(Boolean),
+      .map((value) =>
+        String(value || '')
+        .replace(/[\x00-\x1f\x7f]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 120),
+      )
+      .filter(Boolean),
     ),
   ];
 }
@@ -21,15 +23,14 @@ export function normalizeGoogleReverse(data) {
   if (data?.status !== 'OK' || !data.results?.length) return null;
   const result = data.results[0];
   const relevant = data.results.slice(0, 12);
-  const components = Array.isArray(result.address_components)
-    ? result.address_components
-    : [];
+  const components = Array.isArray(result.address_components) ?
+    result.address_components :
+    [];
   const component = (type) =>
     components.find((item) => item.types?.includes(type))?.long_name || null;
   return {
     formattedAddress: result.formatted_address || null,
-    locality:
-      component('locality') ||
+    locality: component('locality') ||
       component('postal_town') ||
       component('administrative_area_level_2'),
     region: component('administrative_area_level_1'),
@@ -39,8 +40,8 @@ export function normalizeGoogleReverse(data) {
     streetLabels: labels(
       relevant.flatMap((item) =>
         (item.address_components || [])
-          .filter((entry) => entry.types?.includes('route'))
-          .map((entry) => entry.long_name),
+        .filter((entry) => entry.types?.includes('route'))
+        .map((entry) => entry.long_name),
       ),
     ).slice(0, 12),
   };
@@ -59,12 +60,15 @@ export function createHttpGeospatialProvider({
     route: '/api/route',
     ...endpoints,
   };
-  async function json(endpoint, params, { signal } = {}) {
+  async function json(endpoint, params, {
+    signal
+  } = {}) {
     if (!endpoint) return null;
     const separator = endpoint.includes('?') ? '&' : '?';
     const response = await fetchImpl(
-      `${endpoint}${separator}${new URLSearchParams(params)}`,
-      { signal },
+      `${endpoint}${separator}${new URLSearchParams(params)}`, {
+        signal
+      },
     );
     signal?.throwIfAborted();
     if (!response.ok) {
@@ -77,8 +81,8 @@ export function createHttpGeospatialProvider({
   }
   const places = (data) =>
     (Array.isArray(data?.places) ? data.places : [])
-      .filter((place) => validCoordinate([place.longitude, place.latitude]))
-      .slice(0, 20);
+    .filter((place) => validCoordinate([place.longitude, place.latitude]))
+    .slice(0, 20);
   return {
     attribution: {
       reverseGeocode: 'Google',
@@ -92,26 +96,45 @@ export function createHttpGeospatialProvider({
       if (resolveApiKey && !key) return null;
       return normalizeGoogleReverse(
         await json(
-          urls.reverse,
-          { latlng: `${latitude},${longitude}`, ...(key ? { key } : {}) },
+          urls.reverse, {
+            latlng: `${latitude},${longitude}`,
+            ...(key ? {
+              key
+            } : {})
+          },
           options,
         ),
       );
     },
-    async textSearch(query, { latitude, longitude, radiusM = 6000 }, options) {
+    async textSearch(query, {
+      latitude,
+      longitude,
+      radiusM = 6000
+    }, options) {
       return places(
         await json(
-          urls.textSearch,
-          { q: query, lat: latitude, lon: longitude, radiusM },
+          urls.textSearch, {
+            q: query,
+            lat: latitude,
+            lon: longitude,
+            radiusM
+          },
           options,
         ),
       );
     },
-    async nearby({ latitude, longitude, radiusM = 250 }, options) {
+    async nearby({
+      latitude,
+      longitude,
+      radiusM = 250
+    }, options) {
       return places(
         await json(
-          urls.nearby,
-          { lat: latitude, lon: longitude, radiusM },
+          urls.nearby, {
+            lat: latitude,
+            lon: longitude,
+            radiusM
+          },
           options,
         ),
       );
@@ -120,12 +143,15 @@ export function createHttpGeospatialProvider({
       const coords = coordinates
         .map((pair) =>
           pair
-            .slice(0, 2)
-            .map((n) => n.toFixed(6))
-            .join(','),
+          .slice(0, 2)
+          .map((n) => n.toFixed(6))
+          .join(','),
         )
         .join(';');
-      const data = await json(urls.route, { profile, coords }, options);
+      const data = await json(urls.route, {
+        profile,
+        coords
+      }, options);
       return data?.ok ? data : null;
     },
   };
