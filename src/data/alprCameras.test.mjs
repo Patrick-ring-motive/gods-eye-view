@@ -1,10 +1,16 @@
 // src/data/alprCameras.test.mjs
 // Pure helpers and actual layer lifecycle with a minimal viewer/input harness.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import alprCamerasLayer, { createAlprCamerasLayer } from './alprCameras.js';
-import { DATA_CREDITS } from './dataCredits.js';
+import alprCamerasLayer, {
+  createAlprCamerasLayer
+} from './alprCameras.js';
+import {
+  DATA_CREDITS
+} from './dataCredits.js';
 import {
   clearSelectedEntityContextForLayer,
   getContextStore,
@@ -61,9 +67,19 @@ test('normalizeAlprNode: maps a full OSM node to a plain record', () => {
 
 test('normalizeAlprNode: rejects non-node elements and missing coordinates', () => {
   assert.equal(normalizeAlprNode(null), null);
-  assert.equal(normalizeAlprNode({ type: 'way', id: 1, tags: {} }), null);
+  assert.equal(normalizeAlprNode({
+    type: 'way',
+    id: 1,
+    tags: {}
+  }), null);
   assert.equal(
-    normalizeAlprNode({ type: 'node', id: 1, lat: NaN, lon: 1, tags: {} }),
+    normalizeAlprNode({
+      type: 'node',
+      id: 1,
+      lat: NaN,
+      lon: 1,
+      tags: {}
+    }),
     null,
   );
 });
@@ -112,7 +128,10 @@ test('normalizeAlprNode: keeps a camera;ALPR multi-value node and drops a plain 
     id: 2,
     lat: 30,
     lon: -97,
-    tags: { man_made: 'surveillance', 'surveillance:type': 'camera;ALPR' },
+    tags: {
+      man_made: 'surveillance',
+      'surveillance:type': 'camera;ALPR'
+    },
   });
   assert.equal(multi?.id, 'alpr:2');
   const plain = normalizeAlprNode({
@@ -120,7 +139,10 @@ test('normalizeAlprNode: keeps a camera;ALPR multi-value node and drops a plain 
     id: 3,
     lat: 30,
     lon: -97,
-    tags: { man_made: 'surveillance', 'surveillance:type': 'camera' },
+    tags: {
+      man_made: 'surveillance',
+      'surveillance:type': 'camera'
+    },
   });
   assert.equal(plain, null);
 });
@@ -178,16 +200,26 @@ test('snapAlprBox: snaps outward to the query grid and clamps to valid ranges', 
   });
   assert.ok(
     snapped.south <= 30.2671 &&
-      snapped.north >= 30.3012 &&
-      snapped.west <= -97.7431 &&
-      snapped.east >= -97.7002,
+    snapped.north >= 30.3012 &&
+    snapped.west <= -97.7431 &&
+    snapped.east >= -97.7002,
   );
   assert.equal(
-    snapAlprBox({ south: 89.99, west: 179.99, north: 90, east: 180 }).north,
+    snapAlprBox({
+      south: 89.99,
+      west: 179.99,
+      north: 90,
+      east: 180
+    }).north,
     90,
   );
   assert.equal(
-    snapAlprBox({ south: -90, west: -180, north: -89.99, east: -179.99 }).west,
+    snapAlprBox({
+      south: -90,
+      west: -180,
+      north: -89.99,
+      east: -179.99
+    }).west,
     -180,
   );
   assert.ok(
@@ -242,7 +274,9 @@ const cameraResponse = (elements = [cameraNode()], stale = false) => ({
   headers: {
     get: (name) => (name === 'x-overpass-cache' && stale ? 'STALE' : null),
   },
-  json: async () => ({ elements }),
+  json: async () => ({
+    elements
+  }),
 });
 
 // Real layer, Cesium entities and context store. Only the DOM, upstream fetch,
@@ -255,7 +289,10 @@ function cameraHarness(layer = alprCamerasLayer) {
     now: Date.now,
   };
   const events = new EventTarget();
-  globalThis.document = { addEventListener() {}, removeEventListener() {} };
+  globalThis.document = {
+    addEventListener() {},
+    removeEventListener() {}
+  };
   globalThis.window = events;
   let now = originals.now();
   Date.now = () => now;
@@ -265,7 +302,12 @@ function cameraHarness(layer = alprCamerasLayer) {
     requests.push(args);
     return response(...args);
   };
-  let box = { south: 30.26, west: -97.75, north: 30.28, east: -97.73 };
+  let box = {
+    south: 30.26,
+    west: -97.75,
+    north: 30.28,
+    east: -97.73
+  };
   let source, click, picked;
   const credits = new Set();
   const viewer = {
@@ -276,18 +318,23 @@ function cameraHarness(layer = alprCamerasLayer) {
     camera: {
       moveEnd: new Cesium.Event(),
       computeViewRectangle: () =>
-        box
-          ? Cesium.Rectangle.fromDegrees(
-              box.west,
-              box.south,
-              box.east,
-              box.north,
-            )
-          : null,
+        box ?
+        Cesium.Rectangle.fromDegrees(
+          box.west,
+          box.south,
+          box.east,
+          box.north,
+        ) :
+        null,
     },
     scene: {
-      canvas: { addEventListener() {}, removeEventListener() {} },
-      globe: { ellipsoid: Cesium.Ellipsoid.WGS84 },
+      canvas: {
+        addEventListener() {},
+        removeEventListener() {}
+      },
+      globe: {
+        ellipsoid: Cesium.Ellipsoid.WGS84
+      },
       postRender: new Cesium.Event(),
       pick: () => picked,
     },
@@ -299,7 +346,7 @@ function cameraHarness(layer = alprCamerasLayer) {
     },
   };
   const setInput = Cesium.ScreenSpaceEventHandler.prototype.setInputAction;
-  Cesium.ScreenSpaceEventHandler.prototype.setInputAction = function (
+  Cesium.ScreenSpaceEventHandler.prototype.setInputAction = function(
     fn,
     type,
     modifier,
@@ -334,8 +381,12 @@ function cameraHarness(layer = alprCamerasLayer) {
     },
     click(id) {
       const entity = typeof id === 'string' ? source.entities.getById(id) : id;
-      picked = entity ? { id: entity } : undefined;
-      click({ position: new Cesium.Cartesian2() });
+      picked = entity ? {
+        id: entity
+      } : undefined;
+      click({
+        position: new Cesium.Cartesian2()
+      });
     },
     restore() {
       layer.destroy(viewer);
@@ -349,7 +400,9 @@ function cameraHarness(layer = alprCamerasLayer) {
 }
 
 test('OSM attribution introduces displayed data for five seconds, then stays discoverable in the overflow', async (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const h = cameraHarness();
   try {
     assert.equal(
@@ -413,7 +466,9 @@ test('OSM attribution introduces displayed data for five seconds, then stays dis
 });
 
 test('disabling midway through the introduction cancels its timer before a new enable', async (t) => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+  t.mock.timers.enable({
+    apis: ['setTimeout']
+  });
   const h = cameraHarness();
   try {
     await alprCamerasLayer.update();
@@ -454,9 +509,12 @@ test('all manufacturers share one ALPR title and color; only supplied metadata a
             manufacturer: 'Motorola Solutions',
           },
         }),
-        cameraNode(44, { tags: { 'surveillance:type': 'ALPR' } }),
-      ]),
-    );
+        cameraNode(44, {
+          tags: {
+            'surveillance:type': 'ALPR'
+          }
+        }),
+      ]), );
     await alprCamerasLayer.update();
     const entities = h.source.entities.values;
     assert.equal(alprCamerasLayer.name, 'ALPR Cameras');
@@ -499,13 +557,22 @@ test('all manufacturers share one ALPR title and color; only supplied metadata a
 
 test('invalid OSM ids and out-of-range coordinates never become camera entities', () => {
   for (const id of [undefined, null, 0, -1, 1.5, '42', NaN])
-    assert.equal(normalizeAlprNode(cameraNode(id, { id })), null);
-  for (const coords of [
-    { lat: 95 },
-    { lat: -95 },
-    { lon: 181 },
-    { lon: -181 },
-  ]) {
+    assert.equal(normalizeAlprNode(cameraNode(id, {
+      id
+    })), null);
+  for (const coords of [{
+        lat: 95
+      },
+      {
+        lat: -95
+      },
+      {
+        lon: 181
+      },
+      {
+        lon: -181
+      },
+    ]) {
     assert.equal(normalizeAlprNode(cameraNode(42, coords)), null);
   }
 });
@@ -537,8 +604,13 @@ test('a refresh cannot reclaim selection from another layer or an explicit clear
   try {
     await alprCamerasLayer.update();
     h.click('alpr:42');
-    const aircraft = { id: 'flight:TEST' };
-    registerEntityContext(aircraft, { id: aircraft.id, layerId: 'flights' });
+    const aircraft = {
+      id: 'flight:TEST'
+    };
+    registerEntityContext(aircraft, {
+      id: aircraft.id,
+      layerId: 'flights'
+    });
     selectEntityContext(aircraft);
     h.expire();
     await alprCamerasLayer.update();
@@ -593,15 +665,19 @@ test('disable removes contexts and highlight; cache reuse after re-enable does n
 test('retry clears the old terminal error while the new request is loading', async () => {
   const h = cameraHarness();
   try {
-    h.setFetch(async () => ({ ...cameraResponse(), ok: false, status: 429 }));
+    h.setFetch(async () => ({
+      ...cameraResponse(),
+      ok: false,
+      status: 429
+    }));
     await alprCamerasLayer.update();
     assert.equal(alprCamerasLayer.getStats().status, 'unavailable');
     let resolve;
     h.setFetch(
       () =>
-        new Promise((r) => {
-          resolve = r;
-        }),
+      new Promise((r) => {
+        resolve = r;
+      }),
     );
     const pending = alprCamerasLayer.update();
     assert.equal(alprCamerasLayer.getStats().loading, true);
@@ -621,17 +697,22 @@ test('a cancelled older request cannot overwrite a newer request with a late net
     let rejectOld, resolveNew;
     h.setFetch(
       () =>
-        new Promise((resolve, reject) => {
-          rejectOld = reject;
-        }),
+      new Promise((resolve, reject) => {
+        rejectOld = reject;
+      }),
     );
     const old = alprCamerasLayer.update();
-    h.setBox({ south: 31, west: -98, north: 31.02, east: -97.98 });
+    h.setBox({
+      south: 31,
+      west: -98,
+      north: 31.02,
+      east: -97.98
+    });
     h.setFetch(
       () =>
-        new Promise((resolve) => {
-          resolveNew = resolve;
-        }),
+      new Promise((resolve) => {
+        resolveNew = resolve;
+      }),
     );
     const fresh = alprCamerasLayer.update();
     rejectOld(new TypeError('Network error on a cancelled request'));
@@ -649,11 +730,15 @@ test('a cancelled older request cannot overwrite a newer request with a late net
 test('invalid or partial successful payloads are failures, not an empty all-clear', async () => {
   const h = cameraHarness();
   try {
-    for (const payload of [
-      {},
-      { elements: null },
-      { elements: [], remark: 'runtime error: Query timed out' },
-    ]) {
+    for (const payload of [{},
+        {
+          elements: null
+        },
+        {
+          elements: [],
+          remark: 'runtime error: Query timed out'
+        },
+      ]) {
       h.setFetch(async () => ({
         ...cameraResponse(),
         json: async () => payload,
@@ -698,12 +783,36 @@ test('zooming out hides local markers, releases selection and makes no unbounded
 
 test('state, country and dateline views never request data; returning to the city reuses its cache', async () => {
   const h = cameraHarness();
-  const city = { south: 30.26, west: -97.75, north: 30.28, east: -97.73 };
-  const wideViews = [
-    { south: 26, west: -107, north: 36, east: -93 },
-    { south: 24, west: -125, north: 50, east: -66 },
-    { south: 30, west: -99, north: 31, east: -95 },
-    { south: -1, west: 179, north: 1, east: -179 },
+  const city = {
+    south: 30.26,
+    west: -97.75,
+    north: 30.28,
+    east: -97.73
+  };
+  const wideViews = [{
+      south: 26,
+      west: -107,
+      north: 36,
+      east: -93
+    },
+    {
+      south: 24,
+      west: -125,
+      north: 50,
+      east: -66
+    },
+    {
+      south: 30,
+      west: -99,
+      north: 31,
+      east: -95
+    },
+    {
+      south: -1,
+      west: 179,
+      north: 1,
+      east: -179
+    },
   ];
   try {
     for (const box of wideViews) {
@@ -741,11 +850,17 @@ test('nearby camera moves reuse the snapped query but count and register only in
   const h = cameraHarness();
   try {
     h.setFetch(async () =>
-      cameraResponse([cameraNode(), cameraNode(43, { lon: -97.71 })]),
-    );
+      cameraResponse([cameraNode(), cameraNode(43, {
+        lon: -97.71
+      })]), );
     await alprCamerasLayer.update();
     assert.equal(alprCamerasLayer.getStats().count, 1);
-    h.setBox({ south: 30.26, west: -97.72, north: 30.28, east: -97.7 });
+    h.setBox({
+      south: 30.26,
+      west: -97.72,
+      north: 30.28,
+      east: -97.7
+    });
     await alprCamerasLayer.update();
     assert.equal(h.requests.length, 1);
     assert.deepEqual(
@@ -774,10 +889,11 @@ test('empty mapped coverage, stale data and a saturated response remain distinct
     h.expire();
     h.setFetch(async () =>
       cameraResponse(
-        Array.from({ length: QUERY_LIMIT }, (_, i) => cameraNode(i + 1)),
+        Array.from({
+          length: QUERY_LIMIT
+        }, (_, i) => cameraNode(i + 1)),
         true,
-      ),
-    );
+      ), );
     await alprCamerasLayer.update();
     assert.equal(alprCamerasLayer.getStats().status, 'stale');
     assert.equal(alprCamerasLayer.getStats().error, null);
@@ -804,10 +920,12 @@ test('selected readout samples the rendered ground, not zero elevation or the di
     h.setFetch(async () =>
       cameraResponse([
         cameraNode(42, {
-          tags: { 'surveillance:type': 'ALPR', 'camera:direction': '90' },
+          tags: {
+            'surveillance:type': 'ALPR',
+            'camera:direction': '90'
+          },
         }),
-      ]),
-    );
+      ]), );
     await alprCamerasLayer.update();
     h.click('alpr:42');
     const entity = h.source.entities.getById('alpr:42');
@@ -841,9 +959,9 @@ test('a late network failure after disable cannot resurrect retries or an error 
     let reject;
     h.setFetch(
       () =>
-        new Promise((resolve, rejectRequest) => {
-          reject = rejectRequest;
-        }),
+      new Promise((resolve, rejectRequest) => {
+        reject = rejectRequest;
+      }),
     );
     const pending = alprCamerasLayer.update();
     alprCamerasLayer.disable();
@@ -859,8 +977,13 @@ test('a late network failure after disable cannot resurrect retries or an error 
 
 test('two factories keep their requests, records and destruction independent', async () => {
   const services = {
-    render: { governorRequestRender() {} },
-    picking: { registerPickOwner() {}, unregisterPickOwner() {} },
+    render: {
+      governorRequestRender() {}
+    },
+    picking: {
+      registerPickOwner() {},
+      unregisterPickOwner() {}
+    },
     groundFloor: {
       cachedGroundFloor() {
         return null;
@@ -892,11 +1015,15 @@ test('two factories keep their requests, records and destruction independent', a
     services,
     source: {
       label: 'Test camera directory',
-      attribution: { name: 'Test directory' },
+      attribution: {
+        name: 'Test directory'
+      },
       fetch: async () => ({
-        records: [
-          { id: 'directory:99', latitude: 30.2672, longitude: -97.7431 },
-        ],
+        records: [{
+          id: 'directory:99',
+          latitude: 30.2672,
+          longitude: -97.7431
+        }, ],
         stale: false,
         saturated: false,
       }),
@@ -938,10 +1065,12 @@ test('orbit cache hits and metadata refreshes preserve marker geometry and selec
     h.setFetch(async () =>
       cameraResponse([
         cameraNode(42, {
-          tags: { 'surveillance:type': 'ALPR', 'camera:direction': '90' },
+          tags: {
+            'surveillance:type': 'ALPR',
+            'camera:direction': '90'
+          },
         }),
-      ]),
-    );
+      ]), );
     await alprCamerasLayer.update();
     h.click('alpr:42');
     const entity = h.source.entities.getById('alpr:42');
@@ -957,7 +1086,12 @@ test('orbit cache hits and metadata refreshes preserve marker geometry and selec
         collectionChanges += added.length + removed.length;
       },
     );
-    h.setBox({ south: 30.261, west: -97.749, north: 30.279, east: -97.731 });
+    h.setBox({
+      south: 30.261,
+      west: -97.749,
+      north: 30.279,
+      east: -97.731
+    });
     await alprCamerasLayer.update();
     h.expire();
     h.setFetch(async () =>
@@ -969,8 +1103,7 @@ test('orbit cache hits and metadata refreshes preserve marker geometry and selec
             operator: 'Updated directory',
           },
         }),
-      ]),
-    );
+      ]), );
     await alprCamerasLayer.update();
     assert.equal(h.source.entities.getById('alpr:42'), entity);
     assert.equal(entity.position, position);
@@ -984,7 +1117,9 @@ test('orbit cache hits and metadata refreshes preserve marker geometry and selec
     assert.equal(collectionChanges, 0);
     assert.equal(h.requests.length, 2, 'only expiry needs another request');
     h.expire();
-    h.setFetch(async () => cameraResponse([cameraNode(42, { lon: -97.742 })]));
+    h.setFetch(async () => cameraResponse([cameraNode(42, {
+      lon: -97.742
+    })]));
     await alprCamerasLayer.update();
     assert.equal(h.source.entities.getById('alpr:42'), entity);
     assert.equal(
@@ -1009,19 +1144,29 @@ test('moves inside a pending query do not restart it; moving to another city can
     let resolve;
     h.setFetch(
       () =>
-        new Promise((r) => {
-          resolve = r;
-        }),
+      new Promise((r) => {
+        resolve = r;
+      }),
     );
     const first = alprCamerasLayer.update();
     const signal = h.requests[0][1].signal;
-    h.setBox({ south: 30.261, west: -97.749, north: 30.279, east: -97.731 });
+    h.setBox({
+      south: 30.261,
+      west: -97.749,
+      north: 30.279,
+      east: -97.731
+    });
     await alprCamerasLayer.update();
     assert.equal(h.requests.length, 1);
     assert.equal(signal.aborted, false);
     assert.equal(alprCamerasLayer.getStats().loading, true);
     const finishFirst = resolve;
-    h.setBox({ south: 51.49, west: -0.14, north: 51.5, east: -0.12 });
+    h.setBox({
+      south: 51.49,
+      west: -0.14,
+      north: 51.5,
+      east: -0.12
+    });
     const second = alprCamerasLayer.update();
     assert.equal(signal.aborted, true);
     assert.equal(h.requests.length, 2);
@@ -1032,7 +1177,10 @@ test('moves inside a pending query do not restart it; moving to another city can
       true,
       'late old response cannot finish current request',
     );
-    resolve(cameraResponse([cameraNode(43, { lat: 51.495, lon: -0.13 })]));
+    resolve(cameraResponse([cameraNode(43, {
+      lat: 51.495,
+      lon: -0.13
+    })]));
     await second;
     assert.deepEqual(
       h.source.entities.values.map((e) => e.id),
@@ -1055,7 +1203,12 @@ test('ground-centered orbits ignore horizon rectangles while sky, distant and da
     await alprCamerasLayer.update();
     const entity = h.source.entities.getById('alpr:42');
     h.click('alpr:42');
-    for (const box of [null, { south: 31, west: -99, north: 36, east: -95 }]) {
+    for (const box of [null, {
+        south: 31,
+        west: -99,
+        north: 36,
+        east: -95
+      }]) {
       h.setBox(box);
       await alprCamerasLayer.update();
       assert.equal(h.source.entities.getById('alpr:42'), entity);
@@ -1092,7 +1245,10 @@ test('nearby count and discovery control frame a real loaded camera without fetc
     600,
   );
   h.viewer.camera.flyToBoundingSphere = (sphere, options) =>
-    flights.push({ sphere, options });
+    flights.push({
+      sphere,
+      options
+    });
   h.viewer.scene.globe.show = true;
   h.viewer.scene.globe.getHeight = () => 312;
   try {
