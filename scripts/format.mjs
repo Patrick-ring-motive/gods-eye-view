@@ -1,6 +1,14 @@
-import { readFile, writeFile, realpath, stat } from 'node:fs/promises';
+import {
+  readFile,
+  writeFile,
+  realpath,
+  stat
+} from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  fileURLToPath,
+  pathToFileURL
+} from 'node:url';
 import * as prettier from 'prettier';
 
 /** Check or format the explicitly adopted files, without scanning other source. */
@@ -56,7 +64,10 @@ export async function formatAdoptedFiles(root, mode) {
         `Formatting scope contains an ignored or unsupported file: ${name}`,
       );
     }
-    const options = { ...(await prettier.resolveConfig(file)), filepath: file };
+    const options = {
+      ...(await prettier.resolveConfig(file)),
+      filepath: file
+    };
     const source = await readFile(file, 'utf8');
     files.push({
       name,
@@ -66,16 +77,28 @@ export async function formatAdoptedFiles(root, mode) {
     });
   }
 
-  const changed = files.filter(({ source, formatted }) => source !== formatted);
+  const changed = files.filter(({
+    source,
+    formatted
+  }) => source !== formatted);
   if (mode === '--write') {
-    for (const { file, formatted } of changed) await writeFile(file, formatted);
+    for (const {
+        file,
+        formatted
+      }
+      of changed) await writeFile(file, formatted);
   }
-  return { count: files.length, changed: changed.map(({ name }) => name) };
+  return {
+    count: files.length,
+    changed: changed.map(({
+      name
+    }) => name)
+  };
 }
 
-const invoked = process.argv[1]
-  ? pathToFileURL(path.resolve(process.argv[1])).href
-  : '';
+const invoked = process.argv[1] ?
+  pathToFileURL(path.resolve(process.argv[1])).href :
+  '';
 if (import.meta.url === invoked) {
   try {
     if (process.argv.length !== 3)
