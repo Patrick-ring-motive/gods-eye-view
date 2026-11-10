@@ -75,7 +75,8 @@ export function renderCockpitSignals() {
       preventScroll: true,
     });
   }
-  for (const entry of existing) if (!entries.includes(entry)) entry.remove();
+  for (const entry of existing)
+    if (!entries.includes(entry)) entry.remove();
 
   // Ordinary insertBefore moves disconnect an element and lose its focus.
   // Reorder the other rows around the focused row, which stays connected.
@@ -89,9 +90,9 @@ export function renderCockpitSignals() {
       anchor = entry;
     }
   }
-  let anchor = retainedFocus
-    ? retainedFocus.nextElementSibling
-    : this.signalList.firstElementChild;
+  let anchor = retainedFocus ?
+    retainedFocus.nextElementSibling :
+    this.signalList.firstElementChild;
   for (let index = focusIndex + 1; index < entries.length; index += 1) {
     const entry = entries[index];
     if (entry === anchor) anchor = anchor.nextElementSibling;
@@ -127,7 +128,10 @@ export function updateCockpitSignals(snapshot, unknownCount) {
       tone: 'track',
       title: subject.label || subject.id,
       detail: `${subject.layerId === 'military' ? 'MILITARY FLIGHT' : 'COMMERCIAL FLIGHT'} · CURRENT`,
-      target: { layerId: subject.layerId, id: String(subject.id) },
+      target: {
+        layerId: subject.layerId,
+        id: String(subject.id)
+      },
       distanceM: -1,
     });
   }
@@ -150,7 +154,10 @@ export function updateCockpitSignals(snapshot, unknownCount) {
             ? `${item.distanceM < 10000 ? (item.distanceM / 1000).toFixed(1) : Math.round(item.distanceM / 1000)} KM`
             : 'DISTANCE UNKNOWN'
         }`,
-        target: { layerId: cohort.id, id: String(id) },
+        target: {
+          layerId: cohort.id,
+          id: String(id)
+        },
         distanceM: item.distanceM ?? Infinity,
       });
     }
@@ -158,8 +165,7 @@ export function updateCockpitSignals(snapshot, unknownCount) {
   contacts.sort((a, b) => a.distanceM - b.distanceM);
   const nextItems = contacts.slice(0, 5).map((item) => ({
     ...item,
-    timestamp:
-      previous.get(item.key)?.timestamp || snapshot.evaluatedAt || Date.now(),
+    timestamp: previous.get(item.key)?.timestamp || snapshot.evaluatedAt || Date.now(),
   }));
   if (unknownCount) {
     const sources = snapshot.cohorts
@@ -172,8 +178,7 @@ export function updateCockpitSignals(snapshot, unknownCount) {
       title: `${unknownCount} INPUT${unknownCount === 1 ? '' : 'S'} UNKNOWN`,
       detail: sources || 'SOURCE STATUS UNAVAILABLE',
       target: null,
-      timestamp:
-        previous.get('input-status')?.timestamp ||
+      timestamp: previous.get('input-status')?.timestamp ||
         snapshot.evaluatedAt ||
         Date.now(),
     });
@@ -192,7 +197,8 @@ export function handleSignalClick(event) {
   event.preventDefault();
   this.services.militaryAwarenessLayer.focusTarget?.(
     target.dataset.signalLayer,
-    target.dataset.signalId,
-    { origin: 'user' },
+    target.dataset.signalId, {
+      origin: 'user'
+    },
   );
 }
