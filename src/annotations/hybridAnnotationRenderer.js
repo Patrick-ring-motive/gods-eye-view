@@ -1,5 +1,9 @@
-import { createWorldAnnotationRenderer } from './worldAnnotationRenderer.js';
-import { createScreenAnnotationRenderer } from './screenAnnotationRenderer.js';
+import {
+  createWorldAnnotationRenderer
+} from './worldAnnotationRenderer.js';
+import {
+  createScreenAnnotationRenderer
+} from './screenAnnotationRenderer.js';
 
 /**
  * Hybrid annotation renderer (Direction C — the recommended production blend).
@@ -35,24 +39,35 @@ export function createHybridAnnotationRenderer(viewer) {
     routed.set(anno.id, entry);
     if (anno.type === 'area' && anno.ring && anno.ring.length >= 3) {
       // Drape the footprint in world space, but without its own label...
-      entry.worldProxy = liveProxy(anno, { label: null });
+      entry.worldProxy = liveProxy(anno, {
+        label: null
+      });
       world.add(entry.worldProxy);
       // ...and place the caption as a screen-space callout at the centroid.
       if (anno.label) {
-        entry.screenProxy = liveProxy(anno, { type: 'label', ring: null });
+        entry.screenProxy = liveProxy(anno, {
+          type: 'label',
+          ring: null
+        });
         screen.add(entry.screenProxy);
       }
     } else if (anno.type === 'route' && Array.isArray(anno.path) && anno.path.length >= 2) {
       // Drape the path on the tiles (world), caption it with a screen callout
       // at the path midpoint.
-      entry.worldProxy = liveProxy(anno, { label: null });
+      entry.worldProxy = liveProxy(anno, {
+        label: null
+      });
       world.add(entry.worldProxy);
       if (anno.label) {
         const mid = anno.path[Math.floor(anno.path.length / 2)];
         entry.screenProxy = liveProxy(anno, {
           type: 'label',
           path: null,
-          anchor: { lon: mid.lon, lat: mid.lat, height: mid.height },
+          anchor: {
+            lon: mid.lon,
+            lat: mid.lat,
+            height: mid.height
+          },
         });
         screen.add(entry.screenProxy);
       }
@@ -76,13 +91,20 @@ export function createHybridAnnotationRenderer(viewer) {
     if (anno.type !== 'area' || !anno.ring || anno.ring.length < 3) return;
 
     if (!entry.worldProxy) {
-      entry.worldProxy = liveProxy(anno, { label: null });
+      entry.worldProxy = liveProxy(anno, {
+        label: null
+      });
       world.add(entry.worldProxy);
     }
 
-    const screenProxy = liveProxy(anno, { type: 'label', ring: null });
+    const screenProxy = liveProxy(anno, {
+      type: 'label',
+      ring: null
+    });
     if (entry.screenProxy) {
-      screen.update(screenProxy, { empty: !anno.label });
+      screen.update(screenProxy, {
+        empty: !anno.label
+      });
     } else if (anno.label) {
       screen.add(screenProxy);
     }
@@ -136,7 +158,13 @@ export function createHybridAnnotationRenderer(viewer) {
     routed.clear();
   }
 
-  return { add, update, remove, sync, destroy };
+  return {
+    add,
+    update,
+    remove,
+    sync,
+    destroy
+  };
 }
 
 /**
