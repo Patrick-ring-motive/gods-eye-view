@@ -336,7 +336,8 @@ async function jget(path, {
   try {
     json = JSON.parse(text);
   } catch {
-    /* text payload */ }
+    /* text payload */
+  }
   return {
     status: res.status,
     ok: res.ok,
@@ -375,7 +376,8 @@ function sh(cmd, args, {
         try {
           child.kill('SIGKILL');
         } catch {
-          /* gone */ }
+          /* gone */
+        }
       }
     };
     const timer = setTimeout(killTree, timeoutMs);
@@ -392,7 +394,8 @@ function sh(cmd, args, {
       try {
         process.kill(-child.pid, 'SIGKILL');
       } catch {
-        /* already reaped */ }
+        /* already reaped */
+      }
       resolveP({
         code,
         signal,
@@ -706,7 +709,8 @@ function harness({
         writeFileSync(logPath, `$ node scripts/${script} ${args.join(' ')}\nexit=${r.code} signal=${r.signal}\n\n--- stdout ---\n${r.out}\n--- stderr ---\n${r.err}\n`);
         verdict.detail = `${verdict.detail}  [log: ${logPath.replace(`${REPO_ROOT}/`, '')}]`;
       } catch {
-        /* logging must never change a verdict */ }
+        /* logging must never change a verdict */
+      }
     }
     return verdict;
   };
@@ -1271,7 +1275,8 @@ check({
     try {
       json = JSON.parse(text);
     } catch {
-      /* not json */ }
+      /* not json */
+    }
     if (res.ok && Array.isArray(json?.elements)) return pass(`${json.elements.length} elements`);
     return res.status === 502 ?
       skip(`Overpass upstream unavailable: ${text.slice(0, 80)}`, 'ENV') :
@@ -1720,7 +1725,8 @@ async function runBrowserGroup(record) {
             try {
               stop();
             } catch {
-              /* removed */ }
+              /* removed */
+            }
             resolve(true);
           }, 0);
         });
@@ -1731,7 +1737,8 @@ async function runBrowserGroup(record) {
             try {
               stop();
             } catch {
-              /* removed */ }
+              /* removed */
+            }
             resolve(false);
           }
         }, 20000);
@@ -1778,7 +1785,8 @@ async function runBrowserGroup(record) {
     try {
       window.__godsEyeView.viewer.camera.cancelFlight();
     } catch {
-      /* none */ }
+      /* none */
+    }
   });
   await new Promise((r) => setTimeout(r, 3000));
 
@@ -1872,7 +1880,8 @@ async function runBrowserGroup(record) {
             origin: 'user'
           }), new Promise((r) => setTimeout(r, 3000))]);
         } catch {
-          /* teardown is best-effort */ }
+          /* teardown is best-effort */
+        }
       }
     }, null, 45000);
     await new Promise((r) => setTimeout(r, 4000));
@@ -1934,7 +1943,8 @@ async function runBrowserGroup(record) {
     try {
       diag = vc.getDiagnostics?.();
     } catch {
-      /* never started */ }
+      /* never started */
+    }
     return {
       present: true,
       active: !!vc.isActive?.(),
@@ -2250,7 +2260,8 @@ async function runBrowserGroup(record) {
         try {
           dm.layers.get('military-installations')?.module?.refresh?.();
         } catch {
-          /* optional */ }
+          /* optional */
+        }
         return dm.layers.get('military-installations')?.module?.getStats?.() ?? null;
       }, null, 10000);
       if (snap) ms = snap;
@@ -2588,7 +2599,8 @@ async function runBrowserGroup(record) {
       try {
         await vc.start?.();
       } catch {
-        /* the rejection is the point */ }
+        /* the rejection is the point */
+      }
       for (let i = 0; i < 20; i += 1) {
         // eslint-disable-next-line no-await-in-loop
         await new Promise((r) => setTimeout(r, 500));
@@ -2599,7 +2611,8 @@ async function runBrowserGroup(record) {
       try {
         diag = vc.getDiagnostics?.();
       } catch {
-        /* not started */ }
+        /* not started */
+      }
       return {
         status: document.getElementById('gev-voice-status')?.textContent?.trim() || null,
         detail: document.getElementById('gev-voice-detail')?.textContent?.trim() || null,
