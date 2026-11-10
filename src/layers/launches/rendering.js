@@ -460,11 +460,9 @@ export function createRendering({
           launchId: launch.id,
           noradId: satelliteTrack?.noradId || '',
           phase: satelliteTrack ?
-            'CURRENT_SATELLITE_POSITION' :
-            'ESTIMATED_ORBIT_POSITION',
+            'CURRENT_SATELLITE_POSITION' : 'ESTIMATED_ORBIT_POSITION',
           source: satelliteTrack ?
-            'Satellites layer' :
-            'Approximate mission orbit',
+            'Satellites layer' : 'Approximate mission orbit',
         },
       });
       overlayRecord.liveEventTime = () => liveTime;
@@ -548,8 +546,7 @@ export function createRendering({
           noradId: satelliteTrack?.noradId || '',
           phase: 'ASCENT_THEN_ORBIT',
           source: satelliteTrack ?
-            'Satellite trajectory animation' :
-            'Approximate trajectory animation',
+            'Satellite trajectory animation' : 'Approximate trajectory animation',
         },
       });
       layerState._dataSource.entities.add({
@@ -571,8 +568,7 @@ export function createRendering({
           launchId: launch.id,
           phase: 'APPROXIMATE_TRANSFER',
           source: satelliteTrack ?
-            'Launch site to propagated insertion' :
-            'Launch site to forward projected insertion',
+            'Launch site to propagated insertion' : 'Launch site to forward projected insertion',
         },
       });
     }
