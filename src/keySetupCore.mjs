@@ -170,9 +170,9 @@ export function parseWindowsUserSid(stdout) {
   const fields = parseCsvRecord(stdout);
   if (!fields || fields.length !== 2) return null;
   const sid = fields[1].trim();
-  return /^(?:S-1-5-21-(?:\d+-){3}\d+|S-1-12-1-(?:\d+-){3}\d+)$/i.test(sid)
-    ? sid
-    : null;
+  return /^(?:S-1-5-21-(?:\d+-){3}\d+|S-1-12-1-(?:\d+-){3}\d+)$/i.test(sid) ?
+    sid :
+    null;
 }
 
 /**
@@ -212,7 +212,11 @@ export function admitKeySetupRequest({
   // only appear when someone has deliberately fronted the dev server.
   const PROXY_SIGNALS = ['forwarded', 'via', 'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-port', 'x-forwarded-proto', 'x-real-ip', 'cf-connecting-ip', 'cf-ray'];
   if (PROXY_SIGNALS.some((name) => String(proxyHeaders[name] || '').trim() !== '')) {
-    return { ok: false, status: 403, error: 'Provider Settings does not answer proxied requests' };
+    return {
+      ok: false,
+      status: 403,
+      error: 'Provider Settings does not answer proxied requests'
+    };
   }
   // Every sharing signal the launcher recognizes (scripts/pinokio-preflight.mjs)
   // also disables this surface — so the gate's set is complete, not a subset the
@@ -226,42 +230,72 @@ export function admitKeySetupRequest({
   // refuses to boot at all when sharing is genuinely on.
   const shareVar = String(env.PINOKIO_SHARE_VAR ?? '').trim();
   const sharingEnabled = ['PINOKIO_SHARE_CLOUDFLARE', 'PINOKIO_SHARE_LOCAL']
-    .some((name) => /^(1|true)$/i.test(String(env[name] || '').trim()))
-    || (shareVar !== '' && shareVar !== '__gev_sharing_disabled__');
+    .some((name) => /^(1|true)$/i.test(String(env[name] || '').trim())) ||
+    (shareVar !== '' && shareVar !== '__gev_sharing_disabled__');
   if (sharingEnabled) {
-    return { ok: false, status: 403, error: 'Provider Settings is disabled while sharing is enabled' };
+    return {
+      ok: false,
+      status: 403,
+      error: 'Provider Settings is disabled while sharing is enabled'
+    };
   }
   if (!LOOPBACK_ADDRESSES.has(String(remoteAddress || ''))) {
-    return { ok: false, status: 403, error: 'Provider Settings answers only the machine running the server' };
+    return {
+      ok: false,
+      status: 403,
+      error: 'Provider Settings answers only the machine running the server'
+    };
   }
   const authority = localAuthority(hostHeader, protocol);
   if (!authority) {
-    return { ok: false, status: 403, error: 'Provider Settings answers only local hostnames' };
+    return {
+      ok: false,
+      status: 403,
+      error: 'Provider Settings answers only local hostnames'
+    };
   }
   if (method === 'POST' && (origin === undefined || origin === null || origin === '')) {
-    return { ok: false, status: 403, error: 'Provider Settings requires an exact local Origin' };
+    return {
+      ok: false,
+      status: 403,
+      error: 'Provider Settings requires an exact local Origin'
+    };
   }
   if (origin !== undefined && origin !== null && origin !== '') {
     let parsedOrigin;
     try {
       parsedOrigin = new URL(String(origin));
     } catch {
-      return { ok: false, status: 403, error: 'Unrecognized Origin refused' };
+      return {
+        ok: false,
+        status: 403,
+        error: 'Unrecognized Origin refused'
+      };
     }
-    const exactOrigin = parsedOrigin.username === ''
-      && parsedOrigin.password === ''
-      && parsedOrigin.pathname === '/'
-      && parsedOrigin.search === ''
-      && parsedOrigin.hash === ''
-      && parsedOrigin.origin === authority;
+    const exactOrigin = parsedOrigin.username === '' &&
+      parsedOrigin.password === '' &&
+      parsedOrigin.pathname === '/' &&
+      parsedOrigin.search === '' &&
+      parsedOrigin.hash === '' &&
+      parsedOrigin.origin === authority;
     if (!exactOrigin) {
-      return { ok: false, status: 403, error: 'Cross-origin requests are refused' };
+      return {
+        ok: false,
+        status: 403,
+        error: 'Cross-origin requests are refused'
+      };
     }
   }
   if (method === 'POST' && !String(contentType || '').toLowerCase().startsWith('application/json')) {
-    return { ok: false, status: 415, error: 'Content-Type must be application/json' };
+    return {
+      ok: false,
+      status: 415,
+      error: 'Content-Type must be application/json'
+    };
   }
-  return { ok: true };
+  return {
+    ok: true
+  };
 }
 
 /** @returns {Set<string>} every env var the panel is allowed to write. */
@@ -337,29 +371,53 @@ export function keySetupStatus(env = {}) {
  */
 export function validateKeySetupUpdates(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
-    return { ok: false, error: 'Body must be a JSON object of {ENV_VAR: value}' };
+    return {
+      ok: false,
+      error: 'Body must be a JSON object of {ENV_VAR: value}'
+    };
   }
   const entries = Object.entries(body);
-  if (entries.length === 0) return { ok: false, error: 'No keys provided' };
+  if (entries.length === 0) return {
+    ok: false,
+    error: 'No keys provided'
+  };
   if (entries.length > KEY_SETUP_UPDATE_LIMIT) {
-    return { ok: false, error: `At most ${KEY_SETUP_UPDATE_LIMIT} keys per save` };
+    return {
+      ok: false,
+      error: `At most ${KEY_SETUP_UPDATE_LIMIT} keys per save`
+    };
   }
   const known = knownKeySetupEnvVars();
   const updates = {};
   for (const [name, raw] of entries) {
-    if (!known.has(name)) return { ok: false, error: `Unknown key: ${name}` };
+    if (!known.has(name)) return {
+      ok: false,
+      error: `Unknown key: ${name}`
+    };
     if (raw === null) {
       updates[name] = null;
       continue;
     }
-    if (typeof raw !== 'string') return { ok: false, error: `${name} must be a string` };
+    if (typeof raw !== 'string') return {
+      ok: false,
+      error: `${name} must be a string`
+    };
     const value = raw.trim();
-    if (!value) return { ok: false, error: `${name} is empty` };
+    if (!value) return {
+      ok: false,
+      error: `${name} is empty`
+    };
     if (value.length > KEY_SETUP_VALUE_LIMIT) {
-      return { ok: false, error: `${name} is longer than any real key (${KEY_SETUP_VALUE_LIMIT} max)` };
+      return {
+        ok: false,
+        error: `${name} is longer than any real key (${KEY_SETUP_VALUE_LIMIT} max)`
+      };
     }
     if (!/^[\x21-\x7e]+$/.test(value)) {
-      return { ok: false, error: `${name} may only contain printable characters with no spaces` };
+      return {
+        ok: false,
+        error: `${name} may only contain printable characters with no spaces`
+      };
     }
     // Reject the dotenv metacharacters that would round-trip WRONG when written
     // unquoted (# starts a comment, quotes redelimit, $ expands, backslash and
@@ -367,11 +425,17 @@ export function validateKeySetupUpdates(body) {
     // parseEnv and Vite's expansion read back. Real provider keys never contain
     // these; they are base64url / hex / JWT alphabets.
     if (/[#"'$\\`]/.test(value)) {
-      return { ok: false, error: `${name} contains a character that is not valid in a key (#, quotes, $, \\, or backtick)` };
+      return {
+        ok: false,
+        error: `${name} contains a character that is not valid in a key (#, quotes, $, \\, or backtick)`
+      };
     }
     updates[name] = value;
   }
-  return { ok: true, updates };
+  return {
+    ok: true,
+    updates
+  };
 }
 
 /**
