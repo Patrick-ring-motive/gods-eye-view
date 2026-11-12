@@ -12,7 +12,10 @@ export function updateContext(info, heading) {
   const snapshot =
     this.services.militaryAwarenessLayer.getContextSnapshot?.() || null;
   const trackedId = info.icao24 || info.id;
-  const readout = resolveCockpitContextReadout({ snapshot, info });
+  const readout = resolveCockpitContextReadout({
+    snapshot,
+    info
+  });
   if (!readout.visible) {
     this.context.hidden = true;
     this.hud?.classList.remove('context-active');
@@ -76,32 +79,35 @@ export function updateContext(info, heading) {
       value.textContent = cohort.count === null ? '?' : String(cohort.count);
     element?.classList.toggle('unknown', cohort.relationship === 'UNKNOWN');
     if (cohort.count === null) unknownCount += 1;
-    for (const item of cohort.nearest) nearest.push({ ...item, cohort });
+    for (const item of cohort.nearest) nearest.push({
+      ...item,
+      cohort
+    });
   }
   nearest.sort((a, b) => (a.distanceM ?? Infinity) - (b.distanceM ?? Infinity));
   const closest = nearest[0] || null;
   const closestLabel = this.services.formatAwarenessLabel(closest);
   if (this.contextNearestLabel) {
-    this.contextNearestLabel.textContent = closest
-      ? `${closest.cohort.label.toUpperCase()} · ${closestLabel}`
-      : 'NO AVAILABLE EXAMPLE';
+    this.contextNearestLabel.textContent = closest ?
+      `${closest.cohort.label.toUpperCase()} · ${closestLabel}` :
+      'NO AVAILABLE EXAMPLE';
     this.contextNearestLabel.setAttribute(
       'aria-label',
-      closest && closestLabel === '—'
-        ? `${closest.cohort.label}, Unavailable`
-        : this.contextNearestLabel.textContent,
+      closest && closestLabel === '—' ?
+      `${closest.cohort.label}, Unavailable` :
+      this.contextNearestLabel.textContent,
     );
   }
   if (this.contextDistance) {
     const distanceM = closest?.distanceM;
-    this.contextDistance.textContent = Number.isFinite(distanceM)
-      ? `${distanceM < 10000 ? (distanceM / 1000).toFixed(1) : Math.round(distanceM / 1000)} KM`
-      : '—';
+    this.contextDistance.textContent = Number.isFinite(distanceM) ?
+      `${distanceM < 10000 ? (distanceM / 1000).toFixed(1) : Math.round(distanceM / 1000)} KM` :
+      '—';
     this.contextDistance.setAttribute(
       'aria-label',
-      Number.isFinite(distanceM)
-        ? this.contextDistance.textContent
-        : 'Unavailable',
+      Number.isFinite(distanceM) ?
+      this.contextDistance.textContent :
+      'Unavailable',
     );
   }
 
@@ -118,14 +124,14 @@ export function updateContext(info, heading) {
     Number.isFinite(info.longitude)
   ) {
     const cartographic = Cesium.Cartographic.fromCartesian(closest.position);
-    const bearing = cartographic
-      ? bearingBetweenCoordinates(
-          info.latitude,
-          info.longitude,
-          Cesium.Math.toDegrees(cartographic.latitude),
-          Cesium.Math.toDegrees(cartographic.longitude),
-        )
-      : null;
+    const bearing = cartographic ?
+      bearingBetweenCoordinates(
+        info.latitude,
+        info.longitude,
+        Cesium.Math.toDegrees(cartographic.latitude),
+        Cesium.Math.toDegrees(cartographic.longitude),
+      ) :
+      null;
     relative = relativeBearing(bearing, heading);
   }
   if (this.contextDirection) {
@@ -139,14 +145,14 @@ export function updateContext(info, heading) {
       this.contextBearing.textContent = `${relative < 0 ? 'L' : 'R'} ${String(Math.round(Math.abs(relative))).padStart(3, '0')}°`;
   }
   if (this.contextUncertainty) {
-    this.contextUncertainty.textContent = unknownCount
-      ? `${unknownCount} INPUT${unknownCount === 1 ? '' : 'S'} UNKNOWN · NOT AN ALL-CLEAR`
-      : 'AVAILABLE INPUTS CURRENT · NOT AN ALL-CLEAR';
+    this.contextUncertainty.textContent = unknownCount ?
+      `${unknownCount} INPUT${unknownCount === 1 ? '' : 'S'} UNKNOWN · NOT AN ALL-CLEAR` :
+      'AVAILABLE INPUTS CURRENT · NOT AN ALL-CLEAR';
   }
   if (this.contextUpdated) {
-    this.contextUpdated.textContent = Number.isFinite(snapshot.evaluatedAt)
-      ? new Date(snapshot.evaluatedAt).toISOString().slice(11, 19) + 'Z'
-      : '--:--:--Z';
+    this.contextUpdated.textContent = Number.isFinite(snapshot.evaluatedAt) ?
+      new Date(snapshot.evaluatedAt).toISOString().slice(11, 19) + 'Z' :
+      '--:--:--Z';
   }
   this.context.dataset.state = unknownCount ? 'uncertain' : 'current';
   this.updateCockpitSignals(snapshot, unknownCount);
