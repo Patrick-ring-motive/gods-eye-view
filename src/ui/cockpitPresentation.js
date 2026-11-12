@@ -41,8 +41,7 @@ export const COCKPIT_REGIONAL_REFRESH_MS = 5 * 60_000;
 
 export const COCKPIT_REGIONAL_REFRESH_DISTANCE_M = 25_000;
 
-export const COCKPIT_BRIEF_PAGES = [
-  {
+export const COCKPIT_BRIEF_PAGES = [{
     id: 'signals',
     kicker: 'LIVE SIGNALS',
     subtitle: 'OBSERVED / MAPPED PINGS',
@@ -97,8 +96,10 @@ export function formatCockpitWindDirection(value) {
 export function setCockpitRollingValue(
   element,
   text,
-  numericValue,
-  { circularRange = null, immediate = false } = {},
+  numericValue, {
+    circularRange = null,
+    immediate = false
+  } = {},
 ) {
   if (!element) return;
   const nextText = String(text);
@@ -141,9 +142,9 @@ export function setCockpitRollingValue(
   }
 
   let delta =
-    Number.isFinite(numericValue) && Number.isFinite(previousValue)
-      ? numericValue - previousValue
-      : 0;
+    Number.isFinite(numericValue) && Number.isFinite(previousValue) ?
+    numericValue - previousValue :
+    0;
   if (Number.isFinite(circularRange) && circularRange > 0) {
     const halfRange = circularRange / 2;
     if (delta > halfRange) delta -= circularRange;
