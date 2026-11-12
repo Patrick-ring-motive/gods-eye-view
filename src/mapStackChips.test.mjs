@@ -261,8 +261,7 @@ test('the lit chip tracks controller state, not the click', () => {
 test('keyless ion stacks stay focusable, aria-disabled, and say why', () => {
   const container = makeElement();
   const keyless = CONTROLLER_STACKS.map((stack) =>
-    stack.requiresIon ?
-    {
+    stack.requiresIon ? {
       ...stack,
       available: false,
       unavailableReason: 'Needs CESIUM_ION_TOKEN — add it in Provider Settings',
@@ -313,8 +312,7 @@ test('a non-ion stack that fails never claims an ion token is required', () => {
   // photoreal is unavailable for a reason that has nothing to do with ion.
   const container = makeElement();
   const tilesFailed = CONTROLLER_STACKS.map((stack) =>
-    stack.id === 'photoreal' ?
-    {
+    stack.id === 'photoreal' ? {
       ...stack,
       available: false,
       unavailableReason: 'Needs GOOGLE_MAPS_API_KEY — add it in Provider Settings',
