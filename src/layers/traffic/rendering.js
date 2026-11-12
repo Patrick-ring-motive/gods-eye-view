@@ -245,8 +245,7 @@ export function createRendering({
       if (layerState._dots.length >= MAX_DOTS) break;
     }
 
-    const renderMetrics = state ?
-      {
+    const renderMetrics = state ? {
         renderId,
         renderLabel: label,
         roadCount: roads.length,
