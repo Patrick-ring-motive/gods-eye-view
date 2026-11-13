@@ -31,8 +31,7 @@ export function createQueries({
         longitude: fire.lon,
         frp: fire.frp,
         confidencePct: Number.isFinite(fire.confidence) ?
-          fire.confidence * 100 :
-          null,
+          fire.confidence * 100 : null,
         observedAt: Number.isFinite(fire.acqMs) && fire.acqMs > 0 ? fire.acqMs : null,
         source: fire.sensor || fire.satellite || null,
       };
@@ -84,10 +83,8 @@ export function createQueries({
         loading: layerState._loading,
         stale: layerState._stale,
         error: layerState._keyRequired ?
-          'KEY REQUIRED' :
-          layerState._stale ?
-          staleText :
-          layerState._error,
+          'KEY REQUIRED' : layerState._stale ?
+          staleText : layerState._error,
         loadingLabel,
       };
     },
