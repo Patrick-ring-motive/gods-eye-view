@@ -52,8 +52,7 @@ export function createIngestion({
         nextAttemptAt: snapshot.nextAttemptAt,
         refreshing: snapshot.stale,
         newestPositionAt: snapshot.observedAtMs == null ?
-          null :
-          new Date(snapshot.observedAtMs).toISOString(),
+          null : new Date(snapshot.observedAtMs).toISOString(),
         silentForMs: snapshot.silentForMs,
         reconnectAttempt: snapshot.reconnectAttempt,
       });
@@ -180,8 +179,7 @@ export function createIngestion({
       heading: record.headingDeg,
       last_position_epoch: record.observedAtMs == null ? null : record.observedAtMs / 1000,
       last_position_UTC: record.observedAtMs == null ?
-        '' :
-        new Date(record.observedAtMs).toISOString(),
+        '' : new Date(record.observedAtMs).toISOString(),
     };
   }
   const methods = {
