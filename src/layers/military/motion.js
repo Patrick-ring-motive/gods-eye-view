@@ -9,7 +9,9 @@ import {
   courseSlewCapDps,
   limitCourseStep,
 } from '../../data/motionModel.js';
-import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
+import {
+  CLASS_SCALE_2D
+} from '../../data/aircraftClass.js';
 import {
   modelVisualAnchor,
   modelAnchorWorld,
@@ -32,7 +34,9 @@ export function createMotion({
   layer,
   resolveAsset,
 }) {
-  const { trackedModelScaleForPixelCap } = services.camera;
+  const {
+    trackedModelScaleForPixelCap
+  } = services.camera;
   const {
     nearFarScalarValueAtDistance,
     clearFocusTarget,
@@ -82,9 +86,9 @@ export function createMotion({
       ) {
         const span = Cesium.JulianDate.secondsDifference(b.time, a.time);
         const t =
-          span > 0
-            ? Cesium.JulianDate.secondsDifference(renderTime, a.time) / span
-            : 1.0;
+          span > 0 ?
+          Cesium.JulianDate.secondsDifference(renderTime, a.time) / span :
+          1.0;
         // Course of the DISPLAYED motion. The chord is only trustworthy when the
         // segment covers real ground (at hover its direction is GPS jitter; on a
         // slow tight turn it STEPS the whole per-segment turn at each boundary),
@@ -104,9 +108,9 @@ export function createMotion({
         const chordCourse =
           w > 0 ? courseBetweenCartesians(a.position, b.position) : null;
         flightState._drCourseDeg =
-          chordCourse != null
-            ? lerpAngleDeg(trackCourse, chordCourse, w)
-            : trackCourse;
+          chordCourse != null ?
+          lerpAngleDeg(trackCourse, chordCourse, w) :
+          trackCourse;
         flightState._drSpeedMps = segSpeed;
         flightState._drCourseHold = segSpeed < COURSE_HOLD_SPEED_MPS;
         return Cesium.Cartesian3.lerp(a.position, b.position, t, out);
@@ -145,9 +149,9 @@ export function createMotion({
     const coastLimitSec = staleCoastLimitSeconds({
       // Captured at poll normalization so the fleet tick does not allocate a
       // Date for every aircraft twelve times per second.
-      fixEpochMs: Number.isFinite(newest.epochMs)
-        ? newest.epochMs
-        : Cesium.JulianDate.toDate(newest.time).getTime(),
+      fixEpochMs: Number.isFinite(newest.epochMs) ?
+        newest.epochMs :
+        Cesium.JulianDate.toDate(newest.time).getTime(),
       lastContactEpochMs: info?.lastContactEpochMs,
     });
     return _extrapolateFix(
@@ -171,12 +175,12 @@ export function createMotion({
    */
 
   function _extrapolateFix(fix, info, dt, out, turnRateDps = 0) {
-    const speed = Number.isFinite(fix.velocity)
-      ? fix.velocity
-      : (info && info.speedMps) || 0;
-    const heading = Number.isFinite(fix.track)
-      ? fix.track
-      : (info && info.track) || 0;
+    const speed = Number.isFinite(fix.velocity) ?
+      fix.velocity :
+      (info && info.speedMps) || 0;
+    const heading = Number.isFinite(fix.track) ?
+      fix.track :
+      (info && info.track) || 0;
     flightState._drSpeedMps = speed;
     flightState._drCourseHold = speed < COURSE_HOLD_SPEED_MPS;
     if (speed === 0 || dt === 0) {
@@ -256,7 +260,7 @@ export function createMotion({
     const scale =
       billboard?.scale?.getValue(time) ??
       BILLBOARD_SCALE *
-        (CLASS_SCALE_2D[flightState._flightData.get(icao24)?.klass] || 1);
+      (CLASS_SCALE_2D[flightState._flightData.get(icao24)?.klass] || 1);
     const scaleByDistance =
       billboard?.scaleByDistance?.getValue(time) ??
       TRACKED_BILLBOARD_SCALE_BY_DISTANCE;
@@ -360,9 +364,9 @@ export function createMotion({
 
   function _trackedDisplayCached() {
     return flightState._drReconcileValid &&
-      flightState._drReconcileIcao === flightState._trackedIcao
-      ? flightState._cachedDRPosition
-      : null;
+      flightState._drReconcileIcao === flightState._trackedIcao ?
+      flightState._cachedDRPosition :
+      null;
   }
 
   /**
@@ -385,9 +389,9 @@ export function createMotion({
       return modelVisualAnchor(
         flightState._trackedModel.modelMatrix,
         spec.visualCenterNative,
-        Number.isFinite(flightState._trackedModel.computedScale)
-          ? flightState._trackedModel.computedScale
-          : spec.scale,
+        Number.isFinite(flightState._trackedModel.computedScale) ?
+        flightState._trackedModel.computedScale :
+        spec.scale,
         flightState._trackedVisualPos,
       );
     }
@@ -425,9 +429,9 @@ export function createMotion({
     const spec = parts.rendering._modelSpec(
       flightState._flightData.get(flightState._trackedIcao)?.klass,
     );
-    const scale = Number.isFinite(flightState._trackedModel.computedScale)
-      ? flightState._trackedModel.computedScale
-      : spec.scale;
+    const scale = Number.isFinite(flightState._trackedModel.computedScale) ?
+      flightState._trackedModel.computedScale :
+      spec.scale;
     return spec.nativeRadiusM * scale;
   }
 
@@ -474,21 +478,21 @@ export function createMotion({
       flightState._cachedDRCourse != null;
     const raw = cacheValid ? flightState._cachedDRCourse : fallback;
     const nowMs = Date.now();
-    const dt = flightState._trackedCourseMs
-      ? Math.min(
-          COURSE_SLEW_DT_MAX_SEC,
-          (nowMs - flightState._trackedCourseMs) / 1000,
-        )
-      : 0;
+    const dt = flightState._trackedCourseMs ?
+      Math.min(
+        COURSE_SLEW_DT_MAX_SEC,
+        (nowMs - flightState._trackedCourseMs) / 1000,
+      ) :
+      0;
     flightState._trackedCourseMs = nowMs;
     const prev = flightState._displayCourse.get(flightState._trackedIcao);
     // Hover hold: at near-zero displayed speed both the chord and the reported
     // track are noise — keep the last stable nose direction instead of chasing.
     if (cacheValid && flightState._cachedDRHold && prev != null) return prev;
     const cap = courseSlewCapDps(
-      cacheValid
-        ? flightState._cachedDRSpeedMps
-        : ((info && info.speedMps) ?? NaN),
+      cacheValid ?
+      flightState._cachedDRSpeedMps :
+      ((info && info.speedMps) ?? NaN),
       COURSE_MAX_DPS,
     );
     const course = limitCourseStep(prev, raw, cap, dt);
