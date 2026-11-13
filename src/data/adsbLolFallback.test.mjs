@@ -38,9 +38,19 @@ test('normalizes adsb.lol units into an OpenSky-compatible state vector', () => 
 test('keeps grounded fallback contacts and rejects rows without positions', () => {
   const normalized = normalizeAdsbLolPointResponse({
     now: 1_700_000_000_000,
-    ac: [
-      { hex: 'abc123', lat: 0, lon: 0, alt_baro: 'ground', gs: 8 },
-      { hex: 'def456', lat: null, lon: 10, alt_baro: 5000 },
+    ac: [{
+        hex: 'abc123',
+        lat: 0,
+        lon: 0,
+        alt_baro: 'ground',
+        gs: 8
+      },
+      {
+        hex: 'def456',
+        lat: null,
+        lon: 10,
+        alt_baro: 5000
+      },
     ],
   });
 
