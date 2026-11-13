@@ -1,1 +1,4 @@
-export { CctvControls } from './cctvControls.js';
+export {
+  CctvControls
+}
+from './cctvControls.js';
