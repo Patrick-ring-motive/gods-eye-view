@@ -1,7 +1,9 @@
 // Unit tests for the pure drawing/format helpers behind the detection overlay.
 // These are renderer-agnostic (no Cesium, no DOM) so they pin the Phase-1 label
 // + batching behavior and carry straight into the Phase-2 GPU renderer.
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   formatFlightLevel,
@@ -19,7 +21,7 @@ import {
 
 test('formatFlightLevel converts metres to a 3-digit flight level', () => {
   assert.equal(formatFlightLevel(10363), 'FL340'); // 34,000 ft
-  assert.equal(formatFlightLevel(1524), 'FL050');  // 5,000 ft, zero-padded
+  assert.equal(formatFlightLevel(1524), 'FL050'); // 5,000 ft, zero-padded
 });
 
 test('formatFlightLevel returns empty string for missing/zero/negative altitude', () => {
@@ -45,26 +47,43 @@ test('monoTextWidth multiplies length by advance, 0 for empty', () => {
 });
 
 test('composeLabel: id only -> empty secondary (degrades to today)', () => {
-  assert.deepEqual(composeLabel({ id: 'VEH-0001' }), { primary: 'VEH-0001', secondary: '' });
+  assert.deepEqual(composeLabel({
+    id: 'VEH-0001'
+  }), {
+    primary: 'VEH-0001',
+    secondary: ''
+  });
 });
 
 test('composeLabel: id + metric -> secondary is the metric', () => {
-  assert.deepEqual(composeLabel({ id: 'UAL2476', metric: 'FL340' }), {
+  assert.deepEqual(composeLabel({
+    id: 'UAL2476',
+    metric: 'FL340'
+  }), {
     primary: 'UAL2476',
     secondary: 'FL340',
   });
 });
 
 test('composeLabel: id + class + metric -> class · metric secondary', () => {
-  assert.deepEqual(composeLabel({ id: 'VIPER11', klass: 'MIL', metric: 'FL280' }), {
+  assert.deepEqual(composeLabel({
+    id: 'VIPER11',
+    klass: 'MIL',
+    metric: 'FL280'
+  }), {
     primary: 'VIPER11',
     secondary: 'MIL · FL280',
   });
 });
 
 test('composeLabel truncates an over-long primary and is defensive about empties', () => {
-  assert.equal(composeLabel({ id: 'SUPERLONGVESSELNAME12345' }).primary, 'SUPERLONGVESSELNAM'); // 18
-  assert.deepEqual(composeLabel({}), { primary: '', secondary: '' });
+  assert.equal(composeLabel({
+    id: 'SUPERLONGVESSELNAME12345'
+  }).primary, 'SUPERLONGVESSELNAM'); // 18
+  assert.deepEqual(composeLabel({}), {
+    primary: '',
+    secondary: ''
+  });
 });
 
 test('acquireAlpha ramps 0->1 across the fade window', () => {
@@ -74,10 +93,10 @@ test('acquireAlpha ramps 0->1 across the fade window', () => {
 });
 
 test('acquireAlpha clamps and defaults safely', () => {
-  assert.equal(acquireAlpha(1000, 900, 200), 0);   // before first-seen
-  assert.equal(acquireAlpha(1000, 5000, 200), 1);  // long after
-  assert.equal(acquireAlpha(NaN, 5000, 200), 1);   // no timestamp -> visible
-  assert.equal(acquireAlpha(1000, 1100, 0), 1);    // no fade -> visible
+  assert.equal(acquireAlpha(1000, 900, 200), 0); // before first-seen
+  assert.equal(acquireAlpha(1000, 5000, 200), 1); // long after
+  assert.equal(acquireAlpha(NaN, 5000, 200), 1); // no timestamp -> visible
+  assert.equal(acquireAlpha(1000, 1100, 0), 1); // no fade -> visible
 });
 
 test('appendCornerBracket emits 4 L-shaped corners (4 moveTo + 8 lineTo)', () => {
@@ -100,17 +119,34 @@ test('appendCornerBracket emits 4 L-shaped corners (4 moveTo + 8 lineTo)', () =>
 });
 
 test('resolveTier maps type to a threat tier, with explicit override winning', () => {
-  assert.equal(resolveTier({ type: 'AIR' }), 'civil');
-  assert.equal(resolveTier({ type: 'AIR', tier: 'military' }), 'military'); // layer-supplied override
-  assert.equal(resolveTier({ type: 'SEA' }), 'sea');
-  assert.equal(resolveTier({ type: 'SAT' }), 'space');
-  assert.equal(resolveTier({ type: 'VEH' }), 'vehicle');
+  assert.equal(resolveTier({
+    type: 'AIR'
+  }), 'civil');
+  assert.equal(resolveTier({
+    type: 'AIR',
+    tier: 'military'
+  }), 'military'); // layer-supplied override
+  assert.equal(resolveTier({
+    type: 'SEA'
+  }), 'sea');
+  assert.equal(resolveTier({
+    type: 'SAT'
+  }), 'space');
+  assert.equal(resolveTier({
+    type: 'VEH'
+  }), 'vehicle');
   assert.equal(resolveTier({}), 'civil');
   assert.equal(resolveTier(null), 'civil');
   // Live-traffic congestion tiers ride the same override: keyless VEH
   // contacts carry no tier and keep the stock 'vehicle' color.
-  assert.equal(resolveTier({ type: 'VEH', tier: 'veh_jam' }), 'veh_jam');
-  assert.equal(resolveTier({ type: 'VEH', tier: 'veh_nodata' }), 'veh_nodata');
+  assert.equal(resolveTier({
+    type: 'VEH',
+    tier: 'veh_jam'
+  }), 'veh_jam');
+  assert.equal(resolveTier({
+    type: 'VEH',
+    tier: 'veh_nodata'
+  }), 'veh_nodata');
 });
 
 test('measureLabelCard sizes a two-line card so the second line never clips', () => {
@@ -146,18 +182,38 @@ test('measureTrackLabel handles a missing altitude (callsign only)', () => {
 });
 
 test('callout cards avoid live HUD rectangles without rejecting edge-adjacent space', () => {
-  const hud = [{ x: 100, y: 100, w: 80, h: 60 }];
-  assert.equal(rectIntersectsAny({ x: 120, y: 80, w: 40, h: 40 }, hud), true);
-  assert.equal(rectIntersectsAny({ x: 60, y: 100, w: 40, h: 20 }, hud), false);
-  assert.equal(rectIntersectsAny({ x: 60, y: 100, w: 40, h: 20 }, hud, 1), true);
+  const hud = [{
+    x: 100,
+    y: 100,
+    w: 80,
+    h: 60
+  }];
+  assert.equal(rectIntersectsAny({
+    x: 120,
+    y: 80,
+    w: 40,
+    h: 40
+  }, hud), true);
+  assert.equal(rectIntersectsAny({
+    x: 60,
+    y: 100,
+    w: 40,
+    h: 20
+  }, hud), false);
+  assert.equal(rectIntersectsAny({
+    x: 60,
+    y: 100,
+    w: 40,
+    h: 20
+  }, hud, 1), true);
 });
 
 test('nearFarScale interpolates by distance and clamps to the near/far values', () => {
   // mirrors Cesium NearFarScalar(1000, 3.0, 8000000, 0.5) used by the flight billboards
   assert.equal(nearFarScale(1000, 1000, 3.0, 8000000, 0.5), 3.0);
   assert.equal(nearFarScale(8000000, 1000, 3.0, 8000000, 0.5), 0.5);
-  assert.equal(nearFarScale(500, 1000, 3.0, 8000000, 0.5), 3.0);   // below near -> clamp
-  assert.equal(nearFarScale(9e6, 1000, 3.0, 8000000, 0.5), 0.5);   // beyond far -> clamp
+  assert.equal(nearFarScale(500, 1000, 3.0, 8000000, 0.5), 3.0); // below near -> clamp
+  assert.equal(nearFarScale(9e6, 1000, 3.0, 8000000, 0.5), 0.5); // beyond far -> clamp
   const mid = nearFarScale((1000 + 8000000) / 2, 1000, 3.0, 8000000, 0.5);
   assert.ok(Math.abs(mid - 1.75) < 1e-6, `midpoint ~1.75, got ${mid}`);
 });
