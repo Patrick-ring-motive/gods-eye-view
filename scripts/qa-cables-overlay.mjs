@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-cables-overlay — submarine-cable label path measurement + contract gate.
  *
@@ -30,11 +31,16 @@ const control = argv.includes('--control');
 const LAYER_ID = 'telegeography-submarine-cables';
 
 const results = [];
+
 function check(name, pass, detail) {
-  results.push({ name, pass });
+  results.push({
+    name,
+    pass
+  });
   const tag = pass ? 'PASS' : 'FAIL';
   console.log(`  [${tag}] ${name}${detail !== undefined ? ` — ${JSON.stringify(detail)}` : ''}`);
 }
+
 function report(name, detail) {
   console.log(`  [MEAS] ${name} — ${JSON.stringify(detail)}`);
 }
@@ -54,9 +60,16 @@ const browser = await puppeteer.launch({
 
 try {
   const page = await browser.newPage();
-  await page.setViewport({ width: 1440, height: 860 });
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => !!window.__godsEyeView?.viewer, { timeout: 90_000 });
+  await page.setViewport({
+    width: 1440,
+    height: 860
+  });
+  await page.goto(url, {
+    waitUntil: 'domcontentloaded'
+  });
+  await page.waitForFunction(() => !!window.__godsEyeView?.viewer, {
+    timeout: 90_000
+  });
   await new Promise((r) => setTimeout(r, 12_000)); // boot flyTo + deferred init
 
   // Park mid-Atlantic (many cables + both coasts' landings in range) and
@@ -68,12 +81,25 @@ try {
     const ell = v.scene.globe.ellipsoid;
     v.camera.setView({
       destination: ell.cartographicToCartesian({
-        longitude: -40 * Math.PI / 180, latitude: 35 * Math.PI / 180, height: 4_500_000,
+        longitude: -40 * Math.PI / 180,
+        latitude: 35 * Math.PI / 180,
+        height: 4_500_000,
       }),
-      orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+      orientation: {
+        heading: 0,
+        pitch: -Math.PI / 2,
+        roll: 0
+      },
     });
     for (const [id, entry] of gev.dataManager.layers) {
-      if (entry.enabled) { try { await gev.dataManager.setEnabled(id, false, { origin: 'user' }); } catch { /* measured via counts */ } }
+      if (entry.enabled) {
+        try {
+          await gev.dataManager.setEnabled(id, false, {
+            origin: 'user'
+          });
+        } catch {
+          /* measured via counts */ }
+      }
     }
   });
   await new Promise((r) => setTimeout(r, 6_000)); // tiles + fades settle
@@ -83,7 +109,9 @@ try {
     const labelLatency = await page.evaluate(async (layerId, isLegacy) => {
       const gev = window.__godsEyeView;
       const t0 = performance.now();
-      await gev.dataManager.setEnabled(layerId, true, { origin: 'user' });
+      await gev.dataManager.setEnabled(layerId, true, {
+        origin: 'user'
+      });
       const deadline = t0 + 60_000;
       const labelsUp = () => {
         if (isLegacy) {
@@ -94,11 +122,17 @@ try {
         return (diag.paintedBySource?.[layerId] || 0) > 0;
       };
       while (performance.now() < deadline) {
-        if (labelsUp()) return { ms: Math.round(performance.now() - t0), timedOut: false };
+        if (labelsUp()) return {
+          ms: Math.round(performance.now() - t0),
+          timedOut: false
+        };
         gev.viewer.scene.requestRender?.();
         await new Promise((r) => setTimeout(r, 100));
       }
-      return { ms: 60_000, timedOut: true };
+      return {
+        ms: 60_000,
+        timedOut: true
+      };
     }, LAYER_ID, legacy);
     report('toggle-ON -> labels visible (ms)', labelLatency);
     check('labels became visible after enable', labelLatency.timedOut === false, labelLatency);
@@ -110,8 +144,12 @@ try {
     const gev = window.__godsEyeView;
     const v = gev.viewer;
     const out = {
-      dataSources: {}, nativeLabels: 0, dynamicPositionEntities: 0,
-      referenceEntities: 0, hostEntries: 0, hostPainted: 0,
+      dataSources: {},
+      nativeLabels: 0,
+      dynamicPositionEntities: 0,
+      referenceEntities: 0,
+      hostEntries: 0,
+      hostPainted: 0,
     };
     for (let i = 0; i < v.dataSources.length; i++) {
       const ds = v.dataSources.get(i);
@@ -171,21 +209,28 @@ try {
     };
     requestAnimationFrame(tick);
   }));
-  report(control
-    ? 'scene.render cost, control (cables OFF), 10s orbit'
-    : 'scene.render cost, cables ON, 10s orbit', frameCost);
+  report(control ?
+    'scene.render cost, control (cables OFF), 10s orbit' :
+    'scene.render cost, cables ON, 10s orbit', frameCost);
 
   // ── d. parked idle honesty (labels must not force continuous render) ──
   await new Promise((r) => setTimeout(r, 4_000)); // orbit stop + fades settle
   const idle = await page.evaluate(() => new Promise((resolve) => {
     const scene = window.__godsEyeView.viewer.scene;
     let renders = 0;
-    const remove = scene.postRender.addEventListener(() => { renders += 1; });
-    setTimeout(() => { remove(); resolve({ renders }); }, 5_000);
+    const remove = scene.postRender.addEventListener(() => {
+      renders += 1;
+    });
+    setTimeout(() => {
+      remove();
+      resolve({
+        renders
+      });
+    }, 5_000);
   }));
-  report(control
-    ? 'parked idle, control (postRender fires / 5s)'
-    : 'parked idle with cables ON (postRender fires / 5s)', idle);
+  report(control ?
+    'parked idle, control (postRender fires / 5s)' :
+    'parked idle with cables ON (postRender fires / 5s)', idle);
 
   if (!legacy && !control) {
     // ── unified-build contract gates ────────────────────────────────────
@@ -207,13 +252,17 @@ try {
     // OFF must clear the host source (no orphan labels), ON must restore.
     const cycle = await page.evaluate(async (layerId) => {
       const gev = window.__godsEyeView;
-      await gev.dataManager.setEnabled(layerId, false, { origin: 'user' });
+      await gev.dataManager.setEnabled(layerId, false, {
+        origin: 'user'
+      });
       gev.viewer.scene.requestRender?.();
       await new Promise((r) => setTimeout(r, 1_200));
       const offDiag = window.__gevWorldOverlay?.getDiagnostics?.() || {};
       const offEntries = offDiag.entriesBySource?.[layerId] || 0;
       const offPainted = offDiag.paintedBySource?.[layerId] || 0;
-      await gev.dataManager.setEnabled(layerId, true, { origin: 'user' });
+      await gev.dataManager.setEnabled(layerId, true, {
+        origin: 'user'
+      });
       const t0 = performance.now();
       let onPainted = 0;
       while (performance.now() - t0 < 20_000) {
@@ -223,7 +272,11 @@ try {
         gev.viewer.scene.requestRender?.();
         await new Promise((r) => setTimeout(r, 100));
       }
-      return { offEntries, offPainted, onPainted };
+      return {
+        offEntries,
+        offPainted,
+        onPainted
+      };
     }, LAYER_ID);
     check('disable clears host entries (no orphans)', cycle.offEntries === 0 && cycle.offPainted === 0, cycle);
     check('re-enable restores painted labels', cycle.onPainted > 0, cycle);
