@@ -24,8 +24,7 @@ export function normalizeGoogleReverse(data) {
   const result = data.results[0];
   const relevant = data.results.slice(0, 12);
   const components = Array.isArray(result.address_components) ?
-    result.address_components :
-    [];
+    result.address_components : [];
   const component = (type) =>
     components.find((item) => item.types?.includes(type))?.long_name || null;
   return {
