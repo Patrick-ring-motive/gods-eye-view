@@ -21,7 +21,9 @@ export async function _waitForContextLayerSettlement() {
   }
 }
 
-export function _captureContextSessionSnapshot({ excludeLayerIds = [] } = {}) {
+export function _captureContextSessionSnapshot({
+  excludeLayerIds = []
+} = {}) {
   if (!this._dataManager || this._contextSessionSnapshot) return;
   const params = {};
   for (const layerId of ['military-awareness', 'satellites']) {
@@ -65,17 +67,19 @@ export async function _restoreContextSession({
     // dependency releases can supersede the restore's same-target requests
     // and make a valid Contacts-to-Missions handoff look like a failure.
     const contactsCoordinatorId = 'military-awareness';
-    const settleContactsCoordinator =
-      !restoreState.enabledLayerIds.has(contactsCoordinatorId) &&
+    const settleContactsCoordinator = !restoreState.enabledLayerIds.has(contactsCoordinatorId) &&
       this._dataManager.isEffectivelyEnabled(contactsCoordinatorId);
     if (settleContactsCoordinator) {
       const coordinatorSettled = await this._dataManager.setEnabled(
         contactsCoordinatorId,
-        false,
-        {
+        false, {
           origin: 'context-restore',
-          ...(notificationToken ? { notificationToken } : {}),
-          ...(restoreSignal ? { signal: restoreSignal } : {}),
+          ...(notificationToken ? {
+            notificationToken
+          } : {}),
+          ...(restoreSignal ? {
+            signal: restoreSignal
+          } : {}),
         },
       );
       if (coordinatorSettled === false) {
@@ -87,14 +91,15 @@ export async function _restoreContextSession({
       }
     }
     await this._dataManager.restoreEnabledLayerIds(
-      restoreState.enabledLayerIds,
-      {
+      restoreState.enabledLayerIds, {
         origin: 'context-restore',
-        excludeLayerIds: settleContactsCoordinator
-          ? [...excludeLayerIds, contactsCoordinatorId]
-          : excludeLayerIds,
+        excludeLayerIds: settleContactsCoordinator ?
+          [...excludeLayerIds, contactsCoordinatorId] :
+          excludeLayerIds,
         notificationToken,
-        ...(restoreSignal ? { signal: restoreSignal } : {}),
+        ...(restoreSignal ? {
+          signal: restoreSignal
+        } : {}),
       },
     );
   };
@@ -134,7 +139,9 @@ export async function _restoreContextSession({
     setEnabled: (layerId, enabled, options = {}) =>
       this._dataManager.setEnabled(layerId, enabled, {
         ...options,
-        ...(replaySignal ? { signal: replaySignal } : {}),
+        ...(replaySignal ? {
+          signal: replaySignal
+        } : {}),
       }),
     notificationToken,
   });
@@ -172,9 +179,12 @@ export async function _restoreContextSession({
  * generation discipline the surrounding transaction already follows.
  */
 export async function _restoreContextSessionAfterLayerSettles(
-  layerId,
-  { notificationToken = null } = {},
+  layerId, {
+    notificationToken = null
+  } = {},
 ) {
   await this._dataManager?.waitForLayerSettled?.(layerId);
-  return this._restoreContextSession({ notificationToken });
+  return this._restoreContextSession({
+    notificationToken
+  });
 }
