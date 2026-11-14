@@ -305,9 +305,7 @@ async function main() {
       '--disable-setuid-sandbox',
       // Metal is a macOS-only ANGLE backend; off-Mac the GPU branch has to fall
       // back to the software rasterizer or WebGL init fails outright.
-      ...(SWIFTSHADER ?
-        ['--use-gl=angle', '--use-angle=swiftshader'] :
-        ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist']),
+      ...(SWIFTSHADER ? ['--use-gl=angle', '--use-angle=swiftshader'] : ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist']),
       '--disable-dev-shm-usage',
       '--disable-background-timer-throttling',
       '--disable-renderer-backgrounding',
