@@ -52,19 +52,15 @@ function militaryInstallationsProxy() {
       throw Object.assign(
         new Error('Mapped installation upstream unavailable'), {
           installationReason: upstream.rateLimited ?
-            'rate_limited' :
-            upstream.status === 504 ?
-            'timeout' :
-            upstream.runtimeError ?
-            'query_failed' :
-            'unavailable',
+            'rate_limited' : upstream.status === 504 ?
+            'timeout' : upstream.runtimeError ?
+            'query_failed' : 'unavailable',
         },
       );
     }
     const parsed = JSON.parse(upstream.body);
     const elements = Array.isArray(parsed?.elements) ?
-      parsed.elements.slice(0, MILITARY_INSTALLATION_ELEMENT_CAP) :
-      [];
+      parsed.elements.slice(0, MILITARY_INSTALLATION_ELEMENT_CAP) : [];
     const payload = {
       elements,
       // Honest truncation flag — the client re-asks for its exact viewport so
