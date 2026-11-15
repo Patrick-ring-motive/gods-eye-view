@@ -18,7 +18,9 @@ export function _initCctvPanel() {
     )
       return;
     this.actions.runExplicitFocus(
-      () => this.cctv.focusNearest({ focus: false }),
+      () => this.cctv.focusNearest({
+        focus: false
+      }),
       (cameraId) => this.cctv.focusCamera(cameraId, 1.8),
     );
   });
@@ -77,7 +79,11 @@ export function _initCctvPanel() {
       () => (this.cctv.selectCamera(cameraId) ? cameraId : null),
       (selectedId) => this.cctv.focusCamera(selectedId, 2.2),
     );
-    this.actions.setParams({ selectedCameraId: cameraId }, { origin: 'user' });
+    this.actions.setParams({
+      selectedCameraId: cameraId
+    }, {
+      origin: 'user'
+    });
   });
 
   this.listen(this._cctvFocusBtn, 'click', async () => {
@@ -97,7 +103,11 @@ export function _initCctvPanel() {
       () => selected,
       (cameraId) => this.cctv.focusCamera(cameraId, 1.9),
     );
-    this.actions.setParams({ selectedCameraId: selected }, { origin: 'user' });
+    this.actions.setParams({
+      selectedCameraId: selected
+    }, {
+      origin: 'user'
+    });
   });
 
   this.listen(this._cctvCoverageBtn, 'click', () => {
@@ -106,22 +116,38 @@ export function _initCctvPanel() {
       (this._cctvState?.showCoverage ? 'on' : 'off');
     const next =
       current === 'off' ? 'on' : current === 'on' ? 'viewshed' : 'off';
-    this.actions.setParams({ coverageMode: next }, { origin: 'user' });
+    this.actions.setParams({
+      coverageMode: next
+    }, {
+      origin: 'user'
+    });
   });
 
   this.listen(this._cctvAutoHopBtn, 'click', () => {
     const current = !!this._cctvState?.autoHop;
-    this.actions.setParams({ autoHop: !current }, { origin: 'user' });
+    this.actions.setParams({
+      autoHop: !current
+    }, {
+      origin: 'user'
+    });
   });
 
   this.listen(this._cctvProjectionBtn, 'click', () => {
     const current = this._cctvState?.showProjection !== false;
-    this.actions.setParams({ showProjection: !current }, { origin: 'user' });
+    this.actions.setParams({
+      showProjection: !current
+    }, {
+      origin: 'user'
+    });
   });
 
   this.listen(this._cctvAdjustBtn, 'click', () => {
     const current = !!this._cctvState?.calibrationMode;
-    this.actions.setParams({ calibrationMode: !current }, { origin: 'user' });
+    this.actions.setParams({
+      calibrationMode: !current
+    }, {
+      origin: 'user'
+    });
   });
 
   // Click-to-edit pose readout: each chip swaps to a number input; Enter or
@@ -136,13 +162,15 @@ export function _initCctvPanel() {
   this.listen(this._cctvCalibSaveBtn, 'click', () => {
     const cameraId = this._activeCctvCameraId();
     if (!cameraId || !this.actions.setParams) return;
-    this.actions.setParams(
-      {
-        selectedCameraId: cameraId,
-        calibration: { cameraId, save: true },
+    this.actions.setParams({
+      selectedCameraId: cameraId,
+      calibration: {
+        cameraId,
+        save: true
       },
-      { origin: 'user' },
-    );
+    }, {
+      origin: 'user'
+    }, );
     this.actions.showToast('CCTV calibration saved');
   });
 
