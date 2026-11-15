@@ -78,8 +78,7 @@ export function cctvProxy({
       id: cameraId,
       feedType,
       mediaUrl: isVideoFeedType(feedType) ?
-        `/api/cctv/media/${encodeURIComponent(cameraId)}` :
-        null,
+        `/api/cctv/media/${encodeURIComponent(cameraId)}` : null,
       frameUrl: `/api/cctv/frame/${encodeURIComponent(cameraId)}`,
       provider: source?.provider || '',
       sourceKind: source?.sourceKind || (source?.url ? 'configured' : 'fallback'),
@@ -290,15 +289,13 @@ export function cctvProxy({
                 sourceKind: isVideoFeedType(feedType) ? 'live' : 'snapshot',
                 label: source?.provider || 'Configured source',
                 message: isVideoFeedType(feedType) ?
-                  'Live stream connected' :
-                  'Snapshot feed connected',
+                  'Live stream connected' : 'Snapshot feed connected',
               });
             }
 
             await proxyMediaResponse(res, upstream, {
               sourceHeader: isVideoFeedType(feedType) ?
-                'live-media' :
-                'upstream-image',
+                'live-media' : 'upstream-image',
             });
             return;
           } catch (error) {
@@ -317,8 +314,7 @@ export function cctvProxy({
             res.end(
               JSON.stringify({
                 error: timedOut ?
-                  'Upstream media timeout' :
-                  'Media proxy failed',
+                  'Upstream media timeout' : 'Media proxy failed',
               }),
             );
             return;
@@ -405,8 +401,7 @@ export function cctvProxy({
           label,
           city,
           status: source?.url ?
-            'UPSTREAM UNAVAILABLE' :
-            'NO UPSTREAM CONFIGURED',
+            'UPSTREAM UNAVAILABLE' : 'NO UPSTREAM CONFIGURED',
         });
 
         setHealth(cameraId, {
@@ -414,8 +409,7 @@ export function cctvProxy({
           sourceKind: 'synthetic',
           label: source?.provider || 'Synthetic fallback',
           message: source?.url ?
-            'Upstream unavailable' :
-            'No source configured',
+            'Upstream unavailable' : 'No source configured',
         });
 
         res.writeHead(200, {
