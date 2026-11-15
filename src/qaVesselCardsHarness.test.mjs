@@ -25,9 +25,18 @@ test('vessel-card QA keeps live AISStream as the default and synthetic opt-in', 
 });
 
 test('vessel-card QA filenames cannot collide across live and synthetic evidence', () => {
-  const shared = { tag: 'new', portKey: 'rotterdam' };
-  const live = vesselCardScreenshotFilename({ ...shared, dataMode: 'live' });
-  const synthetic = vesselCardScreenshotFilename({ ...shared, dataMode: 'synthetic' });
+  const shared = {
+    tag: 'new',
+    portKey: 'rotterdam'
+  };
+  const live = vesselCardScreenshotFilename({
+    ...shared,
+    dataMode: 'live'
+  });
+  const synthetic = vesselCardScreenshotFilename({
+    ...shared,
+    dataMode: 'synthetic'
+  });
 
   assert.equal(live, 'vessel-cards-live-aisstream-new-rotterdam.png');
   assert.equal(synthetic, 'vessel-cards-synthetic-fixture-new-rotterdam.png');
@@ -57,7 +66,10 @@ test('vessel-card QA manifest binds screenshot provenance, launch mode, and rend
     portKey: 'houston',
     screenshot: 'vessel-cards-synthetic-fixture-new-houston.png',
     headful: true,
-    renderer: { vendor: 'Apple', renderer: 'Apple M-series' },
+    renderer: {
+      vendor: 'Apple',
+      renderer: 'Apple M-series'
+    },
     captureEvidence: {
       tilesAndVesselsSettled: true,
       injectedRows: 8,
@@ -85,7 +97,16 @@ test('vessel-card QA manifest binds screenshot provenance, launch mode, and rend
 });
 
 test('vessel-card QA distinguishes hardware evidence from software rendering', () => {
-  assert.equal(isHardwareRenderer({ vendor: 'Apple', renderer: 'ANGLE Metal Renderer: Apple M3' }), true);
-  assert.equal(isHardwareRenderer({ vendor: 'Google Inc.', renderer: 'ANGLE (SwiftShader)' }), false);
-  assert.equal(isHardwareRenderer({ vendor: 'unavailable', renderer: 'unavailable' }), false);
+  assert.equal(isHardwareRenderer({
+    vendor: 'Apple',
+    renderer: 'ANGLE Metal Renderer: Apple M3'
+  }), true);
+  assert.equal(isHardwareRenderer({
+    vendor: 'Google Inc.',
+    renderer: 'ANGLE (SwiftShader)'
+  }), false);
+  assert.equal(isHardwareRenderer({
+    vendor: 'unavailable',
+    renderer: 'unavailable'
+  }), false);
 });
