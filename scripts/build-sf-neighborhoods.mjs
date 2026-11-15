@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Build src/data/local_data/neighborhoods/san-francisco.json from the official
  * public-domain DataSF "Analysis Neighborhoods" dataset.
@@ -27,7 +28,9 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const SOURCE_URL = 'https://data.sfgov.org/resource/j2bu-swwd.geojson?$limit=100';
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)),
@@ -37,12 +40,23 @@ const DECIMALS = 6;
 
 /** Perpendicular distance from point p to segment a-b (in degrees, planar — fine at this scale). */
 function segDist(p, a, b) {
-  let [x, y] = p; const [x1, y1] = a; const [x2, y2] = b;
-  let dx = x2 - x1; let dy = y2 - y1;
+  let [x, y] = p;
+  const [x1, y1] = a;
+  const [x2, y2] = b;
+  let dx = x2 - x1;
+  let dy = y2 - y1;
   if (dx !== 0 || dy !== 0) {
     const t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy);
-    if (t > 1) { x -= x2; y -= y2; return Math.hypot(x, y); }
-    if (t > 0) { x -= x1 + dx * t; y -= y1 + dy * t; return Math.hypot(x, y); }
+    if (t > 1) {
+      x -= x2;
+      y -= y2;
+      return Math.hypot(x, y);
+    }
+    if (t > 0) {
+      x -= x1 + dx * t;
+      y -= y1 + dy * t;
+      return Math.hypot(x, y);
+    }
   }
   return Math.hypot(x - x1, y - y1);
 }
@@ -52,13 +66,19 @@ function douglasPeucker(points, tolerance) {
   if (points.length <= 2) return points.slice();
   const keep = new Uint8Array(points.length);
   keep[0] = keep[points.length - 1] = 1;
-  const stack = [[0, points.length - 1]];
+  const stack = [
+    [0, points.length - 1]
+  ];
   while (stack.length) {
     const [first, last] = stack.pop();
-    let maxDist = 0; let index = -1;
+    let maxDist = 0;
+    let index = -1;
     for (let i = first + 1; i < last; i++) {
       const d = segDist(points[i], points[first], points[last]);
-      if (d > maxDist) { maxDist = d; index = i; }
+      if (d > maxDist) {
+        maxDist = d;
+        index = i;
+      }
     }
     if (maxDist > tolerance && index !== -1) {
       keep[index] = 1;
@@ -73,9 +93,9 @@ const round = (v) => Number(v.toFixed(DECIMALS));
 /** Simplify + round one ring; returns null if it degenerates. */
 function processRing(ring) {
   // GeoJSON rings are closed (first == last); simplify the open part.
-  const open = ring.length > 1
-    && ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1]
-    ? ring.slice(0, -1) : ring.slice();
+  const open = ring.length > 1 &&
+    ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1] ?
+    ring.slice(0, -1) : ring.slice();
   const simplified = douglasPeucker(open, TOLERANCE).map(([lon, lat]) => [round(lon), round(lat)]);
   const out = [];
   for (const pt of simplified) {
@@ -104,14 +124,15 @@ async function main() {
     throw new Error('unexpected payload: not a FeatureCollection');
   }
 
-  let inVerts = 0; let outVerts = 0;
+  let inVerts = 0;
+  let outVerts = 0;
   const features = [];
   for (const f of raw.features) {
     const name = f.properties && f.properties.nhood;
     if (!name || !f.geometry) throw new Error(`feature missing nhood/geometry: ${JSON.stringify(f.properties)}`);
-    const polysIn = f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates
-      : f.geometry.type === 'Polygon' ? [f.geometry.coordinates]
-        : null;
+    const polysIn = f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates :
+      f.geometry.type === 'Polygon' ? [f.geometry.coordinates] :
+      null;
     if (!polysIn) throw new Error(`unexpected geometry type ${f.geometry.type} for ${name}`);
     const polys = [];
     for (const poly of polysIn) {
@@ -119,15 +140,30 @@ async function main() {
       for (const ring of poly) {
         inVerts += ring.length;
         const r = processRing(ring);
-        if (r) { rings.push(r); outVerts += r.length; }
+        if (r) {
+          rings.push(r);
+          outVerts += r.length;
+        }
       }
       if (rings.length && poly[0] && rings[0]) polys.push(rings);
     }
     if (!polys.length) throw new Error(`geometry collapsed for ${name}`);
-    const geometry = polys.length === 1
-      ? { type: 'Polygon', coordinates: polys[0] }
-      : { type: 'MultiPolygon', coordinates: polys };
-    features.push({ type: 'Feature', properties: { name }, geometry });
+    const geometry = polys.length === 1 ?
+      {
+        type: 'Polygon',
+        coordinates: polys[0]
+      } :
+      {
+        type: 'MultiPolygon',
+        coordinates: polys
+      };
+    features.push({
+      type: 'Feature',
+      properties: {
+        name
+      },
+      geometry
+    });
   }
   features.sort((a, b) => a.properties.name.localeCompare(b.properties.name));
 
@@ -142,4 +178,7 @@ async function main() {
   console.log(`wrote ${OUT}: ${features.length} features, ${inVerts} → ${outVerts} vertices, ${kb} KB`);
 }
 
-main().catch((err) => { console.error(err); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
