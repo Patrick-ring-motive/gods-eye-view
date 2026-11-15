@@ -53,8 +53,7 @@ function normalizeRssArticles(xml, limit = 5) {
       url: parsedUrl.href,
       domain: source || parsedUrl.hostname.replace(/^www\./, ''),
       publishedAt: Number.isNaN(Date.parse(rawDate)) ?
-        null :
-        new Date(rawDate).toISOString(),
+        null : new Date(rawDate).toISOString(),
       sourceCountry: null,
     });
     if (articles.length >= limit) break;
