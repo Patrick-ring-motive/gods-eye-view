@@ -12,8 +12,11 @@
 export class LiveSourceError extends Error {
   constructor(
     code,
-    message,
-    { status = null, retryAfterMs = 20000, source = null } = {},
+    message, {
+      status = null,
+      retryAfterMs = 20000,
+      source = null
+    } = {},
   ) {
     super(message);
     this.name = 'LiveSourceError';
@@ -35,9 +38,9 @@ export function epoch(value, scale = 1) {
   const milliseconds = number == null ? null : number * scale;
   return milliseconds != null &&
     milliseconds > 0 &&
-    milliseconds <= 8640000000000000
-    ? milliseconds
-    : null;
+    milliseconds <= 8640000000000000 ?
+    milliseconds :
+    null;
 }
 
 export function cleanText(value) {
@@ -79,14 +82,19 @@ export function admitRecords(rows, normalize, label) {
 /** Cancellation is checked after body parsing even when a transport ignores it. */
 export async function readResponse(
   fetchImpl,
-  url,
-  { signal, ...init } = {},
+  url, {
+    signal,
+    ...init
+  } = {},
   source = 'Live source',
 ) {
   signal?.throwIfAborted();
   let response;
   try {
-    response = await fetchImpl(url, { ...init, signal });
+    response = await fetchImpl(url, {
+      ...init,
+      signal
+    });
     signal?.throwIfAborted();
   } catch (error) {
     signal?.throwIfAborted();
@@ -102,21 +110,23 @@ export async function readResponse(
     /* classified below */
   }
   signal?.throwIfAborted();
-  return { response, payload };
+  return {
+    response,
+    payload
+  };
 }
 
 export function httpError(response, source) {
   const status = response.status;
   const code =
-    status === 429
-      ? 'limited'
-      : status === 401 || status === 403
-        ? 'denied'
-        : 'unavailable';
+    status === 429 ?
+    'limited' :
+    status === 401 || status === 403 ?
+    'denied' :
+    'unavailable';
   return new LiveSourceError(
     code,
-    status === 429 ? `${source} rate limited` : `${source} HTTP ${status}`,
-    {
+    status === 429 ? `${source} rate limited` : `${source} HTTP ${status}`, {
       status,
       source,
       retryAfterMs: code === 'limited' || code === 'denied' ? 45000 : 20000,
