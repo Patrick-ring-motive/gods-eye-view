@@ -23,7 +23,9 @@ export function activateCctvCameraFromWorldClick(
   if (!cameraId || typeof activate !== 'function') return false;
   if (activate(cameraId) !== CCTV_ACTIVATION_RESULT.ACTIVATED) return false;
   eventTarget.dispatchEvent(new CustomEvent(CCTV_FOCUS_REQUEST_EVENT, {
-    detail: { cameraId },
+    detail: {
+      cameraId
+    },
   }));
   return true;
 }
@@ -36,8 +38,8 @@ export function activateCctvCameraFromWorldClick(
  * @returns {() => void} Listener disposer.
  */
 export function registerCctvFocusRequestListener(eventTarget, listener) {
-  if (!eventTarget?.addEventListener || !eventTarget?.removeEventListener
-    || typeof listener !== 'function') return () => {};
+  if (!eventTarget?.addEventListener || !eventTarget?.removeEventListener ||
+    typeof listener !== 'function') return () => {};
   eventTarget.addEventListener(CCTV_FOCUS_REQUEST_EVENT, listener);
   let disposed = false;
   return () => {
