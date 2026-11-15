@@ -47,7 +47,12 @@ test('off-center oblique contacts pin the documented perspective divergence', ()
   const right = new Cesium.Cartesian3(0, 1, 0);
   const up = new Cesium.Cartesian3(Math.sin(pitch), 0, Math.cos(pitch));
   const forward = new Cesium.Cartesian3(-Math.cos(pitch), 0, Math.sin(pitch));
-  const basisRotation = screenProjectedRotation({ camera: { rightWC: right, upWC: up } },
+  const basisRotation = screenProjectedRotation({
+      camera: {
+        rightWC: right,
+        upWC: up
+      }
+    },
     equatorPosition, 0, null);
 
   // Exact pinhole derivative for a contact 2 km right of center and 5 km in
@@ -103,8 +108,8 @@ const cruiseCamera = Cesium.Cartesian3.fromDegrees(0, 0, CRUISE_M);
  * guessed.
  */
 const tangentLonDeg = Cesium.Math.toDegrees(Math.acos(
-  Cesium.Ellipsoid.WGS84.maximumRadius
-  / (Cesium.Ellipsoid.WGS84.maximumRadius + CRUISE_M),
+  Cesium.Ellipsoid.WGS84.maximumRadius /
+  (Cesium.Ellipsoid.WGS84.maximumRadius + CRUISE_M),
 ));
 
 test('a contact above the silhouette is read against sky', () => {
@@ -413,7 +418,9 @@ test('below the surface the backdrop test agrees with the occluder beside it', (
   // halves use that plane. The old fail-closed broke exactly this: the occluder
   // kept a contact against sky and the backdrop test called it ground.
   const camera = Cesium.Cartesian3.fromDegrees(JFK_LON, JFK_LAT, -18);
-  const occluder = horizonOccluder({ positionWC: camera });
+  const occluder = horizonOccluder({
+    positionWC: camera
+  });
   const enu = Cesium.Transforms.eastNorthUpToFixedFrame(camera);
   const offsetBy = (up) => Cesium.Cartesian3.add(
     camera,
