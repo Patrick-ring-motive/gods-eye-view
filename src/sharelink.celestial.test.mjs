@@ -1,11 +1,25 @@
-import { StyleManager } from './ui/applicationShell.js';
-import { _claimContextVisualAuthority, setContextMode } from './ui/contextActions.js';
-import { _initGlobalContextPanel } from './ui/contextBindings.js';
-import { test } from 'node:test';
+import {
+  StyleManager
+} from './ui/applicationShell.js';
+import {
+  _claimContextVisualAuthority,
+  setContextMode
+} from './ui/contextActions.js';
+import {
+  _initGlobalContextPanel
+} from './ui/contextBindings.js';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ShareLinkManager, decodeShareCreatedAtMs } from './sharelink.js';
-import { createDefaultLayerState } from './data/layerState.js';
+import {
+  ShareLinkManager,
+  decodeShareCreatedAtMs
+} from './sharelink.js';
+import {
+  createDefaultLayerState
+} from './data/layerState.js';
 
 const uiSource = fs.readFileSync(new URL('./ui/applicationShell.js', import.meta.url), 'utf8');
 
@@ -28,7 +42,12 @@ function assertClaimsBefore(block, mutation, label) {
 }
 
 function makeManager(hash = '') {
-  globalThis.window = { location: { hash, href: `http://localhost/${hash}` } };
+  globalThis.window = {
+    location: {
+      hash,
+      href: `http://localhost/${hash}`
+    }
+  };
   globalThis.history = {
     replaceState(_state, _title, nextHash) {
       window.location.hash = nextHash;
@@ -36,8 +55,14 @@ function makeManager(hash = '') {
   };
   const viewer = {
     camera: {
-      changed: { addEventListener() {} },
-      positionCartographic: { latitude: 0, longitude: 0, height: 1000 },
+      changed: {
+        addEventListener() {}
+      },
+      positionCartographic: {
+        latitude: 0,
+        longitude: 0,
+        height: 1000
+      },
       heading: 0,
       pitch: -Math.PI / 2,
       roll: 0,
@@ -49,7 +74,11 @@ function makeManager(hash = '') {
 function installClipboard(writeText) {
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,
-    value: { clipboard: { writeText } },
+    value: {
+      clipboard: {
+        writeText
+      }
+    },
   });
 }
 
@@ -76,12 +105,16 @@ test('unknown-only v2 layer tokens are invalid, while historical l fields stay i
 
 test('share-link serialization emits the current celestial state', () => {
   const manager = makeManager();
-  manager.onToggleChange(false, false, { celestialRingEnabled: false });
+  manager.onToggleChange(false, false, {
+    celestialRingEnabled: false
+  });
   clearTimeout(manager._debounceTimer);
   manager._updateHash();
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).get('cr'), '0');
 
-  manager.onToggleChange(false, false, { celestialRingEnabled: true });
+  manager.onToggleChange(false, false, {
+    celestialRingEnabled: true
+  });
   clearTimeout(manager._debounceTimer);
   manager._updateHash();
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).get('cr'), '1');
@@ -91,15 +124,34 @@ test('generated links are v2 and include deterministic layers, options, style pa
   const manager = makeManager();
   const layers = createDefaultLayerState();
   layers.enabledLayerIds = ['cctv', 'radio'];
-  layers.options.cctv = { coverageMode: 'viewshed', showProjection: false, autoHop: true };
-  layers.options.radio = { filter: 'news', volume: 0.45 };
+  layers.options.cctv = {
+    coverageMode: 'viewshed',
+    showProjection: false,
+    autoHop: true
+  };
+  layers.options.radio = {
+    filter: 'news',
+    volume: 0.45
+  };
   manager.setLayerStateProvider(() => layers);
-  manager.setPanelStateProvider(() => ({ specs: [
-    { id: 'control-panel', collapsed: false, pinned: true },
-    { id: 'param-slider-panel', collapsed: true },
-  ] }));
+  manager.setPanelStateProvider(() => ({
+    specs: [{
+        id: 'control-panel',
+        collapsed: false,
+        pinned: true
+      },
+      {
+        id: 'param-slider-panel',
+        collapsed: true
+      },
+    ]
+  }));
   manager.setStyleParamStateProvider(() => ({
-    sensitivity: 0.82, bloom: 0.37, mode: 1, pixelation: 2.6, palette: 1,
+    sensitivity: 0.82,
+    bloom: 0.37,
+    mode: 1,
+    pixelation: 2.6,
+    palette: 1,
   }));
   manager.onStyleChange('thermal');
   clearTimeout(manager._debounceTimer);
@@ -116,11 +168,24 @@ test('visual parameters, explicit empty layers, and panel state are v2-only', ()
     '#v=2&lat=10&lon=20&style=flir&l=&sp=s.82_b.37_p.260&ui=c.c.0_c.p.1_d.c.1_d.p.1',
   ).parseInitialHash();
   assert.deepEqual(parsed.layerState.enabledLayerIds, []);
-  assert.deepEqual(parsed.styleParams, { sensitivity: 0.82, bloom: 0.37, pixelation: 2.6 });
-  assert.deepEqual(parsed.panelState, { specs: [
-    { id: 'control-panel', collapsed: false, pinned: true },
-    { id: 'data-panel', collapsed: true, pinned: null },
-  ] });
+  assert.deepEqual(parsed.styleParams, {
+    sensitivity: 0.82,
+    bloom: 0.37,
+    pixelation: 2.6
+  });
+  assert.deepEqual(parsed.panelState, {
+    specs: [{
+        id: 'control-panel',
+        collapsed: false,
+        pinned: true
+      },
+      {
+        id: 'data-panel',
+        collapsed: true,
+        pinned: null
+      },
+    ]
+  });
   const legacy = makeManager('#v=1&lat=10&lon=20&style=flir&l=&sp=s.82&ui=c.c.0')
     .parseInitialHash();
   assert.equal(legacy.layerState, null);
@@ -134,15 +199,19 @@ test('camera-only, partial, and malformed panel shares remain valid incoming sta
   assert.equal(cameraOnly.panelState, null);
 
   const partial = makeManager('#v=2&lat=10&lon=20&ui=d.c.0').parseInitialHash();
-  assert.deepEqual(partial.panelState, { specs: [
-    { id: 'data-panel', collapsed: false, pinned: null },
-  ] });
+  assert.deepEqual(partial.panelState, {
+    specs: [{
+      id: 'data-panel',
+      collapsed: false,
+      pinned: null
+    }, ]
+  });
 
   for (const hash of [
-    '#v=2&lat=10&lon=20&ui=',
-    '#v=2&lat=10&lon=20&ui=unknown.c.1',
-    '#v=2&lat=10&lon=20&ui=d.c.maybe',
-  ]) {
+      '#v=2&lat=10&lon=20&ui=',
+      '#v=2&lat=10&lon=20&ui=unknown.c.1',
+      '#v=2&lat=10&lon=20&ui=d.c.maybe',
+    ]) {
     const malformed = makeManager(hash).parseInitialHash();
     assert.ok(malformed);
     assert.equal(malformed.panelState, null);
@@ -165,11 +234,11 @@ test('a retired-vocabulary link degrades to the unknown paths instead of failing
 
 test('non-finite camera coordinates fail closed without reserving restoration', () => {
   for (const hash of [
-    '#lat=Infinity&lon=20',
-    '#lat=10&lon=-Infinity',
-    '#lat=1e309&lon=20',
-    '#v=2&lat=%2BInfinity&lon=20',
-  ]) {
+      '#lat=Infinity&lon=20',
+      '#lat=10&lon=-Infinity',
+      '#lat=1e309&lon=20',
+      '#v=2&lat=%2BInfinity&lon=20',
+    ]) {
     const manager = makeManager(hash);
     assert.equal(manager.parseInitialHash(), null, hash);
     assert.equal(manager._initialRestorePending, false, hash);
@@ -202,26 +271,38 @@ test('a shared view reserves its own camera without cancelling its saved Follow'
 
 test('copy timestamp parsing is strict and rejects malformed or future values', () => {
   const nowMs = 2_000_000;
-  assert.equal(decodeShareCreatedAtMs(new URLSearchParams('at=1999'), { nowMs }), 1_999_000);
+  assert.equal(decodeShareCreatedAtMs(new URLSearchParams('at=1999'), {
+    nowMs
+  }), 1_999_000);
   for (const raw of ['', '0', '-1', '1.5', 'abc', '001', '9007199254740992']) {
     assert.equal(
-      decodeShareCreatedAtMs(new URLSearchParams(`at=${encodeURIComponent(raw)}`), { nowMs }),
+      decodeShareCreatedAtMs(new URLSearchParams(`at=${encodeURIComponent(raw)}`), {
+        nowMs
+      }),
       null,
       raw,
     );
   }
-  assert.equal(decodeShareCreatedAtMs(new URLSearchParams('at=2001'), { nowMs }), null);
+  assert.equal(decodeShareCreatedAtMs(new URLSearchParams('at=2001'), {
+    nowMs
+  }), null);
 });
 
 test('copy adds a fresh ephemeral timestamp without aging the live URL', async () => {
   const copied = [];
-  installClipboard(async (url) => { copied.push(url); });
+  installClipboard(async (url) => {
+    copied.push(url);
+  });
   const manager = makeManager();
   manager._updateHash();
   const liveHash = window.location.hash;
 
-  assert.equal(await manager.copyLink({ nowMs: 2_000_000 }), true);
-  assert.equal(await manager.copyLink({ nowMs: 2_002_000 }), true);
+  assert.equal(await manager.copyLink({
+    nowMs: 2_000_000
+  }), true);
+  assert.equal(await manager.copyLink({
+    nowMs: 2_002_000
+  }), true);
   assert.equal(new URL(copied[0]).hash.includes('at=2000'), true);
   assert.equal(new URL(copied[1]).hash.includes('at=2002'), true);
   assert.equal(window.location.hash, liveHash);
@@ -230,21 +311,29 @@ test('copy adds a fresh ephemeral timestamp without aging the live URL', async (
 
 test('copy snapshots current state while incoming hash writes are still suppressed', async () => {
   let copied = null;
-  installClipboard(async (url) => { copied = url; });
+  installClipboard(async (url) => {
+    copied = url;
+  });
   const manager = makeManager('#v=2&lat=10&lon=20&l=e&at=100');
   manager.parseInitialHash();
   assert.equal(manager._initialRestorePending, true);
-  assert.equal(await manager.copyLink({ nowMs: 3_000_000 }), true);
+  assert.equal(await manager.copyLink({
+    nowMs: 3_000_000
+  }), true);
   const params = new URL(copied).hash.slice(1);
   assert.equal(new URLSearchParams(params).get('at'), '3000');
   assert.equal(window.location.hash, '#v=2&lat=10&lon=20&l=e&at=100');
 });
 
 test('clipboard rejection leaves both live URL and restore suppression untouched', async () => {
-  installClipboard(async () => { throw new Error('denied'); });
+  installClipboard(async () => {
+    throw new Error('denied');
+  });
   const manager = makeManager('#v=2&lat=10&lon=20&l=s');
   manager.parseInitialHash();
-  assert.equal(await manager.copyLink({ nowMs: 4_000_000 }), false);
+  assert.equal(await manager.copyLink({
+    nowMs: 4_000_000
+  }), false);
   assert.equal(window.location.hash, '#v=2&lat=10&lon=20&l=s');
   assert.equal(manager._initialRestorePending, true);
 });
@@ -263,7 +352,9 @@ test('allocation strategy defaults to Elastic and round-trips Weighted', () => {
   assert.equal(makeManager('#lat=10&lon=20&da=weighted').parseInitialHash().detectionAllocation, 'WEIGHTED');
 
   const manager = makeManager();
-  manager.onToggleChange(false, false, { detectionAllocation: 'WEIGHTED' });
+  manager.onToggleChange(false, false, {
+    detectionAllocation: 'WEIGHTED'
+  });
   clearTimeout(manager._debounceTimer);
   manager._updateHash();
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).get('da'), 'weighted');
@@ -318,18 +409,24 @@ test('an absent or non-numeric sce stays adaptive, never a pinned value', () => 
 
 test('serialization writes only in-band sce values, and omits an adaptive one', () => {
   const manager = makeManager();
-  manager.onToggleChange(false, false, { scopeTerminusPct: 0 });
+  manager.onToggleChange(false, false, {
+    scopeTerminusPct: 0
+  });
   clearTimeout(manager._debounceTimer);
   manager._updateHash();
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).get('sce'), '94',
     'an out-of-band value must be floored on write, not round-tripped');
 
-  manager.onToggleChange(false, false, { scopeTerminusPct: 500 });
+  manager.onToggleChange(false, false, {
+    scopeTerminusPct: 500
+  });
   clearTimeout(manager._debounceTimer);
   manager._updateHash();
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).get('sce'), '100');
 
-  manager.onToggleChange(false, false, { scopeTerminusPct: null });
+  manager.onToggleChange(false, false, {
+    scopeTerminusPct: null
+  });
   clearTimeout(manager._debounceTimer);
   manager._updateHash();
   assert.equal(new URLSearchParams(window.location.hash.slice(1)).has('sce'), false,
@@ -337,18 +434,36 @@ test('serialization writes only in-band sce values, and omits an adaptive one', 
 });
 
 test('share-link restore forces a final stationary render for Google 3D Tiles', () => {
-  const calls = { flyTo: null, setView: null, renders: 0 };
+  const calls = {
+    flyTo: null,
+    setView: null,
+    renders: 0
+  };
   const viewer = {
     camera: {
-      changed: { addEventListener() {} },
-      positionCartographic: { latitude: 0, longitude: 0, height: 1000 },
+      changed: {
+        addEventListener() {}
+      },
+      positionCartographic: {
+        latitude: 0,
+        longitude: 0,
+        height: 1000
+      },
       heading: 0,
       pitch: -Math.PI / 2,
       roll: 0,
-      flyTo(options) { calls.flyTo = options; },
-      setView(options) { calls.setView = options; },
+      flyTo(options) {
+        calls.flyTo = options;
+      },
+      setView(options) {
+        calls.setView = options;
+      },
     },
-    scene: { requestRender() { calls.renders += 1; } },
+    scene: {
+      requestRender() {
+        calls.renders += 1;
+      }
+    },
   };
   const manager = new ShareLinkManager(viewer);
   manager.applyState({
@@ -375,18 +490,34 @@ test('newer navigation suppresses delayed share camera while non-camera state st
   let restored = null;
   const viewer = {
     camera: {
-      changed: { addEventListener: () => () => {} },
-      flyTo() { flights += 1; },
+      changed: {
+        addEventListener: () => () => {}
+      },
+      flyTo() {
+        flights += 1;
+      },
     },
   };
   const manager = new ShareLinkManager(viewer, {
-    onRestore: (state) => { restored = state; },
+    onRestore: (state) => {
+      restored = state;
+    },
     isNavigationCurrent: () => false,
   });
   const applied = await manager.applyState({
-    lat: 40, lon: -74, alt: 500, heading: 0, pitch: -30, roll: 0,
-    style: 'thermal', panelState: { specs: [] },
-  }, { navigationToken: 4 });
+    lat: 40,
+    lon: -74,
+    alt: 500,
+    heading: 0,
+    pitch: -30,
+    roll: 0,
+    style: 'thermal',
+    panelState: {
+      specs: []
+    },
+  }, {
+    navigationToken: 4
+  });
   assert.equal(applied.succeeded, true);
   assert.equal(flights, 0);
   assert.equal(restored.style, 'thermal');
@@ -397,19 +528,27 @@ test('newer visual, map, and individual panel actions suppress only their owned 
   const manager = makeManager(
     '#v=2&lat=40&lon=-74&style=flir&map=osm&ui=c.c.0_d.c.0',
   );
-  manager._onRestore = (state) => { restored = state; };
+  manager._onRestore = (state) => {
+    restored = state;
+  };
   manager._isNavigationCurrent = () => false;
   const state = manager.parseInitialHash();
 
   manager.claimRestoreLane('visual');
   manager.claimRestoreLane('map');
   manager.claimRestoreLane('panel', 'control-panel');
-  const result = await manager.applyState(state, { navigationToken: 1 });
+  const result = await manager.applyState(state, {
+    navigationToken: 1
+  });
 
   assert.equal(restored.style, undefined);
   assert.equal(restored.mapStack, undefined);
   assert.deepEqual(restored.panelState, {
-    specs: [{ id: 'data-panel', collapsed: false, pinned: null }],
+    specs: [{
+      id: 'data-panel',
+      collapsed: false,
+      pinned: null
+    }],
   });
   assert.equal(result.visual, 'superseded');
   assert.equal(result.map, 'superseded');
@@ -460,8 +599,8 @@ test('explicit Context transitions claim the visual restore lane before transiti
   const assertContextClaimsBefore = (block, mutation, label) => {
     const claimIndex = Math.min(
       ...['_claimContextVisualAuthority()', "claimRestoreLane?.('visual')"]
-        .map((marker) => block.indexOf(marker))
-        .filter((index) => index >= 0),
+      .map((marker) => block.indexOf(marker))
+      .filter((index) => index >= 0),
     );
     const mutationIndex = block.indexOf(mutation);
     assert.ok(Number.isFinite(claimIndex), `${label} must claim the visual restore lane`);
@@ -478,13 +617,13 @@ test('explicit Context transitions claim the visual restore lane before transiti
   assert.match(uiSource, /claimVisualAuthority: \(\) =>\s*this\.shareLinkManager\?\.claimRestoreLane\?\.\('visual'\)/);
   const contextPanel = _initGlobalContextPanel.toString();
   for (const [start, end, label] of [
-    ["this.listen(this._globalContextFlightsBtn, 'click'", "this.listen(this._globalContextMissionsBtn, 'click'", 'Contacts tab'],
-    ["this.listen(this._globalContextMissionsBtn, 'click'", 'CONTEXT_PANEL_END', 'Space Missions tab'],
-  ]) {
+      ["this.listen(this._globalContextFlightsBtn, 'click'", "this.listen(this._globalContextMissionsBtn, 'click'", 'Contacts tab'],
+      ["this.listen(this._globalContextMissionsBtn, 'click'", 'CONTEXT_PANEL_END', 'Space Missions tab'],
+    ]) {
     const startIndex = contextPanel.indexOf(start);
-    const endIndex = end === 'CONTEXT_PANEL_END'
-      ? contextPanel.length
-      : contextPanel.indexOf(end, startIndex + start.length);
+    const endIndex = end === 'CONTEXT_PANEL_END' ?
+      contextPanel.length :
+      contextPanel.indexOf(end, startIndex + start.length);
     assert.ok(startIndex >= 0 && endIndex > startIndex, `${label} route is missing`);
     assertContextClaimsBefore(contextPanel.slice(startIndex, endIndex), 'this._selectContextMode(', label);
   }
@@ -523,9 +662,9 @@ test('Context lane claims never set the session detection-override flag', () => 
   const contextPanel = _initGlobalContextPanel.toString();
   const facade = setContextMode.toString();
   for (const [block, label] of [
-    [contextPanel, 'Context panel'],
-    [facade, 'setContextMode facade'],
-  ]) {
+      [contextPanel, 'Context panel'],
+      [facade, 'setContextMode facade'],
+    ]) {
     assert.ok(
       !block.includes('_detectionUserOverridden = true'),
       `${label} must not flag the operator as having overridden detection`,
@@ -553,8 +692,7 @@ test('every explicit visual control facade claims restore authority before mutat
 });
 
 test('public visual facades reject the complete invalid request before authority or mutation', () => {
-  const cases = [
-    {
+  const cases = [{
       label: 'setDetection',
       block: sourceBlock(
         '  setDetection({ enabled, mode, densityPct, allocationStrategy, fadePct, outsideOpacityPct } = {}) {',
@@ -585,7 +723,12 @@ test('public visual facades reject the complete invalid request before authority
       ],
     },
   ];
-  for (const { label, block, validations } of cases) {
+  for (const {
+      label,
+      block,
+      validations
+    }
+    of cases) {
     const claimIndex = block.indexOf("claimRestoreLane?.('visual')");
     assert.ok(claimIndex >= 0, `${label} claim is missing`);
     for (const validation of validations) {
@@ -600,20 +743,38 @@ test('public visual facades reject the complete invalid request before authority
 test('share apply completion waits for both callback work and camera settlement', async () => {
   let flight = null;
   let releaseRestore;
-  const restoreGate = new Promise((resolve) => { releaseRestore = resolve; });
+  const restoreGate = new Promise((resolve) => {
+    releaseRestore = resolve;
+  });
   const viewer = {
     camera: {
-      changed: { addEventListener: () => () => {} },
-      flyTo(options) { flight = options; },
+      changed: {
+        addEventListener: () => () => {}
+      },
+      flyTo(options) {
+        flight = options;
+      },
       setView() {},
     },
-    scene: { requestRender() {} },
+    scene: {
+      requestRender() {}
+    },
   };
-  const manager = new ShareLinkManager(viewer, { onRestore: () => restoreGate });
+  const manager = new ShareLinkManager(viewer, {
+    onRestore: () => restoreGate
+  });
   let settled = false;
   const applying = manager.applyState({
-    lat: 40, lon: -74, alt: 500, heading: 0, pitch: -30, roll: 0,
-  }).then((result) => { settled = true; return result; });
+    lat: 40,
+    lon: -74,
+    alt: 500,
+    heading: 0,
+    pitch: -30,
+    roll: 0,
+  }).then((result) => {
+    settled = true;
+    return result;
+  });
 
   await Promise.resolve();
   assert.equal(settled, false);
@@ -632,18 +793,33 @@ test('a later navigation prevents share completion from resetting the final pose
   let setViews = 0;
   const viewer = {
     camera: {
-      changed: { addEventListener: () => () => {} },
-      flyTo(options) { flight = options; },
-      setView() { setViews += 1; },
+      changed: {
+        addEventListener: () => () => {}
+      },
+      flyTo(options) {
+        flight = options;
+      },
+      setView() {
+        setViews += 1;
+      },
     },
-    scene: { requestRender() {} },
+    scene: {
+      requestRender() {}
+    },
   };
   const manager = new ShareLinkManager(viewer, {
     isNavigationCurrent: (token) => token === generation,
   });
   manager.applyState({
-    lat: 40, lon: -74, alt: 500, heading: 0, pitch: -30, roll: 0,
-  }, { navigationToken: 3 });
+    lat: 40,
+    lon: -74,
+    alt: 500,
+    heading: 0,
+    pitch: -30,
+    roll: 0,
+  }, {
+    navigationToken: 3
+  });
   generation = 4;
   flight.complete();
   assert.equal(setViews, 0);
@@ -656,19 +832,37 @@ test('destroy cancels only a still-owned share flight and ignores delayed comple
   let setViews = 0;
   const viewer = {
     camera: {
-      changed: { addEventListener: () => () => {} },
-      flyTo(options) { flight = options; },
-      setView() { setViews += 1; },
+      changed: {
+        addEventListener: () => () => {}
+      },
+      flyTo(options) {
+        flight = options;
+      },
+      setView() {
+        setViews += 1;
+      },
     },
-    scene: { requestRender() {} },
+    scene: {
+      requestRender() {}
+    },
   };
   const manager = new ShareLinkManager(viewer, {
     isNavigationCurrent: (token) => token === generation,
-    cancelOwnedNavigation: () => { cancellations += 1; flight?.cancel?.(); },
+    cancelOwnedNavigation: () => {
+      cancellations += 1;
+      flight?.cancel?.();
+    },
   });
   manager.applyState({
-    lat: 40, lon: -74, alt: 500, heading: 0, pitch: -30, roll: 0,
-  }, { navigationToken: 7 });
+    lat: 40,
+    lon: -74,
+    alt: 500,
+    heading: 0,
+    pitch: -30,
+    roll: 0,
+  }, {
+    navigationToken: 7
+  });
   manager.destroy();
   flight.complete();
   assert.equal(cancellations, 1);
@@ -676,16 +870,24 @@ test('destroy cancels only a still-owned share flight and ignores delayed comple
 
   const newerManager = new ShareLinkManager(viewer, {
     isNavigationCurrent: (token) => token === generation,
-    cancelOwnedNavigation: () => { cancellations += 1; },
+    cancelOwnedNavigation: () => {
+      cancellations += 1;
+    },
   });
   newerManager.applyState({
-    lat: 40, lon: -74, alt: 500, heading: 0, pitch: -30, roll: 0,
-  }, { navigationToken: 7 });
+    lat: 40,
+    lon: -74,
+    alt: 500,
+    heading: 0,
+    pitch: -30,
+    roll: 0,
+  }, {
+    navigationToken: 7
+  });
   generation = 8;
   newerManager.destroy();
   assert.equal(cancellations, 1, 'newer navigation must not be cancelled');
 });
-
 
 test('visual input listeners are revoked before asynchronous UI teardown', () => {
   const disposal = uiSource.slice(uiSource.indexOf('  async dispose() {'));
