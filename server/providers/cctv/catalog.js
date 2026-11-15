@@ -1,9 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_CCTV_SOURCE_FILE, CCTV_SOURCE_CACHE_MS } from './constants.js';
-import { allocateSourceCap, resolveCatalogCap } from './cap.js';
-import { loadGroundHeights, joinGroundHeights } from './groundHeights.js';
-import { normalizeSourceItem } from './normalize.js';
+import {
+  DEFAULT_CCTV_SOURCE_FILE,
+  CCTV_SOURCE_CACHE_MS
+} from './constants.js';
+import {
+  allocateSourceCap,
+  resolveCatalogCap
+} from './cap.js';
+import {
+  loadGroundHeights,
+  joinGroundHeights
+} from './groundHeights.js';
+import {
+  normalizeSourceItem
+} from './normalize.js';
 import {
   loadAustinSourcesFromOpenData,
   loadCaltransSourcesFromOpenData,
@@ -28,8 +39,11 @@ const envEnabled = (name) => String(process.env[name] || '1').trim() !== '0';
  * Each pack fails independently (allSettled) and is gated by its own env
  * kill switch.
  */
-const LIVE_PACKS = [
-  { name: 'austin', enabled: () => true, load: loadAustinSourcesFromOpenData },
+const LIVE_PACKS = [{
+    name: 'austin',
+    enabled: () => true,
+    load: loadAustinSourcesFromOpenData
+  },
   {
     name: 'caltrans',
     enabled: () => true,
@@ -88,9 +102,9 @@ const LIVE_PACKS = [
  */
 function loadSourcesFromFile(sourceRoot) {
   const sourceFile = process.env.CCTV_SOURCES_FILE || DEFAULT_CCTV_SOURCE_FILE;
-  const resolved = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(sourceRoot, sourceFile);
+  const resolved = path.isAbsolute(sourceFile) ?
+    sourceFile :
+    path.resolve(sourceRoot, sourceFile);
   try {
     if (!fs.existsSync(resolved)) return [];
     const raw = fs.readFileSync(resolved, 'utf8');
@@ -123,7 +137,9 @@ function loadSourcesFromEnv() {
 }
 
 /** Create an independent catalog rooted in the consuming application. */
-export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
+export function createCctvCatalog({
+  sourceRoot = process.cwd()
+} = {}) {
   /** @type {Array<object>} Cached merged + normalized CCTV source list. */
   let _cctvSourceCache = [];
   /** @type {number} Epoch-ms when the source cache was last refreshed. */
@@ -179,18 +195,20 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
     // now governs every entry in LIVE_PACKS.
     const needsLiveSources =
       forceAustin || (fromFile.length + fromEnv.length === 0 && preferAustin);
-    const liveResults = needsLiveSources
-      ? await Promise.allSettled(
-          // Invoked inside the promise so a loader that throws synchronously
-          // (a file-based pack on a malformed row) is isolated like any other
-          // failed pack instead of rejecting the whole refresh.
-          LIVE_PACKS.map((pack) =>
-            Promise.resolve().then(() =>
-              pack.enabled() ? pack.load({ sourceRoot }) : [],
-            ),
+    const liveResults = needsLiveSources ?
+      await Promise.allSettled(
+        // Invoked inside the promise so a loader that throws synchronously
+        // (a file-based pack on a malformed row) is isolated like any other
+        // failed pack instead of rejecting the whole refresh.
+        LIVE_PACKS.map((pack) =>
+          Promise.resolve().then(() =>
+            pack.enabled() ? pack.load({
+              sourceRoot
+            }) : [],
           ),
-        )
-      : [];
+        ),
+      ) :
+      [];
     // Live packs first so file/env overrides win on duplicate IDs; each pack
     // keeps its own priority order and the catalog cap is shared fairly.
     const normalizePack = (name, items) => ({
@@ -204,9 +222,9 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
       ...LIVE_PACKS.map((pack, index) =>
         normalizePack(
           pack.name,
-          liveResults[index]?.status === 'fulfilled'
-            ? liveResults[index].value
-            : [],
+          liveResults[index]?.status === 'fulfilled' ?
+          liveResults[index].value :
+          [],
         ),
       ),
       normalizePack('file', fromFile),
