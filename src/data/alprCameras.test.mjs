@@ -324,8 +324,7 @@ function cameraHarness(layer = alprCamerasLayer) {
           box.south,
           box.east,
           box.north,
-        ) :
-        null,
+        ) : null,
     },
     scene: {
       canvas: {
