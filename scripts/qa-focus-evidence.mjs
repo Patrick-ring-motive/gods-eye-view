@@ -721,11 +721,9 @@ async function browserContext(page, browser) {
       userAgent: navigator.userAgent,
       dpr: window.devicePixelRatio,
       vendor: debug ?
-        context.getParameter(debug.UNMASKED_VENDOR_WEBGL) :
-        context?.getParameter(context.VENDOR) || 'unavailable',
+        context.getParameter(debug.UNMASKED_VENDOR_WEBGL) : context?.getParameter(context.VENDOR) || 'unavailable',
       renderer: debug ?
-        context.getParameter(debug.UNMASKED_RENDERER_WEBGL) :
-        context?.getParameter(context.RENDERER) || 'unavailable',
+        context.getParameter(debug.UNMASKED_RENDERER_WEBGL) : context?.getParameter(context.RENDERER) || 'unavailable',
     };
   });
   return {
@@ -743,8 +741,7 @@ async function browserContext(page, browser) {
       arch: os.arch(),
     },
     caveat: HEADFUL ?
-      'Headful capture omits SwiftShader flags and is the real-GPU visual sign-off path.' :
-      'SwiftShader/headless output is relative-only; rerun with --headful for real-GPU sign-off.',
+      'Headful capture omits SwiftShader flags and is the real-GPU visual sign-off path.' : 'SwiftShader/headless output is relative-only; rerun with --headful for real-GPU sign-off.',
   };
 }
 
