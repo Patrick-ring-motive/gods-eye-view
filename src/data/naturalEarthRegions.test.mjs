@@ -1,8 +1,18 @@
 // src/data/naturalEarthRegions.test.mjs
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { statSync, readFileSync } from 'node:fs';
-import { findNaturalRegion, listRegions, lookupNaturalRegionOutline, pointInRing } from './naturalEarthRegions.js';
+import {
+  statSync,
+  readFileSync
+} from 'node:fs';
+import {
+  findNaturalRegion,
+  listRegions,
+  lookupNaturalRegionOutline,
+  pointInRing
+} from './naturalEarthRegions.js';
 
 const PACK_DIR = new URL('./local_data/natural_earth/', import.meta.url);
 
@@ -96,8 +106,8 @@ test('whole pack: every feature ring has >=8 vertices and valid coords', () => {
 });
 
 test('pack byte-size budget: regions.json + marine.json <= 3 MB', () => {
-  const total = statSync(new URL('regions.json', PACK_DIR)).size
-    + statSync(new URL('marine.json', PACK_DIR)).size;
+  const total = statSync(new URL('regions.json', PACK_DIR)).size +
+    statSync(new URL('marine.json', PACK_DIR)).size;
   assert.ok(total <= 3 * 1024 * 1024, `pack total ${total} bytes exceeds 3 MB budget`);
 });
 
@@ -140,8 +150,16 @@ test('outline lookup: marine regions resolve (Gulf of Mexico)', async () => {
 });
 
 test('pointInRing: basic square', () => {
-  const sq = [[0, 0], [10, 0], [10, 10], [0, 10]];
+  const sq = [
+    [0, 0],
+    [10, 0],
+    [10, 10],
+    [0, 10]
+  ];
   assert.equal(pointInRing(sq, 5, 5), true);
   assert.equal(pointInRing(sq, 15, 5), false);
-  assert.equal(pointInRing([[0, 0], [1, 1]], 0.5, 0.5), false, 'degenerate ring');
+  assert.equal(pointInRing([
+    [0, 0],
+    [1, 1]
+  ], 0.5, 0.5), false, 'degenerate ring');
 });
