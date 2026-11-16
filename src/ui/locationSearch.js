@@ -132,8 +132,7 @@ export class LocationSearch {
             ...this.state,
             searching: false,
             status: this.state.status === 'searching' ?
-              'cancelled' :
-              this.state.status,
+              'cancelled' : this.state.status,
           };
         this.onSettled?.(authority);
         this.channel.publish(change('settled'));
