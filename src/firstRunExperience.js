@@ -1,4 +1,6 @@
-import { createSurfaceKeyboard } from './ui/surfaceKeyboard.js';
+import {
+  createSurfaceKeyboard
+} from './ui/surfaceKeyboard.js';
 
 // First-run mission launcher.
 //
@@ -35,9 +37,15 @@ export const FIRST_RUN_SESSION_KEY = 'gev:first-run-mission-session:v1';
 export const ENVIRONMENTAL_LABEL_CHOICE = 'ENVIRONMENTAL';
 
 const ENVIRONMENTAL_LABELS = Object.freeze({
-  ENVIRONMENTAL: Object.freeze({ title: 'ENVIRONMENTAL' }),
-  EARTH_WATCH: Object.freeze({ title: 'EARTH WATCH' }),
-  ACTIVE_EVENTS: Object.freeze({ title: 'ACTIVE EVENTS' }),
+  ENVIRONMENTAL: Object.freeze({
+    title: 'ENVIRONMENTAL'
+  }),
+  EARTH_WATCH: Object.freeze({
+    title: 'EARTH WATCH'
+  }),
+  ACTIVE_EVENTS: Object.freeze({
+    title: 'ACTIVE EVENTS'
+  }),
 });
 
 /**
@@ -117,7 +125,9 @@ export const FIRST_RUN_MISSIONS = Object.freeze({
     layerIds: Object.freeze(['earthquakes', 'local-firms']),
     busyText: 'Scanning active events…',
   }),
-  explore: Object.freeze({ kind: 'none' }),
+  explore: Object.freeze({
+    kind: 'none'
+  }),
 });
 
 /*
@@ -226,9 +236,9 @@ export function shouldShowFirstRun({
  * @returns {boolean} true if the durable state now matches what was asked.
  */
 export function setFirstRunSuppressed(suppressed, storage) {
-  return suppressed
-    ? writeStored('local', storage, FIRST_RUN_STORAGE_KEY, 'suppressed')
-    : removeStored('local', storage, FIRST_RUN_STORAGE_KEY);
+  return suppressed ?
+    writeStored('local', storage, FIRST_RUN_STORAGE_KEY, 'suppressed') :
+    removeStored('local', storage, FIRST_RUN_STORAGE_KEY);
 }
 
 /**
@@ -253,13 +263,27 @@ export function rememberFirstRunSessionDismissed(sessionStorageRef) {
  * @param {() => Promise<any>} deps.flyToGlobe
  * @returns {Promise<{ok: boolean, choice: string, result?: object, failedLayerIds?: string[]}>}
  */
-export async function runFirstRunChoice(choice, { setContextMode, setLayerEnabled, flyToGlobe }) {
+export async function runFirstRunChoice(choice, {
+  setContextMode,
+  setLayerEnabled,
+  flyToGlobe
+}) {
   const mission = FIRST_RUN_MISSIONS[choice];
-  if (!mission) return { ok: false, choice };
-  if (mission.kind === 'none') return { ok: true, choice };
+  if (!mission) return {
+    ok: false,
+    choice
+  };
+  if (mission.kind === 'none') return {
+    ok: true,
+    choice
+  };
   if (mission.kind === 'context') {
     const result = await setContextMode(mission.contextMode);
-    return { ok: Boolean(result?.ok), choice, result };
+    return {
+      ok: Boolean(result?.ok),
+      choice,
+      result
+    };
   }
   // Globe missions: start the pull-out and the layer work together so the
   // camera is already moving while the feeds spin up. The flight is framing,
@@ -269,14 +293,24 @@ export async function runFirstRunChoice(choice, { setContextMode, setLayerEnable
     .catch(() => null);
   const outcomes = await Promise.all(mission.layerIds.map(async (layerId) => {
     try {
-      return { layerId, ok: (await setLayerEnabled(layerId)) !== false };
+      return {
+        layerId,
+        ok: (await setLayerEnabled(layerId)) !== false
+      };
     } catch {
-      return { layerId, ok: false };
+      return {
+        layerId,
+        ok: false
+      };
     }
   }));
   await flight;
   const failedLayerIds = outcomes.filter((entry) => !entry.ok).map((entry) => entry.layerId);
-  return { ok: failedLayerIds.length === 0, choice, failedLayerIds };
+  return {
+    ok: failedLayerIds.length === 0,
+    choice,
+    failedLayerIds
+  };
 }
 
 /**
@@ -326,11 +360,11 @@ export function initFirstRunExperience({
   root.dataset.initialized = 'true';
 
   if (!shouldShowFirstRun({
-    hasShareState: styleManager?.hasShareState,
-    storage,
-    sessionStorageRef,
-    location,
-  })) {
+      hasShareState: styleManager?.hasShareState,
+      storage,
+      sessionStorageRef,
+      location,
+    })) {
     root.remove();
     return null;
   }
@@ -387,12 +421,14 @@ export function initFirstRunExperience({
    * is exactly how every one of those surfaces hides this card; the hit test
    * then covers the overlays that leave the box intact and simply sit on top.
    */
-  const isTopmost = () => root.isConnected
-    && root.classList.contains('visible')
-    && root.getClientRects().length > 0
-    && !coveredByOverlay();
+  const isTopmost = () => root.isConnected &&
+    root.classList.contains('visible') &&
+    root.getClientRects().length > 0 &&
+    !coveredByOverlay();
 
-  const dismiss = ({ restoreFocus = true } = {}) => {
+  const dismiss = ({
+    restoreFocus = true
+  } = {}) => {
     if (closing) return;
     closing = true;
     rememberFirstRunSessionDismissed(sessionStorageRef);
@@ -401,13 +437,17 @@ export function initFirstRunExperience({
     globalThis.removeEventListener?.('resize', onViewportResize);
     surfaceObserver?.disconnect();
     const remove = () => root.remove();
-    root.addEventListener('transitionend', remove, { once: true });
+    root.addEventListener('transitionend', remove, {
+      once: true
+    });
     // `transitionend` never fires under prefers-reduced-motion (no transition),
     // so a bounded fallback is what actually removes the node there.
     globalThis.setTimeout?.(remove, 400);
     // Return the keyboard where it was, not to a node that is being removed —
     // but never when yielding, because the surface taking over owns focus now.
-    keyboard.deactivate({ restoreFocus });
+    keyboard.deactivate({
+      restoreFocus
+    });
   };
 
   const setBusy = (next, choice = '') => {
@@ -438,13 +478,17 @@ export function initFirstRunExperience({
             // does not decide panel chrome. This first-run click is an explicit
             // visual choice, so reveal the result exactly as the visible
             // Contacts / Space Missions tabs do.
-            styleManager.setPanelCollapsed?.('global-context-panel', false, { explicit: true });
+            styleManager.setPanelCollapsed?.('global-context-panel', false, {
+              explicit: true
+            });
           }
           return result;
         },
         // `origin: 'user'` on purpose: a mission tile is a real person choosing
         // these layers, so it persists exactly as clicking those rows would.
-        setLayerEnabled: (layerId) => dataManager.setEnabled(layerId, true, { origin: 'user' }),
+        setLayerEnabled: (layerId) => dataManager.setEnabled(layerId, true, {
+          origin: 'user'
+        }),
         flyToGlobe: () => styleManager.resetToGlobeView(),
       });
     } catch (error) {
@@ -457,9 +501,9 @@ export function initFirstRunExperience({
       dismiss();
       return;
     }
-    const failed = outcome?.failedLayerIds?.length
-      ? outcome.failedLayerIds
-      : outcome?.result?.failedLayerIds;
+    const failed = outcome?.failedLayerIds?.length ?
+      outcome.failedLayerIds :
+      outcome?.result?.failedLayerIds;
     const detail = Array.isArray(failed) && failed.length ? ` (${failed.join(', ')})` : '';
     if (status) {
       status.dataset.sticky = 'true';
@@ -517,7 +561,9 @@ export function initFirstRunExperience({
       if (closing) return;
       root.classList.add('visible');
       syncScrollAffordance();
-      buttons[0]?.focus?.({ preventScroll: true });
+      buttons[0]?.focus?.({
+        preventScroll: true
+      });
     });
   };
 
@@ -554,7 +600,9 @@ export function initFirstRunExperience({
     if (closing) return;
     // Session-scoped, like any other dismissal: it returns next session. Focus
     // stays with whatever just took the screen.
-    dismiss({ restoreFocus: false });
+    dismiss({
+      restoreFocus: false
+    });
   };
 
   /*
@@ -585,13 +633,16 @@ export function initFirstRunExperience({
   const onViewportResize = () => syncScrollAffordance();
   globalThis.addEventListener?.('resize', onViewportResize);
 
-  const surfaceObserver = typeof globalThis.MutationObserver === 'function'
-    ? new globalThis.MutationObserver(syncToExclusiveSurfaces)
-    : null;
+  const surfaceObserver = typeof globalThis.MutationObserver === 'function' ?
+    new globalThis.MutationObserver(syncToExclusiveSurfaces) :
+    null;
   // Attributes only, no subtree: this is a class watch on one element, so it
   // costs nothing per frame and never asks the render governor for a frame.
   if (documentRef.body) {
-    surfaceObserver?.observe(documentRef.body, { attributes: true, attributeFilter: ['class'] });
+    surfaceObserver?.observe(documentRef.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
   }
   syncToExclusiveSurfaces();
 
@@ -603,5 +654,9 @@ export function initFirstRunExperience({
     surfaceObserver?.disconnect();
     root.remove();
   };
-  return { dismiss, isTopmost, destroy };
+  return {
+    dismiss,
+    isTopmost,
+    destroy
+  };
 }
