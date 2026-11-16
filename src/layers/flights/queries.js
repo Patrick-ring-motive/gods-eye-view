@@ -1,13 +1,21 @@
-import { displayedKinematics } from '../../data/motionModel.js';
+import {
+  displayedKinematics
+} from '../../data/motionModel.js';
 import * as Cesium from 'cesium';
-import { isExplicitLayerStateOrigin } from '../../data/layerState.js';
-import { modelVisualAnchor } from '../../data/modelVisualAnchor.js';
+import {
+  isExplicitLayerStateOrigin
+} from '../../data/layerState.js';
+import {
+  modelVisualAnchor
+} from '../../data/modelVisualAnchor.js';
 import {
   rankContactMatch,
   contactMatchWins,
   CONTACT_MATCH_TIER,
 } from '../../data/contactMatch.js';
-import { aircraftIncludedInNearby } from '../../data/aircraftNearbyPolicy.js';
+import {
+  aircraftIncludedInNearby
+} from '../../data/aircraftNearbyPolicy.js';
 import {
   LANDED_ALT_MAX_M,
   LANDED_SPEED_MAX_MPS,
@@ -22,18 +30,30 @@ export function createQueries({
   layer,
   resolveAsset,
 }) {
-  const { tr3bTypeLabel, tr3bAircraftClass } = services.aircraftPresentation;
-  const { formatFlightLevel } = services.labels;
-  const { isMilitaryIcao } = services.militaryRegistry;
-  const { applyTrackedCameraFrame } = services.camera;
+  const {
+    tr3bTypeLabel,
+    tr3bAircraftClass
+  } = services.aircraftPresentation;
+  const {
+    formatFlightLevel
+  } = services.labels;
+  const {
+    isMilitaryIcao
+  } = services.militaryRegistry;
+  const {
+    applyTrackedCameraFrame
+  } = services.camera;
   const {
     setFocusDeemphasisParams,
     getFocusDeemphasisParams,
     setFocusEvidenceNowMs,
     advanceFocusEvidenceNowMs,
   } = services.focus;
-  const { setAircraftRecessionParams, getAircraftRecessionParams } =
-    services.recession;
+  const {
+    setAircraftRecessionParams,
+    getAircraftRecessionParams
+  } =
+  services.recession;
 
   /**
    * Cheap equirectangular distance (km) — plenty accurate for the ~150 km
@@ -163,9 +183,9 @@ export function createQueries({
       // ellipsoid height of the camera/ground-clamped render position. The
       // latter can be slightly negative over terrain near the surface.
       altitudeM: Number.isFinite(info?.altitude) ? info.altitude : carto.height,
-      renderAltitudeM: Number.isFinite(info?.renderAltitudeM)
-        ? info.renderAltitudeM
-        : carto.height,
+      renderAltitudeM: Number.isFinite(info?.renderAltitudeM) ?
+        info.renderAltitudeM :
+        carto.height,
       onGround: info?.onGround === true,
       velocityMps: displayed.speedMps,
       track: displayed.trackDeg,
@@ -184,21 +204,22 @@ export function createQueries({
       // narration, getTrackedSubject) can use it as a label link without
       // re-guarding a whitespace-only enrichment value.
       registration: _toCleanText(info?.registration) || null,
-      origin:
-        info?.route && parts.tracking._routeIsPlausible(icao24, info.route)
-          ? info.route.origin.code
-          : null,
-      destination:
-        info?.route && parts.tracking._routeIsPlausible(icao24, info.route)
-          ? info.route.destination.code
-          : null,
-      route:
-        info?.route && parts.tracking._routeIsPlausible(icao24, info.route)
-          ? {
-              origin: { ...info.route.origin },
-              destination: { ...info.route.destination },
-            }
-          : null,
+      origin: info?.route && parts.tracking._routeIsPlausible(icao24, info.route) ?
+        info.route.origin.code :
+        null,
+      destination: info?.route && parts.tracking._routeIsPlausible(icao24, info.route) ?
+        info.route.destination.code :
+        null,
+      route: info?.route && parts.tracking._routeIsPlausible(icao24, info.route) ?
+        {
+          origin: {
+            ...info.route.origin
+          },
+          destination: {
+            ...info.route.destination
+          },
+        } :
+        null,
     };
   }
 
@@ -229,8 +250,10 @@ export function createQueries({
 
   function mapAnalystRecord(
     icao24,
-    info,
-    { military = false, routeOk = false } = {},
+    info, {
+      military = false,
+      routeOk = false
+    } = {},
   ) {
     const num = (v) => (Number.isFinite(v) ? v : null);
     const text = (v) => {
@@ -275,8 +298,7 @@ export function createQueries({
 
     // Browser-harness seam: isolates synthetic display-floor scenarios without
     // changing any production lifecycle or cache policy.
-    _clearDisplayFloorStateForTest:
-      parts.testing._clearDisplayFloorStateForTest,
+    _clearDisplayFloorStateForTest: parts.testing._clearDisplayFloorStateForTest,
 
     /** @type {number} Polling interval (ms) between update() calls */
     updateInterval: 30000,
@@ -290,7 +312,9 @@ export function createQueries({
      * `models3dMode` is 'proximity' (nearest MODEL_MAX in view) or 'all' (every in-view plane).
      * @param {{models3d?: boolean, models3dMode?: 'proximity'|'all', selectedFlightsTrackingId?: string|null}} params
      */
-    setParams(params = {}, { origin = 'programmatic' } = {}) {
+    setParams(params = {}, {
+      origin = 'programmatic'
+    } = {}) {
       if (
         isExplicitLayerStateOrigin(origin) &&
         !Object.hasOwn(params, 'selectedFlightsTrackingId')
@@ -346,7 +370,9 @@ export function createQueries({
         } else if (requested === null) {
           parts.tracking._cancelPendingTrackingRestore();
           if (flightState._trackedIcao)
-            parts.tracking._clearTracking(false, { origin });
+            parts.tracking._clearTracking(false, {
+              origin
+            });
         } else {
           const generation = ++flightState._trackingIntentGeneration;
           flightState._pendingTrackingRestore = {
@@ -355,7 +381,9 @@ export function createQueries({
             origin,
           };
           if (flightState._trackedIcao)
-            parts.tracking._clearTracking(false, { origin });
+            parts.tracking._clearTracking(false, {
+              origin
+            });
           parts.tracking._applyPendingTrackingRestore();
         }
       }
@@ -402,9 +430,9 @@ export function createQueries({
       // Compute a stride that evenly samples the billboard map.
       // seed shifts the starting offset so successive calls can sample
       // different aircraft without shuffling the underlying Map order.
-      const maxCount = Number.isFinite(options.maxCount)
-        ? Math.max(1, Math.floor(options.maxCount))
-        : flightState._billboards.size;
+      const maxCount = Number.isFinite(options.maxCount) ?
+        Math.max(1, Math.floor(options.maxCount)) :
+        flightState._billboards.size;
       const seed = Number.isFinite(options.seed) ? Math.floor(options.seed) : 0;
       const stride = Math.max(
         1,
@@ -446,21 +474,21 @@ export function createQueries({
         // and rises only as the coarse ground-floor cell warms. Zero extra sampling and
         // no `_modelDisplayPosition` call from postRender. Sprite-owned contacts keep
         // `bb.position` — sprite and bracket are co-located there, so association holds.
-        const spec = modelOwnsVisual
-          ? parts.rendering._modelSpec(info?.klass)
-          : null;
-        const pos = isTracked
-          ? parts.motion._trackedVisualCached() || bb.position
-          : modelOwnsVisual
-            ? modelVisualAnchor(
-                model.modelMatrix,
-                spec.visualCenterNative,
-                Number.isFinite(model.computedScale)
-                  ? model.computedScale
-                  : spec.scale,
-                object._weldPos || (object._weldPos = new Cesium.Cartesian3()),
-              )
-            : bb.position;
+        const spec = modelOwnsVisual ?
+          parts.rendering._modelSpec(info?.klass) :
+          null;
+        const pos = isTracked ?
+          parts.motion._trackedVisualCached() || bb.position :
+          modelOwnsVisual ?
+          modelVisualAnchor(
+            model.modelMatrix,
+            spec.visualCenterNative,
+            Number.isFinite(model.computedScale) ?
+            model.computedScale :
+            spec.scale,
+            object._weldPos || (object._weldPos = new Cesium.Cartesian3()),
+          ) :
+          bb.position;
         if (!pos) continue;
         object.position = pos;
         object.skipLabel = isTracked;
@@ -540,7 +568,9 @@ export function createQueries({
      * @param {boolean} [options.includeHidden=false] Include loaded horizon-hidden aircraft.
      * @returns {Array<{id: string, icao24: string, callsign: string|null, position: Cesium.Cartesian3, distance: number, aircraftClass: string|null, altitudeM: number|null, velocityMps: number|null, track: number|null}>}
      */
-    getNearby(center, range, maxCount = 50, { includeHidden = false } = {}) {
+    getNearby(center, range, maxCount = 50, {
+      includeHidden = false
+    } = {}) {
       if (
         !center ||
         !flightState._billboardCollection ||
@@ -548,9 +578,9 @@ export function createQueries({
       )
         return [];
 
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 50;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        50;
       const maxRange =
         Number.isFinite(range) && range > 0 ? range : Number.POSITIVE_INFINITY;
 
@@ -571,9 +601,9 @@ export function createQueries({
         )
           continue;
 
-        const trackedPos = isTracked
-          ? parts.motion._trackedDisplayCached()
-          : null; // cached, no recompute (anti-jitter)
+        const trackedPos = isTracked ?
+          parts.motion._trackedDisplayCached() :
+          null; // cached, no recompute (anti-jitter)
         const pos = trackedPos || bb.position;
         if (!pos) continue;
 
@@ -595,8 +625,8 @@ export function createQueries({
           aircraftClass: tr3bAircraftClass(
             icao24,
             String(info?.klass || '')
-              .trim()
-              .toLowerCase() || null,
+            .trim()
+            .toLowerCase() || null,
           ),
           altitudeM: info?.altitude ?? null,
           velocityMps: info?.velocity ?? null,
@@ -650,9 +680,9 @@ export function createQueries({
         flightState._billboards.size === 0
       )
         return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 500;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        500;
 
       const result = [];
       for (const [icao24, bb] of flightState._billboards) {
@@ -676,14 +706,12 @@ export function createQueries({
           typeName: info?.typeName ?? null,
           typeCode: info?.typeCode ?? null,
           registration: info?.registration ?? null,
-          origin:
-            info?.route && parts.tracking._routeIsPlausible(icao24, info.route)
-              ? info.route.origin.code
-              : null,
-          destination:
-            info?.route && parts.tracking._routeIsPlausible(icao24, info.route)
-              ? info.route.destination.code
-              : null,
+          origin: info?.route && parts.tracking._routeIsPlausible(icao24, info.route) ?
+            info.route.origin.code :
+            null,
+          destination: info?.route && parts.tracking._routeIsPlausible(icao24, info.route) ?
+            info.route.destination.code :
+            null,
         });
         if (result.length >= limit) break;
       }
@@ -706,13 +734,12 @@ export function createQueries({
         flightState._flightData.size === 0
       )
         return [];
-      const limit = Number.isFinite(maxCount)
-        ? Math.max(1, Math.floor(maxCount))
-        : 2000;
+      const limit = Number.isFinite(maxCount) ?
+        Math.max(1, Math.floor(maxCount)) :
+        2000;
       const result = [];
       for (const [icao24, info] of flightState._flightData) {
-        const routeOk =
-          !!info?.route && parts.tracking._routeIsPlausible(icao24, info.route);
+        const routeOk = !!info?.route && parts.tracking._routeIsPlausible(icao24, info.route);
         result.push(
           mapAnalystRecord(icao24, info, {
             military: isMilitaryIcao(icao24),
@@ -729,7 +756,9 @@ export function createQueries({
      * @param {string} icao24 - ICAO 24-bit transponder address.
      * @returns {boolean} True if the aircraft exists and tracking started.
      */
-    trackById(icao24, { origin = 'programmatic' } = {}) {
+    trackById(icao24, {
+      origin = 'programmatic'
+    } = {}) {
       if (!icao24) return false;
       let id = String(icao24).trim();
       if (!flightState._billboards.has(id)) id = id.toLowerCase();
@@ -738,14 +767,18 @@ export function createQueries({
         parts.tracking._cancelPendingTrackingRestore();
       if (flightState._trackedIcao === id)
         return parts.tracking._publishTrackedSelection(id, origin);
-      parts.tracking._trackFlight(id, { origin });
+      parts.tracking._trackFlight(id, {
+        origin
+      });
       return true;
     },
 
     /** Resolve a shared Follow target only against the latest accepted refresh. */
     async resolveTrackingRestoreTarget(
-      icao24,
-      { signal = null, origin = 'share-restore' } = {},
+      icao24, {
+        signal = null,
+        origin = 'share-restore'
+      } = {},
     ) {
       if (signal?.aborted)
         return {
@@ -753,7 +786,10 @@ export function createQueries({
           reason: String(signal.reason || 'aborted'),
         };
       const id = _normalizeTrackedIcao(icao24);
-      if (!id) return { status: 'missing', reason: 'invalid-target' };
+      if (!id) return {
+        status: 'missing',
+        reason: 'invalid-target'
+      };
       const outcome = flightState._lastTrackingRefreshOutcome;
       if (outcome.status !== 'accepted') {
         return {
@@ -778,23 +814,27 @@ export function createQueries({
           status: 'cancelled',
           reason: String(signal.reason || 'aborted'),
         };
-      const followed = this.trackById(id, { origin });
-      return followed
-        ? {
-            status: 'found',
-            refreshEpoch: outcome.epoch,
-            source: outcome.source,
-            coverage: outcome.coverage,
-          }
-        : {
-            status: 'source-unavailable',
-            reason: 'target-not-renderable',
-            refreshEpoch: outcome.epoch,
-          };
+      const followed = this.trackById(id, {
+        origin
+      });
+      return followed ?
+        {
+          status: 'found',
+          refreshEpoch: outcome.epoch,
+          source: outcome.source,
+          coverage: outcome.coverage,
+        } :
+        {
+          status: 'source-unavailable',
+          reason: 'target-not-renderable',
+          refreshEpoch: outcome.epoch,
+        };
     },
 
     /** Reapply the canonical follow frame without recreating the selected flight. */
-    refocusTrackedById(icao24, { origin = 'programmatic' } = {}) {
+    refocusTrackedById(icao24, {
+      origin = 'programmatic'
+    } = {}) {
       if (
         !icao24 ||
         flightState._cockpitContactMode ||
@@ -827,9 +867,13 @@ export function createQueries({
      * Stop tracking the currently followed aircraft (no-op if none).
      * @returns {boolean} Always true.
      */
-    stopTracking({ origin = 'programmatic' } = {}) {
+    stopTracking({
+      origin = 'programmatic'
+    } = {}) {
       parts.tracking._cancelPendingTrackingRestore();
-      parts.tracking._clearTracking(false, { origin });
+      parts.tracking._clearTracking(false, {
+        origin
+      });
       return true;
     },
 
@@ -846,7 +890,10 @@ export function createQueries({
       if (!flightState._trackedIcao) return null;
       const described = _describeFlight(flightState._trackedIcao);
       if (!described) return null;
-      const { position, ...rest } = described;
+      const {
+        position,
+        ...rest
+      } = described;
       return rest;
     },
 
@@ -865,69 +912,81 @@ export function createQueries({
         id: described.icao24,
         // Same label chain as getNearby/getDetectableObjects: a callsign-less
         // contact reads as its registration, never as the raw ICAO hex.
-        label:
-          described.callsign ||
+        label: described.callsign ||
           _toCleanText(described.registration) ||
           described.icao24,
         position: Cesium.Cartesian3.clone(described.position),
       };
     },
 
-    ...(FOCUS_EVIDENCE_DEV
-      ? {
-          __focusEvidence: Object.freeze({
-            setAircraft: parts.evidence._setFocusEvidenceAircraft,
-            moveAircraft: parts.evidence._moveFocusEvidenceAircraft,
-            snapshot: parts.evidence._focusEvidenceSnapshot,
-            setTuning({ focus = {}, horizon = {} } = {}) {
+    ...(FOCUS_EVIDENCE_DEV ?
+      {
+        __focusEvidence: Object.freeze({
+          setAircraft: parts.evidence._setFocusEvidenceAircraft,
+          moveAircraft: parts.evidence._moveFocusEvidenceAircraft,
+          snapshot: parts.evidence._focusEvidenceSnapshot,
+          setTuning({
+            focus = {},
+            horizon = {}
+          } = {}) {
+            return {
+              focus: setFocusDeemphasisParams(focus),
+              horizon: setAircraftRecessionParams(horizon),
+            };
+          },
+          getTuning() {
+            return {
+              focus: {
+                ...getFocusDeemphasisParams()
+              },
+              horizon: {
+                ...getAircraftRecessionParams()
+              },
+            };
+          },
+          takeFrameClock(startMs = 1_000_000_000) {
+            if (!flightState._viewer || !Number.isFinite(startMs))
               return {
-                focus: setFocusDeemphasisParams(focus),
-                horizon: setAircraftRecessionParams(horizon),
+                ok: false,
+                nowMs: null
               };
-            },
-            getTuning() {
-              return {
-                focus: { ...getFocusDeemphasisParams() },
-                horizon: { ...getAircraftRecessionParams() },
-              };
-            },
-            takeFrameClock(startMs = 1_000_000_000) {
-              if (!flightState._viewer || !Number.isFinite(startMs))
-                return { ok: false, nowMs: null };
-              flightState._viewer.useDefaultRenderLoop = false;
-              setFocusEvidenceNowMs(startMs);
-              flightState._lastFleetTickMs = startMs - FLEET_DR_INTERVAL_MS;
-              // Cross a browser task boundary, then close Cesium's pending-loop
-              // latch. Any already-queued callback still observes the false gate,
-              // while manual evidence renders can begin without waiting on VSYNC.
-              return new Promise((resolve) =>
-                setTimeout(() => {
-                  if (flightState._viewer?._cesiumWidget)
-                    flightState._viewer._cesiumWidget._renderLoopRunning = false;
-                  resolve({ ok: true, nowMs: startMs });
-                }, 0),
-              );
-            },
-            advanceFrameClock(deltaMs = FLEET_DR_INTERVAL_MS) {
-              return advanceFocusEvidenceNowMs(deltaMs);
-            },
-            releaseFrameClock() {
-              setFocusEvidenceNowMs(null);
-              if (flightState._viewer)
-                flightState._viewer.useDefaultRenderLoop = true;
-            },
-          }),
-        }
-      : {}),
+            flightState._viewer.useDefaultRenderLoop = false;
+            setFocusEvidenceNowMs(startMs);
+            flightState._lastFleetTickMs = startMs - FLEET_DR_INTERVAL_MS;
+            // Cross a browser task boundary, then close Cesium's pending-loop
+            // latch. Any already-queued callback still observes the false gate,
+            // while manual evidence renders can begin without waiting on VSYNC.
+            return new Promise((resolve) =>
+              setTimeout(() => {
+                if (flightState._viewer?._cesiumWidget)
+                  flightState._viewer._cesiumWidget._renderLoopRunning = false;
+                resolve({
+                  ok: true,
+                  nowMs: startMs
+                });
+              }, 0),
+            );
+          },
+          advanceFrameClock(deltaMs = FLEET_DR_INTERVAL_MS) {
+            return advanceFocusEvidenceNowMs(deltaMs);
+          },
+          releaseFrameClock() {
+            setFocusEvidenceNowMs(null);
+            if (flightState._viewer)
+              flightState._viewer.useDefaultRenderLoop = true;
+          },
+        }),
+      } :
+      {}),
 
     /**
      * Return layer health/status for the HUD stats chip.
      * @returns {{count: number, lastUpdate: number|null, stale: boolean, error: string|null, status: number|null, retryInSec: number}}
      */
     getStats() {
-      const retryInSec = flightState._retryAt
-        ? Math.max(0, Math.ceil((flightState._retryAt - Date.now()) / 1000))
-        : 0;
+      const retryInSec = flightState._retryAt ?
+        Math.max(0, Math.ceil((flightState._retryAt - Date.now()) / 1000)) :
+        0;
       return {
         count: flightState._count,
         lastUpdate: flightState._lastUpdate,
