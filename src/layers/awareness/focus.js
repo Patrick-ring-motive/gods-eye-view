@@ -79,8 +79,7 @@ export function createFocus({
       ...layerState.navigationHistory,
       ...(layerState.results?.cohorts || []).flatMap((cohort) =>
         cohort.id === layerId ?
-        cohort.summary.navigationNearest || cohort.summary.nearest || [] :
-        [],
+        cohort.summary.navigationNearest || cohort.summary.nearest || [] : [],
       ),
     ].find(
       (item) =>
