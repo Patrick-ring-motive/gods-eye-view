@@ -1,4 +1,9 @@
-export function createControls({ state: layerState, services, parts, source }) {
+export function createControls({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   const methods = {
     id: 'rocket-launches',
 
@@ -31,5 +36,7 @@ export function createControls({ state: layerState, services, parts, source }) {
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
