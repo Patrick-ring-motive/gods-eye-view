@@ -168,8 +168,7 @@ export function firmsProxy() {
             const body = await res.json();
             const used = Number(body?.current_transactions);
             const limit = Number(body?.transaction_limit);
-            return Number.isFinite(used) && Number.isFinite(limit) ?
-              {
+            return Number.isFinite(used) && Number.isFinite(limit) ? {
                 used,
                 limit
               } :
