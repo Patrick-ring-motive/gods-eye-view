@@ -304,15 +304,13 @@ test('flights poll refreshes tracked callsign/FL/kts and marks a missed poll STA
         })
       };
     }
-    const states = openskyPoll++ === 0 ?
+    const states = openskyPoll++ === 0 ? [
       [
-        [
-          icao24, 'DAL123 ', 'United States', nowSec, nowSec,
-          -97.6, 30.3, 10_668, false, 250, 95, 5, null, 10_700,
-          null, null, null, 5,
-        ]
-      ] :
-      [];
+        icao24, 'DAL123 ', 'United States', nowSec, nowSec,
+        -97.6, 30.3, 10_668, false, 250, 95, 5, null, 10_700,
+        null, null, null, 5,
+      ]
+    ] : [];
     return {
       ok: true,
       status: 200,
