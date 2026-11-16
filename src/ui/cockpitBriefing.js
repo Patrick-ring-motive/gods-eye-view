@@ -10,7 +10,9 @@ import {
   formatCockpitWindDirection,
 } from './cockpitPresentation.js';
 
-export function showBriefPage(index, { manual = false } = {}) {
+export function showBriefPage(index, {
+  manual = false
+} = {}) {
   if (this.destroyed) return;
   const count = COCKPIT_BRIEF_PAGES.length;
   this.briefPageIndex = ((Number(index) % count) + count) % count;
@@ -37,7 +39,9 @@ export function showBriefPage(index, { manual = false } = {}) {
   if (this.briefSource) this.briefSource.textContent = page.source;
   if (this.signalStream) this.signalStream.dataset.briefPage = page.id;
   if (manual && this.briefAutoRotateEnabled)
-    this.startBriefRotation({ reset: true });
+    this.startBriefRotation({
+      reset: true
+    });
   this.scheduleContextLayout();
 }
 
@@ -51,17 +55,21 @@ export function setBriefAutoRotate(enabled) {
     );
     const label = this.briefAutoRotateEnabled ? 'CYCLE ON' : 'CYCLE OFF';
     this.briefAutoToggle.textContent = label;
-    const help = this.briefAutoRotateEnabled
-      ? COCKPIT_BRIEF_CYCLE_ON_HELP
-      : COCKPIT_BRIEF_CYCLE_OFF_HELP;
+    const help = this.briefAutoRotateEnabled ?
+      COCKPIT_BRIEF_CYCLE_ON_HELP :
+      COCKPIT_BRIEF_CYCLE_OFF_HELP;
     this.briefAutoToggle.setAttribute('aria-label', label);
     this.briefAutoToggle.title = help;
   }
-  if (this.briefAutoRotateEnabled) this.startBriefRotation({ reset: true });
+  if (this.briefAutoRotateEnabled) this.startBriefRotation({
+    reset: true
+  });
   else this.stopBriefRotation();
 }
 
-export function startBriefRotation({ reset = false } = {}) {
+export function startBriefRotation({
+  reset = false
+} = {}) {
   if (this.destroyed) return;
   if (reset) this.stopBriefRotation();
   if (
@@ -120,7 +128,10 @@ export function maybeRefreshRegionalBrief(info) {
     this.regionalBriefAnchor = null;
     this.regionalBriefFetchedAt = 0;
   }
-  const point = { latitude: info.latitude, longitude: info.longitude };
+  const point = {
+    latitude: info.latitude,
+    longitude: info.longitude
+  };
   const ageMs = Date.now() - this.regionalBriefFetchedAt;
   const distanceM = this.services.regionalDistanceM(
     this.regionalBriefAnchor,
@@ -174,9 +185,9 @@ export function renderRegionalBriefStatus(status, info) {
     this.newsStatus.hidden = false;
     this.newsStatus.dataset.state = status;
     this.newsStatus.textContent =
-      status === 'loading'
-        ? 'ACQUIRING REGIONAL NEWS'
-        : 'REGIONAL NEWS UNAVAILABLE';
+      status === 'loading' ?
+      'ACQUIRING REGIONAL NEWS' :
+      'REGIONAL NEWS UNAVAILABLE';
   }
   if (status === 'unavailable') this.newsList?.replaceChildren();
   if (this.localPlace && status === 'loading')
@@ -192,9 +203,9 @@ export function renderRegionalBrief(payload, info) {
     this.newsStatus.hidden = articles.length > 0;
     this.newsStatus.dataset.state = payload?.newsStatus || 'unavailable';
     this.newsStatus.textContent =
-      payload?.newsStatus === 'empty'
-        ? 'NO RECENT LOCATION MATCHES'
-        : 'REGIONAL NEWS UNAVAILABLE';
+      payload?.newsStatus === 'empty' ?
+      'NO RECENT LOCATION MATCHES' :
+      'REGIONAL NEWS UNAVAILABLE';
   }
   if (this.newsList) {
     this.newsList.replaceChildren(
@@ -221,14 +232,14 @@ export function renderRegionalBrief(payload, info) {
   this.updateLocalPosition(info);
   const weather = payload?.weather;
   if (this.localTemperature) {
-    this.localTemperature.textContent = Number.isFinite(weather?.temperatureC)
-      ? `${Math.round(weather.temperatureC)}°C`
-      : '—';
+    this.localTemperature.textContent = Number.isFinite(weather?.temperatureC) ?
+      `${Math.round(weather.temperatureC)}°C` :
+      '—';
   }
   if (this.localWind) {
-    this.localWind.textContent = Number.isFinite(weather?.windKph)
-      ? `${Math.round(weather.windKph)} KM/H`
-      : '—';
+    this.localWind.textContent = Number.isFinite(weather?.windKph) ?
+      `${Math.round(weather.windKph)} KM/H` :
+      '—';
   }
   if (this.localWindDirection) {
     this.localWindDirection.textContent = formatCockpitWindDirection(
@@ -240,16 +251,16 @@ export function renderRegionalBrief(payload, info) {
       weather?.weatherCode,
     );
   if (this.localCloud) {
-    this.localCloud.textContent = Number.isFinite(weather?.cloudCoverPct)
-      ? `CLOUD ${Math.round(weather.cloudCoverPct)}%`
-      : 'CLOUD UNKNOWN';
+    this.localCloud.textContent = Number.isFinite(weather?.cloudCoverPct) ?
+      `CLOUD ${Math.round(weather.cloudCoverPct)}%` :
+      'CLOUD UNKNOWN';
   }
   if (this.localPrecipitation) {
     this.localPrecipitation.textContent = Number.isFinite(
-      weather?.precipitationMm,
-    )
-      ? weather.precipitationMm.toFixed(1)
-      : '—';
+        weather?.precipitationMm,
+      ) ?
+      weather.precipitationMm.toFixed(1) :
+      '—';
   }
   if (this.signalStream)
     this.signalStream.dataset.regionalStatus = payload?.status || 'partial';
