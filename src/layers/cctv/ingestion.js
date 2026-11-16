@@ -44,5 +44,7 @@ export function createIngestion({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
