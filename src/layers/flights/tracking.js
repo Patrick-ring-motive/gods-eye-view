@@ -159,14 +159,11 @@ export function createTracking({
         registration: described.registration || '',
         type: described.typeName || described.typeCode || '',
         altitude: described.onGround ?
-          'on ground' :
-          `${altFt.toLocaleString('en-US')} ft`,
+          'on ground' : `${altFt.toLocaleString('en-US')} ft`,
         speed: Number.isFinite(described.velocityMps) ?
-          `${Math.round(described.velocityMps * 1.944)} kt` :
-          '',
+          `${Math.round(described.velocityMps * 1.944)} kt` : '',
         heading: Number.isFinite(described.track) ?
-          `${Math.round(described.track)}°` :
-          '',
+          `${Math.round(described.track)}°` : '',
         route: route || '',
         icao24,
         // Honesty cue: the contact is coasting on dead reckoning, so the
@@ -815,8 +812,7 @@ export function createTracking({
     // Converted contacts report their class as TR-3B and nothing else — the
     // operator/type identity is exactly what the Easter egg is replacing.
     const ident = isTr3b(icao24) ?
-      tr3bTypeLabel(icao24) :
-      [info.airline, info.typeName || info.typeCode]
+      tr3bTypeLabel(icao24) : [info.airline, info.typeName || info.typeCode]
       .filter(Boolean)
       .join(' · ');
     if (ident) lines.push(ident);
