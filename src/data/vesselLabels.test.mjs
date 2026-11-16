@@ -1,6 +1,10 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {
+  readFile
+} from 'node:fs/promises';
 import {
   accentForVesselType,
   applyVesselOverlayPolicy,
@@ -58,9 +62,17 @@ test('vessel viewport cohort preserves the shipped 118px grid density', () => {
 });
 
 test('vessel host policy uses always-on shared fade and protected selected lane', () => {
-  const position = { x: 1, y: 2, z: 3 };
+  const position = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
   const ambient = applyVesselOverlayPolicy({
-    id: 'vessel:1', position, title: 'AMBIENT', gapPx: 10, selected: false,
+    id: 'vessel:1',
+    position,
+    title: 'AMBIENT',
+    gapPx: 10,
+    selected: false,
   });
   assert.equal(ambient.variant, 'card');
   assert.equal(ambient.protected, false);
@@ -72,7 +84,11 @@ test('vessel host policy uses always-on shared fade and protected selected lane'
   assert.equal(ambient.verticalOnly, true);
 
   const selected = applyVesselOverlayPolicy({
-    id: 'vessel:2', position, title: 'SELECTED', gapPx: 12, selected: true,
+    id: 'vessel:2',
+    position,
+    title: 'SELECTED',
+    gapPx: 12,
+    selected: true,
   });
   assert.equal(selected.variant, 'selected');
   assert.equal(selected.protected, true);
@@ -83,13 +99,13 @@ test('vessel host policy uses always-on shared fade and protected selected lane'
 test('vesselLabels cannot resurrect a dedicated renderer', async () => {
   const source = await readFile(new URL('./vesselLabels.js', import.meta.url), 'utf8');
   for (const forbidden of [
-    'document.createElement',
-    "createElement('canvas')",
-    'postRender.addEventListener',
-    'worldToWindowCoordinates',
-    'requestAnimationFrame',
-    "id = 'vessel-labels'",
-  ]) {
+      'document.createElement',
+      "createElement('canvas')",
+      'postRender.addEventListener',
+      'worldToWindowCoordinates',
+      'requestAnimationFrame',
+      "id = 'vessel-labels'",
+    ]) {
     assert.equal(source.includes(forbidden), false, `dedicated renderer token returned: ${forbidden}`);
   }
 });
