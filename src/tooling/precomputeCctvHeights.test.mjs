@@ -411,9 +411,7 @@ test('only failed cameras retry; partial successes survive and mount misses stop
         return batch.map((item) => {
           if (item.id === 'miss') return [];
           if (item.id === 'partial')
-            return calls.length === 1 ?
-              [10, ...Array(8).fill(11), null] :
-              [null, ...Array(8).fill(null), 12];
+            return calls.length === 1 ? [10, ...Array(8).fill(11), null] : [null, ...Array(8).fill(null), 12];
           return Array(10).fill(10);
         });
       },
