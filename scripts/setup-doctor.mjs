@@ -1,21 +1,74 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+
+import {
+  existsSync,
+  readFileSync
+} from 'node:fs';
+import {
+  spawnSync
+} from 'node:child_process';
 import path from 'node:path';
-import { parseEnv } from 'node:util';
-import { fileURLToPath } from 'node:url';
-import { selectMapStartupRoute } from '../src/mapStartup.js';
+import {
+  parseEnv
+} from 'node:util';
+import {
+  fileURLToPath
+} from 'node:url';
+import {
+  selectMapStartupRoute
+} from '../src/mapStartup.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-export const CREDENTIALS = Object.freeze([
-  { name: 'GOOGLE_MAPS_API_KEY', label: 'Google Maps', keychain: [['google-maps-api', 'api-key'], ['google-maps-api', 'default'], ['google-maps-api', 'key']] },
-  { name: 'GOOGLE_MAPS_SERVER_API_KEY', label: 'Google Places / Street View server', keychain: [] },
-  { name: 'CESIUM_ION_TOKEN', label: 'Cesium ion', keychain: [['cesium-ion', 'token']] },
-  { name: 'OPENAI_API_KEY', label: 'OpenAI voice', keychain: [['openai-api', 'api-key']] },
-  { name: 'AISSTREAM_API_KEY', label: 'AISStream vessels', keychain: [['aisstream-api', 'api-key']] },
-  { name: 'FIRMS_MAP_KEY', label: 'NASA FIRMS fires', keychain: [['firms-map', 'map-key']] },
-  { name: 'TOMTOM_API_KEY', label: 'TomTom traffic', keychain: [['tomtom-api', 'api-key']] },
+export const CREDENTIALS = Object.freeze([{
+    name: 'GOOGLE_MAPS_API_KEY',
+    label: 'Google Maps',
+    keychain: [
+      ['google-maps-api', 'api-key'],
+      ['google-maps-api', 'default'],
+      ['google-maps-api', 'key']
+    ]
+  },
+  {
+    name: 'GOOGLE_MAPS_SERVER_API_KEY',
+    label: 'Google Places / Street View server',
+    keychain: []
+  },
+  {
+    name: 'CESIUM_ION_TOKEN',
+    label: 'Cesium ion',
+    keychain: [
+      ['cesium-ion', 'token']
+    ]
+  },
+  {
+    name: 'OPENAI_API_KEY',
+    label: 'OpenAI voice',
+    keychain: [
+      ['openai-api', 'api-key']
+    ]
+  },
+  {
+    name: 'AISSTREAM_API_KEY',
+    label: 'AISStream vessels',
+    keychain: [
+      ['aisstream-api', 'api-key']
+    ]
+  },
+  {
+    name: 'FIRMS_MAP_KEY',
+    label: 'NASA FIRMS fires',
+    keychain: [
+      ['firms-map', 'map-key']
+    ]
+  },
+  {
+    name: 'TOMTOM_API_KEY',
+    label: 'TomTom traffic',
+    keychain: [
+      ['tomtom-api', 'api-key']
+    ]
+  },
   {
     name: 'OPENSKY_CLIENT_ID',
     label: 'OpenSky client ID',
@@ -30,7 +83,11 @@ export const CREDENTIALS = Object.freeze([
       ['client_secret', 'client-secret', 'secret'].map((account) => [service, account])
     )),
   },
-  { name: 'LL2_API_TOKEN', label: 'Launch Library 2', keychain: [] },
+  {
+    name: 'LL2_API_TOKEN',
+    label: 'Launch Library 2',
+    keychain: []
+  },
 ]);
 
 export function isConfiguredValue(value) {
@@ -41,19 +98,34 @@ export function isConfiguredValue(value) {
 export function classifyNodeVersion(version = process.versions.node) {
   const [major = 0, minor = 0] = String(version).split('.').map(Number);
   if (major === 24 && minor >= 14) {
-    return { level: 'ok', summary: 'supported LTS and calibrated for release gates' };
+    return {
+      level: 'ok',
+      summary: 'supported LTS and calibrated for release gates'
+    };
   }
-  if (major === 26) return { level: 'ok', summary: 'supported runtime' };
+  if (major === 26) return {
+    level: 'ok',
+    summary: 'supported runtime'
+  };
   if (major === 25) {
-    return { level: 'warn', summary: 'usable but EOL; allocation benchmarks will be skipped' };
+    return {
+      level: 'warn',
+      summary: 'usable but EOL; allocation benchmarks will be skipped'
+    };
   }
   if (major < 24 || (major === 24 && minor < 14)) {
-    return { level: 'error', summary: 'too old; install Node 24.14 or newer' };
+    return {
+      level: 'error',
+      summary: 'too old; install Node 24.14 or newer'
+    };
   }
   // NEWER than this release has verified is a warning, never a refusal: a
   // future Node must not brick a no-terminal install with advice its user
   // cannot follow. Too-old stays an error above — old runtimes genuinely fail.
-  return { level: 'warn', summary: 'newer than this release has verified; Node 24.14.x or 26.x is the tested path' };
+  return {
+    level: 'warn',
+    summary: 'newer than this release has verified; Node 24.14.x or 26.x is the tested path'
+  };
 }
 
 /** Verify that every direct package declared by this checkout is present. */
@@ -75,7 +147,10 @@ export function hasRequiredDependencies(rootDir = ROOT) {
 /** Return the npm command and spawn mode required by the target platform. */
 export function npmProcessSpec(platform = process.platform) {
   const windows = platform === 'win32';
-  return { command: windows ? 'npm.cmd' : 'npm', shell: windows };
+  return {
+    command: windows ? 'npm.cmd' : 'npm',
+    shell: windows
+  };
 }
 
 /** Read one key from Vite's dotenv file ladder without depending on Vite. */
@@ -106,7 +181,9 @@ function hasKeychainItem(service, account) {
     'find-generic-password',
     '-s', service,
     '-a', account,
-  ], { stdio: 'ignore' });
+  ], {
+    stdio: 'ignore'
+  });
   return result.status === 0;
 }
 
@@ -118,13 +195,28 @@ export function resolveCredential(spec, {
   keychainLookup = hasKeychainItem,
 } = {}) {
   const environmentDefinesKey = Object.prototype.hasOwnProperty.call(environment, spec.name);
-  if (isConfiguredValue(environment[spec.name])) return { configured: true, source: 'environment' };
-  if (authoritativeEnvironment && environmentDefinesKey) return { configured: false, source: null };
-  if (isConfiguredValue(readDoctorDotenvValue(spec.name, rootDir))) return { configured: true, source: 'dotenv files' };
+  if (isConfiguredValue(environment[spec.name])) return {
+    configured: true,
+    source: 'environment'
+  };
+  if (authoritativeEnvironment && environmentDefinesKey) return {
+    configured: false,
+    source: null
+  };
+  if (isConfiguredValue(readDoctorDotenvValue(spec.name, rootDir))) return {
+    configured: true,
+    source: 'dotenv files'
+  };
   if (includeKeychain && spec.keychain.some(([service, account]) => keychainLookup(service, account))) {
-    return { configured: true, source: 'macOS Keychain' };
+    return {
+      configured: true,
+      source: 'macOS Keychain'
+    };
   }
-  return { configured: false, source: null };
+  return {
+    configured: false,
+    source: null
+  };
 }
 
 export function buildCapabilitySummary(credentials) {
@@ -134,25 +226,28 @@ export function buildCapabilitySummary(credentials) {
     cesiumToken: configured('CESIUM_ION_TOKEN') ? 'configured' : '',
   });
   return {
-    map: route === 'google-direct'
-      ? 'Google Photorealistic 3D Tiles (direct)'
-      : route === 'google-ion'
-        ? 'Google Photorealistic 3D Tiles through Cesium ion; Bing and world-terrain stacks available'
-        : 'Esri World Imagery (keyless satellite basemap) with keyless terrain',
-    flights: configured('OPENSKY_CLIENT_ID') && configured('OPENSKY_CLIENT_SECRET')
-      ? 'OpenSky OAuth credentials present (runtime mode and validity not verified)'
-      : 'OpenSky OAuth credentials not configured',
+    map: route === 'google-direct' ?
+      'Google Photorealistic 3D Tiles (direct)' :
+      route === 'google-ion' ?
+      'Google Photorealistic 3D Tiles through Cesium ion; Bing and world-terrain stacks available' :
+      'Esri World Imagery (keyless satellite basemap) with keyless terrain',
+    flights: configured('OPENSKY_CLIENT_ID') && configured('OPENSKY_CLIENT_SECRET') ?
+      'OpenSky OAuth credentials present (runtime mode and validity not verified)' :
+      'OpenSky OAuth credentials not configured',
     voice: configured('OPENAI_API_KEY') ? 'available' : 'off until an OpenAI key is added',
     vessels: configured('AISSTREAM_API_KEY') ? 'live AISStream feed' : 'off until an AISStream key is added',
     fires: configured('FIRMS_MAP_KEY') ? 'live NASA FIRMS feed' : 'off until a FIRMS key is added',
     traffic: configured('TOMTOM_API_KEY') ? 'live TomTom flow' : 'built-in traffic simulation',
-    missions: configured('LL2_API_TOKEN')
-      ? 'Launch Library 2 token allowance'
-      : 'Launch Library 2 public access',
+    missions: configured('LL2_API_TOKEN') ?
+      'Launch Library 2 token allowance' :
+      'Launch Library 2 public access',
   };
 }
 
-export function inspectSetup({ includeKeychain = true, authoritativeEnvironment = false } = {}) {
+export function inspectSetup({
+  includeKeychain = true,
+  authoritativeEnvironment = false
+} = {}) {
   const node = classifyNodeVersion();
   const npm = npmProcessSpec();
   const npmResult = spawnSync(npm.command, ['--version'], {
@@ -161,15 +256,27 @@ export function inspectSetup({ includeKeychain = true, authoritativeEnvironment 
   });
   const credentials = Object.fromEntries(CREDENTIALS.map((spec) => [
     spec.name,
-    resolveCredential(spec, { includeKeychain, authoritativeEnvironment }),
+    resolveCredential(spec, {
+      includeKeychain,
+      authoritativeEnvironment
+    }),
   ]));
   const dependenciesInstalled = hasRequiredDependencies();
   return {
     ready: node.level !== 'error' && npmResult.status === 0 && dependenciesInstalled,
-    node: { version: process.versions.node, ...node },
-    npm: npmResult.status === 0
-      ? { available: true, version: String(npmResult.stdout || '').trim() }
-      : { available: false, version: null },
+    node: {
+      version: process.versions.node,
+      ...node
+    },
+    npm: npmResult.status === 0 ?
+      {
+        available: true,
+        version: String(npmResult.stdout || '').trim()
+      } :
+      {
+        available: false,
+        version: null
+      },
     dependenciesInstalled,
     credentials,
     capabilities: buildCapabilitySummary(credentials),
@@ -182,12 +289,14 @@ function symbol(level) {
   return 'ERROR';
 }
 
-export function formatSetupReport(report, { readyMessage } = {}) {
+export function formatSetupReport(report, {
+  readyMessage
+} = {}) {
   const hasKeychainSource = Object.values(report.credentials || {})
     .some((credential) => credential?.source === 'macOS Keychain');
-  const resolvedReadyMessage = readyMessage || (hasKeychainSource
-    ? 'Ready. Run ./scripts/dev-fresh.sh, then open http://localhost:4173.'
-    : 'Ready. Run npm run dev, then open http://localhost:4173.');
+  const resolvedReadyMessage = readyMessage || (hasKeychainSource ?
+    'Ready. Run ./scripts/dev-fresh.sh, then open http://localhost:4173.' :
+    'Ready. Run npm run dev, then open http://localhost:4173.');
   const lines = [
     "God's Eye View setup doctor",
     '',
@@ -206,14 +315,14 @@ export function formatSetupReport(report, { readyMessage } = {}) {
     'Configured providers:',
     ...CREDENTIALS.map((spec) => {
       const state = report.credentials[spec.name];
-      return state.configured
-        ? `  [OK] ${spec.label} (${state.source})`
-        : `  [--] ${spec.label}`;
+      return state.configured ?
+        `  [OK] ${spec.label} (${state.source})` :
+        `  [--] ${spec.label}`;
     }),
     '',
-    report.ready
-      ? resolvedReadyMessage
-      : 'Setup needs attention before the app can start.',
+    report.ready ?
+    resolvedReadyMessage :
+    'Setup needs attention before the app can start.',
   ];
   return lines.join('\n');
 }
