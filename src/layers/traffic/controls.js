@@ -166,11 +166,9 @@ export function createControls({
         error: layerState._roadError || feed.error,
         flowCoveragePct: layerState._flowCoveragePct,
         tilesFetched: getFlowSessionStats().tilesFetched,
-        ...(TRAFFIC_TIMING_ENABLED ?
-          {
-            trafficTiming: parts.timing.getTrafficTimingDiagnostics()
-          } :
-          {}),
+        ...(TRAFFIC_TIMING_ENABLED ? {
+          trafficTiming: parts.timing.getTrafficTimingDiagnostics()
+        } : {}),
         // Per-bucket rendered-dot counts (sim = white ambient). Drives the
         // qa-traffic color assertions and the sync-chip mode label below.
         flowBuckets: {
@@ -183,8 +181,7 @@ export function createControls({
         // Preset-styling diagnostics (additive): active style + profile.
         stylePreset: layerState._stylePreset,
         styleProfile: layerState._presetDots === 'on' ?
-          trafficStyleProfile(layerState._stylePreset) :
-          'normal',
+          trafficStyleProfile(layerState._stylePreset) : 'normal',
         // Sync-chip text: shown while busy, and flashed on its own for 1.5 s
         // after each completed load (ui.js _updateTrafficSyncChip semantics).
         // The settled flash carries NO progress number beside it — this label's
