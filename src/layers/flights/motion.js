@@ -238,8 +238,7 @@ export function createMotion({
       // `epochMs` is captured once when the poll is normalized. Avoid allocating
       // a Date per aircraft on every 12 Hz fleet tick.
       fixEpochMs: Number.isFinite(newest.epochMs) ?
-        newest.epochMs :
-        Cesium.JulianDate.toDate(newest.time).getTime(),
+        newest.epochMs : Cesium.JulianDate.toDate(newest.time).getTime(),
       lastContactEpochMs: info?.lastContactEpochMs,
       // Permit one minute of contact grace but cap any cached-feed drift at
       // five minutes. Source backoff is exposed separately as a STALE cue.
