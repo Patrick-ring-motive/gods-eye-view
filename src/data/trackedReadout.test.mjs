@@ -1,7 +1,11 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {
+  readFile
+} from 'node:fs/promises';
 import {
   _setTrackedOverlayHostForTest,
   cachedTrackedDisplayPosition,
@@ -21,8 +25,12 @@ function makeCesiumEvent() {
       listeners.add(callback);
       return () => listeners.delete(callback);
     },
-    raise() { for (const callback of [...listeners]) callback(); },
-    get size() { return listeners.size; },
+    raise() {
+      for (const callback of [...listeners]) callback();
+    },
+    get size() {
+      return listeners.size;
+    },
   };
 }
 
@@ -31,21 +39,41 @@ function makeHostRecorder() {
   return {
     calls,
     host: {
-      setEntries(sourceId, entries, options) { calls.push({ op: 'set', sourceId, entries, options }); },
-      setVisible(sourceId, visible) { calls.push({ op: 'visible', sourceId, visible }); },
-      clearSource(sourceId) { calls.push({ op: 'clear', sourceId }); },
+      setEntries(sourceId, entries, options) {
+        calls.push({
+          op: 'set',
+          sourceId,
+          entries,
+          options
+        });
+      },
+      setVisible(sourceId, visible) {
+        calls.push({
+          op: 'visible',
+          sourceId,
+          visible
+        });
+      },
+      clearSource(sourceId) {
+        calls.push({
+          op: 'clear',
+          sourceId
+        });
+      },
     },
   };
 }
 
 test('tracked label text becomes an explicit title/details/accent model', () => {
   assert.deepEqual(
-    trackedLabelModelFromText('UAL123 · FL350 · 451 kts', '#39d0ff'),
-    { title: 'UAL123', details: ['FL350 · 451 kts'], accent: '#39d0ff' },
+    trackedLabelModelFromText('UAL123 · FL350 · 451 kts', '#39d0ff'), {
+      title: 'UAL123',
+      details: ['FL350 · 451 kts'],
+      accent: '#39d0ff'
+    },
   );
   assert.deepEqual(
-    trackedLabelModelFromText('RCH123\nC-17 · 01-0186\nUSAF · FL310', '#ffd166'),
-    {
+    trackedLabelModelFromText('RCH123\nC-17 · 01-0186\nUSAF · FL310', '#ffd166'), {
       title: 'RCH123',
       details: ['C-17 · 01-0186', 'USAF · FL310'],
       accent: '#ffd166',
@@ -54,17 +82,26 @@ test('tracked label text becomes an explicit title/details/accent model', () => 
 });
 
 test('tracked position source reads only gevDisplayPosition and never entity.position', () => {
-  const cached = { x: 1, y: 2, z: 3 };
+  const cached = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
   let propertyReads = 0;
   const entity = {
     gevDisplayPosition: () => cached,
     position: {
-      getValue() { propertyReads += 1; throw new Error('fresh position read is forbidden'); },
+      getValue() {
+        propertyReads += 1;
+        throw new Error('fresh position read is forbidden');
+      },
     },
   };
   assert.equal(cachedTrackedDisplayPosition(entity), cached);
   assert.equal(propertyReads, 0);
-  assert.equal(cachedTrackedDisplayPosition({ position: entity.position }), null);
+  assert.equal(cachedTrackedDisplayPosition({
+    position: entity.position
+  }), null);
   assert.equal(propertyReads, 0);
 });
 
@@ -73,14 +110,29 @@ test('the tracked card anchors to the visual position without repurposing the di
   // at the reported (buried) altitude — ~100 m apart. The card must follow the
   // model you can see, while `gevDisplayPosition` keeps returning the cached
   // dead-reckoned value the follow camera settled on (anti-jitter contract).
-  const display = { x: 1, y: 2, z: 3 };
-  const visual = { x: 1, y: 2, z: 103 };
+  const display = {
+    x: 1,
+    y: 2,
+    z: 3
+  };
+  const visual = {
+    x: 1,
+    y: 2,
+    z: 103
+  };
   let displayReads = 0;
   const entity = {
     gevTrackedId: 'flights:aaa077',
-    gevDisplayPosition: () => { displayReads += 1; return display; },
+    gevDisplayPosition: () => {
+      displayReads += 1;
+      return display;
+    },
     gevVisualPosition: () => visual,
-    gevLabelModel: { title: 'SWA143', details: ['ON GROUND'], accent: '#6be8ff' },
+    gevLabelModel: {
+      title: 'SWA143',
+      details: ['ON GROUND'],
+      accent: '#6be8ff'
+    },
   };
   assert.equal(cachedTrackedVisualPosition(entity), visual);
   assert.equal(displayReads, 0, 'the visual accessor short-circuits the display read');
@@ -91,14 +143,21 @@ test('the tracked card anchors to the visual position without repurposing the di
 
   // Layers with no 3D visual, and any layer before its model is ready, are
   // unchanged: the accessor falls back to the display position.
-  const spriteOnly = { gevDisplayPosition: () => display };
+  const spriteOnly = {
+    gevDisplayPosition: () => display
+  };
   assert.equal(cachedTrackedVisualPosition(spriteOnly), display);
-  assert.equal(cachedTrackedVisualPosition({ ...spriteOnly, gevVisualPosition: () => null }), display,
+  assert.equal(cachedTrackedVisualPosition({
+      ...spriteOnly,
+      gevVisualPosition: () => null
+    }), display,
     'a null visual position falls back rather than blanking the card');
   assert.equal(
     cachedTrackedVisualPosition({
       gevDisplayPosition: () => display,
-      gevVisualPosition: () => { throw new Error('model gone'); },
+      gevVisualPosition: () => {
+        throw new Error('model gone');
+      },
     }),
     display,
     'a throwing visual accessor falls back instead of dropping the card',
@@ -107,11 +166,19 @@ test('the tracked card anchors to the visual position without repurposing the di
 });
 
 test('tracked entry factory pins the production protected-lane policy', () => {
-  const display = { x: 4, y: 5, z: 6 };
+  const display = {
+    x: 4,
+    y: 5,
+    z: 6
+  };
   const entry = createTrackedOverlayEntry({
     gevTrackedId: 'satellites:25544',
     gevDisplayPosition: () => display,
-    gevLabelModel: { title: 'ISS', details: ['420 km · NORAD 25544'], accent: '#ffd84d' },
+    gevLabelModel: {
+      title: 'ISS',
+      details: ['420 km · NORAD 25544'],
+      accent: '#ffd84d'
+    },
   });
   assert.equal(entry.id, 'satellites:25544');
   assert.equal(entry.position(), display);
@@ -125,20 +192,33 @@ test('tracked entity publishes a protected host entry backed by the frame cache'
   const originalWindow = globalThis.window;
   const fakeWindow = new EventTarget();
   const changed = makeCesiumEvent();
-  const display = { x: 10, y: 20, z: 30 };
+  const display = {
+    x: 10,
+    y: 20,
+    z: 30
+  };
   const entity = {
     id: 'generated',
     gevTrackedId: 'flights:abc123',
     gevDisplayPosition: () => display,
-    gevLabelModel: { title: 'UAL123', details: ['FL350 · 451 kts'], accent: '#39d0ff' },
+    gevLabelModel: {
+      title: 'UAL123',
+      details: ['FL350 · 451 kts'],
+      accent: '#39d0ff'
+    },
   };
-  const viewer = { trackedEntity: entity, trackedEntityChanged: changed };
+  const viewer = {
+    trackedEntity: entity,
+    trackedEntityChanged: changed
+  };
   const recorder = makeHostRecorder();
   globalThis.window = fakeWindow;
   _setTrackedOverlayHostForTest(recorder.host);
   try {
     initTrackedReadout(viewer);
-    const publication = recorder.calls.find(({ op }) => op === 'set');
+    const publication = recorder.calls.find(({
+      op
+    }) => op === 'set');
     assert.ok(publication);
     assert.equal(publication.sourceId, 'tracked');
     assert.equal(publication.entries.length, 1);
@@ -154,9 +234,14 @@ test('tracked entity publishes a protected host entry backed by the frame cache'
     assert.equal(publication.options.hideInCockpit, true);
     assert.equal(getActiveTrackedReadoutId(), 'flights:abc123');
 
-    entity.gevLabelModel = { ...entity.gevLabelModel, details: ['FL360 · 455 kts'] };
+    entity.gevLabelModel = {
+      ...entity.gevLabelModel,
+      details: ['FL360 · 455 kts']
+    };
     refreshTrackedReadout(entity);
-    assert.deepEqual(recorder.calls.filter(({ op }) => op === 'set').at(-1).entries[0].details, [
+    assert.deepEqual(recorder.calls.filter(({
+      op
+    }) => op === 'set').at(-1).entries[0].details, [
       'FL360 · 455 kts',
     ]);
 
@@ -175,61 +260,114 @@ test('selection lifecycle ignores vessels, accepts installations, and clears wit
   const originalWindow = globalThis.window;
   const fakeWindow = new EventTarget();
   const changed = makeCesiumEvent();
-  const viewer = { trackedEntity: null, trackedEntityChanged: changed };
+  const viewer = {
+    trackedEntity: null,
+    trackedEntityChanged: changed
+  };
   const recorder = makeHostRecorder();
   const installation = {
     gevTrackedId: 'installations:fort-test',
-    gevDisplayPosition: () => ({ x: 1, y: 2, z: 3 }),
-    gevLabelModel: { title: 'FORT TEST', details: ['AIRFIELD'], accent: '#5aa9ff' },
+    gevDisplayPosition: () => ({
+      x: 1,
+      y: 2,
+      z: 3
+    }),
+    gevLabelModel: {
+      title: 'FORT TEST',
+      details: ['AIRFIELD'],
+      accent: '#5aa9ff'
+    },
   };
   globalThis.window = fakeWindow;
   _setTrackedOverlayHostForTest(recorder.host);
   try {
     initTrackedReadout(viewer);
-    const setsBefore = recorder.calls.filter(({ op }) => op === 'set').length;
+    const setsBefore = recorder.calls.filter(({
+      op
+    }) => op === 'set').length;
     fakeWindow.dispatchEvent(new CustomEvent('gev:entity-selected', {
-      detail: { layerId: 'ais-live-vessels', entity: installation },
+      detail: {
+        layerId: 'ais-live-vessels',
+        entity: installation
+      },
     }));
-    assert.equal(recorder.calls.filter(({ op }) => op === 'set').length, setsBefore);
+    assert.equal(recorder.calls.filter(({
+      op
+    }) => op === 'set').length, setsBefore);
 
     fakeWindow.dispatchEvent(new CustomEvent('gev:entity-selected', {
-      detail: { layerId: 'military-installations', entity: installation },
+      detail: {
+        layerId: 'military-installations',
+        entity: installation
+      },
     }));
     assert.equal(getActiveTrackedReadoutId(), 'installations:fort-test');
-    assert.equal(recorder.calls.filter(({ op }) => op === 'set').at(-1).entries[0].title, 'FORT TEST');
+    assert.equal(recorder.calls.filter(({
+      op
+    }) => op === 'set').at(-1).entries[0].title, 'FORT TEST');
 
     // ALPR cameras are static context too: a click publishes the same card.
     const camera = {
       gevTrackedId: 'alpr:42',
-      gevDisplayPosition: () => ({ x: 4, y: 5, z: 6 }),
-      gevLabelModel: { title: 'FLOCK SAFETY ALPR', details: ['CITY PD'], accent: '#ff66c4' },
+      gevDisplayPosition: () => ({
+        x: 4,
+        y: 5,
+        z: 6
+      }),
+      gevLabelModel: {
+        title: 'FLOCK SAFETY ALPR',
+        details: ['CITY PD'],
+        accent: '#ff66c4'
+      },
     };
     fakeWindow.dispatchEvent(new CustomEvent('gev:entity-selected', {
-      detail: { layerId: 'alpr-cameras', entity: camera },
+      detail: {
+        layerId: 'alpr-cameras',
+        entity: camera
+      },
     }));
     assert.equal(getActiveTrackedReadoutId(), 'alpr:42');
-    assert.equal(recorder.calls.filter(({ op }) => op === 'set').at(-1).entries[0].title, 'FLOCK SAFETY ALPR');
+    assert.equal(recorder.calls.filter(({
+      op
+    }) => op === 'set').at(-1).entries[0].title, 'FLOCK SAFETY ALPR');
 
     fakeWindow.dispatchEvent(new CustomEvent('gev:entity-selected', {
-      detail: { layerId: 'ais-live-vessels', entity: installation },
+      detail: {
+        layerId: 'ais-live-vessels',
+        entity: installation
+      },
     }));
     assert.equal(getActiveTrackedReadoutId(), null, 'sibling selection clears an installation card');
 
     fakeWindow.dispatchEvent(new CustomEvent('gev:entity-selected', {
-      detail: { layerId: 'military-installations', entity: installation },
+      detail: {
+        layerId: 'military-installations',
+        entity: installation
+      },
     }));
 
     fakeWindow.dispatchEvent(new CustomEvent('gev:entity-selection-cleared', {
-      detail: { layerId: 'military-installations' },
+      detail: {
+        layerId: 'military-installations'
+      },
     }));
     assert.equal(getActiveTrackedReadoutId(), null);
-    assert.ok(recorder.calls.some(({ op }) => op === 'clear'));
+    assert.ok(recorder.calls.some(({
+      op
+    }) => op === 'clear'));
 
-    const clearsBeforeDestroy = recorder.calls.filter(({ op }) => op === 'clear').length;
+    const clearsBeforeDestroy = recorder.calls.filter(({
+      op
+    }) => op === 'clear').length;
     destroyTrackedReadout();
-    assert.ok(recorder.calls.filter(({ op }) => op === 'clear').length > clearsBeforeDestroy);
+    assert.ok(recorder.calls.filter(({
+      op
+    }) => op === 'clear').length > clearsBeforeDestroy);
     assert.equal(changed.size, 0, 'trackedEntityChanged listener was removed');
-    assert.ok(recorder.calls.some(({ op, visible }) => op === 'visible' && visible === false));
+    assert.ok(recorder.calls.some(({
+      op,
+      visible
+    }) => op === 'visible' && visible === false));
   } finally {
     destroyTrackedReadout();
     _setTrackedOverlayHostForTest();
@@ -240,13 +378,13 @@ test('selection lifecycle ignores vessels, accepts installations, and clears wit
 test('trackedReadout cannot resurrect a dedicated canvas or render listener', async () => {
   const source = await readFile(new URL('./trackedReadout.js', import.meta.url), 'utf8');
   for (const forbidden of [
-    'document.createElement',
-    "createElement('canvas')",
-    'postRender.addEventListener',
-    'worldToWindowCoordinates',
-    "id = 'tracked-readout'",
-    'keyholeLabelAlpha',
-  ]) {
+      'document.createElement',
+      "createElement('canvas')",
+      'postRender.addEventListener',
+      'worldToWindowCoordinates',
+      "id = 'tracked-readout'",
+      'keyholeLabelAlpha',
+    ]) {
     assert.equal(source.includes(forbidden), false, `dedicated renderer token returned: ${forbidden}`);
   }
 });
