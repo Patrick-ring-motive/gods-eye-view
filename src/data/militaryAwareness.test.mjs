@@ -1,5 +1,9 @@
-import { readLayerSource } from '../testSupport/readLayerSource.mjs';
-import { test } from 'node:test';
+import {
+  readLayerSource
+} from '../testSupport/readLayerSource.mjs';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as Cesium from 'cesium';
@@ -29,7 +33,9 @@ import flightsLayer, {
 import militaryFlightsLayer, {
   _setTrackedMilitaryRefreshStateForTest,
 } from './militaryFlights.js';
-import aisLiveVesselsLayer, { _setVesselStateForTest } from './aisLiveVessels.js';
+import aisLiveVesselsLayer, {
+  _setVesselStateForTest
+} from './aisLiveVessels.js';
 import militaryInstallationsLayer from './militaryInstallations.js';
 import {
   _resetRenderGovernorForTest,
@@ -41,7 +47,9 @@ import {
   formatAwarenessLabel,
   getAwarenessNavigationTargets,
 } from './militaryAwarenessEngine.js';
-import { NAVIGATION_AUTHORITY_EVENT } from '../navigationPolicy.js';
+import {
+  NAVIGATION_AUTHORITY_EVENT
+} from '../navigationPolicy.js';
 
 const militaryAwarenessSource = readLayerSource(
   new URL('./militaryAwareness.js', import.meta.url),
@@ -79,8 +87,12 @@ function installAwarenessRuntime({
 
   class FakeElement {
     constructor() {
-      this.classList = { contains: () => false };
-      this.style = { setProperty() {} };
+      this.classList = {
+        contains: () => false
+      };
+      this.style = {
+        setProperty() {}
+      };
       this._hidden = false;
       // renderResults() writes `hidden = false` on EVERY call, ahead of its
       // markup diff, so counting these writes observes "was the panel
@@ -89,7 +101,9 @@ function installAwarenessRuntime({
       this.innerHTML = '';
     }
 
-    get hidden() { return this._hidden; }
+    get hidden() {
+      return this._hidden;
+    }
 
     set hidden(value) {
       this._hidden = value;
@@ -113,12 +127,18 @@ function installAwarenessRuntime({
     removeEventListener(type, listener) {
       listeners.get(type)?.delete(listener);
     },
-    setInterval() { return nextTimer++; },
+    setInterval() {
+      return nextTimer++;
+    },
     clearInterval() {},
-    requestAnimationFrame() { return nextTimer++; },
+    requestAnimationFrame() {
+      return nextTimer++;
+    },
     cancelAnimationFrame() {},
     dispatch(type, detail) {
-      for (const listener of listeners.get(type) || []) listener({ detail });
+      for (const listener of listeners.get(type) || []) listener({
+        detail
+      });
     },
     // Real dispatch surface: the layer announces navigation authority through
     // it before any camera flight that does not assign a tracked entity.
@@ -133,7 +153,10 @@ function installAwarenessRuntime({
   const viewer = {
     camera: {
       flyToBoundingSphere(sphere, options) {
-        cameraFlights.push({ sphere, options });
+        cameraFlights.push({
+          sphere,
+          options
+        });
       },
       cancelFlight() {},
     },
@@ -141,16 +164,22 @@ function installAwarenessRuntime({
       // Enough surface for the real render governor to drive this viewer.
       requestRenderMode: false,
       maximumRenderTimeChange: 0,
-      requestRender() { renderRequests.push(Date.now()); },
+      requestRender() {
+        renderRequests.push(Date.now());
+      },
       preRender: {
         addEventListener(listener) {
           preRenderListener = listener;
-          return () => { preRenderListener = null; };
+          return () => {
+            preRenderListener = null;
+          };
         },
       },
     },
     entities: {
-      add(entity) { return entity; },
+      add(entity) {
+        return entity;
+      },
       remove() {},
     },
     container: new FakeElement(),
@@ -160,7 +189,12 @@ function installAwarenessRuntime({
       getStats() {
         const override = layerStats[layerId];
         if (override) return typeof override === 'function' ? override() : override;
-        return { count: 4, status: 'ready', stale: false, error: null };
+        return {
+          count: 4,
+          status: 'ready',
+          stale: false,
+          error: null
+        };
       },
     },
   }]));
@@ -168,7 +202,9 @@ function installAwarenessRuntime({
   globalThis.window = fakeWindow;
   globalThis.document = {
     body: fakeBody,
-    getElementById() { return null; },
+    getElementById() {
+      return null;
+    },
     createElement() {
       const element = new FakeElement();
       createdElements.push(element);
@@ -184,13 +220,17 @@ function installAwarenessRuntime({
     getLayerLifecycleState,
     layers,
   });
-  militaryAwarenessLayer.setParams({ passive: true });
+  militaryAwarenessLayer.setParams({
+    passive: true
+  });
   militaryAwarenessLayer.init(viewer);
   militaryAwarenessLayer.enable();
 
   return {
     dispatch: fakeWindow.dispatch.bind(fakeWindow),
-    tick() { preRenderListener?.(); },
+    tick() {
+      preRenderListener?.();
+    },
     viewer,
     renderRequests,
     cameraFlights,
@@ -216,7 +256,9 @@ function installAwarenessRuntime({
   };
 }
 
-function awarenessControl(dataset, { disabled = false } = {}) {
+function awarenessControl(dataset, {
+  disabled = false
+} = {}) {
   return {
     dataset,
     disabled,
@@ -243,8 +285,12 @@ function awarenessPanel(controls) {
   return {
     controls,
     continuation,
-    contains(element) { return controls.includes(element) || element === continuation; },
-    querySelectorAll() { return this.controls; },
+    contains(element) {
+      return controls.includes(element) || element === continuation;
+    },
+    querySelectorAll() {
+      return this.controls;
+    },
     querySelector(selector) {
       return selector === '[data-awareness-focus-continuation]' ? continuation : null;
     },
@@ -252,24 +298,46 @@ function awarenessPanel(controls) {
 }
 
 test('Contacts live repaint restores only stable identity and never retargets another contact', () => {
-  const previous = awarenessControl({ awarenessAction: 'previous' });
-  const focus = awarenessControl({ awarenessAction: 'focus' });
-  const next = awarenessControl({ awarenessAction: 'next' });
-  const alpha = awarenessControl({ awarenessLayer: 'flights', awarenessId: 'abc123' });
-  const bravo = awarenessControl({ awarenessLayer: 'military', awarenessId: 'def456' });
+  const previous = awarenessControl({
+    awarenessAction: 'previous'
+  });
+  const focus = awarenessControl({
+    awarenessAction: 'focus'
+  });
+  const next = awarenessControl({
+    awarenessAction: 'next'
+  });
+  const alpha = awarenessControl({
+    awarenessLayer: 'flights',
+    awarenessId: 'abc123'
+  });
+  const bravo = awarenessControl({
+    awarenessLayer: 'military',
+    awarenessId: 'def456'
+  });
   const before = awarenessPanel([previous, focus, next, alpha, bravo]);
   const alphaSnapshot = captureAwarenessPanelFocus(before, alpha);
 
-  assert.deepEqual(alphaSnapshot, { key: 'target:flights:abc123' });
+  assert.deepEqual(alphaSnapshot, {
+    key: 'target:flights:abc123'
+  });
   assert.equal(awarenessPanelControlKey(next), 'action:next');
 
-  const retainedAlpha = awarenessControl({ awarenessLayer: 'flights', awarenessId: 'abc123' });
+  const retainedAlpha = awarenessControl({
+    awarenessLayer: 'flights',
+    awarenessId: 'abc123'
+  });
   const retained = awarenessPanel([previous, focus, next, bravo, retainedAlpha]);
   assert.equal(restoreAwarenessPanelFocus(retained, alphaSnapshot), retainedAlpha);
   assert.equal(retainedAlpha.focusCalls, 1, 'identity wins even when live distance reorders rows');
-  assert.deepEqual(retainedAlpha.focusOptions, { preventScroll: true });
+  assert.deepEqual(retainedAlpha.focusOptions, {
+    preventScroll: true
+  });
 
-  const forward = awarenessControl({ awarenessLayer: 'ais-live-vessels', awarenessId: '789' });
+  const forward = awarenessControl({
+    awarenessLayer: 'ais-live-vessels',
+    awarenessId: '789'
+  });
   const departed = awarenessPanel([previous, focus, next, forward]);
   assert.equal(restoreAwarenessPanelFocus(departed, alphaSnapshot), departed.continuation);
   assert.equal(forward.focusCalls, 0, 'automatic paging must not transfer focus to another contact');
@@ -284,7 +352,9 @@ test('Contacts live repaint restores only stable identity and never retargets an
   assert.equal(noRemainingRow.continuation.focusCalls, 1, 'the end sentinel continues Tab beyond the list');
 
   const continuationSnapshot = captureAwarenessPanelFocus(departed, departed.continuation);
-  assert.deepEqual(continuationSnapshot, { key: 'continuation' });
+  assert.deepEqual(continuationSnapshot, {
+    key: 'continuation'
+  });
   const repaintedAgain = awarenessPanel([previous, focus, next, forward]);
   assert.equal(
     restoreAwarenessPanelFocus(repaintedAgain, continuationSnapshot),
@@ -309,26 +379,39 @@ test('Contacts continuation target is the visible explanatory note', () => {
 test('awareness disable settles every owned dependency release before resolving', async () => {
   let releasing = false;
   let releaseDependencies;
-  const releaseGate = new Promise((resolve) => { releaseDependencies = resolve; });
+  const releaseGate = new Promise((resolve) => {
+    releaseDependencies = resolve;
+  });
   const calls = [];
   const runtime = installAwarenessRuntime({
     isEnabled: () => false,
     setEnabled: async (layerId, enabled) => {
-      calls.push({ layerId, enabled });
+      calls.push({
+        layerId,
+        enabled
+      });
       if (!enabled) await releaseGate;
       return true;
     },
   });
 
   try {
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     militaryAwarenessLayer.enable();
     await nextTurn();
-    const disabling = militaryAwarenessLayer.disable().then(() => { releasing = true; });
+    const disabling = militaryAwarenessLayer.disable().then(() => {
+      releasing = true;
+    });
     await nextTurn();
     assert.equal(releasing, false, 'coordinator OFF waits for owned dependency releases');
     assert.deepEqual(
-      calls.filter(({ enabled }) => !enabled).map(({ layerId }) => layerId).sort(),
+      calls.filter(({
+        enabled
+      }) => !enabled).map(({
+        layerId
+      }) => layerId).sort(),
       [...AWARENESS_DEPENDENCIES].sort(),
     );
     releaseDependencies();
@@ -346,16 +429,24 @@ test('same-turn Contacts OFF registers after every owned dependency ON', async (
     isEnabled: () => false,
     isEffectivelyEnabled: () => false,
     setEnabled: (layerId, enabled) => {
-      calls.push({ layerId, enabled });
+      calls.push({
+        layerId,
+        enabled
+      });
       return Promise.resolve(true);
     },
   });
 
   try {
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     const disabling = militaryAwarenessLayer.disable();
     assert.deepEqual(
-      calls.map(({ layerId, enabled }) => `${layerId}:${enabled ? 'on' : 'off'}`),
+      calls.map(({
+        layerId,
+        enabled
+      }) => `${layerId}:${enabled ? 'on' : 'off'}`),
       [
         ...AWARENESS_DEPENDENCIES.map((layerId) => `${layerId}:on`),
         ...AWARENESS_DEPENDENCIES.map((layerId) => `${layerId}:off`),
@@ -365,7 +456,9 @@ test('same-turn Contacts OFF registers after every owned dependency ON', async (
     await disabling;
     await nextTurn();
     assert.equal(
-      calls.slice(AWARENESS_DEPENDENCIES.length).some(({ enabled }) => enabled),
+      calls.slice(AWARENESS_DEPENDENCIES.length).some(({
+        enabled
+      }) => enabled),
       false,
       'no deferred ON may run after release',
     );
@@ -380,16 +473,23 @@ test('Contacts does not claim a dependency already enabling for the user', async
     isEnabled: () => false,
     isEffectivelyEnabled: (layerId) => layerId === 'flights',
     setEnabled: (layerId, enabled) => {
-      calls.push({ layerId, enabled });
+      calls.push({
+        layerId,
+        enabled
+      });
       return Promise.resolve(true);
     },
   });
 
   try {
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await militaryAwarenessLayer.disable();
     assert.equal(
-      calls.some(({ layerId }) => layerId === 'flights'),
+      calls.some(({
+        layerId
+      }) => layerId === 'flights'),
       false,
       'an in-flight user enable stays outside Contacts ownership',
     );
@@ -402,13 +502,20 @@ test('operational awareness becomes ready after aircraft while deferred sources 
   let enabled = false;
   let releaseAircraft;
   let releaseDeferred;
-  const aircraftGate = new Promise((resolve) => { releaseAircraft = resolve; });
-  const deferredGate = new Promise((resolve) => { releaseDeferred = resolve; });
+  const aircraftGate = new Promise((resolve) => {
+    releaseAircraft = resolve;
+  });
+  const deferredGate = new Promise((resolve) => {
+    releaseDeferred = resolve;
+  });
   const calls = [];
   const runtime = installAwarenessRuntime({
     isEnabled: () => false,
     setEnabled: async (layerId, nextEnabled) => {
-      calls.push({ layerId, enabled: nextEnabled });
+      calls.push({
+        layerId,
+        enabled: nextEnabled
+      });
       if (nextEnabled) {
         await (['flights', 'military'].includes(layerId) ? aircraftGate : deferredGate);
       }
@@ -418,18 +525,28 @@ test('operational awareness becomes ready after aircraft while deferred sources 
 
   try {
     await militaryAwarenessLayer.disable();
-    militaryAwarenessLayer.setParams({ passive: false });
-    const enabling = militaryAwarenessLayer.enable().then(() => { enabled = true; });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
+    const enabling = militaryAwarenessLayer.enable().then(() => {
+      enabled = true;
+    });
     await nextTurn();
     assert.equal(enabled, false, 'coordinator ON waits for aircraft readiness');
     assert.deepEqual(
-      calls.filter(({ enabled: nextEnabled }) => nextEnabled).map(({ layerId }) => layerId).sort(),
+      calls.filter(({
+        enabled: nextEnabled
+      }) => nextEnabled).map(({
+        layerId
+      }) => layerId).sort(),
       [...AWARENESS_DEPENDENCIES].sort(),
     );
     releaseAircraft();
     await enabling;
     assert.equal(enabled, true, 'deferred vessels/installations do not block Contacts');
-    assert.equal(calls.filter(({ layerId }) => (
+    assert.equal(calls.filter(({
+      layerId
+    }) => (
       ['ais-live-vessels', 'military-installations'].includes(layerId)
     )).length, 2, 'deferred requests were started in the same activation');
   } finally {
@@ -446,9 +563,17 @@ test('pending mapped installations render as unknown instead of a false zero', a
     // Deliberately inconsistent visibility intent exercises the defensive
     // lifecycle guard: `enabling` must win over a stale true response.
     isEnabled: () => true,
-    getLayerLifecycleState: (layerId) => (layerId === 'military-installations'
-      ? { enabled: false, lifecycleState: 'enabling', uncertain: false }
-      : { enabled: true, lifecycleState: 'enabled', uncertain: false }),
+    getLayerLifecycleState: (layerId) => (layerId === 'military-installations' ?
+      {
+        enabled: false,
+        lifecycleState: 'enabling',
+        uncertain: false
+      } :
+      {
+        enabled: true,
+        lifecycleState: 'enabled',
+        uncertain: false
+      }),
   });
 
   try {
@@ -456,7 +581,9 @@ test('pending mapped installations render as unknown instead of a false zero', a
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
-    const installations = snapshot?.cohorts.find(({ id }) => id === 'military-installations');
+    const installations = snapshot?.cohorts.find(({
+      id
+    }) => id === 'military-installations');
     assert.equal(installations?.count, null, 'loading is not an observed empty cohort');
     assert.match(installations?.reason || '', /unavailable/i);
     assert.match(
@@ -521,11 +648,19 @@ const AIS_REFRESHING_ANSWERED_STATS = aisStatsFor({
   transportStatus: 'open',
   firstConnectPhase: 'ready',
   lastUpdate: 1_700_000_000_000,
-  records: [{ mmsi: '1' }, { mmsi: '2' }, { mmsi: '3' }],
+  records: [{
+    mmsi: '1'
+  }, {
+    mmsi: '2'
+  }, {
+    mmsi: '3'
+  }],
 });
 
 // Leave the shared module neutral for every test below.
-_setVesselStateForTest({ enabled: false });
+_setVesselStateForTest({
+  enabled: false
+});
 
 test('the first-connect readout is the real one, and is exactly what the predicate keys on', () => {
   assert.equal(AIS_FIRST_CONNECT_STATS.loading, true, 'the module reports itself busy while connecting');
@@ -550,8 +685,14 @@ test('a vessel feed still connecting after the lifecycle settles reads as unknow
   // still never delivered a position.
   const runtime = installAwarenessRuntime({
     isEnabled: () => true,
-    getLayerLifecycleState: () => ({ enabled: true, lifecycleState: 'enabled', uncertain: false }),
-    layerStats: { 'ais-live-vessels': AIS_FIRST_CONNECT_STATS },
+    getLayerLifecycleState: () => ({
+      enabled: true,
+      lifecycleState: 'enabled',
+      uncertain: false
+    }),
+    layerStats: {
+      'ais-live-vessels': AIS_FIRST_CONNECT_STATS
+    },
   });
 
   try {
@@ -559,7 +700,9 @@ test('a vessel feed still connecting after the lifecycle settles reads as unknow
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
-    const vessels = snapshot?.cohorts.find(({ id }) => id === 'ais-live-vessels');
+    const vessels = snapshot?.cohorts.find(({
+      id
+    }) => id === 'ais-live-vessels');
     assert.equal(
       vessels?.count,
       null,
@@ -590,8 +733,14 @@ test('a settled vessel feed reporting a real empty viewport recovers to 0', asyn
   // Without this pin the fix above could degenerate into a permanent `?`.
   const runtime = installAwarenessRuntime({
     isEnabled: () => true,
-    getLayerLifecycleState: () => ({ enabled: true, lifecycleState: 'enabled', uncertain: false }),
-    layerStats: { 'ais-live-vessels': AIS_SETTLED_EMPTY_STATS },
+    getLayerLifecycleState: () => ({
+      enabled: true,
+      lifecycleState: 'enabled',
+      uncertain: false
+    }),
+    layerStats: {
+      'ais-live-vessels': AIS_SETTLED_EMPTY_STATS
+    },
   });
 
   try {
@@ -599,7 +748,9 @@ test('a settled vessel feed reporting a real empty viewport recovers to 0', asyn
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
-    const vessels = snapshot?.cohorts.find(({ id }) => id === 'ais-live-vessels');
+    const vessels = snapshot?.cohorts.find(({
+      id
+    }) => id === 'ais-live-vessels');
     assert.equal(vessels?.count, 0, 'an answered empty viewport is a real observation');
     assert.match(
       runtime.panel()?.innerHTML || '',
@@ -620,8 +771,14 @@ test('a still-answered feed keeps its count through later polls that set loading
   // refresh would be its own dishonesty, and a flickering panel besides.
   const runtime = installAwarenessRuntime({
     isEnabled: () => true,
-    getLayerLifecycleState: () => ({ enabled: true, lifecycleState: 'enabled', uncertain: false }),
-    layerStats: { 'ais-live-vessels': AIS_REFRESHING_ANSWERED_STATS },
+    getLayerLifecycleState: () => ({
+      enabled: true,
+      lifecycleState: 'enabled',
+      uncertain: false
+    }),
+    layerStats: {
+      'ais-live-vessels': AIS_REFRESHING_ANSWERED_STATS
+    },
   });
 
   try {
@@ -629,7 +786,9 @@ test('a still-answered feed keeps its count through later polls that set loading
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
-    const vessels = snapshot?.cohorts.find(({ id }) => id === 'ais-live-vessels');
+    const vessels = snapshot?.cohorts.find(({
+      id
+    }) => id === 'ais-live-vessels');
     assert.notEqual(vessels?.count, null, 'a refresh poll does not erase an answer already given');
   } finally {
     restoreCollections();
@@ -645,8 +804,14 @@ test('voice reports a still-connecting vessel feed as unknown rather than zero',
   // zero and needs its own pin.
   const runtime = installAwarenessRuntime({
     isEnabled: () => true,
-    getLayerLifecycleState: () => ({ enabled: true, lifecycleState: 'enabled', uncertain: false }),
-    layerStats: { 'ais-live-vessels': AIS_FIRST_CONNECT_STATS },
+    getLayerLifecycleState: () => ({
+      enabled: true,
+      lifecycleState: 'enabled',
+      uncertain: false
+    }),
+    layerStats: {
+      'ais-live-vessels': AIS_FIRST_CONNECT_STATS
+    },
   });
 
   try {
@@ -668,29 +833,59 @@ function nextTurn() {
 function replaceMethod(target, name, replacement, restores) {
   const original = target[name];
   target[name] = replacement;
-  restores.push(() => { target[name] = original; });
+  restores.push(() => {
+    target[name] = original;
+  });
 }
 
-function stubAwarenessCollections({ flights = [], military = [], vessels = [], installations = [] }) {
+function stubAwarenessCollections({
+  flights = [],
+  military = [],
+  vessels = [],
+  installations = []
+}) {
   const restores = [];
   replaceMethod(flightsLayer, 'getNearby', () => flights, restores);
-  replaceMethod(flightsLayer, 'getAllPositions', () => flights.map((item) => ({ ...item, id: item.icao24 })), restores);
+  replaceMethod(flightsLayer, 'getAllPositions', () => flights.map((item) => ({
+    ...item,
+    id: item.icao24
+  })), restores);
   replaceMethod(militaryFlightsLayer, 'getNearby', () => military, restores);
-  replaceMethod(militaryFlightsLayer, 'getAllPositions', () => military.map((item) => ({ ...item, id: item.icao24 })), restores);
+  replaceMethod(militaryFlightsLayer, 'getAllPositions', () => military.map((item) => ({
+    ...item,
+    id: item.icao24
+  })), restores);
   replaceMethod(aisLiveVesselsLayer, 'getNearby', () => vessels, restores);
-  replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => vessels.map((item) => ({ ...item, id: item.mmsi })), restores);
+  replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => vessels.map((item) => ({
+    ...item,
+    id: item.mmsi
+  })), restores);
   replaceMethod(militaryInstallationsLayer, 'getNearby', () => installations, restores);
   return () => restores.reverse().forEach((restore) => restore());
 }
 
 function awarenessSubject(layerId, id, position) {
-  return { layerId, id, label: id, position };
+  return {
+    layerId,
+    id,
+    label: id,
+    position
+  };
 }
 
-for (const fixture of [
-  { name: 'civilian', layerId: 'flights', layer: flightsLayer, other: militaryFlightsLayer },
-  { name: 'military', layerId: 'military', layer: militaryFlightsLayer, other: flightsLayer },
-]) {
+for (const fixture of [{
+      name: 'civilian',
+      layerId: 'flights',
+      layer: flightsLayer,
+      other: militaryFlightsLayer
+    },
+    {
+      name: 'military',
+      layerId: 'military',
+      layer: militaryFlightsLayer,
+      other: flightsLayer
+    },
+  ]) {
   test(`Contacts activation adopts an already tracked ${fixture.name} flight`, async () => {
     const position = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
     const subject = awarenessSubject(fixture.layerId, `${fixture.name}-tracked`, position);
@@ -699,14 +894,24 @@ for (const fixture of [
     let retrackCalls = 0;
 
     try {
-      const trackedEntity = { gevTrackedId: `${subject.layerId}:${subject.id}` };
+      const trackedEntity = {
+        gevTrackedId: `${subject.layerId}:${subject.id}`
+      };
       runtime.viewer.trackedEntity = trackedEntity;
       replaceMethod(fixture.layer, 'getTrackedSubject', () => subject, restores);
       replaceMethod(fixture.other, 'getTrackedSubject', () => null, restores);
-      replaceMethod(flightsLayer, 'trackById', () => { retrackCalls += 1; return true; }, restores);
-      replaceMethod(militaryFlightsLayer, 'trackById', () => { retrackCalls += 1; return true; }, restores);
+      replaceMethod(flightsLayer, 'trackById', () => {
+        retrackCalls += 1;
+        return true;
+      }, restores);
+      replaceMethod(militaryFlightsLayer, 'trackById', () => {
+        retrackCalls += 1;
+        return true;
+      }, restores);
 
-      militaryAwarenessLayer.setParams({ passive: false });
+      militaryAwarenessLayer.setParams({
+        passive: false
+      });
       await nextTurn();
 
       const snapshot = militaryAwarenessLayer.getContextSnapshot();
@@ -730,7 +935,13 @@ for (const fixture of [
 test('Contacts activation adopts the production military tracked-subject descriptor', async () => {
   const id = 'ae01ce';
   const position = Cesium.Cartesian3.fromDegrees(-97.03, 31.05, 8_534.4);
-  const sourceViewer = { scene: { primitives: { remove() {} } } };
+  const sourceViewer = {
+    scene: {
+      primitives: {
+        remove() {}
+      }
+    }
+  };
   const runtime = installAwarenessRuntime();
   const restores = [];
   let retrackCalls = 0;
@@ -739,8 +950,14 @@ test('Contacts activation adopts the production military tracked-subject descrip
     _setTrackedMilitaryRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {
         callsign: 'RCH451 ',
@@ -771,12 +988,22 @@ test('Contacts activation adopts the production military tracked-subject descrip
       position,
       Cesium.Math.EPSILON7,
     ), 'mutating one accessor result must not alter the tracked source position');
-    runtime.viewer.trackedEntity = { gevTrackedId: `military:${id}` };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: `military:${id}`
+    };
     replaceMethod(flightsLayer, 'getTrackedSubject', () => null, restores);
-    replaceMethod(flightsLayer, 'trackById', () => { retrackCalls += 1; return true; }, restores);
-    replaceMethod(militaryFlightsLayer, 'trackById', () => { retrackCalls += 1; return true; }, restores);
+    replaceMethod(flightsLayer, 'trackById', () => {
+      retrackCalls += 1;
+      return true;
+    }, restores);
+    replaceMethod(militaryFlightsLayer, 'trackById', () => {
+      retrackCalls += 1;
+      return true;
+    }, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
@@ -794,8 +1021,14 @@ test('Contacts activation adopts the production military tracked-subject descrip
     _setTrackedMilitaryRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {},
       tracked: false,
@@ -813,7 +1046,13 @@ test('Contacts activation adopts the production military tracked-subject descrip
 test('production military tracked-subject label falls back to registration before the ICAO hex', async () => {
   const id = 'ae02df';
   const position = Cesium.Cartesian3.fromDegrees(-97.03, 31.05, 6_400);
-  const sourceViewer = { scene: { primitives: { remove() {} } } };
+  const sourceViewer = {
+    scene: {
+      primitives: {
+        remove() {}
+      }
+    }
+  };
   const runtime = installAwarenessRuntime();
   const restores = [];
 
@@ -821,8 +1060,14 @@ test('production military tracked-subject label falls back to registration befor
     _setTrackedMilitaryRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {
         callsign: '   ',
@@ -843,12 +1088,16 @@ test('production military tracked-subject label falls back to registration befor
     assert.equal(snapshotRow?.label, 'N123AB', 'getAllPositions label must use the same chain');
     assert.equal(snapshotRow?.id, id, 'getAllPositions id stays the identity hex');
 
-    runtime.viewer.trackedEntity = { gevTrackedId: `military:${id}` };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: `military:${id}`
+    };
     replaceMethod(flightsLayer, 'getTrackedSubject', () => null, restores);
     replaceMethod(flightsLayer, 'trackById', () => true, restores);
     replaceMethod(militaryFlightsLayer, 'trackById', () => true, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
@@ -863,8 +1112,14 @@ test('production military tracked-subject label falls back to registration befor
     _setTrackedMilitaryRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {},
       tracked: false,
@@ -886,7 +1141,12 @@ test('a cached Context subject re-reads its label when enrichment lands after se
   // registration. The refresh path must re-resolve the label, never the id.
   const id = 'ae1fa4';
   const position = Cesium.Cartesian3.fromDegrees(-97.71, 30.21, 10_668);
-  const sourceViewer = { camera: { positionCartographic: null }, scene: {} };
+  const sourceViewer = {
+    camera: {
+      positionCartographic: null
+    },
+    scene: {}
+  };
   const runtime = installAwarenessRuntime();
   const restores = [];
   // Held by reference so the enrichment step can mutate it in place, exactly
@@ -909,18 +1169,29 @@ test('a cached Context subject re-reads its label when enrichment lands after se
     _setTrackedFlightRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, color: Cesium.Color.WHITE, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        color: Cesium.Color.WHITE,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta,
     });
 
-    runtime.viewer.trackedEntity = { gevTrackedId: `flights:${id}` };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: `flights:${id}`
+    };
     replaceMethod(militaryFlightsLayer, 'getTrackedSubject', () => null, restores);
     replaceMethod(flightsLayer, 'trackById', () => true, restores);
     replaceMethod(militaryFlightsLayer, 'trackById', () => true, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
 
     // Pre-enrichment: nothing but the hex is known, so the hex is correct here.
@@ -974,8 +1245,14 @@ test('a cached Context subject re-reads its label when enrichment lands after se
     _setTrackedFlightRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: false, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: false,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {},
       tracked: false,
@@ -987,7 +1264,13 @@ test('a cached Context subject re-reads its label when enrichment lands after se
 test('Contacts activation adopts the production civilian tracked-subject descriptor', async () => {
   const id = 'a1b2c3';
   const position = Cesium.Cartesian3.fromDegrees(-97.67, 30.19, 10_668);
-  const sourceViewer = { scene: { primitives: { remove() {} } } };
+  const sourceViewer = {
+    scene: {
+      primitives: {
+        remove() {}
+      }
+    }
+  };
   const runtime = installAwarenessRuntime();
   const restores = [];
   let retrackCalls = 0;
@@ -996,8 +1279,14 @@ test('Contacts activation adopts the production civilian tracked-subject descrip
     _setTrackedFlightRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {
         callsign: 'DAL123 ',
@@ -1030,12 +1319,22 @@ test('Contacts activation adopts the production civilian tracked-subject descrip
       position,
       Cesium.Math.EPSILON7,
     ), 'mutating one accessor result must not alter the tracked source position');
-    runtime.viewer.trackedEntity = { gevTrackedId: `flights:${id}` };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: `flights:${id}`
+    };
     replaceMethod(militaryFlightsLayer, 'getTrackedSubject', () => null, restores);
-    replaceMethod(flightsLayer, 'trackById', () => { retrackCalls += 1; return true; }, restores);
-    replaceMethod(militaryFlightsLayer, 'trackById', () => { retrackCalls += 1; return true; }, restores);
+    replaceMethod(flightsLayer, 'trackById', () => {
+      retrackCalls += 1;
+      return true;
+    }, restores);
+    replaceMethod(militaryFlightsLayer, 'trackById', () => {
+      retrackCalls += 1;
+      return true;
+    }, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
@@ -1053,8 +1352,14 @@ test('Contacts activation adopts the production civilian tracked-subject descrip
     _setTrackedFlightRefreshStateForTest({
       icao24: id,
       entity: null,
-      billboard: { position, show: true },
-      billboardCollection: { show: true, remove() {} },
+      billboard: {
+        position,
+        show: true
+      },
+      billboardCollection: {
+        show: true,
+        remove() {}
+      },
       viewer: sourceViewer,
       meta: {},
       tracked: false,
@@ -1071,7 +1376,9 @@ test('Contacts activation adopts the production civilian tracked-subject descrip
 
 test('Contacts activation reconciles to a newer cross-layer tracked flight after dependencies settle', async () => {
   let releaseDependencies;
-  const dependencyGate = new Promise((resolve) => { releaseDependencies = resolve; });
+  const dependencyGate = new Promise((resolve) => {
+    releaseDependencies = resolve;
+  });
   const positions = {
     first: Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000),
     latest: Cesium.Cartesian3.fromDegrees(-97.70, 30.30, 1200),
@@ -1088,17 +1395,23 @@ test('Contacts activation reconciles to a newer cross-layer tracked flight after
   const restores = [];
 
   try {
-    runtime.viewer.trackedEntity = { gevTrackedId: 'flights:first' };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: 'flights:first'
+    };
     replaceMethod(flightsLayer, 'getTrackedSubject', () => civilianTracked, restores);
     replaceMethod(militaryFlightsLayer, 'getTrackedSubject', () => militaryTracked, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
     assert.equal(militaryAwarenessLayer.getContextSnapshot()?.subject.id, 'first');
 
     civilianTracked = null;
     militaryTracked = awarenessSubject('military', 'latest', positions.latest);
-    runtime.viewer.trackedEntity = { gevTrackedId: 'military:latest' };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: 'military:latest'
+    };
     releaseDependencies();
     await nextTurn();
     await nextTurn();
@@ -1114,12 +1427,18 @@ test('Contacts activation reconciles to a newer cross-layer tracked flight after
 
 test('tracked flight cleared during Contacts activation suppresses fallback autofocus', async () => {
   let releaseDependencies;
-  const dependencyGate = new Promise((resolve) => { releaseDependencies = resolve; });
+  const dependencyGate = new Promise((resolve) => {
+    releaseDependencies = resolve;
+  });
   const selectedPosition = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
   const fallbackPosition = Cesium.Cartesian3.fromDegrees(-97.70, 30.30, 1200);
   let tracked = awarenessSubject('flights', 'selected', selectedPosition);
   const restoreCollections = stubAwarenessCollections({
-    flights: [{ icao24: 'fallback', position: fallbackPosition, distanceM: 1000 }],
+    flights: [{
+      icao24: 'fallback',
+      position: fallbackPosition,
+      distanceM: 1000
+    }],
   });
   const runtime = installAwarenessRuntime({
     isEnabled: () => false,
@@ -1132,12 +1451,16 @@ test('tracked flight cleared during Contacts activation suppresses fallback auto
   const focused = [];
 
   try {
-    runtime.viewer.trackedEntity = { gevTrackedId: 'flights:selected' };
+    runtime.viewer.trackedEntity = {
+      gevTrackedId: 'flights:selected'
+    };
     replaceMethod(flightsLayer, 'getTrackedSubject', () => tracked, restores);
     replaceMethod(militaryFlightsLayer, 'getTrackedSubject', () => null, restores);
     replaceMethod(flightsLayer, 'trackById', (id) => focused.push(id) > 0, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
     assert.equal(militaryAwarenessLayer.getContextSnapshot()?.subject.id, 'selected');
 
@@ -1167,9 +1490,16 @@ test('tracked flight cleared during Contacts activation suppresses fallback auto
 });
 
 test('awareness clears are scoped to the selected source layer', () => {
-  const subject = { layerId: 'ais-live-vessels', id: '123' };
-  assert.equal(awarenessClearMatchesSubject(subject, { layerId: 'military-installations' }), false);
-  assert.equal(awarenessClearMatchesSubject(subject, { layerId: 'ais-live-vessels' }), true);
+  const subject = {
+    layerId: 'ais-live-vessels',
+    id: '123'
+  };
+  assert.equal(awarenessClearMatchesSubject(subject, {
+    layerId: 'military-installations'
+  }), false);
+  assert.equal(awarenessClearMatchesSubject(subject, {
+    layerId: 'ais-live-vessels'
+  }), true);
   assert.equal(awarenessClearMatchesSubject(subject, null), false);
 });
 
@@ -1196,13 +1526,18 @@ test('a fast-culled subject is reported absent so the readout can hold last-know
 
   try {
     replaceMethod(aisLiveVesselsLayer, 'hasContact', () => present, restores);
-    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{ id: '353136000', position }], restores);
+    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{
+      id: '353136000',
+      position
+    }], restores);
     replaceMethod(aisLiveVesselsLayer, 'getNearby', () => [], restores);
     replaceMethod(flightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     runtime.dispatch('gev:awareness-subject-selected', {
       layerId: 'ais-live-vessels',
       id: '353136000',
@@ -1254,7 +1589,9 @@ test('a layer that cannot answer is never read as a cull', () => {
     replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     runtime.dispatch('gev:awareness-subject-selected', {
       layerId: 'ais-live-vessels',
       id: '353136000',
@@ -1279,7 +1616,9 @@ test('presence never comes from the capped position rows', () => {
   const position = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 0);
   const runtime = installAwarenessRuntime();
   const restores = [];
-  const saturated = Array.from({ length: 1000 }, (unused, index) => ({
+  const saturated = Array.from({
+    length: 1000
+  }, (unused, index) => ({
     id: `filler-${index}`,
     position,
   }));
@@ -1292,7 +1631,9 @@ test('presence never comes from the capped position rows', () => {
     replaceMethod(aisLiveVesselsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     runtime.dispatch('gev:awareness-subject-selected', {
       layerId: 'flights',
       id: 'ab4991',
@@ -1322,7 +1663,9 @@ test('a mapped installation subject is always present — static data is never c
     replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     runtime.dispatch('gev:awareness-subject-selected', {
       layerId: 'military-installations',
       id: 'fort-cavazos',
@@ -1353,13 +1696,16 @@ test('hasContact declines while a layer is disabled, whatever its maps still hol
   // disable() hides the collection but keeps the records, so a map lookup
   // alone would report a preserved subject as FRESH from hidden stale data.
   for (const [name, source, guard] of [
-    ['flights', readLayerSource(new URL('./flights.js', import.meta.url)),
-      /hasContact\(\s*icao24,?\s*\)\s*\{\s*\n\s*if\s*\(\s*!(?:flightState\.)?_billboardCollection\s*\|\|\s*!(?:flightState\.)?_billboardCollection\.show\s*\|\|\s*(?:flightState\.)?_billboards\.size\s*===\s*0,?\s*\)\s*return\s*null;/],
-    ['militaryFlights', readLayerSource(new URL('./militaryFlights.js', import.meta.url)),
-      /hasContact\(\s*icao24,?\s*\)\s*\{\s*\n\s*if\s*\(\s*!(?:flightState\.)?_billboardCollection\s*\|\|\s*!(?:flightState\.)?_billboardCollection\.show\s*\|\|\s*(?:flightState\.)?_billboards\.size\s*===\s*0,?\s*\)\s*return\s*null;/],
-    ['aisLiveVessels', readLayerSource(new URL('./aisLiveVessels.js', import.meta.url)),
-      /hasContact\(\s*mmsi,?\s*\)\s*\{\s*\n\s*if\s*\(\s*!state\.enabled\s*\|\|\s*!state\.vesselMap\s*\|\|\s*state\.vesselMap\.size\s*===\s*0,?\s*\)\s*return\s*null;/],
-  ]) {
+      ['flights', readLayerSource(new URL('./flights.js', import.meta.url)),
+        /hasContact\(\s*icao24,?\s*\)\s*\{\s*\n\s*if\s*\(\s*!(?:flightState\.)?_billboardCollection\s*\|\|\s*!(?:flightState\.)?_billboardCollection\.show\s*\|\|\s*(?:flightState\.)?_billboards\.size\s*===\s*0,?\s*\)\s*return\s*null;/
+      ],
+      ['militaryFlights', readLayerSource(new URL('./militaryFlights.js', import.meta.url)),
+        /hasContact\(\s*icao24,?\s*\)\s*\{\s*\n\s*if\s*\(\s*!(?:flightState\.)?_billboardCollection\s*\|\|\s*!(?:flightState\.)?_billboardCollection\.show\s*\|\|\s*(?:flightState\.)?_billboards\.size\s*===\s*0,?\s*\)\s*return\s*null;/
+      ],
+      ['aisLiveVessels', readLayerSource(new URL('./aisLiveVessels.js', import.meta.url)),
+        /hasContact\(\s*mmsi,?\s*\)\s*\{\s*\n\s*if\s*\(\s*!state\.enabled\s*\|\|\s*!state\.vesselMap\s*\|\|\s*state\.vesselMap\.size\s*===\s*0,?\s*\)\s*return\s*null;/
+      ],
+    ]) {
     assert.match(source, guard, `${name}.hasContact must decline while the layer is disabled`);
   }
 });
@@ -1372,15 +1718,23 @@ test('a disabled layer leaves the presence verdict untouched', () => {
 
   try {
     replaceMethod(aisLiveVesselsLayer, 'hasContact', () => verdict, restores);
-    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{ id: '353136000', position }], restores);
+    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{
+      id: '353136000',
+      position
+    }], restores);
     replaceMethod(aisLiveVesselsLayer, 'getNearby', () => [], restores);
     replaceMethod(flightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     runtime.dispatch('gev:awareness-subject-selected', {
-      layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT', position,
+      layerId: 'ais-live-vessels',
+      id: '353136000',
+      label: 'MAERSK DETROIT',
+      position,
     });
 
     verdict = false;
@@ -1412,9 +1766,14 @@ function selectFlightSubject(runtime, restores, id = 'ab4991') {
   replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
   replaceMethod(aisLiveVesselsLayer, 'getNearby', () => [], restores);
   replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
-  militaryAwarenessLayer.setParams({ passive: false });
+  militaryAwarenessLayer.setParams({
+    passive: false
+  });
   runtime.dispatch('gev:awareness-subject-selected', {
-    layerId: 'flights', id, label: 'N627CT', position,
+    layerId: 'flights',
+    id,
+    label: 'N627CT',
+    position,
   });
   return position;
 }
@@ -1430,7 +1789,9 @@ test('an evicted aircraft becomes CONTACT LOST instead of collapsing the panel',
     // Exactly what flights.js emits when the poll ages a tracked plane out.
     stubPresence(flightsLayer, false, restores);
     runtime.dispatch('gev:awareness-subject-cleared', {
-      layerId: 'flights', id: 'ab4991', reason: 'evicted',
+      layerId: 'flights',
+      id: 'ab4991',
+      reason: 'evicted',
     });
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
@@ -1454,20 +1815,29 @@ test('an evicted vessel becomes CONTACT LOST instead of collapsing the panel', (
   const restores = [];
   try {
     replaceMethod(aisLiveVesselsLayer, 'hasContact', () => true, restores);
-    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{ id: '353136000', position }], restores);
+    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{
+      id: '353136000',
+      position
+    }], restores);
     replaceMethod(aisLiveVesselsLayer, 'getNearby', () => [], restores);
     replaceMethod(flightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     runtime.dispatch('gev:awareness-subject-selected', {
-      layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT', position,
+      layerId: 'ais-live-vessels',
+      id: '353136000',
+      label: 'MAERSK DETROIT',
+      position,
     });
 
     // What aisLiveVessels.js emits once a selected vessel exhausts its pin.
     runtime.dispatch('gev:entity-selection-cleared', {
-      layerId: 'ais-live-vessels', reason: 'evicted',
+      layerId: 'ais-live-vessels',
+      reason: 'evicted',
     });
 
     const snapshot = militaryAwarenessLayer.getContextSnapshot();
@@ -1489,7 +1859,10 @@ test('a deliberate clear still fully clears the subject', () => {
     assert.ok(militaryAwarenessLayer.getContextSnapshot());
 
     // No eviction origin: click-empty-space, Escape, voice stop, layer disable.
-    runtime.dispatch('gev:awareness-subject-cleared', { layerId: 'flights', id: 'ab4991' });
+    runtime.dispatch('gev:awareness-subject-cleared', {
+      layerId: 'flights',
+      id: 'ab4991'
+    });
     assert.equal(
       militaryAwarenessLayer.getContextSnapshot(),
       null,
@@ -1507,17 +1880,27 @@ test('a deliberate source clear still fully clears the subject', () => {
   const restores = [];
   try {
     replaceMethod(aisLiveVesselsLayer, 'hasContact', () => true, restores);
-    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{ id: '353136000', position }], restores);
+    replaceMethod(aisLiveVesselsLayer, 'getAllPositions', () => [{
+      id: '353136000',
+      position
+    }], restores);
     replaceMethod(aisLiveVesselsLayer, 'getNearby', () => [], restores);
     replaceMethod(flightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryFlightsLayer, 'getNearby', () => [], restores);
     replaceMethod(militaryInstallationsLayer, 'getNearby', () => [], restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
-    runtime.dispatch('gev:awareness-subject-selected', {
-      layerId: 'ais-live-vessels', id: '353136000', label: 'MAERSK DETROIT', position,
+    militaryAwarenessLayer.setParams({
+      passive: false
     });
-    runtime.dispatch('gev:entity-selection-cleared', { layerId: 'ais-live-vessels' });
+    runtime.dispatch('gev:awareness-subject-selected', {
+      layerId: 'ais-live-vessels',
+      id: '353136000',
+      label: 'MAERSK DETROIT',
+      position,
+    });
+    runtime.dispatch('gev:entity-selection-cleared', {
+      layerId: 'ais-live-vessels'
+    });
     assert.equal(militaryAwarenessLayer.getContextSnapshot(), null);
   } finally {
     restores.reverse().forEach((restore) => restore());
@@ -1532,7 +1915,10 @@ test('production eviction sites actually tag their clears', () => {
   const militarySource = readLayerSource(new URL('./militaryFlights.js', import.meta.url));
   const vesselsSource = readLayerSource(new URL('./aisLiveVessels.js', import.meta.url));
 
-  for (const [name, source] of [['flights', flightsSource], ['militaryFlights', militarySource]]) {
+  for (const [name, source] of [
+      ['flights', flightsSource],
+      ['militaryFlights', militarySource]
+    ]) {
     assert.match(
       source,
       /if\s*\(\s*icao24\s*===\s*(?:flightState\.)?_trackedIcao,?\s*\)\s*\{\s*\n\s*(?:parts\.\w+\.)?_clearTracking\(\s*false,\s*\{\s*evicted:\s*true\s*\},?\s*\);/,
@@ -1581,11 +1967,19 @@ test('production eviction sites actually tag their clears', () => {
 // ===========================================================================
 
 test('cockpit blocks only non-aircraft Context camera flights', () => {
-  const cockpitBody = { classList: { contains: (name) => name === 'cockpit-mode' } };
+  const cockpitBody = {
+    classList: {
+      contains: (name) => name === 'cockpit-mode'
+    }
+  };
   assert.equal(contextTargetFlyToAllowed('ais-live-vessels', cockpitBody), false);
   assert.equal(contextTargetFlyToAllowed('military-installations', cockpitBody), false);
   assert.equal(contextTargetFlyToAllowed('flights', cockpitBody), true);
-  assert.equal(contextTargetFlyToAllowed('ais-live-vessels', { classList: { contains: () => false } }), true);
+  assert.equal(contextTargetFlyToAllowed('ais-live-vessels', {
+    classList: {
+      contains: () => false
+    }
+  }), true);
 });
 
 test('vessel entry and selection framing both use the 3 km focus radius', () => {
@@ -1618,22 +2012,34 @@ test('awareness rescans only for invalidation, source change, or meaningful move
 });
 
 test('installation summaries disclose viewport-scoped coverage', () => {
-  const empty = summarizeInstallationViewport([], { available: true, stale: false });
+  const empty = summarizeInstallationViewport([], {
+    available: true,
+    stale: false
+  });
   assert.match(empty.reason, /viewport feed/i);
   assert.match(empty.reason, /not a complete 250 km survey/i);
 
-  const unavailable = summarizeInstallationViewport([], { available: false, stale: false });
+  const unavailable = summarizeInstallationViewport([], {
+    available: false,
+    stale: false
+  });
   assert.equal(unavailable.reason, 'feed unavailable');
-  const retrying = summarizeInstallationViewport([], { available: false, stats: {
-    statusMessage: 'Overpass temporarily unavailable — retrying in 30s',
-  } });
+  const retrying = summarizeInstallationViewport([], {
+    available: false,
+    stats: {
+      statusMessage: 'Overpass temporarily unavailable — retrying in 30s',
+    }
+  });
   assert.equal(retrying.count, null, 'retrying is not a claim of zero mapped sites');
   assert.equal(retrying.reason, 'Overpass temporarily unavailable — retrying in 30s');
 });
 
 test('compact Context snapshots retain installation coverage', () => {
   const snapshot = buildAwarenessContextSnapshot({
-    subject: { layerId: 'flights', id: 'abc' },
+    subject: {
+      layerId: 'flights',
+      id: 'abc'
+    },
     evaluatedAt: 123,
     radiusM: 250000,
     cohorts: [{
@@ -1642,13 +2048,20 @@ test('compact Context snapshots retain installation coverage', () => {
       source: 'OpenStreetMap',
       coverage: 'CURRENT VIEWPORT ONLY',
       summary: {
-        relationship: 'NEARBY', count: 2, reason: 'mapped matches', nearest: [],
+        relationship: 'NEARBY',
+        count: 2,
+        reason: 'mapped matches',
+        nearest: [],
       },
     }],
-  }, { canNext: true });
+  }, {
+    canNext: true
+  });
 
   assert.equal(snapshot.cohorts[0].coverage, 'CURRENT VIEWPORT ONLY');
-  assert.deepEqual(snapshot.navigation, { canNext: true });
+  assert.deepEqual(snapshot.navigation, {
+    canNext: true
+  });
 });
 
 test('expanded Context results omit the redundant status heading', () => {
@@ -1664,19 +2077,31 @@ test('Context entry tracks a nearer civilian aircraft over a farther military ai
   const civilianPosition = Cesium.Cartesian3.fromDegrees(-97.73, 30.27, 1000);
   const militaryPosition = Cesium.Cartesian3.fromDegrees(-98.5, 30.27, 1000);
   const restoreCollections = stubAwarenessCollections({
-    flights: [{ icao24: 'civilian', position: civilianPosition, distanceM: 1000 }],
-    military: [{ icao24: 'military', position: militaryPosition, distanceM: 70000 }],
+    flights: [{
+      icao24: 'civilian',
+      position: civilianPosition,
+      distanceM: 1000
+    }],
+    military: [{
+      icao24: 'military',
+      position: militaryPosition,
+      distanceM: 70000
+    }],
   });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
 
   try {
-    runtime.viewer.camera = { positionWC: camera };
+    runtime.viewer.camera = {
+      positionWC: camera
+    };
     replaceMethod(flightsLayer, 'trackById', (id) => focused.push(`flights:${id}`) > 0, restores);
     replaceMethod(militaryFlightsLayer, 'trackById', (id) => focused.push(`military:${id}`) > 0, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
 
     assert.deepEqual(focused, ['flights:civilian']);
@@ -1691,19 +2116,31 @@ test('Context entry prefers military aircraft on an exact nearest-distance tie',
   const camera = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
   const tiedPosition = Cesium.Cartesian3.fromDegrees(-97.73, 30.27, 1000);
   const restoreCollections = stubAwarenessCollections({
-    flights: [{ icao24: 'civilian', position: tiedPosition, distanceM: 1000 }],
-    military: [{ icao24: 'military', position: tiedPosition, distanceM: 1000 }],
+    flights: [{
+      icao24: 'civilian',
+      position: tiedPosition,
+      distanceM: 1000
+    }],
+    military: [{
+      icao24: 'military',
+      position: tiedPosition,
+      distanceM: 1000
+    }],
   });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
 
   try {
-    runtime.viewer.camera = { positionWC: camera };
+    runtime.viewer.camera = {
+      positionWC: camera
+    };
     replaceMethod(flightsLayer, 'trackById', (id) => focused.push(`flights:${id}`) > 0, restores);
     replaceMethod(militaryFlightsLayer, 'trackById', (id) => focused.push(`military:${id}`) > 0, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
 
     assert.deepEqual(focused, ['military:military']);
@@ -1718,20 +2155,30 @@ test('Context entry retries once on the next refresh after initially empty feeds
   const flights = [];
   const camera = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
   const position = Cesium.Cartesian3.fromDegrees(-97.73, 30.27, 1000);
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
 
   try {
-    runtime.viewer.camera = { positionWC: camera };
+    runtime.viewer.camera = {
+      positionWC: camera
+    };
     replaceMethod(flightsLayer, 'trackById', (id) => focused.push(id) > 0, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
     assert.deepEqual(focused, []);
 
-    flights.push({ icao24: 'recovered', position, distanceM: 1000 });
+    flights.push({
+      icao24: 'recovered',
+      position,
+      distanceM: 1000
+    });
     runtime.tick();
     assert.deepEqual(focused, ['recovered']);
   } finally {
@@ -1746,16 +2193,22 @@ test('user deselect cancels a pending Context entry auto-focus retry', async () 
   const camera = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
   const selectedPosition = Cesium.Cartesian3.fromDegrees(-97.72, 30.27, 1000);
   const replacementPosition = Cesium.Cartesian3.fromDegrees(-97.73, 30.27, 1000);
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
 
   try {
-    runtime.viewer.camera = { positionWC: camera };
+    runtime.viewer.camera = {
+      positionWC: camera
+    };
     replaceMethod(flightsLayer, 'trackById', (id) => focused.push(id) > 0, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     await nextTurn();
     assert.deepEqual(focused, []);
 
@@ -1763,8 +2216,14 @@ test('user deselect cancels a pending Context entry auto-focus retry', async () 
       'gev:awareness-subject-selected',
       awarenessSubject('flights', 'user-selected', selectedPosition),
     );
-    runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
-    flights.push({ icao24: 'replacement', position: replacementPosition, distanceM: 1000 });
+    runtime.dispatch('gev:entity-selection-cleared', {
+      layerId: 'flights'
+    });
+    flights.push({
+      icao24: 'replacement',
+      position: replacementPosition,
+      distanceM: 1000
+    });
     runtime.tick();
 
     assert.deepEqual(focused, []);
@@ -1804,12 +2263,18 @@ test('reset camera release preserves the selected Contact for explicit refocus',
     }, restores);
     replaceMethod(aisLiveVesselsLayer, 'clearSelection', () => released.push('ais') > 0, restores);
 
-    assert.equal(militaryAwarenessLayer.releaseCameraOwnership({ origin: 'tool' }), true);
+    assert.equal(militaryAwarenessLayer.releaseCameraOwnership({
+      origin: 'tool'
+    }), true);
 
     assert.deepEqual(released, ['flights', 'military', 'ais']);
     assert.deepEqual(releaseOptions, [
-      ['flights', { origin: 'tool' }],
-      ['military', { origin: 'tool' }],
+      ['flights', {
+        origin: 'tool'
+      }],
+      ['military', {
+        origin: 'tool'
+      }],
     ]);
     assert.equal(militaryAwarenessLayer.getContextSnapshot()?.subject.id, 'selected-flight');
     assert.equal(_getAwarenessNavigationStateForTest().pendingSelectionKey, null);
@@ -1830,13 +2295,17 @@ test('same-layer selection clear is suppressed during a synchronous navigation r
     position,
     distanceM: (index + 1) * 1000,
   }));
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
 
   try {
     replaceMethod(flightsLayer, 'trackById', () => {
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       return true;
     }, restores);
     runtime.dispatch('gev:awareness-subject-selected', awarenessSubject('flights', 'a', positions.a));
@@ -1866,7 +2335,9 @@ test('FOCUS on an already-tracked subject clears its suppression keys before a l
     position,
     distanceM: 0,
   }];
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
 
@@ -1885,9 +2356,13 @@ test('FOCUS on an already-tracked subject clears its suppression keys before a l
     }, restores);
     runtime.dispatch('gev:awareness-subject-selected', awarenessSubject('flights', 'a', position));
 
-    assert.equal(militaryAwarenessLayer.focusCurrent({ origin: 'voice' }), true);
+    assert.equal(militaryAwarenessLayer.focusCurrent({
+      origin: 'voice'
+    }), true);
     assert.equal(refocusCalls, 1);
-    assert.deepEqual(refocusOptions, { origin: 'voice' });
+    assert.deepEqual(refocusOptions, {
+      origin: 'voice'
+    });
     assert.equal(trackCalls, 0, 'an owned Contact follow should reframe without recreating selection');
     assert.deepEqual(_getAwarenessNavigationStateForTest(), {
       historyKeys: ['flights:a'],
@@ -1898,7 +2373,9 @@ test('FOCUS on an already-tracked subject clears its suppression keys before a l
       pendingSelectionKey: null,
     });
 
-    runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+    runtime.dispatch('gev:entity-selection-cleared', {
+      layerId: 'flights'
+    });
     assert.equal(militaryAwarenessLayer.getContextSnapshot(), null);
   } finally {
     restores.reverse().forEach((restore) => restore());
@@ -1918,7 +2395,9 @@ test('NEXT wraps through a fresh visited cycle instead of ping-ponging after exh
     position,
     distanceM: (index + 1) * 1000,
   }));
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -1926,7 +2405,9 @@ test('NEXT wraps through a fresh visited cycle instead of ping-ponging after exh
   try {
     replaceMethod(flightsLayer, 'trackById', (id) => {
       focused.push(id);
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       runtime.dispatch(
         'gev:awareness-subject-selected',
         awarenessSubject('flights', id, positions[id]),
@@ -1982,7 +2463,9 @@ test('NEXT reaches beyond the panel cap when more nearby targets exist', () => {
     position,
     distanceM: (index + 1) * 1000,
   }));
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -1990,7 +2473,9 @@ test('NEXT reaches beyond the panel cap when more nearby targets exist', () => {
   try {
     replaceMethod(flightsLayer, 'trackById', (id) => {
       focused.push(id);
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       runtime.dispatch(
         'gev:awareness-subject-selected',
         awarenessSubject('flights', id, positions[id]),
@@ -2034,7 +2519,9 @@ test('NEXT jumps to expanded flight search after fully cycling nearby flight can
     distanceM: AWARENESS_RADIUS_M + 1000,
   };
 
-  const restoreCollections = stubAwarenessCollections({ flights: nearbyFlights });
+  const restoreCollections = stubAwarenessCollections({
+    flights: nearbyFlights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -2050,10 +2537,16 @@ test('NEXT jumps to expanded flight search after fully cycling nearby flight can
     }, restores);
     replaceMethod(flightsLayer, 'trackById', (id) => {
       focused.push(id);
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       runtime.dispatch(
         'gev:awareness-subject-selected',
-        awarenessSubject('flights', id, id === 'a' ? subjectPosition : { b: nearby.b, c: nearby.c, d: expanded.d }[id]),
+        awarenessSubject('flights', id, id === 'a' ? subjectPosition : {
+          b: nearby.b,
+          c: nearby.c,
+          d: expanded.d
+        } [id]),
       );
       return true;
     }, restores);
@@ -2073,12 +2566,26 @@ test('NEXT jumps to expanded flight search after fully cycling nearby flight can
 });
 
 test('NEXT can restrict navigation to a requested layer', () => {
-  const flights = [
-    { icao24: 'f1', callsign: 'F1', distanceM: 1000 },
-    { icao24: 'f2', callsign: 'F2', distanceM: 1500 },
+  const flights = [{
+      icao24: 'f1',
+      callsign: 'F1',
+      distanceM: 1000
+    },
+    {
+      icao24: 'f2',
+      callsign: 'F2',
+      distanceM: 1500
+    },
   ];
-  const military = [{ icao24: 'm1', callsign: 'M1', distanceM: 700 }];
-  const restoreCollections = stubAwarenessCollections({ flights, military });
+  const military = [{
+    icao24: 'm1',
+    callsign: 'M1',
+    distanceM: 700
+  }];
+  const restoreCollections = stubAwarenessCollections({
+    flights,
+    military
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -2089,7 +2596,10 @@ test('NEXT can restrict navigation to a requested layer', () => {
       return true;
     }, restores);
     replaceMethod(militaryFlightsLayer, 'trackById', (id, options) => {
-      focused.push({ target: `military:${id}`, options });
+      focused.push({
+        target: `military:${id}`,
+        options
+      });
       return true;
     }, restores);
 
@@ -2100,7 +2610,9 @@ test('NEXT can restrict navigation to a requested layer', () => {
     }), true);
     assert.deepEqual(focused, [{
       target: 'military:m1',
-      options: { origin: 'voice' },
+      options: {
+        origin: 'voice'
+      },
     }]);
   } finally {
     restores.reverse().forEach((restore) => restore());
@@ -2110,12 +2622,28 @@ test('NEXT can restrict navigation to a requested layer', () => {
 });
 
 test('NEXT can restrict navigation to an aircraftClass', () => {
-  const flights = [
-    { icao24: 'f1', callsign: 'F1', distanceM: 1000, aircraftClass: 'airliner' },
-    { icao24: 'f2', callsign: 'F2', distanceM: 1500, aircraftClass: 'helicopter' },
-    { icao24: 'f3', callsign: 'F3', distanceM: 2000, aircraftClass: 'airliner' },
+  const flights = [{
+      icao24: 'f1',
+      callsign: 'F1',
+      distanceM: 1000,
+      aircraftClass: 'airliner'
+    },
+    {
+      icao24: 'f2',
+      callsign: 'F2',
+      distanceM: 1500,
+      aircraftClass: 'helicopter'
+    },
+    {
+      icao24: 'f3',
+      callsign: 'F3',
+      distanceM: 2000,
+      aircraftClass: 'airliner'
+    },
   ];
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -2127,7 +2655,9 @@ test('NEXT can restrict navigation to an aircraftClass', () => {
     }, restores);
 
     runtime.dispatch('gev:awareness-subject-selected', awarenessSubject('flights', 'f1', Cesium.Cartesian3.ZERO));
-    assert.equal(militaryAwarenessLayer.navigateNext({ aircraftClass: 'helicopter' }), true);
+    assert.equal(militaryAwarenessLayer.navigateNext({
+      aircraftClass: 'helicopter'
+    }), true);
     assert.deepEqual(focused, ['f2']);
   } finally {
     restores.reverse().forEach((restore) => restore());
@@ -2141,12 +2671,22 @@ test('Cockpit NEXT ignores a nearer vessel and selects the next aircraft', () =>
   const nextPosition = Cesium.Cartesian3.fromDegrees(-97.73, 30.28, 1200);
   const vesselPosition = Cesium.Cartesian3.fromDegrees(-97.739, 30.271, 0);
   const flights = [{
-    icao24: 'f2', callsign: 'F2', distanceM: 1500, position: nextPosition,
+    icao24: 'f2',
+    callsign: 'F2',
+    distanceM: 1500,
+    position: nextPosition,
   }];
   const vessels = [{
-    mmsi: 'v1', id: 'v1', name: 'VESSEL', distanceM: 100, position: vesselPosition,
+    mmsi: 'v1',
+    id: 'v1',
+    name: 'VESSEL',
+    distanceM: 100,
+    position: vesselPosition,
   }];
-  const restoreCollections = stubAwarenessCollections({ flights, vessels });
+  const restoreCollections = stubAwarenessCollections({
+    flights,
+    vessels
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -2165,7 +2705,9 @@ test('Cockpit NEXT ignores a nearer vessel and selects the next aircraft', () =>
       'gev:awareness-subject-selected',
       awarenessSubject('flights', 'f1', subjectPosition),
     );
-    assert.equal(militaryAwarenessLayer.navigateNext({ aircraftOnly: true }), true);
+    assert.equal(militaryAwarenessLayer.navigateNext({
+      aircraftOnly: true
+    }), true);
     assert.deepEqual(focused, ['flights:f2']);
   } finally {
     restores.reverse().forEach((restore) => restore());
@@ -2175,35 +2717,69 @@ test('Cockpit NEXT ignores a nearer vessel and selects the next aircraft', () =>
 });
 
 test('history navigation applies layer and aircraft-class filters in both directions', () => {
-  const history = [
-    { layerId: 'flights', id: 'airliner', aircraftClass: 'airliner' },
-    { layerId: 'military', id: 'fighter', aircraftClass: 'fighter' },
-    { layerId: 'military', id: 'helo', aircraftClass: 'helicopter' },
+  const history = [{
+      layerId: 'flights',
+      id: 'airliner',
+      aircraftClass: 'airliner'
+    },
+    {
+      layerId: 'military',
+      id: 'fighter',
+      aircraftClass: 'fighter'
+    },
+    {
+      layerId: 'military',
+      id: 'helo',
+      aircraftClass: 'helicopter'
+    },
   ];
   assert.equal(findCompatibleHistoryIndex(history, 0, 1, {
-    targetLayer: 'military', aircraftClass: 'helicopter',
+    targetLayer: 'military',
+    aircraftClass: 'helicopter',
   }), 2);
   assert.equal(findCompatibleHistoryIndex(history, 2, -1, {
-    targetLayer: 'flights', aircraftClass: 'airliner',
+    targetLayer: 'flights',
+    aircraftClass: 'airliner',
   }), 0);
   assert.equal(findCompatibleHistoryIndex(history, 2, -1, {
-    targetLayer: 'military', aircraftClass: 'helicopter',
+    targetLayer: 'military',
+    aircraftClass: 'helicopter',
   }), -1);
 });
 
 test('Cockpit history navigation skips vessels and installations in both directions', () => {
-  const history = [
-    { layerId: 'flights', id: 'airliner' },
-    { layerId: 'ais-live-vessels', id: 'vessel' },
-    { layerId: 'military-installations', id: 'base' },
-    { layerId: 'military', id: 'fighter' },
+  const history = [{
+      layerId: 'flights',
+      id: 'airliner'
+    },
+    {
+      layerId: 'ais-live-vessels',
+      id: 'vessel'
+    },
+    {
+      layerId: 'military-installations',
+      id: 'base'
+    },
+    {
+      layerId: 'military',
+      id: 'fighter'
+    },
   ];
-  assert.equal(findCompatibleHistoryIndex(history, 0, 1, { aircraftOnly: true }), 3);
-  assert.equal(findCompatibleHistoryIndex(history, 3, -1, { aircraftOnly: true }), 0);
+  assert.equal(findCompatibleHistoryIndex(history, 0, 1, {
+    aircraftOnly: true
+  }), 3);
+  assert.equal(findCompatibleHistoryIndex(history, 3, -1, {
+    aircraftOnly: true
+  }), 0);
 });
 
 test('production-shaped history snapshots retain aircraft class from the selected source record', () => {
-  const subject = { layerId: 'military', id: 'helo-1', label: 'HELO1', position: {} };
+  const subject = {
+    layerId: 'military',
+    id: 'helo-1',
+    label: 'HELO1',
+    position: {}
+  };
   const snapshot = historySubjectSnapshot(subject, {
     icao24: 'helo-1',
     aircraftClass: 'helicopter',
@@ -2223,7 +2799,9 @@ test('NEXT steps over a history contact whose layer has since evicted it', () =>
     position,
     distanceM: (index + 1) * 1000,
   }));
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -2236,7 +2814,9 @@ test('NEXT steps over a history contact whose layer has since evicted it', () =>
       // it announces no selection.
       if (evicted.has(id)) return false;
       focused.push(id);
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       runtime.dispatch(
         'gev:awareness-subject-selected',
         awarenessSubject('flights', id, positions[id]),
@@ -2282,7 +2862,9 @@ test('a fully evicted forward history falls through to the live cohort', () => {
     position,
     distanceM: (index + 1) * 1000,
   }));
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const focused = [];
@@ -2293,7 +2875,9 @@ test('a fully evicted forward history falls through to the live cohort', () => {
     replaceMethod(flightsLayer, 'trackById', (id) => {
       if (evicted.has(id)) return false;
       focused.push(id);
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       runtime.dispatch(
         'gev:awareness-subject-selected',
         awarenessSubject('flights', id, positions[id]),
@@ -2327,9 +2911,23 @@ test('every Context camera flight without a tracked entity takes navigation auth
   // setting one, so an earlier deferred geocode would still match the
   // generation it captured and could resolve on top of the new Context focus.
   const position = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
-  const vessels = [{ mmsi: '111', id: '111', name: 'VESSEL', position, distanceM: 900 }];
-  const installations = [{ id: 'inst-1', name: 'BASE', position, distanceM: 1200 }];
-  const restoreCollections = stubAwarenessCollections({ vessels, installations });
+  const vessels = [{
+    mmsi: '111',
+    id: '111',
+    name: 'VESSEL',
+    position,
+    distanceM: 900
+  }];
+  const installations = [{
+    id: 'inst-1',
+    name: 'BASE',
+    position,
+    distanceM: 1200
+  }];
+  const restoreCollections = stubAwarenessCollections({
+    vessels,
+    installations
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   const taken = runtime.captureAuthority();
@@ -2339,7 +2937,10 @@ test('every Context camera flight without a tracked entity takes navigation auth
     replaceMethod(
       aisLiveVesselsLayer,
       'getAllPositions',
-      () => [{ id: '111', position }],
+      () => [{
+        id: '111',
+        position
+      }],
       restores,
     );
     replaceMethod(militaryInstallationsLayer, 'focusById', () => true, restores);
@@ -2380,12 +2981,17 @@ test('Contacts vessel autofocus takes navigation authority before it frames', as
     replaceMethod(
       aisLiveVesselsLayer,
       'getAllPositions',
-      () => [{ id: '222', position }],
+      () => [{
+        id: '222',
+        position
+      }],
       restores,
     );
     replaceMethod(aisLiveVesselsLayer, 'selectById', () => true, restores);
 
-    militaryAwarenessLayer.setParams({ passive: false });
+    militaryAwarenessLayer.setParams({
+      passive: false
+    });
     // Activation enables dependencies before it auto-focuses.
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(runtime.cameraFlights.length, 1, 'autofocus framed a vessel');
@@ -2404,13 +3010,50 @@ test('NEXT reaches every layer before repeating any contact', () => {
   // The comparator used to rank subject-layer affinity above visited state, so
   // an already-visited same-layer contact outranked every unvisited contact in
   // the other three layers and NEXT ping-ponged inside one layer forever.
-  const cohorts = [
-    { id: 'flights', summary: { nearest: [{ icao24: 'f1', distanceM: 100 }, { icao24: 'f2', distanceM: 200 }] } },
-    { id: 'military', summary: { nearest: [{ icao24: 'm1', distanceM: 300 }] } },
-    { id: 'ais-live-vessels', summary: { nearest: [{ mmsi: 'v1', distanceM: 400 }] } },
-    { id: 'military-installations', summary: { nearest: [{ id: 'i1', distanceM: 500 }] } },
+  const cohorts = [{
+      id: 'flights',
+      summary: {
+        nearest: [{
+          icao24: 'f1',
+          distanceM: 100
+        }, {
+          icao24: 'f2',
+          distanceM: 200
+        }]
+      }
+    },
+    {
+      id: 'military',
+      summary: {
+        nearest: [{
+          icao24: 'm1',
+          distanceM: 300
+        }]
+      }
+    },
+    {
+      id: 'ais-live-vessels',
+      summary: {
+        nearest: [{
+          mmsi: 'v1',
+          distanceM: 400
+        }]
+      }
+    },
+    {
+      id: 'military-installations',
+      summary: {
+        nearest: [{
+          id: 'i1',
+          distanceM: 500
+        }]
+      }
+    },
   ];
-  const subject = { layerId: 'flights', id: 'f0' };
+  const subject = {
+    layerId: 'flights',
+    id: 'f0'
+  };
   const visited = new Set(['flights:f0']);
   const reached = [];
 
@@ -2435,11 +3078,16 @@ test('NEXT reaches every layer before repeating any contact', () => {
 test('the navigable cohort is generous but finite, and the count stays exact', () => {
   // Caps guard materialization only. A cohort larger than the navigable window
   // must still report its true size — a capped COUNT would be a lie.
-  const items = Array.from({ length: 12000 }, (_, index) => ({
+  const items = Array.from({
+    length: 12000
+  }, (_, index) => ({
     id: `installation-${index}`,
     distanceM: index,
   }));
-  const summary = summarizeInstallationViewport(items, { available: true, stale: false });
+  const summary = summarizeInstallationViewport(items, {
+    available: true,
+    stale: false
+  });
   assert.equal(summary.count, 12000, 'the count reflects every in-range item');
   assert.equal(summary.nearest.length, 10, 'the panel still shows ten');
   assert.ok(Number.isFinite(AWARENESS_QUERY_LIMIT), 'the fetch limit is finite');
@@ -2468,7 +3116,9 @@ test('walking a cohort does not rescan the source layer per selection', () => {
     distanceM: (index + 1) * 1000,
     aircraftClass: 'airliner',
   }));
-  const restoreCollections = stubAwarenessCollections({ flights });
+  const restoreCollections = stubAwarenessCollections({
+    flights
+  });
   const runtime = installAwarenessRuntime();
   const restores = [];
   let historyScans = 0;
@@ -2483,7 +3133,9 @@ test('walking a cohort does not rescan the source layer per selection', () => {
       return scanning.apply(flightsLayer, args);
     }, restores);
     replaceMethod(flightsLayer, 'trackById', (id) => {
-      runtime.dispatch('gev:entity-selection-cleared', { layerId: 'flights' });
+      runtime.dispatch('gev:entity-selection-cleared', {
+        layerId: 'flights'
+      });
       runtime.dispatch(
         'gev:awareness-subject-selected',
         awarenessSubject('flights', id, positions[id]),
@@ -2519,13 +3171,47 @@ test('the contacts window reports exactly the counts the panel renders', () => {
   // honest. The window block exists so the panel's numbers travel with the
   // answer, so it must be derived from the panel's own snapshot, not recomputed.
   const results = {
-    subject: { layerId: 'flights', id: 'a52e54', label: 'ASA635', position: Cesium.Cartesian3.ZERO },
+    subject: {
+      layerId: 'flights',
+      id: 'a52e54',
+      label: 'ASA635',
+      position: Cesium.Cartesian3.ZERO
+    },
     evaluatedAt: Date.now(),
     radiusM: AWARENESS_RADIUS_M,
-    cohorts: [
-      { id: 'flights', label: 'Flights', source: 'OpenSky', summary: { relationship: 'nearby', count: 42, reason: 'observed', nearest: [] } },
-      { id: 'military', label: 'Military flights', source: 'adsb.lol', summary: { relationship: 'nearby', count: 13, reason: 'observed', nearest: [] } },
-      { id: 'ais-live-vessels', label: 'AIS vessels', source: 'AISStream', summary: { relationship: 'unknown', count: null, reason: 'feed unavailable', nearest: [] } },
+    cohorts: [{
+        id: 'flights',
+        label: 'Flights',
+        source: 'OpenSky',
+        summary: {
+          relationship: 'nearby',
+          count: 42,
+          reason: 'observed',
+          nearest: []
+        }
+      },
+      {
+        id: 'military',
+        label: 'Military flights',
+        source: 'adsb.lol',
+        summary: {
+          relationship: 'nearby',
+          count: 13,
+          reason: 'observed',
+          nearest: []
+        }
+      },
+      {
+        id: 'ais-live-vessels',
+        label: 'AIS vessels',
+        source: 'AISStream',
+        summary: {
+          relationship: 'unknown',
+          count: null,
+          reason: 'feed unavailable',
+          nearest: []
+        }
+      },
     ],
   };
   const snapshot = buildAwarenessContextSnapshot(results, {});
@@ -2549,15 +3235,22 @@ test('the contacts window reports exactly the counts the panel renders', () => {
 
 test('there is no contacts window without a subject', () => {
   assert.equal(contactsWindowFromSnapshot(null), null);
-  assert.equal(contactsWindowFromSnapshot({ cohorts: [] }), null);
+  assert.equal(contactsWindowFromSnapshot({
+    cohorts: []
+  }), null);
 });
 
 test('installation summaries keep the full navigation cohort beyond the former 5,000 cap', () => {
-  const items = Array.from({ length: 5001 }, (_, index) => ({
+  const items = Array.from({
+    length: 5001
+  }, (_, index) => ({
     id: `installation-${index}`,
     distanceM: index * 1000,
   }));
-  const summary = summarizeInstallationViewport(items, { available: true, stale: false });
+  const summary = summarizeInstallationViewport(items, {
+    available: true,
+    stale: false
+  });
   assert.equal(summary.nearest.length, 10);
   assert.equal(summary.navigationNearest.length, 5001);
   assert.equal(AWARENESS_QUERY_LIMIT >= 5001, true);
@@ -2633,7 +3326,9 @@ test('canNext agrees with NEXT for unknown, healthy-empty, and recovered flight 
     distanceM: 5000,
   }];
   let flightsEnabled = false;
-  const restoreCollections = stubAwarenessCollections({ military });
+  const restoreCollections = stubAwarenessCollections({
+    military
+  });
   const runtime = installAwarenessRuntime({
     isEnabled: (layerId) => layerId !== 'flights' || flightsEnabled,
   });
@@ -2722,8 +3417,12 @@ test('runtime listeners exist only while the awareness layer is enabled', () => 
 
   class FakeElement {
     constructor() {
-      this.classList = { contains: () => false };
-      this.style = { setProperty() {} };
+      this.classList = {
+        contains: () => false
+      };
+      this.style = {
+        setProperty() {}
+      };
       this.hidden = false;
       this.innerHTML = '';
     }
@@ -2745,9 +3444,13 @@ test('runtime listeners exist only while the awareness layer is enabled', () => 
     removeEventListener(type, listener) {
       listeners.get(type)?.delete(listener);
     },
-    setInterval() { return nextTimer++; },
+    setInterval() {
+      return nextTimer++;
+    },
     clearInterval() {},
-    requestAnimationFrame(callback) { return nextTimer++; },
+    requestAnimationFrame(callback) {
+      return nextTimer++;
+    },
     cancelAnimationFrame() {},
   };
   const fakeBody = new FakeElement();
@@ -2756,23 +3459,33 @@ test('runtime listeners exist only while the awareness layer is enabled', () => 
       preRender: {
         addEventListener() {
           preRenderListeners += 1;
-          return () => { preRenderListeners -= 1; };
+          return () => {
+            preRenderListeners -= 1;
+          };
         },
       },
     },
-    entities: { remove() {} },
+    entities: {
+      remove() {}
+    },
     container: new FakeElement(),
   };
 
   globalThis.window = fakeWindow;
   globalThis.document = {
     body: fakeBody,
-    getElementById() { return null; },
-    createElement() { return new FakeElement(); },
+    getElementById() {
+      return null;
+    },
+    createElement() {
+      return new FakeElement();
+    },
   };
 
   try {
-    militaryAwarenessLayer.setParams({ passive: true });
+    militaryAwarenessLayer.setParams({
+      passive: true
+    });
     militaryAwarenessLayer.init(viewer);
     assert.equal([...listeners.values()].reduce((count, set) => count + set.size, 0), 0);
     assert.equal(preRenderListeners, 0);
@@ -2796,10 +3509,16 @@ test('runtime listeners exist only while the awareness layer is enabled', () => 
 });
 
 test('awareness runtime parameters return a detached snapshot', () => {
-  militaryAwarenessLayer.setParams({ passive: false });
+  militaryAwarenessLayer.setParams({
+    passive: false
+  });
   const snapshot = militaryAwarenessLayer.getParams();
-  militaryAwarenessLayer.setParams({ passive: true });
-  assert.deepEqual(snapshot, { passive: false });
+  militaryAwarenessLayer.setParams({
+    passive: true
+  });
+  assert.deepEqual(snapshot, {
+    passive: false
+  });
 });
 
 test('Contacts refresh cadence is snappy while the camera moves and parked otherwise', () => {
@@ -2824,7 +3543,12 @@ test('intermittent pose-bin crossings cannot refresh faster than the motion floo
   for (let frame = 0; frame < frames; frame += 1) {
     const nowMs = 1_000 + frame * frameMs;
     if (frame % 4 === 0) lastPoseChangeMs = nowMs;
-    const decision = awarenessRefreshDecision({ nowMs, lastRefreshMs, lastPoseChangeMs, wasMoving });
+    const decision = awarenessRefreshDecision({
+      nowMs,
+      lastRefreshMs,
+      lastPoseChangeMs,
+      wasMoving
+    });
     wasMoving = decision.moving;
     if (decision.refresh) {
       refreshes += 1;
@@ -2835,15 +3559,18 @@ test('intermittent pose-bin crossings cannot refresh faster than the motion floo
   const ceiling = Math.ceil((frames * frameMs) / awarenessRefreshIntervalMs(true));
   assert.ok(
     refreshes <= ceiling,
-    `intermittent bin crossings must respect the ${awarenessRefreshIntervalMs(true)} ms floor: `
-    + `expected at most ${ceiling} refreshes in ${frames} frames, got ${refreshes}`,
+    `intermittent bin crossings must respect the ${awarenessRefreshIntervalMs(true)} ms floor: ` +
+    `expected at most ${ceiling} refreshes in ${frames} frames, got ${refreshes}`,
   );
   assert.ok(refreshes >= 4, `motion must still be snappy, got ${refreshes}`);
 });
 
 test('motion ends only after the pose has been unchanged through the settle window', () => {
   const parked = (nowMs, lastPoseChangeMs, wasMoving = true) => awarenessRefreshDecision({
-    nowMs, lastRefreshMs: nowMs - 10_000, lastPoseChangeMs, wasMoving,
+    nowMs,
+    lastRefreshMs: nowMs - 10_000,
+    lastPoseChangeMs,
+    wasMoving,
   }).moving;
   assert.equal(parked(1_000, 1_000), true, 'the frame the pose changed is moving');
   assert.equal(parked(1_200, 1_000), true, 'a 200 ms gap between bin crossings is still moving');
@@ -2854,13 +3581,25 @@ test('motion ends only after the pose has been unchanged through the settle wind
 test('the motion-end settle refresh still respects the motion floor', () => {
   // Motion ends 20 ms after a refresh: the settle must NOT jump the floor.
   const tooSoon = awarenessRefreshDecision({
-    nowMs: 2_000, lastRefreshMs: 1_980, lastPoseChangeMs: 1_700, wasMoving: true,
+    nowMs: 2_000,
+    lastRefreshMs: 1_980,
+    lastPoseChangeMs: 1_700,
+    wasMoving: true,
   });
-  assert.deepEqual(tooSoon, { moving: false, refresh: false });
+  assert.deepEqual(tooSoon, {
+    moving: false,
+    refresh: false
+  });
   const allowed = awarenessRefreshDecision({
-    nowMs: 2_000, lastRefreshMs: 1_800, lastPoseChangeMs: 1_700, wasMoving: true,
+    nowMs: 2_000,
+    lastRefreshMs: 1_800,
+    lastPoseChangeMs: 1_700,
+    wasMoving: true,
   });
-  assert.deepEqual(allowed, { moving: false, refresh: true });
+  assert.deepEqual(allowed, {
+    moving: false,
+    refresh: true
+  });
 });
 
 test('parked Contacts takes no continuous-render hold and requests at most the parked cadence', () => {
@@ -2871,9 +3610,16 @@ test('parked Contacts takes no continuous-render hold and requests at most the p
   const restoreCollections = stubAwarenessCollections({
     // A real neighbouring contact, so the cohort is genuinely LIVE — an empty
     // or failed cohort must not take the hold (see the failed-feed test below).
-    flights: [
-      { icao24: 'subject-flight', position, distanceM: 0 },
-      { icao24: 'neighbour-flight', position: neighbour, distanceM: 4000 },
+    flights: [{
+        icao24: 'subject-flight',
+        position,
+        distanceM: 0
+      },
+      {
+        icao24: 'neighbour-flight',
+        position: neighbour,
+        distanceM: 4000
+      },
     ],
   });
   _resetRenderGovernorForTest();
@@ -2893,7 +3639,10 @@ test('parked Contacts takes no continuous-render hold and requests at most the p
     // 1. Enabled, nothing selected, camera parked — Contacts must not be a
     //    reason the whole scene keeps repainting.
     assert.ok(!holds().includes('military-awareness'), 'enable() must not hold outright');
-    for (let frame = 0; frame < 60; frame += 1) { clockMs += 16; runtime.tick(); }
+    for (let frame = 0; frame < 60; frame += 1) {
+      clockMs += 16;
+      runtime.tick();
+    }
     assert.ok(!holds().includes('military-awareness'), 'a parked empty panel holds nothing');
 
     // 2. A live subject, still parked: one ring paints, then quiet.
@@ -2902,7 +3651,10 @@ test('parked Contacts takes no continuous-render hold and requests at most the p
       awarenessSubject('flights', 'subject-flight', position),
     );
     const requestsAfterSelect = runtime.renderRequests.length;
-    for (let frame = 0; frame < 60; frame += 1) { clockMs += 16; runtime.tick(); }
+    for (let frame = 0; frame < 60; frame += 1) {
+      clockMs += 16;
+      runtime.tick();
+    }
     assert.ok(!holds().includes('military-awareness'), 'a parked panel holds nothing even with a subject');
     const parkedRequests = runtime.renderRequests.length - requestsAfterSelect;
     // 960 ms parked = at most two 750 ms-cadence frames' worth of requests.
@@ -2936,19 +3688,43 @@ test('parked Contacts takes no continuous-render hold and requests at most the p
 
 test('Contacts needs continuous render only for a live cohort under a moving view', () => {
   const need = (input) => awarenessNeedsContinuousRender(input);
-  assert.equal(need({ cameraMoving: true, hasSubject: true, hasLiveResults: true }), true);
-  assert.equal(need({ cameraMoving: false, hasSubject: true, hasLiveResults: true }), false);
-  assert.equal(need({ cameraMoving: true, hasSubject: false, hasLiveResults: false }), false);
-  assert.equal(need({ cameraMoving: true, hasSubject: true, hasLiveResults: false }), false);
+  assert.equal(need({
+    cameraMoving: true,
+    hasSubject: true,
+    hasLiveResults: true
+  }), true);
+  assert.equal(need({
+    cameraMoving: false,
+    hasSubject: true,
+    hasLiveResults: true
+  }), false);
+  assert.equal(need({
+    cameraMoving: true,
+    hasSubject: false,
+    hasLiveResults: false
+  }), false);
+  assert.equal(need({
+    cameraMoving: true,
+    hasSubject: true,
+    hasLiveResults: false
+  }), false);
 });
 
 test('empty and failed cohorts are not "live" — there is no arrow to animate', () => {
-  const cohorts = (...counts) => ({ cohorts: counts.map((count) => ({ summary: { count } })) });
+  const cohorts = (...counts) => ({
+    cohorts: counts.map((count) => ({
+      summary: {
+        count
+      }
+    }))
+  });
   assert.equal(awarenessResultsAreLive(cohorts(3, 0, null)), true, 'one populated cohort is enough');
   assert.equal(awarenessResultsAreLive(cohorts(0, 0, 0)), false, 'healthy but empty feeds animate nothing');
   assert.equal(awarenessResultsAreLive(cohorts(null, null)), false, 'unavailable/stale feeds animate nothing');
   assert.equal(awarenessResultsAreLive(cohorts(0, null)), false);
-  assert.equal(awarenessResultsAreLive({ cohorts: [] }), false);
+  assert.equal(awarenessResultsAreLive({
+    cohorts: []
+  }), false);
   assert.equal(awarenessResultsAreLive(null), false);
 });
 
@@ -2960,7 +3736,9 @@ test('a moving view over failed feeds takes no continuous-render hold', () => {
   // null — the exact state the old Boolean(state.results) gate still held for.
   const restoreCollections = stubAwarenessCollections({});
   _resetRenderGovernorForTest();
-  const runtime = installAwarenessRuntime({ isEnabled: () => false });
+  const runtime = installAwarenessRuntime({
+    isEnabled: () => false
+  });
   const holds = () => getRenderGovernorDiagnostics().holds;
 
   try {
@@ -3002,7 +3780,11 @@ test('a moving camera refreshes Contacts more than once inside one parked interv
   let clockMs = 1_700_000_000_000;
   const position = Cesium.Cartesian3.fromDegrees(-97.74, 30.27, 1000);
   const restoreCollections = stubAwarenessCollections({
-    flights: [{ icao24: 'subject-flight', position, distanceM: 0 }],
+    flights: [{
+      icao24: 'subject-flight',
+      position,
+      distanceM: 0
+    }],
   });
   const runtime = installAwarenessRuntime();
   const restores = [];
@@ -3018,7 +3800,10 @@ test('a moving camera refreshes Contacts more than once inside one parked interv
     };
     replaceMethod(flightsLayer, 'getAllPositions', () => {
       refreshes += 1;
-      return [{ id: 'subject-flight', position }];
+      return [{
+        id: 'subject-flight',
+        position
+      }];
     }, restores);
 
     runtime.dispatch(
