@@ -1,5 +1,9 @@
-import { classifyAircraft } from '../../data/aircraftClass.js';
-import { horizonOccluder } from '../../data/iconOrientation.js';
+import {
+  classifyAircraft
+} from '../../data/aircraftClass.js';
+import {
+  horizonOccluder
+} from '../../data/iconOrientation.js';
 import * as Cesium from 'cesium';
 import {
   ENRICH_MAX_INFLIGHT,
@@ -21,7 +25,10 @@ export function createEnrichment({
     if (flightState.lifetime.signal.aborted) return;
     if (flightState._enrichSeen.has(key)) return;
     flightState._enrichSeen.add(key);
-    const job = { query, onData };
+    const job = {
+      query,
+      onData
+    };
     // Priority (tracked / model-eligible) goes to the FRONT so a deep ambient
     // backlog can never delay the plane the user just clicked or zoomed into.
     if (priority) flightState._enrichQueue.unshift(job);
@@ -78,8 +85,10 @@ export function createEnrichment({
   function _requestTypeEnrichment(icao24, priority = false) {
     if (!/^[0-9a-f]{6}$/i.test(icao24)) return;
     _enqueueEnrich(
-      `t:${icao24}`,
-      { kind: 'type', id: icao24.toLowerCase() },
+      `t:${icao24}`, {
+        kind: 'type',
+        id: icao24.toLowerCase()
+      },
       (data) => {
         const meta = flightState._flightData.get(icao24);
         if (!meta) return; // evicted while the lookup was in flight
@@ -114,14 +123,19 @@ export function createEnrichment({
       .toUpperCase();
     if (!/^[A-Z]{3}\d/.test(cs)) return; // airline-style callsigns only (LLL + digit); GA tails won't resolve
     _enqueueEnrich(
-      `r:${cs}`,
-      { kind: 'route', id: cs },
+      `r:${cs}`, {
+        kind: 'route',
+        id: cs
+      },
       (data) => {
         const meta = flightState._flightData.get(icao24);
         if (!meta) return;
         meta.airline = data.airline || meta.airline;
         if (data.origin && data.destination)
-          meta.route = { origin: data.origin, destination: data.destination };
+          meta.route = {
+            origin: data.origin,
+            destination: data.destination
+          };
         if (icao24 === flightState._trackedIcao && flightState._trackedEntity)
           parts.tracking._updateTrackedLabelModel(icao24);
       },
@@ -139,18 +153,15 @@ export function createEnrichment({
     const o =
       (typeof window !== 'undefined' && window.__GEV_ENRICH_AMBIENT_QA) || null;
     return {
-      ceil:
-        Number.isFinite(o?.ceil) && o.ceil > 0
-          ? o.ceil
-          : ENRICH_AMBIENT_BUDGET_CEIL,
-      refillTokens:
-        Number.isFinite(o?.refillTokens) && o.refillTokens > 0
-          ? o.refillTokens
-          : ENRICH_AMBIENT_REFILL_TOKENS,
-      windowMs:
-        Number.isFinite(o?.windowMs) && o.windowMs > 0
-          ? o.windowMs
-          : ENRICH_AMBIENT_REFILL_WINDOW_MS,
+      ceil: Number.isFinite(o?.ceil) && o.ceil > 0 ?
+        o.ceil :
+        ENRICH_AMBIENT_BUDGET_CEIL,
+      refillTokens: Number.isFinite(o?.refillTokens) && o.refillTokens > 0 ?
+        o.refillTokens :
+        ENRICH_AMBIENT_REFILL_TOKENS,
+      windowMs: Number.isFinite(o?.windowMs) && o.windowMs > 0 ?
+        o.windowMs :
+        ENRICH_AMBIENT_REFILL_WINDOW_MS,
     };
   }
 
@@ -160,7 +171,11 @@ export function createEnrichment({
    *  time never banks more than one bucket's worth of burst). */
 
   function _refillAmbientBudget(nowMs) {
-    const { ceil, refillTokens, windowMs } = _ambientBudgetKnobs();
+    const {
+      ceil,
+      refillTokens,
+      windowMs
+    } = _ambientBudgetKnobs();
     if (!flightState._enrichAmbientRefillAnchorMs) {
       flightState._enrichAmbientRefillAnchorMs = nowMs;
       return;
