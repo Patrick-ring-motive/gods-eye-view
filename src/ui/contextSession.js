@@ -93,9 +93,7 @@ export async function _restoreContextSession({
     await this._dataManager.restoreEnabledLayerIds(
       restoreState.enabledLayerIds, {
         origin: 'context-restore',
-        excludeLayerIds: settleContactsCoordinator ?
-          [...excludeLayerIds, contactsCoordinatorId] :
-          excludeLayerIds,
+        excludeLayerIds: settleContactsCoordinator ? [...excludeLayerIds, contactsCoordinatorId] : excludeLayerIds,
         notificationToken,
         ...(restoreSignal ? {
           signal: restoreSignal
