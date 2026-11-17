@@ -52,12 +52,10 @@ export function normalizeReadsbAircraft(row, snapshotTimeMs) {
     longitude,
     callsign: cleanText(row.flight),
     originCountry: null,
-    positionTimeMs:
-      snapshotTimeMs == null ? null : snapshotTimeMs - (seenPos ?? 0) * 1000,
-    contactTimeMs:
-      snapshotTimeMs == null || seen == null
-        ? null
-        : snapshotTimeMs - seen * 1000,
+    positionTimeMs: snapshotTimeMs == null ? null : snapshotTimeMs - (seenPos ?? 0) * 1000,
+    contactTimeMs: snapshotTimeMs == null || seen == null ?
+      null :
+      snapshotTimeMs - seen * 1000,
     baroAltitudeM: baroFt == null ? null : baroFt * 0.3048,
     ellipsoidAltitudeM: geoFt == null ? null : geoFt * 0.3048,
     onGround: cleanText(row.alt_baro).toLowerCase() === 'ground',
@@ -72,8 +70,7 @@ export function normalizeReadsbAircraft(row, snapshotTimeMs) {
 }
 
 export function openSkySnapshot(
-  payload,
-  {
+  payload, {
     source = 'OpenSky Network',
     coverage = 'worldwide upstream snapshot',
     now = Date.now(),
@@ -94,18 +91,16 @@ export function openSkySnapshot(
     observedAtMs,
     ageMs,
     stale: stale || (ageMs != null && ageMs > 120000),
-    freshness:
-      observedAtMs == null
-        ? 'unknown'
-        : stale || ageMs > 120000
-          ? 'stale'
-          : 'current',
+    freshness: observedAtMs == null ?
+      'unknown' :
+      stale || ageMs > 120000 ?
+      'stale' :
+      'current',
   };
 }
 
 export function readsbSnapshot(
-  payload,
-  {
+  payload, {
     observedAtMs,
     source = 'adsb.lol',
     coverage = 'military upstream snapshot',
@@ -132,8 +127,10 @@ export function readsbSnapshot(
 
 /** Track altitude remains barometric; renderers choose a visual ground fallback. */
 export function normalizeAircraftTrack(
-  rows,
-  { baseTimeMs = 0, readsb = false } = {},
+  rows, {
+    baseTimeMs = 0,
+    readsb = false
+  } = {},
 ) {
   if (!Array.isArray(rows)) return [];
   return rows.flatMap((row) => {
@@ -150,19 +147,16 @@ export function normalizeAircraftTrack(
     )
       return [];
     const altitude = finite(row[3]);
-    return [
-      {
-        latitude,
-        longitude,
-        observedAtMs,
-        baroAltitudeM:
-          altitude == null ? null : altitude * (readsb ? 0.3048 : 1),
-        ellipsoidAltitudeM: null,
-        onGround: readsb
-          ? cleanText(row[3]).toLowerCase() === 'ground'
-          : row[5] === true,
-      },
-    ];
+    return [{
+      latitude,
+      longitude,
+      observedAtMs,
+      baroAltitudeM: altitude == null ? null : altitude * (readsb ? 0.3048 : 1),
+      ellipsoidAltitudeM: null,
+      onGround: readsb ?
+        cleanText(row[3]).toLowerCase() === 'ground' :
+        row[5] === true,
+    }, ];
   });
 }
 
@@ -172,7 +166,9 @@ export function readsbIdentities(payload) {
     payload?.ac,
     (row) => {
       const id = cleanText(row?.hex).toLowerCase();
-      return id ? { id } : null;
+      return id ? {
+        id
+      } : null;
     },
     'aircraft identities',
   );
