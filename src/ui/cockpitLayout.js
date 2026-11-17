@@ -191,8 +191,7 @@ export function syncSignalLayout() {
         availableHeight,
         expandedHeight,
         collapsedHeight,
-      }) :
-      {
+      }) : {
         primaryOnly: false,
         expandedMaxHeight: availableHeight
       };
