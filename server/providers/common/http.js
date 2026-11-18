@@ -110,15 +110,13 @@ export async function readCappedResponseText(upstream, maxBytes) {
     typeof upstream.body[Symbol.asyncIterator] !== 'function'
   ) {
     const text = await upstream.text();
-    return text.length > maxBytes ?
-      {
-        tooLarge: true,
-        text: ''
-      } :
-      {
-        tooLarge: false,
-        text
-      };
+    return text.length > maxBytes ? {
+      tooLarge: true,
+      text: ''
+    } : {
+      tooLarge: false,
+      text
+    };
   }
   const decoder = new TextDecoder();
   let text = '';
