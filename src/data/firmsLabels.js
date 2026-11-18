@@ -13,9 +13,9 @@ export function fireDetectionKey(fire) {
   const lat = Number.isFinite(fire?.lat) ? fire.lat.toFixed(4) : 'x';
   const lon = Number.isFinite(fire?.lon) ? fire.lon.toFixed(4) : 'x';
   const acq = Number.isFinite(fire?.acqMs) && fire.acqMs > 0 ? String(fire.acqMs) : '0';
-  const source = satelliteShortName(fire?.satellite)
-    || String(fire?.sensor || '').trim().toUpperCase()
-    || 'x';
+  const source = satelliteShortName(fire?.satellite) ||
+    String(fire?.sensor || '').trim().toUpperCase() ||
+    'x';
   return `firms:${lat}:${lon}:${acq}:${source}`;
 }
 
