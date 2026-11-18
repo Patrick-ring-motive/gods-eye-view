@@ -12,8 +12,7 @@ export function normalizeGooglePlace(result) {
   const types = Array.isArray(result.types) ? result.types : [];
   const resultTypes = new Set(types.map((type) => String(type).toLowerCase()));
   const components = Array.isArray(result.address_components) ?
-    result.address_components :
-    [];
+    result.address_components : [];
   // Address-only landmark results must retain the requested landmark identity.
   const canonical = components.find(
     (component) =>
