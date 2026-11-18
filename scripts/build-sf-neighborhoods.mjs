@@ -148,15 +148,13 @@ async function main() {
       if (rings.length && poly[0] && rings[0]) polys.push(rings);
     }
     if (!polys.length) throw new Error(`geometry collapsed for ${name}`);
-    const geometry = polys.length === 1 ?
-      {
-        type: 'Polygon',
-        coordinates: polys[0]
-      } :
-      {
-        type: 'MultiPolygon',
-        coordinates: polys
-      };
+    const geometry = polys.length === 1 ? {
+      type: 'Polygon',
+      coordinates: polys[0]
+    } : {
+      type: 'MultiPolygon',
+      coordinates: polys
+    };
     features.push({
       type: 'Feature',
       properties: {
