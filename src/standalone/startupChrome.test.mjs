@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import vm from 'node:vm';
 
 const source = readFileSync(
-  new URL('../app/startupChrome.js', import.meta.url),
-  'utf8',
-)
+    new URL('../app/startupChrome.js', import.meta.url),
+    'utf8',
+  )
   .replace(/^import .*;\n/gm, '')
   .replace('export function', 'function');
 
@@ -21,7 +23,10 @@ function fixture() {
     console,
     setTimeout(fn, delay) {
       const id = ++nextTimer;
-      timers.set(id, { fn, delay });
+      timers.set(id, {
+        fn,
+        delay
+      });
       return id;
     },
     clearTimeout(id) {
@@ -29,10 +34,14 @@ function fixture() {
     },
     initFirstRunExperience() {
       events.push('welcome');
-      return { destroy: () => events.push('welcome:destroy') };
+      return {
+        destroy: () => events.push('welcome:destroy')
+      };
     },
     async initKeySetup() {
-      return { destroy: () => events.push('settings:destroy') };
+      return {
+        destroy: () => events.push('settings:destroy')
+      };
     },
   };
   vm.createContext(context);
@@ -40,7 +49,9 @@ function fixture() {
   const stop = context.startApplicationChrome({
     initializeSettings: context.initKeySetup,
     loadingScreen: {
-      classList: { add: (value) => events.push(value) },
+      classList: {
+        add: (value) => events.push(value)
+      },
       addEventListener: (type, listener) => listeners.set(type, listener),
       removeEventListener: (type) => listeners.delete(type),
     },
