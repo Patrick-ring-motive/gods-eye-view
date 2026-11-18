@@ -244,7 +244,8 @@ async function installStaticDist(page, distDir) {
       try {
         await request.abort();
       } catch {
-        /* request already resolved */ }
+        /* request already resolved */
+      }
     }
   });
 }
@@ -437,7 +438,8 @@ async function installPageInstrumentation(page) {
         try {
           proto[method] = wrapped;
         } catch {
-          /* A non-writable method stays uninstrumented. */ }
+          /* A non-writable method stays uninstrumented. */
+        }
       }
     }
     globalThis.__overlayBaselineInstrumentation = {
@@ -472,11 +474,13 @@ async function waitForApp(page) {
     try {
       viewer.camera.cancelFlight();
     } catch {
-      /* no flight */ }
+      /* no flight */
+    }
     try {
       viewer.scene.tweens?.removeAll?.();
     } catch {
-      /* no tween collection */ }
+      /* no tween collection */
+    }
   });
   await sleep(1_250);
 }
@@ -1119,9 +1123,7 @@ async function main() {
       },
       gpuMode: HARDWARE_GPU ? 'hardware' : 'swiftshader',
       chromeExecutable: CHROME_EXECUTABLE,
-      chromeArgs: HARDWARE_GPU ?
-        ['--no-sandbox'] :
-        ['--enable-unsafe-swiftshader', '--use-gl=swiftshader', '--no-sandbox'],
+      chromeArgs: HARDWARE_GPU ? ['--no-sandbox'] : ['--enable-unsafe-swiftshader', '--use-gl=swiftshader', '--no-sandbox'],
       sampleMs: SAMPLE_MS,
       captureMode: DIST_DIR ? `static-dist:${path.resolve(DIST_DIR)}` : 'dev-server',
     };
