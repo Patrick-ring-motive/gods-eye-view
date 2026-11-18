@@ -350,8 +350,7 @@ export function createTiming({
       roadCount: roads.length,
       sampleHeightCalls: _trafficTimingSampleHeightCalls,
       sampleHeightMeanMs: _trafficTimingSampleHeightCalls ?
-        _trafficTimingSampleHeightMs / _trafficTimingSampleHeightCalls :
-        0,
+        _trafficTimingSampleHeightMs / _trafficTimingSampleHeightCalls : 0,
       distinctCells: _trafficTimingSampledCells.size,
     };
     trafficTimingAggregate(
