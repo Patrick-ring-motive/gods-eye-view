@@ -563,17 +563,15 @@ test('pending mapped installations render as unknown instead of a false zero', a
     // Deliberately inconsistent visibility intent exercises the defensive
     // lifecycle guard: `enabling` must win over a stale true response.
     isEnabled: () => true,
-    getLayerLifecycleState: (layerId) => (layerId === 'military-installations' ?
-      {
-        enabled: false,
-        lifecycleState: 'enabling',
-        uncertain: false
-      } :
-      {
-        enabled: true,
-        lifecycleState: 'enabled',
-        uncertain: false
-      }),
+    getLayerLifecycleState: (layerId) => (layerId === 'military-installations' ? {
+      enabled: false,
+      lifecycleState: 'enabling',
+      uncertain: false
+    } : {
+      enabled: true,
+      lifecycleState: 'enabled',
+      uncertain: false
+    }),
   });
 
   try {
