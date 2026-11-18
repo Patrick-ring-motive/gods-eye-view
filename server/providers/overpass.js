@@ -1,10 +1,17 @@
-import { makeRateLimiter, clientKey } from './common/rate-limit.js';
-import { readRequestBodyCapped } from './common/request.js';
+import {
+  makeRateLimiter,
+  clientKey
+} from './common/rate-limit.js';
+import {
+  readRequestBodyCapped
+} from './common/request.js';
 import {
   OVERPASS_MAX_BODY_BYTES,
   OVERPASS_MAX_CONCURRENT,
 } from './overpass/constants.js';
-import { sanitizeOverpassBody } from './overpass/query.js';
+import {
+  sanitizeOverpassBody
+} from './overpass/query.js';
 import {
   resolveOverpassPreflight,
   _overpassCache,
@@ -18,7 +25,9 @@ import {
   overpassPayloadIsData,
   fetchOverpassPayload,
 } from './overpass/transport.js';
-import { installRouteMiddleware } from './places/routes.js';
+import {
+  installRouteMiddleware
+} from './places/routes.js';
 
 /** @type {Map<string,Promise>} In-flight Overpass requests keyed by normalized query body. */
 const _overpassInFlight = new Map();
@@ -59,7 +68,9 @@ function sendOverpassResponse(res, payload, cacheStatus = 'MISS') {
  *
  * @returns {import('vite').Plugin}
  */
-function overpassProxy({ routing = {} } = {}) {
+function overpassProxy({
+  routing = {}
+} = {}) {
   const installMiddleware = (server) => {
     server.middlewares.use('/api/overpass', async (req, res) => {
       // Hoisted out of the try so the catch's serve-stale lookup can see it
@@ -67,8 +78,12 @@ function overpassProxy({ routing = {} } = {}) {
       let cacheKey = null;
       try {
         if (req.method !== 'POST') {
-          res.writeHead(405, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+          res.writeHead(405, {
+            'Content-Type': 'application/json'
+          });
+          res.end(JSON.stringify({
+            error: 'Method Not Allowed'
+          }));
           return;
         }
 
@@ -80,15 +95,23 @@ function overpassProxy({ routing = {} } = {}) {
           ).toString();
         } catch (err) {
           if (err?.code === 'BODY_TOO_LARGE') {
-            res.writeHead(413, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Overpass query too large' }));
+            res.writeHead(413, {
+              'Content-Type': 'application/json'
+            });
+            res.end(JSON.stringify({
+              error: 'Overpass query too large'
+            }));
             return;
           }
           throw err;
         }
         if (!body) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Missing Overpass query body' }));
+          res.writeHead(400, {
+            'Content-Type': 'application/json'
+          });
+          res.end(JSON.stringify({
+            error: 'Missing Overpass query body'
+          }));
           return;
         }
 
@@ -96,8 +119,12 @@ function overpassProxy({ routing = {} } = {}) {
         // server-side timeout so a tiny body can't request planet-scale work.
         const sanitized = sanitizeOverpassBody(body);
         if (!sanitized.ok) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: sanitized.error }));
+          res.writeHead(400, {
+            'Content-Type': 'application/json'
+          });
+          res.end(JSON.stringify({
+            error: sanitized.error
+          }));
           return;
         }
         const safeBody = sanitized.body;
@@ -119,7 +146,9 @@ function overpassProxy({ routing = {} } = {}) {
             'Content-Type': 'application/json',
             'Retry-After': '5',
           });
-          res.end(JSON.stringify({ error: 'Rate limit exceeded' }));
+          res.end(JSON.stringify({
+            error: 'Rate limit exceeded'
+          }));
           return;
         }
         if (preflight.source !== 'UPSTREAM') {
@@ -162,7 +191,10 @@ function overpassProxy({ routing = {} } = {}) {
             // queries hold a month-long TTL, so a single 406 outlived the
             // outage that caused it.
             if (overpassPayloadIsData(payload)) {
-              const entry = { ...payload, cachedAt: Date.now() };
+              const entry = {
+                ...payload,
+                cachedAt: Date.now()
+              };
               _overpassCache.set(cacheKey, entry);
               trimOverpassCache();
               writeOverpassDisk(cacheKey, entry);
@@ -195,8 +227,12 @@ function overpassProxy({ routing = {} } = {}) {
           return;
         }
         console.error('[Overpass Proxy]', e.message);
-        res.writeHead(502, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Overpass proxy error' }));
+        res.writeHead(502, {
+          'Content-Type': 'application/json'
+        });
+        res.end(JSON.stringify({
+          error: 'Overpass proxy error'
+        }));
       }
     });
 
@@ -209,11 +245,31 @@ function overpassProxy({ routing = {} } = {}) {
   };
 }
 
-export { overpassProxy };
+export {
+  overpassProxy
+};
 
-export { isOverpassBoundaryQuery } from './overpass/query.js';
-export { simplifyOverpassPayloadBody } from './overpass/geometry.js';
-export { readOverpassDisk } from './overpass/cache.js';
-export { resolveOverpassPreflight } from './overpass/cache.js';
-export { overpassPayloadIsData } from './overpass/transport.js';
-export { fetchOverpassPayload } from './overpass/transport.js';
+export {
+  isOverpassBoundaryQuery
+}
+from './overpass/query.js';
+export {
+  simplifyOverpassPayloadBody
+}
+from './overpass/geometry.js';
+export {
+  readOverpassDisk
+}
+from './overpass/cache.js';
+export {
+  resolveOverpassPreflight
+}
+from './overpass/cache.js';
+export {
+  overpassPayloadIsData
+}
+from './overpass/transport.js';
+export {
+  fetchOverpassPayload
+}
+from './overpass/transport.js';
