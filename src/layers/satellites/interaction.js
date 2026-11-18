@@ -6,12 +6,17 @@ export function createInteraction({
   parts,
   source,
 }) {
-  const { resolvePickId, isOwnedByOtherLayer } = services.picking;
+  const {
+    resolvePickId,
+    isOwnedByOtherLayer
+  } = services.picking;
 
   function _onKeyDown(e) {
     if (layerState._enabled && e.key === 'Escape' && layerState._trackedNorad) {
       parts.tracking._cancelPendingTrackingRestore();
-      parts.tracking._clearTracking(false, { origin: 'user' });
+      parts.tracking._clearTracking(false, {
+        origin: 'user'
+      });
     }
   }
 
@@ -34,8 +39,7 @@ export function createInteraction({
             layerState._viewer.trackedEntity !== layerState._trackedEntity
           ) {
             parts.tracking._clearTracking(true, {
-              origin:
-                layerState._viewer.trackedEntity?.gevSelectionOrigin ||
+              origin: layerState._viewer.trackedEntity?.gevSelectionOrigin ||
                 'programmatic',
             });
           }
@@ -59,7 +63,9 @@ export function createInteraction({
           const noradId = Number(prim.id);
           if (!isNaN(noradId) && layerState._catalog.has(noradId)) {
             parts.tracking._cancelPendingTrackingRestore();
-            parts.tracking._trackSatellite(noradId, { origin: 'user' });
+            parts.tracking._trackSatellite(noradId, {
+              origin: 'user'
+            });
             return;
           }
         }
@@ -76,11 +82,16 @@ export function createInteraction({
       // Clicked empty space — deselect
       if (layerState._trackedNorad) {
         parts.tracking._cancelPendingTrackingRestore();
-        parts.tracking._clearTracking(false, { origin: 'user' });
+        parts.tracking._clearTracking(false, {
+          origin: 'user'
+        });
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     document.addEventListener('keydown', _onKeyDown);
   }
-  return { _onKeyDown, _installClickHandler };
+  return {
+    _onKeyDown,
+    _installClickHandler
+  };
 }
