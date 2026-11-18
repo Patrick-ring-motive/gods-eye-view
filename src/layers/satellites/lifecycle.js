@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium';
-import { ISS_OVERLAY_SOURCE_ID } from './policy.js';
+import {
+  ISS_OVERLAY_SOURCE_ID
+} from './policy.js';
 
 export function createLifecycle({
   state: layerState,
@@ -7,9 +9,17 @@ export function createLifecycle({
   parts,
   source,
 }) {
-  const { clearFocusTarget } = services.focus;
-  const { holdContinuousRender, releaseContinuousRender } = services.render;
-  const { registerPickOwner, unregisterPickOwner } = services.picking;
+  const {
+    clearFocusTarget
+  } = services.focus;
+  const {
+    holdContinuousRender,
+    releaseContinuousRender
+  } = services.render;
+  const {
+    registerPickOwner,
+    unregisterPickOwner
+  } = services.picking;
 
   const methods = {
     // Catalog data refresh; propagation remains preRender-owned.
@@ -65,10 +75,10 @@ export function createLifecycle({
       holdContinuousRender('satellites'); // per-frame animator (perf wave 2)
       if (layerState._pointCollection)
         layerState._pointCollection.show =
-          parts.controls.satelliteVisualsVisible(
-            layerState._enabled,
-            layerState._params.showPoints,
-          );
+        parts.controls.satelliteVisualsVisible(
+          layerState._enabled,
+          layerState._params.showPoints,
+        );
       // Orbit ring primitives + persistent ISS host label — show them
       for (const path of layerState._orbitPaths.values())
         path.primitive.show = parts.controls.satelliteVisualsVisible(
@@ -175,5 +185,7 @@ export function createLifecycle({
     },
   };
 
-  return { methods };
+  return {
+    methods
+  };
 }
