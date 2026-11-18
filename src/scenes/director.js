@@ -119,8 +119,7 @@ function recipeToScene(recipe) {
   const post = recipe.post || {};
   const ui = recipe.ui || {};
   const styleParams = post.styleParams && typeof post.styleParams === 'object' ?
-    deepClone(post.styleParams) :
-    {};
+    deepClone(post.styleParams) : {};
 
   // Normalize layer targets from the recipe into canonical form
   const layers = {};
@@ -153,8 +152,7 @@ function recipeToScene(recipe) {
       bloom: {
         enabled: typeof post.bloom === 'number' ? post.bloom > 0 : !!post.bloom,
         intensity: typeof post.bloom === 'number' ?
-          decodeBloomIntensity(post.bloom, 1) :
-          BLOOM_INTENSITY_DEFAULT,
+          decodeBloomIntensity(post.bloom, 1) : BLOOM_INTENSITY_DEFAULT,
         version: BLOOM_SCALE_VERSION,
       },
       sharpen: {
@@ -422,7 +420,8 @@ export class SceneDirector {
         }, 2600);
       }
     } catch {
-      /* toast is best-effort */ }
+      /* toast is best-effort */
+    }
   }
 
   /** Immutable playback snapshots and completed editing actions. */
@@ -793,8 +792,7 @@ export class SceneDirector {
     // Rotate the scene list so startSceneId comes first
     const startIdx = Math.max(0, this._project.scenes.findIndex((scene) => scene.id === startSceneId));
     const ordered = single ?
-      this._project.scenes.slice(startIdx, startIdx + 1) :
-      [
+      this._project.scenes.slice(startIdx, startIdx + 1) : [
         ...this._project.scenes.slice(startIdx),
         ...this._project.scenes.slice(0, startIdx),
       ];
