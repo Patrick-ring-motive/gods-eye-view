@@ -6,7 +6,9 @@
 // ≈never. Pure-function tests, no network.
 //
 // Run with: npm test   (node --test)
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   simplifyOverpassPayloadBody,
@@ -16,18 +18,40 @@ import {
 
 test('preflight checks memory, in-flight, then disk before consuming limiter quota', async () => {
   const key = 'normalized query';
-  const fresh = { id: 'memory', status: 200, cachedAt: 900 };
-  const joined = { id: 'inflight', status: 200, cachedAt: 950 };
-  const disk = { id: 'disk', status: 200, cachedAt: 975 };
+  const fresh = {
+    id: 'memory',
+    status: 200,
+    cachedAt: 900
+  };
+  const joined = {
+    id: 'inflight',
+    status: 200,
+    cachedAt: 950
+  };
+  const disk = {
+    id: 'disk',
+    status: 200,
+    cachedAt: 975
+  };
   let diskReads = 0;
   let limiterCalls = 0;
-  const allowUpstream = () => { limiterCalls += 1; return true; };
+  const allowUpstream = () => {
+    limiterCalls += 1;
+    return true;
+  };
 
   const memoryHit = await resolveOverpassPreflight({
     cacheKey: key,
-    memoryCache: new Map([[key, fresh]]),
-    inFlight: new Map([[key, Promise.resolve(joined)]]),
-    readDisk: async () => { diskReads += 1; return disk; },
+    memoryCache: new Map([
+      [key, fresh]
+    ]),
+    inFlight: new Map([
+      [key, Promise.resolve(joined)]
+    ]),
+    readDisk: async () => {
+      diskReads += 1;
+      return disk;
+    },
     allowUpstream,
     now: 1000,
     cacheMs: 200,
@@ -39,9 +63,20 @@ test('preflight checks memory, in-flight, then disk before consuming limiter quo
 
   const inFlightHit = await resolveOverpassPreflight({
     cacheKey: key,
-    memoryCache: new Map([[key, { id: 'stale', status: 200, cachedAt: 0 }]]),
-    inFlight: new Map([[key, Promise.resolve(joined)]]),
-    readDisk: async () => { diskReads += 1; return disk; },
+    memoryCache: new Map([
+      [key, {
+        id: 'stale',
+        status: 200,
+        cachedAt: 0
+      }]
+    ]),
+    inFlight: new Map([
+      [key, Promise.resolve(joined)]
+    ]),
+    readDisk: async () => {
+      diskReads += 1;
+      return disk;
+    },
     allowUpstream,
     now: 1000,
     cacheMs: 200,
@@ -55,7 +90,10 @@ test('preflight checks memory, in-flight, then disk before consuming limiter quo
     cacheKey: key,
     memoryCache: new Map(),
     inFlight: new Map(),
-    readDisk: async () => { diskReads += 1; return disk; },
+    readDisk: async () => {
+      diskReads += 1;
+      return disk;
+    },
     allowUpstream,
   });
   assert.equal(diskHit.source, 'DISK');
@@ -67,7 +105,10 @@ test('preflight checks memory, in-flight, then disk before consuming limiter quo
     cacheKey: key,
     memoryCache: new Map(),
     inFlight: new Map(),
-    readDisk: async () => { diskReads += 1; return null; },
+    readDisk: async () => {
+      diskReads += 1;
+      return null;
+    },
     allowUpstream,
   });
   assert.equal(upstreamMiss.source, 'UPSTREAM');
@@ -85,14 +126,30 @@ test('preflight checks memory, in-flight, then disk before consuming limiter quo
 });
 
 test('preflight treats cached refusals as misses without spending extra quota', async () => {
-  for (const invalid of [{ status: 406 }, { status: 200, runtimeError: true }]) {
+  for (const invalid of [{
+      status: 406
+    }, {
+      status: 200,
+      runtimeError: true
+    }]) {
     let admissions = 0;
     const result = await resolveOverpassPreflight({
       cacheKey: 'refused',
-      memoryCache: new Map([['refused', { ...invalid, cachedAt: Date.now() }]]),
+      memoryCache: new Map([
+        ['refused', {
+          ...invalid,
+          cachedAt: Date.now()
+        }]
+      ]),
       inFlight: new Map(),
-      readDisk: async () => ({ ...invalid, cachedAt: Date.now() }),
-      allowUpstream: () => { admissions++; return true; },
+      readDisk: async () => ({
+        ...invalid,
+        cachedAt: Date.now()
+      }),
+      allowUpstream: () => {
+        admissions++;
+        return true;
+      },
     });
     assert.equal(result.source, 'UPSTREAM');
     assert.equal(admissions, 1);
@@ -100,7 +157,11 @@ test('preflight treats cached refusals as misses without spending extra quota', 
 });
 
 /** Synthetic dense ring: N points on a circle with sub-tolerance jitter. */
-function denseRing(n, { latC = 37.5, lonC = 14.2, radiusDeg = 0.5 } = {}) {
+function denseRing(n, {
+  latC = 37.5,
+  lonC = 14.2,
+  radiusDeg = 0.5
+} = {}) {
   const pts = [];
   for (let i = 0; i < n; i++) {
     const a = (i / n) * 2 * Math.PI;
@@ -112,15 +173,27 @@ function denseRing(n, { latC = 37.5, lonC = 14.2, radiusDeg = 0.5 } = {}) {
       lon: lonC + Math.cos(a) * (radiusDeg + jitter),
     });
   }
-  pts.push({ ...pts[0] }); // closed ring
+  pts.push({
+    ...pts[0]
+  }); // closed ring
   return pts;
 }
 
-const TEST_OPTS = { minBytes: 0, minPoints: 200, toleranceDeg: 0.0004 };
+const TEST_OPTS = {
+  minBytes: 0,
+  minPoints: 200,
+  toleranceDeg: 0.0004
+};
 
 test('simplify: giant way geometry is decimated, endpoints preserved', () => {
   const ring = denseRing(4000);
-  const body = JSON.stringify({ elements: [{ type: 'way', id: 1, geometry: ring }] });
+  const body = JSON.stringify({
+    elements: [{
+      type: 'way',
+      id: 1,
+      geometry: ring
+    }]
+  });
   const out = JSON.parse(simplifyOverpassPayloadBody(body, TEST_OPTS));
   const g = out.elements[0].geometry;
   assert.ok(g.length < ring.length * 0.5, `should shed most redundant points, got ${g.length}/${ring.length}`);
@@ -135,9 +208,15 @@ test('simplify: relation member geometries are decimated too', () => {
     elements: [{
       type: 'relation',
       id: 2,
-      members: [
-        { type: 'way', role: 'outer', geometry: ring },
-        { type: 'node', role: 'admin_centre' }, // no geometry — must survive untouched
+      members: [{
+          type: 'way',
+          role: 'outer',
+          geometry: ring
+        },
+        {
+          type: 'node',
+          role: 'admin_centre'
+        }, // no geometry — must survive untouched
       ],
     }],
   });
@@ -147,19 +226,45 @@ test('simplify: relation member geometries are decimated too', () => {
 });
 
 test('simplify: small geometries (building footprints) pass through untouched', () => {
-  const square = [
-    { lat: 30.27, lon: -97.74 }, { lat: 30.271, lon: -97.74 },
-    { lat: 30.271, lon: -97.741 }, { lat: 30.27, lon: -97.741 },
-    { lat: 30.27, lon: -97.74 },
+  const square = [{
+      lat: 30.27,
+      lon: -97.74
+    }, {
+      lat: 30.271,
+      lon: -97.74
+    },
+    {
+      lat: 30.271,
+      lon: -97.741
+    }, {
+      lat: 30.27,
+      lon: -97.741
+    },
+    {
+      lat: 30.27,
+      lon: -97.74
+    },
   ];
-  const body = JSON.stringify({ elements: [{ type: 'way', id: 3, geometry: square }] });
+  const body = JSON.stringify({
+    elements: [{
+      type: 'way',
+      id: 3,
+      geometry: square
+    }]
+  });
   const out = JSON.parse(simplifyOverpassPayloadBody(body, TEST_OPTS));
   assert.deepEqual(out.elements[0].geometry, square);
 });
 
 test('simplify: geometry stays within tolerance of the original shape', () => {
   const ring = denseRing(4000);
-  const body = JSON.stringify({ elements: [{ type: 'way', id: 4, geometry: ring }] });
+  const body = JSON.stringify({
+    elements: [{
+      type: 'way',
+      id: 4,
+      geometry: ring
+    }]
+  });
   const out = JSON.parse(simplifyOverpassPayloadBody(body, TEST_OPTS));
   const g = out.elements[0].geometry;
   // Every original vertex must lie near SOME kept vertex — a circle of kept
@@ -179,8 +284,16 @@ test('simplify: geometry stays within tolerance of the original shape', () => {
 });
 
 test('simplify: sub-threshold bodies and non-JSON pass through byte-identical', () => {
-  const tiny = JSON.stringify({ elements: [{ type: 'way', geometry: denseRing(3000) }] });
-  assert.equal(simplifyOverpassPayloadBody(tiny, { ...TEST_OPTS, minBytes: tiny.length + 1 }), tiny);
+  const tiny = JSON.stringify({
+    elements: [{
+      type: 'way',
+      geometry: denseRing(3000)
+    }]
+  });
+  assert.equal(simplifyOverpassPayloadBody(tiny, {
+    ...TEST_OPTS,
+    minBytes: tiny.length + 1
+  }), tiny);
   const junk = 'this is not json {';
   assert.equal(simplifyOverpassPayloadBody(junk, TEST_OPTS), junk);
 });
