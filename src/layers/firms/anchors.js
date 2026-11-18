@@ -72,7 +72,10 @@ export function createFireAnchors({
     for (const p of points) {
       if (!Number.isFinite(p?.lat) || !Number.isFinite(p?.lon)) continue;
       if (cachedGroundFloor(p.lat, p.lon) != null) continue;
-      cold.push({ lat: p.lat, lon: p.lon });
+      cold.push({
+        lat: p.lat,
+        lon: p.lon
+      });
     }
     return cold;
   }
@@ -94,5 +97,9 @@ export function createFireAnchors({
     _chain = null;
   }
 
-  return { fireAnchorHeight, warmFireAnchorFloors, _resetFireAnchorsForTest };
+  return {
+    fireAnchorHeight,
+    warmFireAnchorFloors,
+    _resetFireAnchorsForTest
+  };
 }
