@@ -336,8 +336,7 @@ export function createModel({
         mode,
         error: null,
         loadingLabel: fetching ?
-          'syncing LIVE traffic flow' :
-          `LIVE · TomTom flow · ${coveragePct}% cov`,
+          'syncing LIVE traffic flow' : `LIVE · TomTom flow · ${coveragePct}% cov`,
       };
     }
     // Keyless simulation — one terse line that names the mode and the remedy
@@ -347,8 +346,7 @@ export function createModel({
       mode,
       error: null,
       loadingLabel: statusUnavailable ?
-        'SIMULATED — traffic service unreachable' :
-        'SIMULATED — add TomTom key for live',
+        'SIMULATED — traffic service unreachable' : 'SIMULATED — add TomTom key for live',
     };
   }
 
