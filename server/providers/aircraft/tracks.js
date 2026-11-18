@@ -1,5 +1,9 @@
-import { getOpenSkyToken } from './opensky.js';
-import { readCappedResponseText } from '../common/http.js';
+import {
+  getOpenSkyToken
+} from './opensky.js';
+import {
+  readCappedResponseText
+} from '../common/http.js';
 /**
  * Vite plugin: aircraft track-history backfill proxies (PRD WS-F F1/F2).
  *
@@ -40,20 +44,31 @@ export function trackBackfillProxies() {
       headers,
       signal: AbortSignal.timeout(12000),
     });
-    const { tooLarge, text } = await readCappedResponseText(
+    const {
+      tooLarge,
+      text
+    } = await readCappedResponseText(
       upstream,
       RESPONSE_CAP_BYTES,
     );
     let body;
     if (tooLarge) {
-      body = JSON.stringify({ error: 'Upstream track response too large' });
+      body = JSON.stringify({
+        error: 'Upstream track response too large'
+      });
     } else if (!upstream.ok) {
       // Sanitize upstream error surface; status code is signal enough
-      body = JSON.stringify({ error: `Track source HTTP ${upstream.status}` });
+      body = JSON.stringify({
+        error: `Track source HTTP ${upstream.status}`
+      });
     } else {
       body = text;
     }
-    cachePut(key, { at: Date.now(), status: upstream.status, body });
+    cachePut(key, {
+      at: Date.now(),
+      status: upstream.status,
+      body
+    });
     res.statusCode = upstream.status;
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'no-store');
@@ -71,7 +86,9 @@ export function trackBackfillProxies() {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json');
           res.end(
-            JSON.stringify({ error: 'icao24 must be a 6-char hex string' }),
+            JSON.stringify({
+              error: 'icao24 must be a 6-char hex string'
+            }),
           );
           return;
         }
@@ -80,12 +97,16 @@ export function trackBackfillProxies() {
           res,
           `osky:${icao24}`,
           `https://opensky-network.org/api/tracks/all?icao24=${icao24}&time=0`,
-          token ? { Authorization: `Bearer ${token}` } : {},
+          token ? {
+            Authorization: `Bearer ${token}`
+          } : {},
         );
       } catch (error) {
         res.statusCode = 502;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: 'OpenSky track fetch failed' }));
+        res.end(JSON.stringify({
+          error: 'OpenSky track fetch failed'
+        }));
       }
     });
 
@@ -99,7 +120,9 @@ export function trackBackfillProxies() {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'application/json');
           res.end(
-            JSON.stringify({ error: 'hex must be a 6-7 char hex string' }),
+            JSON.stringify({
+              error: 'hex must be a 6-7 char hex string'
+            }),
           );
           return;
         }
@@ -111,7 +134,9 @@ export function trackBackfillProxies() {
       } catch (error) {
         res.statusCode = 502;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: 'adsb.lol trace fetch failed' }));
+        res.end(JSON.stringify({
+          error: 'adsb.lol trace fetch failed'
+        }));
       }
     });
   }
