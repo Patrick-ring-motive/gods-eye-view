@@ -190,12 +190,10 @@ export function createAdsbLolSource({
       if (!response.ok) throw httpError(response, 'adsb.lol');
       const baseTimeMs = epoch(payload?.timestamp, 1000);
       return {
-        records: baseTimeMs == null ?
-          [] :
-          normalizeAircraftTrack(payload?.trace, {
-            baseTimeMs,
-            readsb: true,
-          }),
+        records: baseTimeMs == null ? [] : normalizeAircraftTrack(payload?.trace, {
+          baseTimeMs,
+          readsb: true,
+        }),
         complete: false,
       };
     },
