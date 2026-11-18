@@ -15,12 +15,10 @@ export function createController({
 
   function _flightQuery(viewer) {
     const cartographic = viewer?.camera?.positionCartographic;
-    return cartographic ?
-      {
-        latitude: Cesium.Math.toDegrees(cartographic.latitude),
-        longitude: Cesium.Math.toDegrees(cartographic.longitude),
-      } :
-      {};
+    return cartographic ? {
+      latitude: Cesium.Math.toDegrees(cartographic.latitude),
+      longitude: Cesium.Math.toDegrees(cartographic.longitude),
+    } : {};
   }
   return {
     _abortActiveUpdates,
