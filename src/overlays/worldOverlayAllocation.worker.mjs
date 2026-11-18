@@ -465,19 +465,17 @@ function buildPhase3FirmsWorkload(count) {
         id: `${isDatacenter ? 'dc' : 'dam'}-${index}`,
         layerId: sourceId,
         position,
-        properties: isDatacenter ?
-          {
-            tags: {
-              name: `DC ${index}`,
-              operator: `Operator ${index % 17}`
-            }
-          } :
-          {
-            name: `Dam ${index}`,
-            tags: {
-              associated_river: `River ${index % 23}`
-            }
-          },
+        properties: isDatacenter ? {
+          tags: {
+            name: `DC ${index}`,
+            operator: `Operator ${index % 17}`
+          }
+        } : {
+          name: `Dam ${index}`,
+          tags: {
+            associated_river: `River ${index % 23}`
+          }
+        },
         priority: index % 7,
         accent: isDatacenter ? '#00ffff' : '#0088ff',
       });
@@ -548,19 +546,17 @@ function buildPhase3VesselsWorkload(count) {
         id: `${isDatacenter ? 'dc' : 'dam'}-${index}`,
         layerId: sourceId,
         position,
-        properties: isDatacenter ?
-          {
-            tags: {
-              name: `DC ${index}`,
-              operator: `Operator ${index % 17}`
-            }
-          } :
-          {
-            name: `Dam ${index}`,
-            tags: {
-              associated_river: `River ${index % 23}`
-            }
-          },
+        properties: isDatacenter ? {
+          tags: {
+            name: `DC ${index}`,
+            operator: `Operator ${index % 17}`
+          }
+        } : {
+          name: `Dam ${index}`,
+          tags: {
+            associated_river: `River ${index % 23}`
+          }
+        },
         priority: index % 7,
         accent: isDatacenter ? '#00ffff' : '#0088ff',
       });
@@ -593,9 +589,7 @@ function buildPhase3VesselsWorkload(count) {
       gapPx: selected ? 12 : 10,
       accent: '57, 213, 255',
       title: selected ? 'SELECTED VESSEL' : `VESSEL ${vesselIndex}`,
-      details: selected ?
-        ['CARGO · 14.5KT · 231°', 'MMSI 353136000 · POS: LIVE'] :
-        ['CARGO · 14.5KT · 231°'],
+      details: selected ? ['CARGO · 14.5KT · 231°', 'MMSI 353136000 · POS: LIVE'] : ['CARGO · 14.5KT · 231°'],
       selected,
       priority: selected ? 100000 : vesselAmbientCount - vesselIndex,
     }, 12_000_000);
