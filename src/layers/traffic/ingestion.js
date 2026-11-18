@@ -11,7 +11,9 @@ export function createIngestion({
   parts,
   source,
 }) {
-  const { fetchFlowForBounds } = source;
+  const {
+    fetchFlowForBounds
+  } = source;
 
   /**
    * Fetch road geometries from the Overpass API via the local proxy.
@@ -37,22 +39,25 @@ export function createIngestion({
     south,
     west,
     north,
-    east,
-    { majorOnly = false, timeoutSec = 25, signal } = {},
+    east, {
+      majorOnly = false,
+      timeoutSec = 25,
+      signal
+    } = {},
     trace = null,
   ) {
     const state =
-      TRAFFIC_TIMING_ENABLED && trace
-        ? parts.timing.trafficTimingPass(
-            trace,
-            majorOnly ? 'major' : 'full',
-            'proxy',
-          )
-        : null;
+      TRAFFIC_TIMING_ENABLED && trace ?
+      parts.timing.trafficTimingPass(
+        trace,
+        majorOnly ? 'major' : 'full',
+        'proxy',
+      ) :
+      null;
     if (state) trace.currentPass = state.pass;
-    const fetchStart = state
-      ? parts.timing.trafficTimingMark(state, 'fetch-start')
-      : null;
+    const fetchStart = state ?
+      parts.timing.trafficTimingMark(state, 'fetch-start') :
+      null;
     if (state) {
       parts.timing.trafficTimingMeasure(
         'last-camera-change-to-fetch-start',
@@ -61,10 +66,16 @@ export function createIngestion({
         fetchStart,
       );
     }
-    const response = await source.requestRoads(
-      { south, west, north, east },
-      { majorOnly, timeoutSec, signal },
-    );
+    const response = await source.requestRoads({
+      south,
+      west,
+      north,
+      east
+    }, {
+      majorOnly,
+      timeoutSec,
+      signal
+    }, );
 
     if (!response.ok) {
       throw new Error(`Overpass API returned ${response.status}`);
@@ -82,18 +93,17 @@ export function createIngestion({
       state.proxyCache = response.headers.get('x-overpass-cache');
       state.proxyUpstream = response.headers.get('x-overpass-upstream');
     }
-    const responseStart = state
-      ? parts.timing.trafficTimingMark(state, 'response-json-start', {
-          responseStatus: response.status,
-        })
-      : null;
+    const responseStart = state ?
+      parts.timing.trafficTimingMark(state, 'response-json-start', {
+        responseStatus: response.status,
+      }) :
+      null;
     if (state) {
       parts.timing.trafficTimingMeasure(
         'fetch-to-response',
         state,
         fetchStart,
-        responseStart,
-        {
+        responseStart, {
           responseStatus: response.status,
         },
       );
@@ -105,8 +115,7 @@ export function createIngestion({
     if (state) {
       const responseEnd = parts.timing.trafficTimingMark(
         state,
-        'response-json-end',
-        {
+        'response-json-end', {
           responseStatus: response.status,
         },
       );
@@ -114,8 +123,7 @@ export function createIngestion({
         'response-json',
         state,
         responseStart,
-        responseEnd,
-        {
+        responseEnd, {
           responseStatus: response.status,
         },
       );
@@ -183,7 +191,9 @@ export function createIngestion({
         layerState._enabled &&
         generation === layerState._loadGeneration
       ) {
-        fetchFlowForBounds(clamped, { signal: requestSignal }).catch(() => {
+        fetchFlowForBounds(clamped, {
+          signal: requestSignal
+        }).catch(() => {
           /* warm-up only */
         });
       }
@@ -208,7 +218,10 @@ export function createIngestion({
           const oldest = layerState._tileCache.keys().next().value;
           layerState._tileCache.delete(oldest);
         }
-        cache = { major: null, full: null };
+        cache = {
+          major: null,
+          full: null
+        };
         layerState._tileCache.set(cacheKey, cache);
       }
 
@@ -249,8 +262,7 @@ export function createIngestion({
           clamped.south,
           clamped.west,
           clamped.north,
-          clamped.east,
-          {
+          clamped.east, {
             majorOnly: true,
             timeoutSec: 12,
             signal: requestSignal,
@@ -283,8 +295,7 @@ export function createIngestion({
         clamped.south,
         clamped.west,
         clamped.north,
-        clamped.east,
-        {
+        clamped.east, {
           majorOnly: false,
           timeoutSec: 20,
           signal: requestSignal,
@@ -350,5 +361,10 @@ export function createIngestion({
     },
   };
 
-  return { fetchRoads, cancelActiveFetch, loadRoadsForBounds, methods };
+  return {
+    fetchRoads,
+    cancelActiveFetch,
+    loadRoadsForBounds,
+    methods
+  };
 }
