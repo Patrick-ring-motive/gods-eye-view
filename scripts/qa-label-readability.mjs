@@ -234,7 +234,8 @@ function findChrome() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* fall through */ }
+      /* fall through */
+    }
   }
   return null;
 }
@@ -449,17 +450,15 @@ async function main() {
           return rows;
         };
 
-        const assignment = spec.field.kind === 'sat' ?
-          {
-            satellites: build('s'),
-            flights: [],
-            military: []
-          } :
-          {
-            flights: build('f'),
-            military: [],
-            satellites: []
-          };
+        const assignment = spec.field.kind === 'sat' ? {
+          satellites: build('s'),
+          flights: [],
+          military: []
+        } : {
+          flights: build('f'),
+          military: [],
+          satellites: []
+        };
         window.__LABEL_EVIDENCE = assignment;
         for (const layerId of Object.keys(assignment)) {
           const entry = dataManager.layers.get(layerId);
