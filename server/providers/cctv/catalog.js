@@ -207,8 +207,7 @@ export function createCctvCatalog({
             }) : [],
           ),
         ),
-      ) :
-      [];
+      ) : [];
     // Live packs first so file/env overrides win on duplicate IDs; each pack
     // keeps its own priority order and the catalog cap is shared fairly.
     const normalizePack = (name, items) => ({
@@ -223,8 +222,7 @@ export function createCctvCatalog({
         normalizePack(
           pack.name,
           liveResults[index]?.status === 'fulfilled' ?
-          liveResults[index].value :
-          [],
+          liveResults[index].value : [],
         ),
       ),
       normalizePack('file', fromFile),
