@@ -113,8 +113,7 @@ export function createIngestion({
             ),
           );
           for (const place of Array.isArray(placesPayload?.places) ?
-              placesPayload.places :
-              []) {
+              placesPayload.places : []) {
             if (
               !place?.id ||
               !place?.name ||
@@ -130,8 +129,7 @@ export function createIngestion({
             records.push({
               id: `google:${place.id}`,
               kind: placeClass === 'military_land' ?
-                'installation' :
-                'place_candidate',
+                'installation' : 'place_candidate',
               class: placeClass,
               name: String(place.name).trim(),
               latitude: place.latitude,
