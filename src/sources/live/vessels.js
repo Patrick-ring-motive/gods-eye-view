@@ -65,10 +65,8 @@ export function vesselSnapshot(
     rejectedCount: rows.length - records.length,
     observedAtMs,
     freshness: payload?.refreshing ?
-      'stale' :
-      observedAtMs == null ?
-      'unknown' :
-      'current',
+      'stale' : observedAtMs == null ?
+      'unknown' : 'current',
     stale: Boolean(payload?.refreshing),
     // Connection state is distinct from receipt of a usable position.
     transportStatus: typeof payload?.status === 'string' ? payload.status : null,
