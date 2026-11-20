@@ -24,29 +24,45 @@ export function selectMapStartupRoute({
  * @returns {Promise<{tileset: object|null, route: 'google-direct'|'google-ion'|'osm', errors: Error[]}>}
  */
 export async function loadPhotorealisticTileset(
-  Cesium,
-  { googleApiKey = '', cesiumToken = '' } = {},
+  Cesium, {
+    googleApiKey = '',
+    cesiumToken = ''
+  } = {},
 ) {
   const googleKey = clean(googleApiKey);
   const ionToken = clean(cesiumToken);
   const errors = [];
 
   const attempts = [];
-  if (googleKey) attempts.push({ route: 'google-direct', googleKey });
-  if (ionToken) attempts.push({ route: 'google-ion', googleKey: undefined });
+  if (googleKey) attempts.push({
+    route: 'google-direct',
+    googleKey
+  });
+  if (ionToken) attempts.push({
+    route: 'google-ion',
+    googleKey: undefined
+  });
 
   for (const attempt of attempts) {
     try {
-      const tileset = attempt.googleKey
-        ? await createGoogleDirectTileset(Cesium, attempt.googleKey)
-        : await createGoogleIonTileset(Cesium, ionToken);
-      return { tileset, route: attempt.route, errors };
+      const tileset = attempt.googleKey ?
+        await createGoogleDirectTileset(Cesium, attempt.googleKey) :
+        await createGoogleIonTileset(Cesium, ionToken);
+      return {
+        tileset,
+        route: attempt.route,
+        errors
+      };
     } catch (error) {
       errors.push(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
-  return { tileset: null, route: 'osm', errors };
+  return {
+    tileset: null,
+    route: 'osm',
+    errors
+  };
 }
 
 /** Pass credentials to the source instead of changing SDK-wide defaults. */
@@ -61,8 +77,9 @@ export function createGoogleDirectTileset(Cesium, key) {
 
 export async function createGoogleIonTileset(
   Cesium,
-  accessToken,
-  { signal } = {},
+  accessToken, {
+    signal
+  } = {},
 ) {
   accessToken = clean(accessToken);
   if (!accessToken)
