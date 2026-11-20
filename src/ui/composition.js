@@ -1,6 +1,10 @@
 /** Compose UI controls with the application's existing engines and layer instances. */
-import { StyleManager as ApplicationShell } from './applicationShell.js';
-import { LocationSearch } from './location.js';
+import {
+  StyleManager as ApplicationShell
+} from './applicationShell.js';
+import {
+  LocationSearch
+} from './location.js';
 import {
   CITY_POIS,
   GLOBE_VIEW,
@@ -9,10 +13,18 @@ import {
   flyToPOI,
   searchAndFlyTo,
 } from '../locations.js';
-import { interruptCameraMotion } from '../cameraVerbs.js';
-import { IntelHUD } from '../hud.js';
-import { ShareLinkManager } from '../sharelink.js';
-import { OrbitController } from '../orbit.js';
+import {
+  interruptCameraMotion
+} from '../cameraVerbs.js';
+import {
+  IntelHUD
+} from '../hud.js';
+import {
+  ShareLinkManager
+} from '../sharelink.js';
+import {
+  OrbitController
+} from '../orbit.js';
 import {
   CelestialRing,
   getKeyholeFadeTuning,
@@ -43,7 +55,10 @@ import {
 import trafficLayer from '../data/traffic.js';
 import flightsLayer from '../data/flights.js';
 import militaryFlightsLayer from '../data/militaryFlights.js';
-import { isTr3b, toggleTr3b } from '../data/tr3bRegistry.js';
+import {
+  isTr3b,
+  toggleTr3b
+} from '../data/tr3bRegistry.js';
 import satellitesLayer from '../data/satellites.js';
 import cctvLayer from '../data/cctv.js';
 import radioLayer from '../data/radio.js';
@@ -59,7 +74,9 @@ import {
   meshFloorPreferred,
   warmGroundFloor,
 } from '../data/groundFloor.js';
-import { sampleMeshFloorCells } from '../data/meshFloorSampler.js';
+import {
+  sampleMeshFloorCells
+} from '../data/meshFloorSampler.js';
 import {
   holdContinuousRender,
   releaseContinuousRender,
