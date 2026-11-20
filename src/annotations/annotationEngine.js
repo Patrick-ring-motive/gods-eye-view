@@ -133,7 +133,8 @@ export function createAnnotationEngine({
       try {
         listener(evt);
       } catch {
-        /* a listener error must never break the upgrade */ }
+        /* a listener error must never break the upgrade */
+      }
     }
   }
 
@@ -142,7 +143,8 @@ export function createAnnotationEngine({
       try {
         c.abort();
       } catch {
-        /* no-op */ }
+        /* no-op */
+      }
     }
     activeControllers.clear();
   }
@@ -191,7 +193,8 @@ export function createAnnotationEngine({
     try {
       renderer.remove(anno);
     } catch {
-      /* the renderer is already in a bad way; the original error wins */ }
+      /* the renderer is already in a bad way; the original error wins */
+    }
   }
 
   function ensureTicking() {
@@ -701,14 +704,12 @@ export function createAnnotationEngine({
       } : {}),
       // Route-specific signal so the voice layer can be honest about an OSRM outage:
       // fallback=true means a straight direct line, not a real route.
-      ...(anno.type === 'route' ?
-        {
-          fallback: Boolean(anno.fallback),
-          mode: anno.mode,
-          distanceM: anno.distanceM,
-          durationS: anno.durationS
-        } :
-        {}),
+      ...(anno.type === 'route' ? {
+        fallback: Boolean(anno.fallback),
+        mode: anno.mode,
+        distanceM: anno.distanceM,
+        durationS: anno.durationS
+      } : {}),
     };
   }
 
@@ -948,8 +949,7 @@ export function createAnnotationEngine({
 
   function frameAnnotation(anno) {
     try {
-      const target = anno.to ?
-        {
+      const target = anno.to ? {
           lon: (anno.anchor.lon + anno.to.lon) / 2,
           lat: (anno.anchor.lat + anno.to.lat) / 2
         } :
