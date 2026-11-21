@@ -1,7 +1,11 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
 import * as Cesium from 'cesium';
-import { createHybridAnnotationRenderer } from './hybridAnnotationRenderer.js';
+import {
+  createHybridAnnotationRenderer
+} from './hybridAnnotationRenderer.js';
 
 class FakeClassList {
   constructor(owner) {
@@ -101,7 +105,12 @@ class FakeElement {
   addEventListener() {}
 
   getBBox() {
-    return { x: 0, y: 0, width: 40, height: 16 };
+    return {
+      x: 0,
+      y: 0,
+      width: 40,
+      height: 16
+    };
   }
 
   set innerHTML(value) {
@@ -178,7 +187,9 @@ function cameraLookingAt(lon, lat) {
       new Cesium.Matrix4(),
     ),
     frustum,
-    positionCartographic: { height: 1_000_000 },
+    positionCartographic: {
+      height: 1_000_000
+    },
   };
 }
 
@@ -194,8 +205,16 @@ function installBrowserGlobals(t) {
     ['OffscreenCanvas', globalThis.OffscreenCanvas],
   ]);
   globalThis.document = fakeDocument();
-  globalThis.requestAnimationFrame = (callback) => { callback(); return 1; };
-  globalThis.window = { setTimeout: (fn) => { fn(); return 1; } };
+  globalThis.requestAnimationFrame = (callback) => {
+    callback();
+    return 1;
+  };
+  globalThis.window = {
+    setTimeout: (fn) => {
+      fn();
+      return 1;
+    }
+  };
   for (const name of originalBrowserConstructors.keys()) globalThis[name] = class {};
   t.after(() => {
     if (originalDocument === undefined) delete globalThis.document;
@@ -217,11 +236,21 @@ function fakeViewer(lon, lat) {
   const dataSources = [];
   const scene = {
     camera,
-    canvas: { clientWidth: 1280, clientHeight: 720, width: 1280, height: 720 },
-    frameState: { mode: Cesium.SceneMode.SCENE3D },
+    canvas: {
+      clientWidth: 1280,
+      clientHeight: 720,
+      width: 1280,
+      height: 720
+    },
+    frameState: {
+      mode: Cesium.SceneMode.SCENE3D
+    },
     clampToHeightSupported: true,
     clampToHeight: (world) => world,
-    postRender: { addEventListener() {}, removeEventListener() {} },
+    postRender: {
+      addEventListener() {},
+      removeEventListener() {}
+    },
   };
   return {
     dataSources,
@@ -250,10 +279,19 @@ function annotationGroups(svg) {
 
 function naiveRingCentroid(ring) {
   const totals = ring.reduce(
-    (sum, [lon, lat]) => ({ lon: sum.lon + lon, lat: sum.lat + lat }),
-    { lon: 0, lat: 0 },
+    (sum, [lon, lat]) => ({
+      lon: sum.lon + lon,
+      lat: sum.lat + lat
+    }), {
+      lon: 0,
+      lat: 0
+    },
   );
-  return { lon: totals.lon / ring.length, lat: totals.lat / ring.length, height: 0 };
+  return {
+    lon: totals.lon / ring.length,
+    lat: totals.lat / ring.length,
+    height: 0
+  };
 }
 
 test('hybrid outline upgrade preserves the screen group and adds world geometry', (t) => {
@@ -266,7 +304,10 @@ test('hybrid outline upgrade preserves the screen group and adds world geometry'
     ['OffscreenCanvas', globalThis.OffscreenCanvas],
   ]);
   globalThis.document = fakeDocument();
-  globalThis.requestAnimationFrame = (callback) => { callback(); return 1; };
+  globalThis.requestAnimationFrame = (callback) => {
+    callback();
+    return 1;
+  };
   for (const name of originalBrowserConstructors.keys()) globalThis[name] = class {};
   t.after(() => {
     if (originalDocument === undefined) delete globalThis.document;
@@ -283,11 +324,21 @@ test('hybrid outline upgrade preserves the screen group and adds world geometry'
   const dataSources = [];
   const scene = {
     camera,
-    canvas: { clientWidth: 1280, clientHeight: 720, width: 1280, height: 720 },
-    frameState: { mode: Cesium.SceneMode.SCENE3D },
+    canvas: {
+      clientWidth: 1280,
+      clientHeight: 720,
+      width: 1280,
+      height: 720
+    },
+    frameState: {
+      mode: Cesium.SceneMode.SCENE3D
+    },
     clampToHeightSupported: true,
     clampToHeight: (world) => world,
-    postRender: { addEventListener() {}, removeEventListener() {} },
+    postRender: {
+      addEventListener() {},
+      removeEventListener() {}
+    },
   };
   const viewer = {
     scene,
@@ -312,7 +363,11 @@ test('hybrid outline upgrade preserves the screen group and adds world geometry'
     color: 'primary',
     label: 'Texas',
     alpha: 1,
-    anchor: { lon: -99, lat: 31, height: 0 },
+    anchor: {
+      lon: -99,
+      lat: 31,
+      height: 0
+    },
     ring: null,
     footprintKind: null,
     synthesized: false,
@@ -351,7 +406,11 @@ test('hybrid outline upgrade preserves the screen group and adds world geometry'
   assert.equal(after.group.querySelector('.gev-anno-dot'), originalDot, 'the anchor dot is retained');
   assert.equal(originalDot.getAttribute('cx'), expectedWindow.x.toFixed(1));
   assert.equal(originalDot.getAttribute('cy'), expectedWindow.y.toFixed(1));
-  assert.deepEqual(centroid, { lon: -100.8, lat: 29.4, height: 0 }, 'closed-ring vertex mean stays pinned');
+  assert.deepEqual(centroid, {
+    lon: -100.8,
+    lat: 29.4,
+    height: 0
+  }, 'closed-ring vertex mean stays pinned');
   assert.equal(dataSources[0].entities.values.length, 2, 'world area adds one fill and one outline');
   assert.equal(dataSources[0].entities.values.filter((entity) => entity.polygon).length, 1);
   assert.equal(dataSources[0].entities.values.filter((entity) => entity.polyline).length, 1);
@@ -369,9 +428,18 @@ test('hybrid outline upgrade preserves the screen group and adds world geometry'
 
 test('a sub-renderer throw mid-add leaves state the rollback can still remove', (t) => {
   installBrowserGlobals(t);
-  const { viewer, dataSources } = fakeViewer(-99, 31);
+  const {
+    viewer,
+    dataSources
+  } = fakeViewer(-99, 31);
   const renderer = createHybridAnnotationRenderer(viewer);
-  const ring = [[-106, 25], [-93, 25], [-93, 36], [-106, 36], [-106, 25]];
+  const ring = [
+    [-106, 25],
+    [-93, 25],
+    [-93, 36],
+    [-106, 36],
+    [-106, 25]
+  ];
   const anno = {
     id: 'anno-partial-add',
     type: 'area',
@@ -386,7 +454,9 @@ test('a sub-renderer throw mid-add leaves state the rollback can still remove', 
 
   // The world drape lands first; the screen caption then fails the way a lost
   // context does, AFTER the world geometry is already on the board.
-  const { svg } = findAnnotationGroup(globalThis.document);
+  const {
+    svg
+  } = findAnnotationGroup(globalThis.document);
   const appendChild = svg.appendChild.bind(svg);
   let failNextInsert = true;
   svg.appendChild = (child) => {
@@ -417,9 +487,18 @@ test('a sub-renderer throw mid-add leaves state the rollback can still remove', 
 
 test('a release that throws keeps the mark addressable for a retry cleanup', (t) => {
   installBrowserGlobals(t);
-  const { viewer, dataSources } = fakeViewer(-99, 31);
+  const {
+    viewer,
+    dataSources
+  } = fakeViewer(-99, 31);
   const renderer = createHybridAnnotationRenderer(viewer);
-  const ring = [[-106, 25], [-93, 25], [-93, 36], [-106, 36], [-106, 25]];
+  const ring = [
+    [-106, 25],
+    [-93, 25],
+    [-93, 36],
+    [-106, 36],
+    [-106, 25]
+  ];
   const anno = {
     id: 'anno-release-throw',
     type: 'area',
@@ -433,14 +512,18 @@ test('a release that throws keeps the mark addressable for a retry cleanup', (t)
   };
 
   renderer.add(anno);
-  const { svg } = findAnnotationGroup(globalThis.document);
+  const {
+    svg
+  } = findAnnotationGroup(globalThis.document);
   assert.equal(dataSources[0].entities.values.length, 2);
   assert.equal(annotationGroups(svg).length, 1);
 
   // The world route releases fine, then the screen release fails part-way
   // (its fade-out timer throws) — so its SVG group is still in the document.
   const workingSetTimeout = globalThis.window.setTimeout;
-  globalThis.window.setTimeout = () => { throw new Error('teardown scheduling failed'); };
+  globalThis.window.setTimeout = () => {
+    throw new Error('teardown scheduling failed');
+  };
   assert.throws(() => renderer.remove(anno), /teardown scheduling failed/);
   assert.equal(dataSources[0].entities.values.length, 0, 'the world route did release');
   assert.equal(annotationGroups(svg).length, 1, 'the screen route did NOT — that is the orphan');
@@ -460,9 +543,18 @@ test('a release that throws keeps the mark addressable for a retry cleanup', (t)
 
 test('a world add that fails mid-way leaves its landed entities removable', (t) => {
   installBrowserGlobals(t);
-  const { viewer, dataSources } = fakeViewer(-99, 31);
+  const {
+    viewer,
+    dataSources
+  } = fakeViewer(-99, 31);
   const renderer = createHybridAnnotationRenderer(viewer);
-  const ring = [[-106, 25], [-93, 25], [-93, 36], [-106, 36], [-106, 25]];
+  const ring = [
+    [-106, 25],
+    [-93, 25],
+    [-93, 36],
+    [-106, 36],
+    [-106, 25]
+  ];
   const anno = {
     id: 'anno-partial-world-add',
     type: 'area',
@@ -493,7 +585,9 @@ test('a world add that fails mid-way leaves its landed entities removable', (t) 
   assert.equal(entities.values.length, 0,
     'the rollback must see the entities that landed before the throw');
 
-  const { svg } = findAnnotationGroup(globalThis.document);
+  const {
+    svg
+  } = findAnnotationGroup(globalThis.document);
   renderer.add(anno);
   assert.equal(entities.values.length, 2, 'the retry draws a complete mark');
   assert.equal(annotationGroups(svg).length, 1);
