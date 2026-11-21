@@ -214,7 +214,8 @@ function findChromeExecutable() {
     try {
       if (fs.existsSync(candidate)) return candidate;
     } catch {
-      /* fall through to Puppeteer's cache */ }
+      /* fall through to Puppeteer's cache */
+    }
   }
   return null;
 }
@@ -413,8 +414,7 @@ async function main() {
           entries: diagnostics?.entriesBySource?.['ais-live-vessels'] || 0,
           painted: diagnostics?.paintedBySource?.['ais-live-vessels'] || 0,
           fixtureRowsRetained: fixtureIds.length ?
-            fixtureIds.every((id) => snapshotIds.has(String(id))) :
-            null,
+            fixtureIds.every((id) => snapshotIds.has(String(id))) : null,
           renderer: gl ? {
             vendor: String(gl.getParameter(debugInfo?.UNMASKED_VENDOR_WEBGL || gl.VENDOR) || 'unknown'),
             renderer: String(gl.getParameter(debugInfo?.UNMASKED_RENDERER_WEBGL || gl.RENDERER) || 'unknown'),
