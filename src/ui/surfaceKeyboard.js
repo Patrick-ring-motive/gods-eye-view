@@ -39,7 +39,7 @@ export function createSurfaceKeyboard({
       ),
     ].filter(
       (node) =>
-        !node.hasAttribute('disabled') && node.getClientRects().length > 0,
+      !node.hasAttribute('disabled') && node.getClientRects().length > 0,
     );
     if (!order.length) return;
     const first = order[0];
@@ -66,7 +66,9 @@ export function createSurfaceKeyboard({
     documentRef.addEventListener('keydown', onKeyDown, true);
   };
 
-  const deactivate = ({ restoreFocus = false } = {}) => {
+  const deactivate = ({
+    restoreFocus = false
+  } = {}) => {
     if (!active) return;
     active = false;
     documentRef.removeEventListener('keydown', onKeyDown, true);
@@ -74,9 +76,13 @@ export function createSurfaceKeyboard({
     previouslyFocused = null;
     if (!restoreFocus) return;
     if (typeof target?.focus === 'function' && target.isConnected) {
-      target.focus({ preventScroll: true });
+      target.focus({
+        preventScroll: true
+      });
     } else {
-      fallbackFocus?.()?.focus?.({ preventScroll: true });
+      fallbackFocus?.()?.focus?.({
+        preventScroll: true
+      });
     }
   };
 
@@ -86,5 +92,9 @@ export function createSurfaceKeyboard({
     deactivate();
   };
 
-  return { activate, deactivate, destroy };
+  return {
+    activate,
+    deactivate,
+    destroy
+  };
 }
