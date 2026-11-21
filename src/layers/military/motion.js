@@ -150,8 +150,7 @@ export function createMotion({
       // Captured at poll normalization so the fleet tick does not allocate a
       // Date for every aircraft twelve times per second.
       fixEpochMs: Number.isFinite(newest.epochMs) ?
-        newest.epochMs :
-        Cesium.JulianDate.toDate(newest.time).getTime(),
+        newest.epochMs : Cesium.JulianDate.toDate(newest.time).getTime(),
       lastContactEpochMs: info?.lastContactEpochMs,
     });
     return _extrapolateFix(
