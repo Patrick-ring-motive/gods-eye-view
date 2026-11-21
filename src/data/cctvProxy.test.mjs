@@ -258,7 +258,8 @@ test('CCTV upstream frame fetch refuses a body it cannot stream instead of buffe
         ['content-type', 'image/jpeg']
       ]),
       body: {
-        /* neither async-iterable nor reader-backed */ },
+        /* neither async-iterable nor reader-backed */
+      },
       arrayBuffer: async () => {
         throw new Error('arrayBuffer must never be used as an uncapped fallback');
       },
