@@ -346,8 +346,7 @@ function normalizeRegistryEntry(entry) {
     centerLat,
     centerLon,
     loadRadiusKm: Number.isFinite(loadRadiusKm) && loadRadiusKm > 0 ?
-      loadRadiusKm :
-      CITY_RANGE_BASE_KM,
+      loadRadiusKm : CITY_RANGE_BASE_KM,
     stationInformationUrl: stationInformationUrl.toString(),
     stationStatusUrl: stationStatusUrl.toString(),
     provider: String(entry?.provider || 'GBFS').trim() || 'GBFS',
