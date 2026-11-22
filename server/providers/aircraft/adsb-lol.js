@@ -56,11 +56,9 @@ export function adsbLolProxy() {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
       'X-ADS-B-Cache': cacheStatus,
-      ...(['HIT', 'STALE'].includes(cacheStatus) ?
-        {
-          'X-ADS-B-Cache-Age-Ms': String(Math.max(0, Date.now() - _cacheAt)),
-        } :
-        {}),
+      ...(['HIT', 'STALE'].includes(cacheStatus) ? {
+        'X-ADS-B-Cache-Age-Ms': String(Math.max(0, Date.now() - _cacheAt)),
+      } : {}),
       ...extra,
     });
     res.end(body);
@@ -136,13 +134,11 @@ export function adsbLolProxy() {
           upstream.status,
           body,
           'MISS',
-          _cooldownUntil > Date.now() ?
-          {
+          _cooldownUntil > Date.now() ? {
             'Retry-After': String(
               Math.ceil((_cooldownUntil - Date.now()) / 1000),
             ),
-          } :
-          {},
+          } : {},
         );
       } catch (e) {
         console.error('[adsb.lol Proxy]', e.message);
