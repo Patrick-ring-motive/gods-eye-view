@@ -7,8 +7,13 @@ import {
 } from './panelRails.js';
 
 function element(
-  id,
-  { height = 42, top = 234, left = 20, width = 272, collapsed = false } = {},
+  id, {
+    height = 42,
+    top = 234,
+    left = 20,
+    width = 272,
+    collapsed = false
+  } = {},
 ) {
   const classes = new Set(collapsed ? ['collapsed'] : []);
   const properties = new Map();
@@ -75,19 +80,33 @@ function element(
   };
   return node;
 }
+
 function fixture(
-  side,
-  { mobile = false, hud = { visible: true, variant: 'tactical' } } = {},
+  side, {
+    mobile = false,
+    hud = {
+      visible: true,
+      variant: 'tactical'
+    }
+  } = {},
 ) {
-  const first = element('first', { height: 42, collapsed: true });
-  const second = element('second', { height: 42, collapsed: true });
+  const first = element('first', {
+    height: 42,
+    collapsed: true
+  });
+  const second = element('second', {
+    height: 42,
+    collapsed: true
+  });
   const stack = element('rail', {
     height: 96,
     left: side === 'left' ? 20 : 1100,
   });
   stack.children = [first, second];
   first.parentElement = second.parentElement = stack;
-  const documentRef = { activeElement: null };
+  const documentRef = {
+    activeElement: null
+  };
   stack.ownerDocument = documentRef;
   const collapsed = [];
   let retries = 0,
@@ -100,7 +119,9 @@ function fixture(
     collapsedHeights: new Map(),
     windowRef: {
       innerHeight: 900,
-      matchMedia: () => ({ matches: mobile }),
+      matchMedia: () => ({
+        matches: mobile
+      }),
       getComputedStyle: (node) => node.computed,
     },
     onCollapse: (panel) => collapsed.push(panel.id),
@@ -152,8 +173,14 @@ test('left layout records collapsed heights and aligns the right rail without ch
 
 test('left corridor respects a lower obstacle but ignores an obstacle hidden by its parent', () => {
   const f = fixture('left');
-  const blocker = element('blocker', { top: 600, height: 80 });
-  const hidden = element('hidden', { top: 300, height: 80 });
+  const blocker = element('blocker', {
+    top: 600,
+    height: 80
+  });
+  const hidden = element('hidden', {
+    top: 300,
+    height: 80
+  });
   hidden.parentElement = element('hidden-parent');
   hidden.parentElement.computed.opacity = '0';
   f.options.obstacles = [blocker, hidden];
@@ -163,7 +190,9 @@ test('left corridor respects a lower obstacle but ignores an obstacle hidden by 
 
 for (const side of ['left', 'right']) {
   test(`${side} mobile layout releases desktop height/position styles and labels`, () => {
-    const f = fixture(side, { mobile: true });
+    const f = fixture(side, {
+      mobile: true
+    });
     f.stack.classList.add('layout-focus');
     f.stack.style.setProperty(`--${side}-stack-safe-top`, '300px');
     f.first.style.setProperty(`--${side}-panel-allocated-height`, '99px');
@@ -192,7 +221,12 @@ for (const side of ['left', 'right']) {
     assert.equal(f.retries(), 1);
   });
   test(`${side} hidden HUD restores automatic collapse without altering manual collapse`, () => {
-    const f = fixture(side, { hud: { visible: false, variant: 'tactical' } });
+    const f = fixture(side, {
+      hud: {
+        visible: false,
+        variant: 'tactical'
+      }
+    });
     f.first.classList.add('layout-auto-collapsed');
     f.run();
     assert.equal(f.first.classList.contains('collapsed'), false);
@@ -225,7 +259,7 @@ test('right layout retains Display allocation during measurement and caps restor
   assert.equal(
     f.first.writes.some(
       ([op, name]) =>
-        op === 'remove' && name === '--right-panel-allocated-height',
+      op === 'remove' && name === '--right-panel-allocated-height',
     ),
     false,
   );
@@ -243,7 +277,11 @@ test('right layout retains Display allocation during measurement and caps restor
 test('right rail aligns to the current left rail and excludes hidden obstacles', () => {
   const f = fixture('right');
   f.options.leftStack.rect.top = 200;
-  const hidden = element('hidden', { left: 1100, top: 100, height: 200 });
+  const hidden = element('hidden', {
+    left: 1100,
+    top: 100,
+    height: 200
+  });
   hidden.computed.display = 'none';
   f.options.obstacles = [hidden];
   f.run();
@@ -252,13 +290,21 @@ test('right rail aligns to the current left rail and excludes hidden obstacles',
 
 test('natural height includes visible content, margins and wrapper chrome, excluding hidden rows', () => {
   const panel = element('panel');
-  const inner = element('inner', { top: 100 });
+  const inner = element('inner', {
+    top: 100
+  });
   inner.computed.paddingTop = '10px';
   inner.computed.paddingBottom = '5px';
-  const row = element('row', { top: 110, height: 40 });
+  const row = element('row', {
+    top: 110,
+    height: 40
+  });
   row.scrollHeight = 80;
   row.computed.marginBottom = '3px';
-  const hidden = element('hidden', { top: 1000, height: 900 });
+  const hidden = element('hidden', {
+    top: 1000,
+    height: 900
+  });
   hidden.computed.visibility = 'hidden';
   panel.computed.borderTopWidth = '1px';
   panel.computed.borderBottomWidth = '1px';
