@@ -1,7 +1,13 @@
-import { expandApplicationHtml } from '../build/application-html.js';
-import { readStylesheet } from './testSupport/readStylesheet.mjs';
+import {
+  expandApplicationHtml
+} from '../build/application-html.js';
+import {
+  readStylesheet
+} from './testSupport/readStylesheet.mjs';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync
+} from 'node:fs';
 import test from 'node:test';
 const leftRail = readFileSync(new URL('./ui/leftPanelRail.js', import.meta.url), 'utf8');
 const rightRail = readFileSync(new URL('./ui/rightPanelRail.js', import.meta.url), 'utf8');
@@ -19,10 +25,18 @@ import {
 const cockpitLane = {
   baseBottom: 758.4,
   safeGap: 9.5,
-  obstacles: [
-    { top: 541.2, cockpitOverlay: true },
-    { top: 659, cockpitOverlay: true },
-    { top: 758, cockpitOverlay: false },
+  obstacles: [{
+      top: 541.2,
+      cockpitOverlay: true
+    },
+    {
+      top: 659,
+      cockpitOverlay: true
+    },
+    {
+      top: 758,
+      cockpitOverlay: false
+    },
   ],
 };
 
@@ -44,17 +58,23 @@ test('the Cesium credit line limits the corridor even in Cockpit', () => {
   const boundary = resolveLeftStackBottomBoundary({
     baseBottom: 900,
     safeGap: 9.5,
-    obstacles: [{ top: 758 }],
+    obstacles: [{
+      top: 758
+    }],
   });
   assert.equal(boundary, 748.5);
 });
 
 test('an empty or malformed obstacle set leaves the viewport inset intact', () => {
-  assert.equal(resolveLeftStackBottomBoundary({ baseBottom: 700 }), 700);
+  assert.equal(resolveLeftStackBottomBoundary({
+    baseBottom: 700
+  }), 700);
   assert.equal(
     resolveLeftStackBottomBoundary({
       baseBottom: 700,
-      obstacles: [{ top: Number.NaN }, {}, null],
+      obstacles: [{
+        top: Number.NaN
+      }, {}, null],
       safeGap: 8,
     }),
     700,
