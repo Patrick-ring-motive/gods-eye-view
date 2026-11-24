@@ -1,13 +1,31 @@
-import { test } from 'node:test';
+import {
+  test
+} from 'node:test';
 import assert from 'node:assert/strict';
-import { applyVesselFocusDeemphasis } from './aisLiveVessels.js';
-import { applyCctvFocusDeemphasis } from './cctv.js';
-import { applySatellitePointFocusDeemphasis } from './satellites.js';
-import { DEFAULT_FOCUS_DEEMPHASIS_PARAMS } from './focusDeemphasis.js';
+import {
+  applyVesselFocusDeemphasis
+} from './aisLiveVessels.js';
+import {
+  applyCctvFocusDeemphasis
+} from './cctv.js';
+import {
+  applySatellitePointFocusDeemphasis
+} from './satellites.js';
+import {
+  DEFAULT_FOCUS_DEEMPHASIS_PARAMS
+} from './focusDeemphasis.js';
 
-const params = { ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS, paddingPx: 0 };
+const params = {
+  ...DEFAULT_FOCUS_DEEMPHASIS_PARAMS,
+  paddingPx: 0
+};
 const target = {
-  screenRect: { left: 40, top: 40, right: 60, bottom: 60 },
+  screenRect: {
+    left: 40,
+    top: 40,
+    right: 60,
+    bottom: 60
+  },
   paddingPx: 0,
   cameraDistance: 1000,
 };
@@ -24,10 +42,17 @@ function color(alpha = 1, rgb = 'base') {
 
 function assertResumeGate(name, makePass) {
   test(`${name} gate restores a settled dim contact after untrack`, () => {
-    const { pass, readAlpha } = makePass();
+    const {
+      pass,
+      readAlpha
+    } = makePass();
     let activeCount = 0;
     const tick = (nowMs, focusTarget) => {
-      const result = pass({ nowMs, target: focusTarget, previousActiveCount: activeCount });
+      const result = pass({
+        nowMs,
+        target: focusTarget,
+        previousActiveCount: activeCount
+      });
       activeCount = result.activeCount;
       return result;
     };
@@ -52,7 +77,11 @@ function assertResumeGate(name, makePass) {
 
 assertResumeGate('vessel', () => {
   const billboard = {
-    position: { x: 1, y: 2, z: 3 },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    },
     show: true,
     width: 32,
     height: 32,
@@ -60,13 +89,22 @@ assertResumeGate('vessel', () => {
     color: color(),
   };
   return {
-    pass: ({ nowMs, target: focusTarget, previousActiveCount }) => (
+    pass: ({
+      nowMs,
+      target: focusTarget,
+      previousActiveCount
+    }) => (
       applyVesselFocusDeemphasis({
-        records: [{ billboard }],
+        records: [{
+          billboard
+        }],
         target: focusTarget,
         previousActiveCount,
         nowMs,
-        screenPositionFor: () => ({ x: 50, y: 50 }),
+        screenPositionFor: () => ({
+          x: 50,
+          y: 50
+        }),
         cameraDistanceFor: () => 1200,
         params,
       })
@@ -77,22 +115,38 @@ assertResumeGate('vessel', () => {
 
 assertResumeGate('CCTV', () => {
   const billboard = {
-    position: { x: 1, y: 2, z: 3 },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    },
     show: true,
     width: 24,
     height: 24,
     scale: 1,
     color: color(),
   };
-  const record = { camera: { id: 'cam-1' }, billboard };
+  const record = {
+    camera: {
+      id: 'cam-1'
+    },
+    billboard
+  };
   return {
-    pass: ({ nowMs, target: focusTarget, previousActiveCount }) => (
+    pass: ({
+      nowMs,
+      target: focusTarget,
+      previousActiveCount
+    }) => (
       applyCctvFocusDeemphasis({
         records: [record],
         target: focusTarget,
         previousActiveCount,
         nowMs,
-        screenPositionFor: () => ({ x: 50, y: 50 }),
+        screenPositionFor: () => ({
+          x: 50,
+          y: 50
+        }),
         cameraDistanceFor: () => 1200,
         baseColorFor: () => color(),
         params,
@@ -104,20 +158,33 @@ assertResumeGate('CCTV', () => {
 
 assertResumeGate('satellite', () => {
   const point = {
-    position: { x: 1, y: 2, z: 3 },
+    position: {
+      x: 1,
+      y: 2,
+      z: 3
+    },
     show: true,
     pixelSize: 6,
     color: color(),
   };
   return {
-    pass: ({ nowMs, target: focusTarget, previousActiveCount }) => (
+    pass: ({
+      nowMs,
+      target: focusTarget,
+      previousActiveCount
+    }) => (
       applySatellitePointFocusDeemphasis({
-        points: new Map([[42, point]]),
+        points: new Map([
+          [42, point]
+        ]),
         trackedId: null,
         target: focusTarget,
         previousActiveCount,
         nowMs,
-        screenPositionFor: () => ({ x: 50, y: 50 }),
+        screenPositionFor: () => ({
+          x: 50,
+          y: 50
+        }),
         cameraDistanceFor: () => 1200,
         baseColorFor: () => color(),
         params,
