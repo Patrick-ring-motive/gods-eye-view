@@ -239,8 +239,7 @@ export function gbfsProxy() {
           res.end(
             JSON.stringify({
               error: error.code === 'GBFS_REDIRECT' ?
-                'GBFS upstream redirect refused' :
-                'GBFS upstream response too large',
+                'GBFS upstream redirect refused' : 'GBFS upstream response too large',
             }),
           );
           return;
