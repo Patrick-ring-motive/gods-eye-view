@@ -360,8 +360,7 @@ export function createIngestion({
             // at/below the ellipsoid (fleet pass reads it — see the occluder
             // note there). Null for the overwhelmingly common airborne case.
             cullPosition: renderAltitudeM < 10 ?
-              Cesium.Cartesian3.fromDegrees(lon, lat, 12) :
-              null,
+              Cesium.Cartesian3.fromDegrees(lon, lat, 12) : null,
             velocity: stickyNumber(velocity, prevMeta?.velocity, 0),
             true_track: stickyNumber(true_track, prevMeta?.true_track, 0),
             category: cat,
@@ -514,8 +513,7 @@ export function createIngestion({
               rotation: 0,
               alignedAxis: Cesium.Cartesian3.ZERO,
               color: isTracked ?
-                Cesium.Color.CYAN :
-                parts.rendering._fleetBillboardColor(icao24),
+                Cesium.Color.CYAN : parts.rendering._fleetBillboardColor(icao24),
               sizeInMeters: false,
               scaleByDistance: parts.rendering._normalBillboardScaleByDistance(),
               // Grounded/near-surface planes sit at/below the photoreal tile
