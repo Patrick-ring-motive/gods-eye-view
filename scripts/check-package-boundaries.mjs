@@ -1,7 +1,16 @@
-import { readFile, realpath } from 'node:fs/promises';
+import {
+  readFile,
+  realpath
+} from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { build, normalizePath } from 'vite';
+import {
+  fileURLToPath,
+  pathToFileURL
+} from 'node:url';
+import {
+  build,
+  normalizePath
+} from 'vite';
 
 /** Build each browser or Node export group and reject imports outside its declared ownership. */
 export async function checkPackageBoundaries(root) {
@@ -92,24 +101,27 @@ export async function checkPackageBoundaries(root) {
       configFile: false,
       envFile: false,
       publicDir: false,
-      ssr: node ? { noExternal: true } : undefined,
+      ssr: node ? {
+        noExternal: true
+      } : undefined,
       logLevel: 'silent',
-      plugins: [
-        {
-          name: 'check-package-ownership',
-          moduleParsed(info) {
-            if (!allowed.has(info.id)) {
-              throw new Error(
-                `Package boundary ${name} imports an unowned module: ${path.relative(root, info.id)}`,
-              );
-            }
-            seen.add(info.id);
-          },
+      plugins: [{
+        name: 'check-package-ownership',
+        moduleParsed(info) {
+          if (!allowed.has(info.id)) {
+            throw new Error(
+              `Package boundary ${name} imports an unowned module: ${path.relative(root, info.id)}`,
+            );
+          }
+          seen.add(info.id);
         },
-      ],
+      }, ],
       build: {
         ssr: node,
-        lib: { entry: input, formats: ['es'] },
+        lib: {
+          entry: input,
+          formats: ['es']
+        },
         write: false,
         minify: false,
         assetsInlineLimit: 0,
@@ -122,14 +134,18 @@ export async function checkPackageBoundaries(root) {
         },
       },
     });
-    reports.push({ name, exports: input.length, modules: seen.size });
+    reports.push({
+      name,
+      exports: input.length,
+      modules: seen.size
+    });
   }
   return reports;
 }
 
-const invoked = process.argv[1]
-  ? pathToFileURL(path.resolve(process.argv[1])).href
-  : '';
+const invoked = process.argv[1] ?
+  pathToFileURL(path.resolve(process.argv[1])).href :
+  '';
 if (import.meta.url === invoked) {
   try {
     const reports = await checkPackageBoundaries(
