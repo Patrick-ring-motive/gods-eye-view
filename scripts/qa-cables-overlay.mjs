@@ -98,7 +98,8 @@ try {
             origin: 'user'
           });
         } catch {
-          /* measured via counts */ }
+          /* measured via counts */
+        }
       }
     }
   });
