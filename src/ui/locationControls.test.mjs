@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { LocationControls } from './locationControls.js';
+import {
+  LocationControls
+} from './locationControls.js';
 
 function node() {
   const classes = new Set();
@@ -57,6 +59,7 @@ function node() {
     },
   };
 }
+
 function fixture() {
   const elements = {
     pills: node(),
@@ -72,8 +75,20 @@ function fixture() {
   doc.createElement = node;
   doc.body = node();
   const cities = {
-    a: { name: 'City A', pois: [{ name: 'First' }, { name: 'Second' }] },
-    b: { name: 'City B', pois: [{ name: 'Elsewhere' }] },
+    a: {
+      name: 'City A',
+      pois: [{
+        name: 'First'
+      }, {
+        name: 'Second'
+      }]
+    },
+    b: {
+      name: 'City B',
+      pois: [{
+        name: 'Elsewhere'
+      }]
+    },
   };
   const calls = [];
   const frames = new Map();
@@ -95,7 +110,14 @@ function fixture() {
     },
     cancelFrame: (id) => cancelled.push(id),
   });
-  return { elements, doc, controls, calls, frames, cancelled };
+  return {
+    elements,
+    doc,
+    controls,
+    calls,
+    frames,
+    cancelled
+  };
 }
 test('hiding a POI row cancels frame zero and rejects an already queued expansion', () => {
   const f = fixture();
@@ -115,7 +137,9 @@ test('replacing POIs removes old click actions and presents the final row', () =
   old.fire('click');
   assert.deepEqual(f.calls, []);
   f.elements.poiRow.children[0].fire('click');
-  assert.deepEqual(f.calls, [['poi', 'b', 0]]);
+  assert.deepEqual(f.calls, [
+    ['poi', 'b', 0]
+  ]);
   f.frames.get(0)();
   assert.equal(f.elements.poiRow.classList.contains('expanded'), false);
   f.frames.get(1)();
@@ -133,8 +157,12 @@ test('destruction revokes document, search, reset, city and POI actions and remo
   city.fire('click');
   poi.fire('click');
   f.elements.search.value = 'Place';
-  f.elements.search.fire('keydown', { key: 'Enter' });
-  f.doc.fire('keydown', { key: 'Q' });
+  f.elements.search.fire('keydown', {
+    key: 'Enter'
+  });
+  f.doc.fire('keydown', {
+    key: 'Q'
+  });
   f.elements.resetButtons[0].fire('click');
   f.frames.get(0)();
   assert.deepEqual(f.calls, []);
@@ -142,8 +170,21 @@ test('destruction revokes document, search, reset, city and POI actions and remo
 });
 test('location and POI keys route once while form controls retain typing', () => {
   const f = fixture();
-  f.doc.fire('keydown', { key: 'W', target: { matches: () => false } });
-  f.doc.fire('keydown', { key: 'Q', target: { matches: () => true } });
+  f.doc.fire('keydown', {
+    key: 'W',
+    target: {
+      matches: () => false
+    }
+  });
+  f.doc.fire('keydown', {
+    key: 'Q',
+    target: {
+      matches: () => true
+    }
+  });
   f.elements.resetButtons[1].fire('click');
-  assert.deepEqual(f.calls, [['poi', 'a', 1], ['reset']]);
+  assert.deepEqual(f.calls, [
+    ['poi', 'a', 1],
+    ['reset']
+  ]);
 });
