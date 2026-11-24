@@ -224,8 +224,7 @@ export function createAnalystEngine(providers) {
       // the camera while the label still read "within 250 km of <contact>" —
       // a count centred on one place, reported as centred on another, with
       // nothing in the payload to show which.
-      const subjectCenter = Number.isFinite(subject?.lat) && Number.isFinite(subject?.lon) ?
-        {
+      const subjectCenter = Number.isFinite(subject?.lat) && Number.isFinite(subject?.lon) ? {
           lat: subject.lat,
           lon: subject.lon
         } :
