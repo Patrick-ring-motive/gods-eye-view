@@ -1,6 +1,8 @@
 /** Own recording chrome, safe frames and the pre-recording HUD snapshot. */
 export class RecordingControls {
-  constructor({ syncShareState }) {
+  constructor({
+    syncShareState
+  }) {
     this._syncShareState = syncShareState;
     this.destroyed = false;
     this._recordingMode = false;
@@ -30,11 +32,15 @@ export class RecordingControls {
     if (this.destroyed) return;
     const {
       hidePanels = true,
-      hudMode = 'minimal',
-      safeFrame = '16:9',
+        hudMode = 'minimal',
+        safeFrame = '16:9',
     } = options;
     this._recordingMode = !!enabled;
-    this._recordingConfig = { hidePanels, hudMode, safeFrame };
+    this._recordingConfig = {
+      hidePanels,
+      hudMode,
+      safeFrame
+    };
 
     document.body.classList.toggle(
       'recording-mode',
