@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-traffic.mjs — headless proof for the TomTom live-flow traffic layer.
  *
@@ -33,7 +34,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
@@ -65,21 +68,32 @@ const CHROME_EXECUTABLE_CANDIDATES = [
 
 function findChromeExecutable() {
   for (const candidate of CHROME_EXECUTABLE_CANDIDATES) {
-    try { if (fs.existsSync(candidate)) return candidate; } catch { /* ignore */ }
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      /* ignore */ }
   }
   return null;
 }
 
 const results = [];
+
 function record(name, ok, detail) {
-  results.push({ name, ok, detail });
+  results.push({
+    name,
+    ok,
+    detail
+  });
   const tag = ok === null ? '\x1b[33mINCONCLUSIVE\x1b[0m' : ok ? '\x1b[32mPASS\x1b[0m' : '\x1b[31mFAIL\x1b[0m';
   console.log(`  [${tag}] ${name}${detail ? `  — ${detail}` : ''}`);
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Enable traffic + teleport, then poll the layer until settled. */
-async function settleTraffic(page, view, { minCount = 1, timeoutS = 30 } = {}) {
+async function settleTraffic(page, view, {
+  minCount = 1,
+  timeoutS = 30
+} = {}) {
   return page.evaluate(async (v, minC, tS) => {
     const gev = window.__godsEyeView;
     const dm = gev.dataManager;
@@ -89,10 +103,21 @@ async function settleTraffic(page, view, { minCount = 1, timeoutS = 30 } = {}) {
     const d2r = Math.PI / 180;
     // The app's intro flyTo animation clobbers a setView issued mid-flight —
     // cancel any active tween before teleporting.
-    try { gev.viewer.camera.cancelFlight(); } catch { /* no flight active */ }
+    try {
+      gev.viewer.camera.cancelFlight();
+    } catch {
+      /* no flight active */ }
     gev.viewer.camera.setView({
-      destination: ell.cartographicToCartesian({ longitude: v.lon * d2r, latitude: v.lat * d2r, height: v.height }),
-      orientation: { heading: (v.heading || 0) * d2r, pitch: (v.pitch ?? -90) * d2r, roll: 0 },
+      destination: ell.cartographicToCartesian({
+        longitude: v.lon * d2r,
+        latitude: v.lat * d2r,
+        height: v.height
+      }),
+      orientation: {
+        heading: (v.heading || 0) * d2r,
+        pitch: (v.pitch ?? -90) * d2r,
+        roll: 0
+      },
     });
     let s = null;
     for (let i = 0; i < tS; i++) {
@@ -116,17 +141,24 @@ async function main() {
     process.exit(2);
   }
 
-  const statusBefore = FIXTURES ? {hasKey:true,dailyCount:0} : await fetch(`${APP_URL}/api/tomtom/status`).then((r) => r.json()).catch(() => null);
+  const statusBefore = FIXTURES ? {
+    hasKey: true,
+    dailyCount: 0
+  } : await fetch(`${APP_URL}/api/tomtom/status`).then((r) => r.json()).catch(() => null);
   if (FIXTURES) console.log('Source mode: synthetic roads and recorded flow tiles; live quota is not qualified.');
   if (!statusBefore?.hasKey) {
     console.error('\x1b[31mServer has no TomTom key — run against the keyed dev server (:4410).\x1b[0m');
     process.exit(2);
   }
 
-  fs.mkdirSync(SHOTS_DIR, { recursive: true });
+  fs.mkdirSync(SHOTS_DIR, {
+    recursive: true
+  });
   const browser = await puppeteer.launch({
     headless: HEADFUL ? false : 'new',
-    ...(findChromeExecutable() ? { executablePath: findChromeExecutable() } : {}),
+    ...(findChromeExecutable() ? {
+      executablePath: findChromeExecutable()
+    } : {}),
     args: [
       '--no-sandbox', '--disable-setuid-sandbox', '--use-gl=angle', '--use-angle=swiftshader',
       '--disable-dev-shm-usage', '--disable-web-security',
@@ -140,10 +172,17 @@ async function main() {
     const page = await browser.newPage();
     const onFixture = (request) => {
       const response = fixtureResponse(request);
-      if (response) void request.respond(response); else void request.continue();
+      if (response) void request.respond(response);
+      else void request.continue();
     };
-    if (FIXTURES) { await page.setRequestInterception(true); page.on('request', onFixture); }
-    await page.setViewport({ width: 1440, height: 900 });
+    if (FIXTURES) {
+      await page.setRequestInterception(true);
+      page.on('request', onFixture);
+    }
+    await page.setViewport({
+      width: 1440,
+      height: 900
+    });
 
     // Track flow-tile requests + traffic console lines for (ii)/(iii)/(v).
     const flowRequests = [];
@@ -157,10 +196,14 @@ async function main() {
     });
 
     console.log('Loading app...');
-    await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(APP_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-      { timeout: 60000 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+        timeout: 60000
+      },
     );
     await sleep(5000);
     await page.keyboard.press('Escape');
@@ -169,13 +212,30 @@ async function main() {
     // coverage (sim dots exist for (iv)). Mumbai proved too Overpass-cold for
     // a deterministic harness; congestion colors assert the same either way.
     console.log('\n(i) LIVE mode — San Antonio (partial coverage)...');
-    let mumbai = await settleTraffic(page, { lon: -98.4936, lat: 29.4241, height: 2800, heading: 23, pitch: -72 }, { minCount: 300, timeoutS: 45 });
+    let mumbai = await settleTraffic(page, {
+      lon: -98.4936,
+      lat: 29.4241,
+      height: 2800,
+      heading: 23,
+      pitch: -72
+    }, {
+      minCount: 300,
+      timeoutS: 45
+    });
     if (!mumbai || mumbai.count === 0) {
       // One retry with a nudged center to defeat the overlap gate (a slow
       // first Overpass response can strand the initial load).
-      mumbai = await settleTraffic(page, { lon: -98.487, lat: 29.43, height: 2800, heading: 23, pitch: -72 }, { minCount: 300, timeoutS: 45 });
-    }
-    {
+      mumbai = await settleTraffic(page, {
+        lon: -98.487,
+        lat: 29.43,
+        height: 2800,
+        heading: 23,
+        pitch: -72
+      }, {
+        minCount: 300,
+        timeoutS: 45
+      });
+    } {
       const b = mumbai.flowBuckets || {};
       const colored = (b.free || 0) + (b.slow || 0) + (b.jam || 0);
       record('LIVE: stats.mode === "live"', mumbai.mode === 'live', `mode=${mumbai.mode}`);
@@ -187,7 +247,9 @@ async function main() {
         `coverage=${mumbai.flowCoveragePct}% tiles=${mumbai.tilesFetched}`);
       if (mumbai.mode !== 'live' || !(mumbai.count > 0) || !(colored > 0)) exitCode = 1;
       await sleep(1200);
-      await page.screenshot({ path: path.join(SHOTS_DIR, 'traffic-live-flow.png') });
+      await page.screenshot({
+        path: path.join(SHOTS_DIR, 'traffic-live-flow.png')
+      });
     }
 
     // ── (iv) uncovered-roads param — hide vs sim ─────────────────────────────
@@ -197,13 +259,23 @@ async function main() {
         const gev = window.__godsEyeView;
         const mod = gev.dataManager.layers.get('traffic').module;
         const before = mod.getStats().lastUpdate;
-        mod.setParams({ uncoveredRoads: 'hide' });
+        mod.setParams({
+          uncoveredRoads: 'hide'
+        });
         const ell = gev.viewer.scene.globe.ellipsoid;
         const d2r = Math.PI / 180;
         // Shift far enough to defeat the overlap gate and force a re-render.
         gev.viewer.camera.setView({
-          destination: ell.cartographicToCartesian({ longitude: -98.51 * d2r, latitude: 29.435 * d2r, height: 2800 }),
-          orientation: { heading: 0.4, pitch: -1.25, roll: 0 },
+          destination: ell.cartographicToCartesian({
+            longitude: -98.51 * d2r,
+            latitude: 29.435 * d2r,
+            height: 2800
+          }),
+          orientation: {
+            heading: 0.4,
+            pitch: -1.25,
+            roll: 0
+          },
         });
         // Poll for a NEW render (lastUpdate changes) — the pre-shift stats
         // would otherwise satisfy a count>0 check instantly.
@@ -213,14 +285,18 @@ async function main() {
           s = mod.getStats();
           if (s.lastUpdate !== before && s.count > 0 && !s.loading) break;
         }
-        mod.setParams({ uncoveredRoads: 'sim' });
+        mod.setParams({
+          uncoveredRoads: 'sim'
+        });
         return s;
       });
       record('PARAM: hide mode renders zero sim (white) dots',
         (hid.flowBuckets?.sim || 0) === 0 && hid.count > 0,
         `count=${hid.count} sim=${hid.flowBuckets?.sim}`);
       if ((hid.flowBuckets?.sim || 0) !== 0) exitCode = 1;
-      await page.screenshot({ path: path.join(SHOTS_DIR, 'traffic-live-hide-mode.png') });
+      await page.screenshot({
+        path: path.join(SHOTS_DIR, 'traffic-live-hide-mode.png')
+      });
     } else {
       record('PARAM: hide mode renders zero sim (white) dots', null,
         'view had 100% coverage (no sim dots to hide) — inconclusive here, covered by unit tests');
@@ -229,15 +305,25 @@ async function main() {
     // ── (ii) C4 oblique bounds ───────────────────────────────────────────────
     console.log('\n(ii) C4 — oblique fetch bounds land at the look-at point...');
     trafficLogs.length = 0;
-    await settleTraffic(page, { lon: -97.72, lat: 30.245, height: 2500, heading: 315, pitch: -20 }, { minCount: 100 });
+    await settleTraffic(page, {
+      lon: -97.72,
+      lat: 30.245,
+      height: 2500,
+      heading: 315,
+      pitch: -20
+    }, {
+      minCount: 100
+    });
     {
       const fetchLine = trafficLogs.find((t) => t.includes('fetch') && t.includes('['));
-      let ok = false; let detail = 'no fetch log captured';
+      let ok = false;
+      let detail = 'no fetch log captured';
       if (fetchLine) {
         const m = fetchLine.match(/\[(-?[\d.]+),(-?[\d.]+),(-?[\d.]+),(-?[\d.]+)\]/);
         if (m) {
           const [s, w, n, e] = m.slice(1).map(Number);
-          const cLat = (s + n) / 2; const cLon = (w + e) / 2;
+          const cLat = (s + n) / 2;
+          const cLon = (w + e) / 2;
           const dKm = Math.sqrt(((cLat - 30.245) * 111) ** 2 + ((cLon - (-97.72)) * 111 * Math.cos(30.27 * Math.PI / 180)) ** 2);
           ok = dKm > 1 && dKm <= 13; // look-at ~6.9 km ahead; clamp allows ≤12 (+margin)
           detail = `box center (${cLat.toFixed(4)},${cLon.toFixed(4)}) is ${dKm.toFixed(1)} km from camera (want 1–13 km; pre-fix bug: 25+ km)`;
@@ -245,7 +331,9 @@ async function main() {
       }
       record('C4: oblique fetch box centers on the look-at point', ok, detail);
       if (!ok) exitCode = 1;
-      await page.screenshot({ path: path.join(SHOTS_DIR, 'traffic-c4-oblique.png') });
+      await page.screenshot({
+        path: path.join(SHOTS_DIR, 'traffic-c4-oblique.png')
+      });
     }
 
     // ── (iii) budget honesty ─────────────────────────────────────────────────
@@ -267,31 +355,66 @@ async function main() {
     page.on('request', (req) => {
       const url = req.url();
       if (url.includes('/api/tomtom/status')) {
-        req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ hasKey: false }) });
+        req.respond({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            hasKey: false
+          })
+        });
         return;
       }
       if (url.includes('/api/tomtom/flow/')) {
         keylessFlowReqs.push(url);
-        req.respond({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'no_key' }) });
+        req.respond({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            error: 'no_key'
+          })
+        });
         return;
       }
       const response = fixtureResponse(req);
-      if (response) { void req.respond(response); return; }
-      try { req.continue(); } catch { /* already handled */ }
+      if (response) {
+        void req.respond(response);
+        return;
+      }
+      try {
+        req.continue();
+      } catch {
+        /* already handled */ }
     });
-    await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.reload({
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
     await page.waitForFunction(
-      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager,
-      { timeout: 60000 },
+      () => window.__godsEyeView?.viewer && window.__godsEyeView?.dataManager, {
+        timeout: 60000
+      },
     );
     await sleep(5000);
     await page.keyboard.press('Escape');
-    let simStats = await settleTraffic(page, { lon: -98.4936, lat: 29.4241, height: 3000 }, { minCount: 100, timeoutS: 45 });
+    let simStats = await settleTraffic(page, {
+      lon: -98.4936,
+      lat: 29.4241,
+      height: 3000
+    }, {
+      minCount: 100,
+      timeoutS: 45
+    });
     if (!simStats || simStats.count === 0) {
       // Public Overpass can throttle bursts across harness runs — one retry.
-      simStats = await settleTraffic(page, { lon: -98.487, lat: 29.43, height: 3000 }, { minCount: 100, timeoutS: 45 });
-    }
-    {
+      simStats = await settleTraffic(page, {
+        lon: -98.487,
+        lat: 29.43,
+        height: 3000
+      }, {
+        minCount: 100,
+        timeoutS: 45
+      });
+    } {
       const b = simStats.flowBuckets || {};
       const allWhite = simStats.count > 0 && b.sim === simStats.count && !b.free && !b.slow && !b.jam;
       record('KEYLESS: stats.mode === "sim"', simStats.mode === 'sim', `mode=${simStats.mode}`);
@@ -301,15 +424,17 @@ async function main() {
         `flowRequests=${keylessFlowReqs.length}`);
       // Keyless is a designed fallback, not a fault: it must read SIMULATED
       // without ever raising a layer error.
-      const keylessHonest = !simStats.error
-        && String(simStats.loadingLabel || '').startsWith('SIMULATED');
+      const keylessHonest = !simStats.error &&
+        String(simStats.loadingLabel || '').startsWith('SIMULATED');
       record('KEYLESS: no error, and the label reads SIMULATED', keylessHonest,
         `err=${simStats.error || 'none'} label="${simStats.loadingLabel}"`);
       if (simStats.mode !== 'sim' || !allWhite || keylessFlowReqs.length !== 0 || !keylessHonest) {
         exitCode = 1;
       }
       await sleep(1000);
-      await page.screenshot({ path: path.join(SHOTS_DIR, 'traffic-sim-keyless.png') });
+      await page.screenshot({
+        path: path.join(SHOTS_DIR, 'traffic-sim-keyless.png')
+      });
     }
   } catch (e) {
     console.error('\x1b[31mHarness error:\x1b[0m', e);
@@ -328,4 +453,7 @@ async function main() {
   process.exit(exitCode || (fail > 0 ? 1 : 0));
 }
 
-main().catch((e) => { console.error(e); process.exit(3); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(3);
+});
