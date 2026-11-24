@@ -207,8 +207,7 @@ export function createSelection({
         frp: fire.frp,
         confidence: components.model.confidenceBucket(fire.confidence),
         age: fire.acqMs > 0 ?
-          components.model.formatAge(Date.now() - fire.acqMs) :
-          'unknown',
+          components.model.formatAge(Date.now() - fire.acqMs) : 'unknown',
         sensor: fire.sensor || 'unknown',
       },
     });
