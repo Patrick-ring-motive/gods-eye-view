@@ -354,8 +354,7 @@ export class ShareLinkManager {
       // 94..100 band. `sce=0` used to survive as a sub-94 terminus — a hole in
       // the mask — and then got written straight back out on the next update.
       scopeTerminusPct: params.has('sce') ?
-        clampScopeTerminusPct(params.get('sce')) :
-        null,
+        clampScopeTerminusPct(params.get('sce')) : null,
       mapStack: params.get('map') || 'photoreal',
       layerState: decodedLayerState,
       layerStateInvalid: params.get('v') === '2' &&
