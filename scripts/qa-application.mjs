@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /** Prove standalone startup and terminal resource ownership in a real browser. */
 import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer';
@@ -8,8 +9,7 @@ const urlIndex = args.indexOf('--url');
 const url = urlIndex >= 0 ? args[urlIndex + 1] : 'http://localhost:4173';
 const browser = await puppeteer.launch({
   headless: true,
-  executablePath:
-    process.env.PUPPETEER_EXECUTABLE_PATH || (await puppeteer.executablePath()),
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || (await puppeteer.executablePath()),
   args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader'],
 });
 try {
@@ -24,7 +24,9 @@ try {
     }
   });
   page.on('pageerror', (error) => errors.push(error.stack || error.message));
-  await page.goto(`${url}/?welcome=1`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${url}/?welcome=1`, {
+    waitUntil: 'domcontentloaded'
+  });
   await page.waitForFunction(() => window.__godsEyeView?.voiceCommands, {
     timeout: 60_000,
   });
@@ -32,21 +34,21 @@ try {
     const entry = [...document.scripts].find((script) =>
       /\/src\/main\.js(?:\?|$)/.test(script.src),
     );
-    const { application } = await import(entry.src);
+    const {
+      application
+    } = await import(entry.src);
     window.__qaApplication = application;
     const app = window.__godsEyeView;
     window.__qaComponents = app;
     await application.start();
     await app.styleManager.initialRestorePromise;
     const enabled = await app.dataManager.setEnabled('local-datacenters', true);
-    const annotation = await app.annotations.annotate([
-      {
-        type: 'pin',
-        longitude: -97.74,
-        latitude: 30.27,
-        label: 'Lifecycle check',
-      },
-    ]);
+    const annotation = await app.annotations.annotate([{
+      type: 'pin',
+      longitude: -97.74,
+      latitude: 30.27,
+      label: 'Lifecycle check',
+    }, ]);
     return {
       status: application.getState().status,
       enabled,
