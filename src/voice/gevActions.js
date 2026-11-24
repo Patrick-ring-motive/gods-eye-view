@@ -582,8 +582,7 @@ export function createGevActionRunner({
           stage: 'refresh',
           cancelled: !current(),
           error: !current() ?
-            'Nearest-aircraft refresh was cancelled' :
-            `${layer.label || layerId} is enabled, but its destination refresh did not complete`,
+            'Nearest-aircraft refresh was cancelled' : `${layer.label || layerId} is enabled, but its destination refresh did not complete`,
           location,
           layer,
         };
@@ -626,8 +625,7 @@ export function createGevActionRunner({
           stage: 'nearest',
           cancelled: !current(),
           error: !current() ?
-            'Nearest-aircraft selection was cancelled' :
-            (feed.state === 'unavailable' ?
+            'Nearest-aircraft selection was cancelled' : (feed.state === 'unavailable' ?
               `${layer.label || layerId} is enabled, but ${feed.source || 'its aircraft feed'} is unavailable` :
               `${layer.label || layerId} is enabled${feed.state === 'fallback' ? ` on the ${feed.source || 'fallback'} feed` : ''}, but no airborne aircraft is loaded in the ${location.label || 'destination'} view yet`),
           location,
@@ -713,8 +711,7 @@ export function createGevActionRunner({
       }
       const cancellationState = () => withContextModeVocabulary(
         typeof styleManager.getContextModeState === 'function' ?
-        styleManager.getContextModeState() :
-        {},
+        styleManager.getContextModeState() : {},
       );
       if (!current()) {
         return {
@@ -791,8 +788,7 @@ export function createGevActionRunner({
         }
         rollbackTarget = styleManager.getAircraftTrackingTarget?.() || null;
         const contextState = typeof styleManager.getContextModeState === 'function' ?
-          styleManager.getContextModeState() :
-          {};
+          styleManager.getContextModeState() : {};
         priorContextMode = contextState?.mode || null;
         const contactsReady = contextState?.mode === 'flights' &&
           contextState?.active !== false &&
@@ -893,14 +889,11 @@ export function createGevActionRunner({
         placeSearch,
         signal: runOptions.signal,
         runImmediate: typeof styleManager?.runImmediateLocationNavigation === 'function' ?
-          (navigate) => styleManager.runImmediateLocationNavigation(navigate) :
-          null,
+          (navigate) => styleManager.runImmediateLocationNavigation(navigate) : null,
         beginDeferred: typeof styleManager?.beginDeferredLocationNavigation === 'function' ?
-          () => styleManager.beginDeferredLocationNavigation() :
-          null,
+          () => styleManager.beginDeferredLocationNavigation() : null,
         reassertDeferred: typeof styleManager?.reassertDeferredLocationNavigation === 'function' ?
-          (generation) => styleManager.reassertDeferredLocationNavigation(generation) :
-          null,
+          (generation) => styleManager.reassertDeferredLocationNavigation(generation) : null,
         onStart: () => {
           if (typeof styleManager?.beginLocationNavigation === 'function') {
             styleManager.beginLocationNavigation();
@@ -1115,8 +1108,7 @@ function sanitizeAnnotationSpec(spec) {
   if (typeof out.label === 'string') out.label = clampStr(out.label, MAX_LABEL_LEN);
   if (Array.isArray(out.points)) {
     out.points = out.points.slice(0, MAX_ROUTE_POINTS).map((p) => (
-      p && typeof p === 'object' && typeof p.target === 'string' ?
-      {
+      p && typeof p === 'object' && typeof p.target === 'string' ? {
         ...p,
         target: clampStr(p.target, MAX_TARGET_LEN)
       } :
@@ -1943,8 +1935,7 @@ export async function controlRadio(viewer, dataManager, args = {}, options = {})
         lon: location.lon
       } : null,
       country: normalizedCountry.empty ?
-        String(location?.country || '') :
-        normalizedCountry.code,
+        String(location?.country || '') : normalizedCountry.code,
       stationQuery: String(args.stationQuery || ''),
     }, {
       autoplay: false
@@ -1988,16 +1979,14 @@ export function cctvVoiceFocusOutcome(focusResult, {
     return {
       ok: false,
       error: cameraSelected ?
-        'Camera selected; tracking holds the view — say untrack to fly' :
-        'Camera active; tracking holds the view — say untrack first',
+        'Camera selected; tracking holds the view — say untrack to fly' : 'Camera active; tracking holds the view — say untrack first',
     };
   }
   if (focusResult === CCTV_FOCUS_RESULT.COCKPIT_ACTIVE) {
     return {
       ok: false,
       error: cameraSelected ?
-        'Camera selected; in cockpit — exit cockpit to fly to it' :
-        'In cockpit — exit cockpit to fly to a camera',
+        'Camera selected; in cockpit — exit cockpit to fly to it' : 'In cockpit — exit cockpit to fly to a camera',
     };
   }
   return {
@@ -2724,8 +2713,7 @@ async function flyToRequestedLocation(viewer, args, {
     if (!arrival || result?.ok !== true) return result;
     const status = await arrival;
     settleArrival = null;
-    return status === 'arrived' ?
-      {
+    return status === 'arrived' ? {
         ...result,
         arrived: true
       } :
@@ -2734,13 +2722,11 @@ async function flyToRequestedLocation(viewer, args, {
 
   if (locationId) {
     const result = immediate(() => flyToPresetLocation(viewer, locationId, {
-      ...(rangeM || args.viewMode === 'close' ?
-        {
-          range: rangeM || 250
-        } :
-        {
-          viewMode: 'overview'
-        }),
+      ...(rangeM || args.viewMode === 'close' ? {
+        range: rangeM || 250
+      } : {
+        viewMode: 'overview'
+      }),
       duration: 2.2,
       onStart: immediateOnStart,
       ...arrivalHooks,
@@ -2753,8 +2739,7 @@ async function flyToRequestedLocation(viewer, args, {
       label: CITY_POIS[locationId]?.name || locationId,
       rangeM: result?.range ? Math.round(result.range) : (rangeM || null),
       navigationMode: rangeM ?
-        'explicit-range' :
-        (args.viewMode === 'close' ? 'city-close' : (result?.navigationMode || 'city-overview')),
+        'explicit-range' : (args.viewMode === 'close' ? 'city-close' : (result?.navigationMode || 'city-overview')),
     };
     return afterArrival(response, response.label);
   }
@@ -2864,19 +2849,16 @@ function getCurrentViewState(viewer, styleManager, dataManager, sceneDirector = 
       heightM: cartographic.height,
     },
     style: styleManager.activeStyle || 'normal',
-    context: typeof styleManager.getContextModeState === 'function' ?
-      {
-        ...withContextModeVocabulary(styleManager.getContextModeState()),
-        // The numbers on the operator's Contacts panel, so a window/count
-        // question can be answered from what they are looking at.
-        ...(activeContactsWindow() ? {
-          contactsWindow: activeContactsWindow()
-        } : {}),
-      } :
-      null,
+    context: typeof styleManager.getContextModeState === 'function' ? {
+      ...withContextModeVocabulary(styleManager.getContextModeState()),
+      // The numbers on the operator's Contacts panel, so a window/count
+      // question can be answered from what they are looking at.
+      ...(activeContactsWindow() ? {
+        contactsWindow: activeContactsWindow()
+      } : {}),
+    } : null,
     cockpit: typeof styleManager.getCockpitState === 'function' ?
-      styleManager.getCockpitState() :
-      null,
+      styleManager.getCockpitState() : null,
     controls: typeof styleManager.getControlState === 'function' ? styleManager.getControlState() : null,
     scenePlayback: sceneDirector?.getPlaybackStatus?.() || null,
     tracked: collectTrackedEntities(dataManager),
@@ -2905,8 +2887,7 @@ async function getEntityContext(viewer, dataManager, styleManager, args = {}, se
       layerId,
       limit,
       target: viewTarget
-    }) :
-    [];
+    }) : [];
   const scene = await scenePromise;
 
   if ((scope === 'selected' || scope === 'auto') && selected) {
@@ -3090,8 +3071,7 @@ function visibleEntityContexts(viewer, dataManager, {
     insertNearestRecord(nearbyRecords, {
       record,
       distanceScore: target ?
-        approximateCoordinateDistanceSq(targetLat, targetLon, record.latitude, record.longitude) :
-        0,
+        approximateCoordinateDistanceSq(targetLat, targetLon, record.latitude, record.longitude) : 0,
     }, VISIBLE_ENTITY_SHORTLIST);
   }
 
@@ -3311,8 +3291,7 @@ function coarseBasemapPlace(viewScale, latitude, longitude, inferredCountry = nu
   }
   return {
     formattedAddress: inferredCountry?.country ?
-      `${viewScale[0].toUpperCase()}${viewScale.slice(1)} basemap view over ${inferredCountry.country}` :
-      `${viewScale[0].toUpperCase()}${viewScale.slice(1)} basemap view centered near ${latitude.toFixed(2)}, ${longitude.toFixed(2)}`,
+      `${viewScale[0].toUpperCase()}${viewScale.slice(1)} basemap view over ${inferredCountry.country}` : `${viewScale[0].toUpperCase()}${viewScale.slice(1)} basemap view centered near ${latitude.toFixed(2)}, ${longitude.toFixed(2)}`,
     locality: null,
     region: null,
     country: inferredCountry?.country || null,
@@ -4076,13 +4055,11 @@ async function runAnalystQuery(viewer, dataManager, args = {}, placeSearch = una
     // operator is looking at regardless of how the model reads the note.
     // Flattened alongside the object so the count and its subject cannot be
     // missed inside a nested shape.
-    ...(contactsWindow && aircraftQueried ?
-      {
-        contactsWindow,
-        contactsWindowCount: windowAircraft,
-        contactsWindowSubject: contactsWindow.centeredOn || null,
-      } :
-      {}),
+    ...(contactsWindow && aircraftQueried ? {
+      contactsWindow,
+      contactsWindowCount: windowAircraft,
+      contactsWindowSubject: contactsWindow.centeredOn || null,
+    } : {}),
     ...(countsReconciliation ? {
       countsReconciliation
     } : {}),
