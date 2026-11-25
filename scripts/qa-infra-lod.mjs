@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * qa-infra-lod — browser checks for the local-infrastructure LOD declutter.
  *
@@ -27,7 +28,9 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+  fileURLToPath
+} from 'node:url';
 import {
   INFRA_LOD_ACTIVE_MIN,
   INFRA_LOD_ACTIVE_MAX,
@@ -50,11 +53,16 @@ const INFRA_LAYER_IDS = ['local-datacenters', 'local-dams'];
 const CABLE_LAYER_ID = 'telegeography-submarine-cables';
 
 const results = [];
+
 function check(name, pass, detail) {
-  results.push({ name, pass });
+  results.push({
+    name,
+    pass
+  });
   const tag = pass ? 'PASS' : 'FAIL';
   console.log(`  [${tag}] ${name}${detail !== undefined ? ` — ${JSON.stringify(detail)}` : ''}`);
 }
+
 function report(name, detail) {
   console.log(`  [MEAS] ${name} — ${JSON.stringify(detail)}`);
 }
@@ -77,12 +85,19 @@ try {
   const page = await browser.newPage();
   const pageErrors = [];
   page.on('pageerror', (error) => pageErrors.push(String(error.message).replace(/https?:\/\/\S+/g, '[URL]')));
-  await page.setViewport({ width: 1440, height: 860 });
+  await page.setViewport({
+    width: 1440,
+    height: 860
+  });
   const testUrl = new URL(APP_URL);
   testUrl.searchParams.set('welcome', '0');
-  await page.goto(testUrl.href, { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => window.__godsEyeView?.styleManager
-    && document.getElementById('loading-screen')?.classList.contains('hidden'), { timeout: 90_000 });
+  await page.goto(testUrl.href, {
+    waitUntil: 'domcontentloaded'
+  });
+  await page.waitForFunction(() => window.__godsEyeView?.styleManager &&
+    document.getElementById('loading-screen')?.classList.contains('hidden'), {
+      timeout: 90_000
+    });
   check('first-run chooser does not cover the test surface', await page.evaluate(() => (
     !document.querySelector('#first-run-launcher:not([hidden])')
   )));
@@ -101,13 +116,24 @@ try {
     const ell = v.scene.globe.ellipsoid;
     v.camera.setView({
       destination: ell.cartographicToCartesian({
-        longitude: 0, latitude: 15 * Math.PI / 180, height: 24_000_000,
+        longitude: 0,
+        latitude: 15 * Math.PI / 180,
+        height: 24_000_000,
       }),
-      orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+      orientation: {
+        heading: 0,
+        pitch: -Math.PI / 2,
+        roll: 0
+      },
     });
     for (const [id, entry] of gev.dataManager.layers) {
       if (entry.enabled) {
-        try { await gev.dataManager.setEnabled(id, false, { origin: 'user' }); } catch { /* measured via counts */ }
+        try {
+          await gev.dataManager.setEnabled(id, false, {
+            origin: 'user'
+          });
+        } catch {
+          /* measured via counts */ }
       }
     }
   });
@@ -120,7 +146,12 @@ try {
       const gev = window.__godsEyeView;
       const ids = [...infraIds, cableId];
       for (const id of ids) {
-        try { await gev.dataManager.setEnabled(id, true, { origin: 'user' }); } catch { /* reported below */ }
+        try {
+          await gev.dataManager.setEnabled(id, true, {
+            origin: 'user'
+          });
+        } catch {
+          /* reported below */ }
       }
       const deadline = performance.now() + 60_000;
       const stat = (id) => gev.dataManager.layers.get(id)?.module?.getStats?.() || {};
@@ -159,7 +190,10 @@ try {
       out[id] = gev.dataManager.layers.get(id)?.module?.getLodDiagnostics?.() || null;
     }
     return out;
-  }, INFRA_LAYER_IDS).then((lod) => { report(label, lod); return lod; });
+  }, INFRA_LAYER_IDS).then((lod) => {
+    report(label, lod);
+    return lod;
+  });
 
   if (!CONTROL) {
     const globalLod = await readLod('getLodDiagnostics @ full-earth');
@@ -168,7 +202,10 @@ try {
       check(`${id}: LOD selection has run`, !!d && d.computed === true, d);
       check(`${id}: active stems within the band budget`, !!d && d.active <= d.budgetLimit, d);
       check(`${id}: full-earth band budget is INFRA_LOD_ACTIVE_MIN`,
-        !!d && d.budgetLimit === INFRA_LOD_ACTIVE_MIN, { got: d?.budgetLimit, want: INFRA_LOD_ACTIVE_MIN });
+        !!d && d.budgetLimit === INFRA_LOD_ACTIVE_MIN, {
+          got: d?.budgetLimit,
+          want: INFRA_LOD_ACTIVE_MIN
+        });
       // Every bound above is satisfied by an EMPTY active set: `computed` is
       // true, `0 <= budgetLimit`, and `0 < total`. A regressed candidate build
       // or occlusion test would therefore pass the gate while both layers
@@ -181,7 +218,10 @@ try {
       if (d && d.total > d.budgetLimit) {
         check(`${id}: declutter is engaged (active < total)`, d.active < d.total, d);
         check(`${id}: full-earth active set fills the band budget`,
-          d.active === d.budgetLimit, { active: d.active, budgetLimit: d.budgetLimit });
+          d.active === d.budgetLimit, {
+            active: d.active,
+            budgetLimit: d.budgetLimit
+          });
       }
     }
 
@@ -192,9 +232,15 @@ try {
       v.camera.cancelFlight();
       v.camera.setView({
         destination: ell.cartographicToCartesian({
-          longitude: -97.74 * Math.PI / 180, latitude: 30.27 * Math.PI / 180, height: 55_000,
+          longitude: -97.74 * Math.PI / 180,
+          latitude: 30.27 * Math.PI / 180,
+          height: 55_000,
         }),
-        orientation: { heading: 0, pitch: -Math.PI / 3, roll: 0 },
+        orientation: {
+          heading: 0,
+          pitch: -Math.PI / 3,
+          roll: 0
+        },
       });
       // setView does not fire moveEnd; raise the LOD recompute trigger.
       v.camera.moveEnd.raiseEvent?.();
@@ -206,11 +252,16 @@ try {
       const g = globalLod[id];
       const r = regionalLod[id];
       check(`${id}: city band lifts the budget to INFRA_LOD_ACTIVE_MAX`,
-        !!r && r.budgetLimit === INFRA_LOD_ACTIVE_MAX, { got: r?.budgetLimit, want: INFRA_LOD_ACTIVE_MAX });
+        !!r && r.budgetLimit === INFRA_LOD_ACTIVE_MAX, {
+          got: r?.budgetLimit,
+          want: INFRA_LOD_ACTIVE_MAX
+        });
       // `>=` alone accepts 0 >= 0, so the non-shrink check needs a floor too.
       check(`${id}: active set did not shrink when zooming in`,
-        !!r && !!g && r.active > 0 && r.active >= Math.min(g.active, r.total),
-        { global: g?.active, regional: r?.active });
+        !!r && !!g && r.active > 0 && r.active >= Math.min(g.active, r.total), {
+          global: g?.active,
+          regional: r?.active
+        });
     }
 
     // ── GATE c: no churn between camera moves ───────────────────────────
@@ -230,12 +281,17 @@ try {
         gev.viewer.scene.requestRender?.();
         await new Promise((r) => setTimeout(r, 120));
       }
-      return { before, after: snap() };
+      return {
+        before,
+        after: snap()
+      };
     }, INFRA_LAYER_IDS);
     check('the same visible IDs remain stable without a camera move',
-      churn.before.every((ids) => ids.length > 0)
-        && JSON.stringify(churn.before) === JSON.stringify(churn.after),
-      { beforeCounts: churn.before.map((ids) => ids.length), afterCounts: churn.after.map((ids) => ids.length) });
+      churn.before.every((ids) => ids.length > 0) &&
+      JSON.stringify(churn.before) === JSON.stringify(churn.after), {
+        beforeCounts: churn.before.map((ids) => ids.length),
+        afterCounts: churn.after.map((ids) => ids.length)
+      });
 
     // Back to full-earth for the frame-cost measurement.
     await page.evaluate(() => {
@@ -243,9 +299,15 @@ try {
       const ell = v.scene.globe.ellipsoid;
       v.camera.setView({
         destination: ell.cartographicToCartesian({
-          longitude: 0, latitude: 15 * Math.PI / 180, height: 24_000_000,
+          longitude: 0,
+          latitude: 15 * Math.PI / 180,
+          height: 24_000_000,
         }),
-        orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 },
+        orientation: {
+          heading: 0,
+          pitch: -Math.PI / 2,
+          roll: 0
+        },
       });
       v.camera.moveEnd.raiseEvent?.();
       v.scene.requestRender?.();
@@ -290,14 +352,16 @@ try {
     };
     requestAnimationFrame(tick);
   }));
-  report(CONTROL
-    ? 'rendered-frame intervals, control (infra OFF), 10s orbit'
-    : 'rendered-frame intervals, infra ON, 10s orbit', frameCost);
+  report(CONTROL ?
+    'rendered-frame intervals, control (infra OFF), 10s orbit' :
+    'rendered-frame intervals, infra ON, 10s orbit', frameCost);
 
   // ── parked-idle honesty: the LOD walk must not force continuous render ─
   await new Promise((r) => setTimeout(r, 4_000));
   const idle = await page.evaluate(async () => {
-    const { getRenderGovernorDiagnostics } = await import('/src/renderGovernor.js');
+    const {
+      getRenderGovernorDiagnostics
+    } = await import('/src/renderGovernor.js');
     return new Promise((resolve) => {
       const scene = window.__godsEyeView.viewer.scene;
       const startedAt = Date.now();
@@ -311,24 +375,34 @@ try {
       setTimeout(() => {
         remove();
         const governor = getRenderGovernorDiagnostics();
-        resolve({ renders, tilesLoadedBefore, tilesLoadedAfter: scene.globe.tilesLoaded,
-          framesWithPendingTiles, mode: governor.mode, holds: governor.holds,
-          requests: governor.recentRequests.filter(request => request.at >= startedAt) });
+        resolve({
+          renders,
+          tilesLoadedBefore,
+          tilesLoadedAfter: scene.globe.tilesLoaded,
+          framesWithPendingTiles,
+          mode: governor.mode,
+          holds: governor.holds,
+          requests: governor.recentRequests.filter(request => request.at >= startedAt)
+        });
       }, 5_000);
     });
   });
-  report(CONTROL
-    ? 'parked idle, control (postRender fires / 5s)'
-    : 'parked idle with infra ON (postRender fires / 5s)', idle);
+  report(CONTROL ?
+    'parked idle, control (postRender fires / 5s)' :
+    'parked idle with infra ON (postRender fires / 5s)', idle);
   if (!CONTROL) {
     check('parked idle stays near zero (≤6 / 5s)', idle.renders <= 6, idle);
   }
   check('no uncaught application errors', pageErrors.length === 0, pageErrors);
 
   try {
-    fs.mkdirSync(SHOTS_DIR, { recursive: true });
+    fs.mkdirSync(SHOTS_DIR, {
+      recursive: true
+    });
     const shot = path.join(SHOTS_DIR, CONTROL ? 'infra-lod-control.png' : 'infra-lod.png');
-    await page.screenshot({ path: shot });
+    await page.screenshot({
+      path: shot
+    });
     console.log(`  [SHOT] ${shot}`);
   } catch (e) {
     console.log(`  [SHOT] skipped — ${e?.message || e}`);
