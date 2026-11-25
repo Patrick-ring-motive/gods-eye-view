@@ -2,10 +2,20 @@ import {
   CCTV_CARD_FETCH_BURST_LIMIT,
   frameFetchDue,
 } from '../../data/cctvCards.js';
-import { staticFrameRefreshMs } from '../../data/cctvLod.js';
-import { HOVER_PICK_THROTTLE_MS, HOVER_RELEASE_MS } from './policy.js';
+import {
+  staticFrameRefreshMs
+} from '../../data/cctvLod.js';
+import {
+  HOVER_PICK_THROTTLE_MS,
+  HOVER_RELEASE_MS
+} from './policy.js';
 
-export function createHover({ state: layerState, services, parts, source }) {
+export function createHover({
+  state: layerState,
+  services,
+  parts,
+  source
+}) {
   /**
    * Throttled MOUSE_MOVE hover pass (owner round 2, item B): pointing at a
    * camera icon that has no card summons its card immediately. This is
@@ -45,8 +55,7 @@ export function createHover({ state: layerState, services, parts, source }) {
     // Hovering the active camera or a camera that already has a card is a
     // no-op; video feeds stay icon-only until activated (ambient tier is
     // stills-only — same rule as the LOD selection).
-    const eligible =
-      !!record &&
+    const eligible = !!record &&
       cameraId !== layerState._activeCameraId &&
       !layerState._cardIds.has(cameraId) &&
       !parts.model.isVideoFeedType(
@@ -115,7 +124,9 @@ export function createHover({ state: layerState, services, parts, source }) {
     const slot = parts.cards.ensureCardFrameSlot(cameraId);
     const refreshMs = staticFrameRefreshMs(record.camera);
     if (!frameFetchDue(slot, refreshMs, Date.now())) return;
-    parts.cards.fetchCardFrame(record, slot, refreshMs, { userGesture: true });
+    parts.cards.fetchCardFrame(record, slot, refreshMs, {
+      userGesture: true
+    });
   }
   return {
     handleHoverMove,
