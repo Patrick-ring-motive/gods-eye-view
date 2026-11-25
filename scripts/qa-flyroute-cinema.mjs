@@ -107,9 +107,7 @@ const browser = await puppeteer.launch({
     '--disable-setuid-sandbox',
     // Real GPU when the host has one: the dolly is frame-rate independent, but
     // a higher sample rate makes the roll and the ease ramps far easier to see.
-    ...(process.platform === 'darwin' ?
-      ['--use-angle=metal', '--enable-gpu'] :
-      ['--use-gl=angle', '--use-angle=swiftshader']),
+    ...(process.platform === 'darwin' ? ['--use-angle=metal', '--enable-gpu'] : ['--use-gl=angle', '--use-angle=swiftshader']),
     '--disable-dev-shm-usage',
     '--disable-background-timer-throttling',
     '--disable-renderer-backgrounding',
@@ -166,7 +164,8 @@ async function installSampler() {
           const probe = viewer.scene.sampleHeight(carto.clone());
           if (Number.isFinite(probe)) surfaceM = probe;
         } catch {
-          /* tiles not loaded under the camera */ }
+          /* tiles not loaded under the camera */
+        }
       }
       window.__gevFlyTrace.rows.push({
         t: performance.now(),
@@ -550,7 +549,8 @@ try {
       read = () => mod.getActiveCameraMotion?.() ?? null;
       slotBefore = read();
     } catch {
-      /* dev-only module read */ }
+      /* dev-only module read */
+    }
     const rollBefore = (viewer.camera.roll * 180) / Math.PI;
     window.__gevFlyTrace.marks.push({
       label: 'pointerdown',
