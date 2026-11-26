@@ -1,7 +1,15 @@
-import { defaultSourceRoot } from './common/source-root.js';
-import { handleHudSummary } from './openai/hud-summary.js';
-import { createDebugLogHandler } from './openai/debug-log.js';
-import { createRealtimeTokenHandler } from './openai/realtime.js';
+import {
+  defaultSourceRoot
+} from './common/source-root.js';
+import {
+  handleHudSummary
+} from './openai/hud-summary.js';
+import {
+  createDebugLogHandler
+} from './openai/debug-log.js';
+import {
+  createRealtimeTokenHandler
+} from './openai/realtime.js';
 
 /**
  * Vite plugin: OpenAI Realtime ephemeral client secret.
@@ -19,12 +27,17 @@ function openAiRealtimeProxy({
 
     middlewares.use(
       '/api/realtime/debug-log',
-      createDebugLogHandler({ sourceRoot }),
+      createDebugLogHandler({
+        sourceRoot
+      }),
     );
 
     middlewares.use(
       '/api/realtime/token',
-      createRealtimeTokenHandler({ ...realtime, annotationGuidance }),
+      createRealtimeTokenHandler({
+        ...realtime,
+        annotationGuidance
+      }),
     );
   }
 
@@ -39,4 +52,6 @@ function openAiRealtimeProxy({
   };
 }
 
-export { openAiRealtimeProxy };
+export {
+  openAiRealtimeProxy
+};
